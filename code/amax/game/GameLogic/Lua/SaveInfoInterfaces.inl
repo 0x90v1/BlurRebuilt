@@ -148,9 +148,17 @@ public:
 				// Implement SteveB's debug save for now
 				U8* pData = pBuffer;
 				U32 uMagicNumber		= 0xABCDE337;
+			#if PLATFORM_PC
+				// [Blur2PC] Save() writes the header through the native (little-endian) serialiser; the
+				// big-endian read below never matched on PC, so every save was rejected on load.
+				U32 uMagicNumberRead	= pData[3] << 24 | pData[2] << 16 | pData[1] << 8 | pData[0];
+				U32 uOriginalSize		= pData[7] << 24 | pData[6] << 16 | pData[5] << 8 | pData[4];
+				U32 uCompressedSize		= pData[11] << 24 | pData[10] << 16 | pData[9] << 8 | pData[8];
+			#else
 				U32 uMagicNumberRead	= pData[0] << 24 | pData[1] << 16 | pData[2] << 8 | pData[3];
 				U32 uOriginalSize		= pData[4] << 24 | pData[5] << 16 | pData[6] << 8 | pData[7];
 				U32 uCompressedSize		= pData[8] << 24 | pData[9] << 16 | pData[10] << 8 | pData[11];
+			#endif
 				bool result = false;
 				if (uMagicNumberRead == uMagicNumber)
 				{
@@ -162,6 +170,9 @@ public:
 					Sys::BinaryDeserialiserAutoEndian serial( stream );
 					result = Game::LoadGameImpl( serial );
 					delete pDecompressed;
+				#if PLATFORM_PC
+					LOGINFO( g_Log, "[Blur2PC] profile save load %s (%u bytes)\n", result ? "succeeded" : "failed", uOriginalSize );
+				#endif
 				}
 				else
 				{

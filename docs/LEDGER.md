@@ -71,3 +71,31 @@ Verified: from the existing Garage/start-screen traces only (no race trace yet).
 Blocked: none.
 Next: after the scratched-paint issue, trace a race frame and fix the depth source for shadows.
 Files touched: docs/analysis.md, this ledger.
+
+## 2026-09-24 01:10 — session 1 (Claude) — T005: car paint damage and car shadows fixed
+Did: (1) Scratched paint: retail paint shaders read the `.w` of the undercoat/scuff colour constants (c203/c204) as dent and scratch amounts; `VehicleModel.cpp` uploads them with w = 0. (2) Shadows: `C_MainView::RenderPrepass1` copies the prepass R32F depth into the global depth texture the blob shadows sample; `psScreenBlobShadows.psh` gets a PC path with no depth-alpha car mask (PS3 trick); `shadergen.py` passes `/D BLUR2PC=1` to built-in shaders. Temporary shadow diagnostics removed. Details in analysis.md ("Vehicle damage rendering", "Car shadows").
+Verified: damage: Garage Focus RS and event-screen car clean in scripted screenshots. Shadows: A/B scripted race runs (blob shadows on vs an env toggle that has since been removed) show car-sized shadows at the neighbouring grid slots that disappear with blobs off. Build 0 errors after cleanup; the final binary was not rerun.
+Blocked: none.
+Next: AI car models are not drawn although their blob shadows are (grid slots ahead of the player show shadows with no car). Start from `C_VehicleActor` model instance visibility/insertion into the scene graph for non-player vehicles (compare with the player path; the showroom/carousel cars draw). Then per-part race damage `.w` source, the close crash, and the collision stall.
+Files touched: code/amax/game/Game/GameWorld/View/Main.cpp; code/mercury/library/graphics/vehicle/source/VehicleModel.cpp; code/mercury/library/graphics/render/include/render/shaders/deferred/psScreenBlobShadows.psh; code/tools/jam2cmake/shadergen.py; docs/analysis.md, docs/BOARD.md, this ledger.
+
+## 2026-09-24 02:30 — session 1 (Claude) — T050: 60 fps cap removed
+Did: the PC loop decouples update from render. The game updates at 60 Hz ticks (whole-tick forced frame time, at most 4 per update), every loop renders, and model element matrices plus the camera are blended between the last two ticks. The limiter moved to the render loop and defaults to off. Input auto-repeat counts real time on PC. Car damage and shadow fixes from the previous entry still hold (Garage car clean at 141 fps). Details: analysis.md "Frame rate".
+Verified: scripted race (`scripts/race.txt`, `race_pause.txt`) with default settings: 144 fps render, 60 Hz update, no crash; a per-frame camera log showed an even 0.33 m per rendered frame at speed; before the forced whole-tick frame time it alternated between 0 and 1.6 m. Screenshots normal. Escape did not pause the race in the script, so the paused-camera case is untested.
+Blocked: none.
+Next: the user should drive a race and judge smoothness. Then interpolate the render-time consumers that still use tick positions (blob shadows first: `BlobShadows` caster positions come from `C_VehicleActor::UpdateBlobShadow`). Open from before: AI car models not drawn, per-part race damage, close crash, collision stall.
+Files touched: code/mercury/library/gamesys/framework/source/{application/ApplicationPC.cpp,application/ApplicationBase.cpp,timer/Timer.cpp}; code/mercury/library/graphics/world_render/{source/ModelInstance.cpp,include/world_render/ModelInstance.h}; code/mercury/library/graphics/camera2/{source/Feed.cpp,source/Camera.cpp,include/camera2/Feed.h,include/camera2/Camera.h}; code/mercury/library/util/input/{source/input/GameInput.cpp,include/input/GameInput.h}; _work/run/scripts/race_pause.txt; docs/analysis.md, docs/BOARD.md, AGENTS.md, this ledger.
+
+## 2026-09-24 02:50 — session 1 (Claude) — T050: blob shadows follow interpolated cars
+Did: dynamic blob shadow instances record the previous and latest caster pose and ground point per update; `C_BlobShadows::PreRender` writes the blended pose each render. Tick and render fraction come from world_render (`Blur2PCInterpCurrentTick`, `Blur2PCInterpRenderAlpha`, `Blur2PCBlendMatrix`), since blobshadows has no camera2 include path.
+Verified: build 0 errors; scripted race at 141 fps render, 58.8 Hz update, no crash; grid screenshot shows the blob shadows. Alignment with the drawn car holds by construction (same ticks, same fraction); not measured.
+Blocked: none.
+Next: user drive test at 144 Hz. Remaining tick-position consumers: particles, headlight projections, HUD markers.
+Files touched: code/mercury/library/gamesys/blobshadows/{source/BlobShadows.cpp,include/blobshadows/BlobShadows.h}; code/mercury/library/graphics/world_render/{source/ModelInstance.cpp,include/world_render/ModelInstance.h}; docs/analysis.md, docs/BOARD.md, this ledger.
+
+## 2026-09-24 11:10 — session 1 (Claude) — profile saves load; career completion switch
+Did: fixed the PC profile save header read (little-endian); added `BLUR2PC_COMPLETE_CAREER` (SP_Lua.cpp) and launchers `play.bat` / `play_complete_career.bat` in the repo root; guarded the debug HUD pane against the missing debug font (crashed when started from the wrong directory). Details in analysis.md "Profile saves (PC)".
+Verified: the user's 10:48 save loads ("profile save load succeeded"); with the switch the career header shows 450/450 stars and rank 24, the game rewrote the save at 11:02, and a restart without the switch still shows 450/450. Backup of the pre-test save: `_work/savebackup/amaxsave.2026-09-24_1048`.
+Blocked: importing the retail 100% save needs the 1373 -> 1378 save-format differences (not attempted).
+Next: user play test. Open items unchanged (AI car models not drawn, per-part damage, close crash, collision stall).
+Files touched: code/amax/game/GameLogic/Lua/SaveInfoInterfaces.inl; code/amax/game/GameLogic/SinglePlayer/SP_Lua.cpp; code/mercury/library/gamesys/debugsystems/source/DebugHUDSubscriber.cpp; play.bat, play_complete_career.bat; docs/analysis.md, this ledger.

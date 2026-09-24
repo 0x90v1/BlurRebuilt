@@ -41,6 +41,9 @@ def compile_one(fxc, src, stage, profile, defines, incdirs, entry='main'):
     # Bizarre's PC shader scripts pass /Zpr (mercury/applications/Graphics/TestDisplay/src/mk_common_pc_mesh.bat).
     # Without it every built-in shader that transforms by a uploaded matrix gets it transposed.
     cmd = [fxc, '/nologo', '/T', f'{stage}_{profile}', '/E', entry, '/O3', '/Zpr', '/Fo', outp, src]
+    # BLUR2PC marks the PC port's own shader builds (the jamfiles pass no platform define; shader
+    # sources test PLATFORM_PS3 / XB2 and fall through to a shared PS3/PC path where PC needs its own).
+    cmd += ['/D', 'BLUR2PC=1']
     for d in defines:
         cmd += ['/D', d]
     for i in incdirs:

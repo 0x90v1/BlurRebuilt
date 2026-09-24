@@ -6,11 +6,42 @@
 #pragma comment(lib, "winmm.lib")
 #endif
 
-// [Blur2PC] Frame limiter. The game was built for consoles locked at <= 60 Hz and still has
-// frame-counted logic (UI, particles, pickups; task T050), so above 60 fps parts of it run fast.
-// Retail PC Blur hides the same problem with an external 60 fps cap (dxvk.conf in the install).
-// 0 disables the limiter.
-Debug::Int g_debugBlur2PCFrameLimit("Framework.Timer.FrameLimit", 60, Debug::Range(0, 1000));
+// [Blur2PC] Optional cap on rendered frames per second (0 = uncapped, the default). The game
+// simulation always runs at 60 Hz; the PC loop renders in between with interpolation (see
+// C_Application::IdleLoop). BLUR2PC_FRAMELIMIT=<fps> sets it at startup.
+Debug::Int g_debugBlur2PCFrameLimit("Framework.Timer.FrameLimit", 0, Debug::Range(0, 1000));
+
+// [Blur2PC] waits until 1/limit s have passed since the previous call; called once per rendered frame
+void Blur2PCFrameLimitWait()
+{
+	static bool s_envRead = false;
+	if (!s_envRead)
+	{
+		s_envRead = true;
+		if (const char* e = getenv("BLUR2PC_FRAMELIMIT"))
+			g_debugBlur2PCFrameLimit = atoi(e);
+	}
+	static Time::C_Time s_prev = 0;
+	if (g_debugBlur2PCFrameLimit > 0 && s_prev)
+	{
+#if defined(PLATFORM_PC)
+		static bool s_timerPeriodSet = false;
+		if (!s_timerPeriodSet) { timeBeginPeriod(1); s_timerPeriodSet = true; }
+#endif
+		const F32 target = 1.0f / (F32)(S32)g_debugBlur2PCFrameLimit;
+		for (;;)
+		{
+			const F32 elapsed = (F32)(Time::GetPerformanceCounter() - s_prev) / (F32)Time::GetPerformanceFrequency();
+			if (elapsed >= target)
+				break;
+#if defined(PLATFORM_PC)
+			if (target - elapsed > 0.002f)
+				Sleep(1);
+#endif
+		}
+	}
+	s_prev = Time::GetPerformanceCounter();
+}
 
 namespace Framework
 {
@@ -36,26 +67,6 @@ C_Timer::~C_Timer()
 
 void C_Timer::Update()
 {
-	// [Blur2PC] frame limiter, see g_debugBlur2PCFrameLimit
-	if (g_debugBlur2PCFrameLimit > 0)
-	{
-#if defined(PLATFORM_PC)
-		static bool s_timerPeriodSet = false;
-		if (!s_timerPeriodSet) { timeBeginPeriod(1); s_timerPeriodSet = true; }
-#endif
-		const F32 target = 1.0f / (F32)(S32)g_debugBlur2PCFrameLimit;
-		for (;;)
-		{
-			const F32 elapsed = (F32)(Time::GetPerformanceCounter() - m_PrevTime) / (F32)Time::GetPerformanceFrequency();
-			if (elapsed >= target)
-				break;
-#if defined(PLATFORM_PC)
-			if (target - elapsed > 0.002f)
-				Sleep(1);
-#endif
-		}
-	}
-
 	const Time::C_Time currTime = Time::GetPerformanceCounter();
 	m_FrameTime = (F32)(currTime - m_PrevTime) / (F32)Time::GetPerformanceFrequency();
 	

@@ -1,5 +1,6 @@
 
 #include "stdafx.h"
+#include <camera2/Feed.h>	// [Blur2PC] tick counter
 #include <camera2/Camera.h>
 #include <camera2/CameraType.h>
 #include <camera2/EffectInfo.h>
@@ -90,6 +91,7 @@ void C_Camera::GetPrevPosition() // todo - change this method name to 'StorePrev
 	m_PrevPosition = Position();
 	m_PrevShaken = Shaken();
 	m_PrevFov = Fov();
+	m_Blur2PCTick = I_Feed::Blur2PCTick();	// [Blur2PC]
 }
 
 void C_Camera::GetCameraShake(C_Quaternion& rotate, F32& fov) const
@@ -136,6 +138,7 @@ void C_Camera::CopyFrom(const C_Camera& other)
 		m_PrevPosition = pos;
 	m_PrevShaken = other.m_PrevShaken;
 	m_PrevFov = other.m_PrevFov;
+	m_Blur2PCTick = other.m_Blur2PCTick;	// [Blur2PC]
 }
 
 // Get the look quaternion for looking in a direction

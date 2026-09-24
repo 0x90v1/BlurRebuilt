@@ -110,6 +110,8 @@ private:
 	Maths::HVec3 m_PrevPosition;
 	Maths::C_Quaternion m_PrevShaken;
 	F32 m_PrevFov, m_FovShake;
+public:
+	U32 m_Blur2PCTick;	// [Blur2PC] update tick of the last GetPrevPosition (render interpolation)
 	C_ShakeWorld* m_pShakeWorld; // The shake events which this camera reacts to, or 0 for none
 	C_ShakeCamera* m_pShakeCamera; // Extra shake
 	F32 m_Period;

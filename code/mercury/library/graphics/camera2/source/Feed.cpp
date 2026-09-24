@@ -12,6 +12,13 @@ namespace Cam2
 {
 
 static F32 g_ShutterEnd = 1.f;
+// [Blur2PC] render interpolation: shifts the view between the camera's previous and current
+// update poses (0 = current pose; -1 = previous). Set around each render by the PC loop.
+static F32 g_Blur2PCRenderOffset = 0.f;
+void I_Feed::SetRenderOffset(F32 offset) { g_Blur2PCRenderOffset = offset; }
+static U32 g_Blur2PCTick = 1;
+void I_Feed::Blur2PCAdvanceTick() { ++g_Blur2PCTick; }
+U32 I_Feed::Blur2PCTick() { return g_Blur2PCTick; }
 static Debug::Float g_MatrixZoom("Camera2.PhotoMode.MatrixZoom", 1.f, Debug::Range(0.1f, 5.f));
 static Debug::Float g_MatrixDeflectX("Camera2.PhotoMode.MatrixDeflectX", 0.f, Debug::Range(-5.f, 5.f));
 static Debug::Float g_MatrixDeflectY("Camera2.PhotoMode.MatrixDeflectY", 0.f, Debug::Range(-5.f, 5.f));
@@ -82,7 +89,8 @@ void I_Feed::ToViewSetup(Display::C_ViewSetup3D& vs, bool blurEnd) const
 	
 	// Get matrix at start / end of motion blur:
 
-	F32 timeVal = g_ShutterEnd;
+	// [Blur2PC] render interpolation offset, only for a camera that moved on the latest update
+	F32 timeVal = g_ShutterEnd + ((camera.m_Blur2PCTick == g_Blur2PCTick) ? g_Blur2PCRenderOffset : 0.f);
 	if (!blurEnd)
 		timeVal -= camera.ShutterAngle();
 

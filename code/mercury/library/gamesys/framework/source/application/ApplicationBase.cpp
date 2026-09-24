@@ -147,6 +147,10 @@ Debug::Bool		g_debugDumpFreeMemoryAllocInfo						("Graphics.Render.DumpFreeMemor
 static Debug::Float GameFrameRate ("Camera2.GameFrameRate",  0.f, Debug::Range(0.f, 120.f));
 static Debug::Float DebugFrameRate("Camera2.DebugFrameRate", 0.f, Debug::Range(0.f, 120.f));
 
+// [Blur2PC] frame time the PC loop reports for the next update when update and render are
+// decoupled (whole 1/60 s ticks); negative = measure real time. See C_Application::IdleLoop.
+F32 g_Blur2PCForcedFrameTime = -1.f;
+
 #if !defined(CFG_GOLD) && defined(USE_DISPLAY_WINDOWS) && defined(PLATFORM_PS3)
 #define TAKE_SCREENSHOTS
 #endif
@@ -611,7 +615,9 @@ void C_ApplicationBase::CommonUpdate()
 	// create or destroy any pending layers
 	m_LayerManager.Update();
 
-	if (GameFrameRate < 0.0001f)
+	if (g_Blur2PCForcedFrameTime >= 0.f)
+		m_Timer.ForceFrameTime(g_Blur2PCForcedFrameTime);	// [Blur2PC] decoupled loop
+	else if (GameFrameRate < 0.0001f)
 		m_Timer.ForceFrameTime(-1.f); // Auto frameskip
 	else
 		m_Timer.ForceFrameTime(1.f / GameFrameRate); // Specific frame rate

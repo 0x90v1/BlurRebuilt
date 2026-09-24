@@ -20,6 +20,11 @@ struct RenderModelResourceUsage;
 class C_RenderModelData;
 class C_Model;
 
+// [Blur2PC] render interpolation helper: blends two affine matrices (slerp rotation, lerp position and scale)
+Maths::HMat43 Blur2PCBlendMatrix(const Maths::HMat43& a, const Maths::HMat43& b, F32 t);
+U32 Blur2PCInterpCurrentTick();		// [Blur2PC] update tick counter (advances once per decoupled update)
+F32 Blur2PCInterpRenderAlpha();		// [Blur2PC] render fraction during a render, 1 otherwise
+
 class C_ModelInstance : public SceneGraph::C_ModelInstance
 {
 public:
@@ -33,6 +38,7 @@ public:
 
 	// setting and getting of 
 	void				SetElementMatrix( const S32 elementIndex, const Maths::HMat43 PCREF m );
+	void				WriteElementMatrix( const S32 elementIndex, const Maths::HMat43 PCREF m );	// [Blur2PC] raw store, no interpolation bookkeeping
 	Maths::HMat43		GetElementMatrix( const S32 elementIndex ) const;
 
 	// set data to model parameter

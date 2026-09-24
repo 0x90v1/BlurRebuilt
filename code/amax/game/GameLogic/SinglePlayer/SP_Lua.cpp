@@ -699,6 +699,66 @@ int SP_GenerateVehicleUnlockTable(lua_State* lua, SP_SaveGame* sg, SP_UnlockList
 	return 1;
 }
 
+
+// [Blur2PC] BLUR2PC_COMPLETE_CAREER=1: whenever the career save is loaded or created, give
+// every event gold with its fan targets met, fill every boss demand and raise fans to the top rank,
+// then run the normal unlock pass (tiers, events, bosses, boss rewards, cars and mods follow from
+// that state). The game writes it to the save the next time it saves.
+static void Blur2PCCompleteCareerIfRequested()
+{
+	// applied on every load/create while the variable is set (a profile load replaces the career
+	// created at boot); repeating it is harmless
+	const char* e = getenv("BLUR2PC_COMPLETE_CAREER");
+	if (!e || e[0] == 0 || e[0] == '0' || !gSaveGame || !gSpTierData || !gSpRankData)
+		return;
+
+	SP_SaveGame* sg = gSaveGame;
+	SP_TierRoot* root = gSpTierData->tierRoot;
+	int events = 0;
+	for (XtI32 tierNo = 0; tierNo < root->tiers.count; tierNo++)
+	{
+		SP_Tier* tier = root->tiers[tierNo];
+		if (!tier)
+			continue;
+		for (int j = 0; j < tier->events.count; j++)
+		{
+			if (SP_Event* event = tier->events[j])
+			{
+				if (SP_SaveEvent* se = SP_GetSaveEvent(sg, event->id))
+				{
+					se->_state			= kSP_Gold;
+					se->_bestFanPar		= event->fanPar;
+					se->_fanRunComplete	= 1;
+					events++;
+				}
+			}
+		}
+		if (SP_Boss* boss = tier->boss)
+		{
+			for (int i = 0; i < boss->demands.count; i++)
+			{
+				if (SP_BossDemand* demand = boss->demands[i])
+				{
+					if (SP_DoesBossDemandUseFloatValue(sg, demand))
+						SP_SetBossDemandValueFloat(sg, demand, SP_GetBossDemandTargetFloat(sg, demand));
+					else
+						SP_SetBossDemandValueInt(sg, demand, SP_GetBossDemandTargetInt(sg, demand));
+				}
+			}
+		}
+	}
+	if (SP_Rank* rank = SP_GetRank(sg, SP_GetRankCount(sg) - 1))
+		sg->_totalFans = rank->fans;
+
+	// two passes: boss demands derived from event results settle on the first
+	SP_UnlockList unlocks;
+	SP_ProcessUnlocks(sg, unlocks);
+	unlocks.Clear();
+	SP_ProcessUnlocks(sg, unlocks);
+
+	LOGINFO(gSpLog, "[Blur2PC] career completed: %d events gold, rank %d, %d/%d stars", events, sg->_rank, SP_CountTotalStars(sg), SP_CountMaxStars(sg));
+}
+
 //
 // Interface
 //
@@ -708,6 +768,8 @@ int SP_LuaNewSaveGame(lua_State* lua)
 	delete gSaveGame;
 
 	gSaveGame = SP_CreateSaveGame();
+
+	Blur2PCCompleteCareerIfRequested();	// [Blur2PC]
 
 	return 0;
 }
@@ -1133,6 +1195,7 @@ void SP_ExportSaveGameLua(Sys::BinarySerialiserAutoEndian& s)
 void SP_ImportSaveGameLua(Sys::BinaryDeserialiserAutoEndian& s)
 {
 	SP_ImportSaveGame(gSaveGame, s);
+	Blur2PCCompleteCareerIfRequested();	// [Blur2PC]
 }
 
 SP_SaveGame* SP_GetCurrentSaveGame()

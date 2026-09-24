@@ -252,6 +252,11 @@ void C_DebugHUDSubscriber::Render()
 	{
 		//Create the font renderer
 		m_pFontRenderer = Render::Font::FontSystem()->GetFontRenderer("dontship/fonts/arialdebug.font");
+		if (m_pFontRenderer == NULL)	// [Blur2PC] the debug font is not in retail data; skip the pane
+		{
+			m_Mutex.Release();
+			return;
+		}
 		m_pFontRenderer->SetScaleX(16);
 		m_pFontRenderer->SetScaleY(24);
 	}

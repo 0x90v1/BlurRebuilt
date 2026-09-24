@@ -74,7 +74,7 @@ What the tree shipped with, for reference:
 
 **Shaders.** `FX::Manager::LoadEffectInternal` (graphics/fx) opens `.fxb` effects from `graphics\shaders\speed\`; `ImportFXB` expects a `PCFX` block of D3D9 bytecode. There is no runtime HLSL compile and no on-disk cache. The discs carry Xenos microcode only (FXB2 / XEFX v9 on Aug 31, v12 on Nov). The per-disc shader cache is: microcode → XenosRecomp HLSL → fxc SM3 → PC `.fxb`, keyed by disc + microcode hash.
 
-**Timing.** `C_GameWorld::CalcNumberOfSteps` (amax/game/Game/GameWorld/GameWorld.cpp ~2438) accumulates frame time into 1/60 s steps; the step loop clamps at `Game.MaxPhysicsUpdates` (2 or 4). Input auto-repeat (`util/input/source/input/GameInput.cpp:199`) and pickup rotation count frames, not seconds. Keep the fixed step; convert frame-counted consumers to time. `docs/analysis.md` lists the known offenders.
+**Timing.** `C_GameWorld::CalcNumberOfSteps` (amax/game/Game/GameWorld/GameWorld.cpp ~2438) accumulates frame time into 1/60 s steps; the step loop clamps at `Game.MaxPhysicsUpdates` (2 or 4). Car physics integrates a fixed 1/60 s per step, so the simulation stays at 60 Hz. On PC, `C_Application::IdleLoop` runs the game update at 60 Hz ticks and renders every loop with matrix and camera interpolation between the last two ticks (details in `docs/analysis.md`, "Frame rate").
 
 ## Disc generations (the fact that shapes everything)
 

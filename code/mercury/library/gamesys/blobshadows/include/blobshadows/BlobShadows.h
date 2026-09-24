@@ -125,6 +125,13 @@ private:
 	WorldRender::MaterialParameter	m_LightPositionParameter;
 	WorldRender::MaterialParameter	m_ShadowAlphaParameter;
 
+	// [Blur2PC] render interpolation: caster pose and ground point at the previous and latest update
+	Maths::HMat43					m_Blur2PCPrevCaster, m_Blur2PCCurCaster;
+	Maths::HVec3					m_Blur2PCPrevShadowPos, m_Blur2PCCurShadowPos;
+	U32								m_Blur2PCTick;
+	bool							m_Blur2PCHasPrev;
+	void							Blur2PCApplyRenderPose();
+
 	//Light Array Settings
 	Btl::Vector<C_BlobShadowCaster>	m_ShadowCastersVector[2];
 	U32								m_DoubleBufferShadowCastersVector;

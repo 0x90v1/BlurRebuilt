@@ -35,6 +35,11 @@ PS_OUTPUT main(PS_INPUT input)
 	
 	#if defined(XB2)
 	float fMask = (1.f - tex2D(g_tStencil, vUV + g_PixelOffset.xy).b);
+	#elif defined(BLUR2PC)
+	// [Blur2PC] PS3 keeps a car mask in the depth buffer's alpha (stencil) and Xbox reads a stencil
+	// texture; the PC depth texture is R32F, whose alpha reads 1, which masked every pixel and removed
+	// all blob shadows. No mask on PC: the height falloff below already fades the shadow off the car body.
+	real fMask = 1.h;
 	#else
 	real fMask = (1.h - h4tex2D(g_tDepth, vUV + g_PixelOffset.xy).a); //in Ps3 read from depth buffer
 	#endif

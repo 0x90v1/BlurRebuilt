@@ -1,4 +1,14 @@
 #include "FrameworkPch.h"
+#include <camera2/Feed.h>	// [Blur2PC] render interpolation offset
+// [Blur2PC] render interpolation hooks (world_render ModelInstance.cpp)
+void Blur2PCFrameLimitWait();	// [Blur2PC] Timer.cpp
+namespace WorldRender
+{
+	void Blur2PCInterpEnable(bool enable);
+	void Blur2PCInterpTick();
+	void Blur2PCInterpBeginRender(F32 alpha);
+	void Blur2PCInterpEndRender();
+}
 #include <system/debug/Blur2PCAutomation.h>	// [Blur2PC]
 #include "Framework/Application/ApplicationPC.h"
 #include "Framework/Layer/Layer.h"
@@ -378,17 +388,90 @@ void C_Application::InitMouse()
 	}
 }
 
+static double s_Blur2PCAccum = 1.0;
+extern F32 g_Blur2PCForcedFrameTime;	// [Blur2PC] ApplicationBase.cpp	// [Blur2PC] real time not yet consumed by 60 Hz updates
+
 void C_Application::IdleLoop()
 {
 	UpdateCursor();
 
 	CHECK_MEMORY_INTEGRITY();
 
-	OnUpdate();
+	// [Blur2PC] Decoupled update/render. The simulation is hard-wired to 1/60 s steps (car physics
+	// integrates 1/60 per step), and much per-frame game logic assumed one frame per step. With
+	// decoupling on (default), the game update runs only when 1/60 s of real time has accrued, and every
+	// loop renders; model matrices and the camera are blended between the last two updates.
+	static int s_decouple = -1;
+	if (s_decouple < 0)
+	{
+		// on by default; BLUR2PC_DECOUPLE=0 restores one update per rendered frame
+		const char* e = getenv("BLUR2PC_DECOUPLE");
+		s_decouple = (e && e[0] == '0') ? 0 : 1;
+		::WorldRender::Blur2PCInterpEnable(s_decouple != 0);
+	}
+	bool doUpdate = true;
+	if (s_decouple)
+	{
+		static LARGE_INTEGER s_freq = { 0 }, s_last = { 0 };
+		LARGE_INTEGER now;
+		if (!s_freq.QuadPart) QueryPerformanceFrequency(&s_freq);
+		QueryPerformanceCounter(&now);
+		if (s_last.QuadPart)
+			s_Blur2PCAccum += (double)(now.QuadPart - s_last.QuadPart) / (double)s_freq.QuadPart;
+		s_last = now;
+		// consume whole ticks (at most 4, the game's step cap) and tell the game exactly that much time
+		// passed, so each update runs a whole number of 1/60 s steps; a longer hitch drops the rest
+		const double tick = 1.0 / 60.0;
+		int ticks = (int)(s_Blur2PCAccum / tick);
+		doUpdate = ticks >= 1;
+		if (doUpdate)
+		{
+			if (ticks > 4)
+				ticks = 4;
+			s_Blur2PCAccum -= ticks * tick;
+			if (s_Blur2PCAccum >= tick)
+				s_Blur2PCAccum = 0.0;
+			g_Blur2PCForcedFrameTime = (F32)(ticks * tick);
+		}
+	}
+
+	if (doUpdate)
+	{
+		if (s_decouple)
+		{
+			::WorldRender::Blur2PCInterpTick();
+			Cam2::I_Feed::Blur2PCAdvanceTick();
+		}
+		OnUpdate();
+	}
+
+	// [Blur2PC] render between the previous and the latest update, at the fraction of a tick elapsed
+	F32 renderAlpha = 1.0f;
+	if (s_decouple)
+	{
+		renderAlpha = (F32)(s_Blur2PCAccum / (1.0 / 60.0));
+		renderAlpha = renderAlpha < 0.0f ? 0.0f : (renderAlpha > 1.0f ? 1.0f : renderAlpha);
+		Cam2::I_Feed::SetRenderOffset(renderAlpha - 1.0f);
+		::WorldRender::Blur2PCInterpBeginRender(renderAlpha);
+	}
 
 	Display::Device()->AcquireThreadOwnership();
 	OnRender();
 	Display::Device()->ReleaseThreadOwnership();
+
+	if (s_decouple)
+	{
+		::WorldRender::Blur2PCInterpEndRender();
+		Cam2::I_Feed::SetRenderOffset(0.0f);
+	}
+	{	// [Blur2PC] rendered frame rate report (the timer's report counts updates)
+		static DWORD s_t0 = GetTickCount(); static int s_frames = 0, s_updates = 0;
+		++s_frames; if (doUpdate) ++s_updates;
+		const DWORD t = GetTickCount();
+		if (t - s_t0 >= 5000) { LOGINFO(Debug::GetLogger("blur2pc.render"), "render %.1f fps, update %.1f Hz\n", s_frames * 1000.0f / (t - s_t0), s_updates * 1000.0f / (t - s_t0)); s_t0 = t; s_frames = s_updates = 0; }
+	}
+
+	Blur2PCFrameLimitWait();	// [Blur2PC] optional render cap (Timer.cpp)
 
 	Perf::ProfilerCommon::Instance().EndFrame();
 

@@ -71,6 +71,13 @@ private:
     bool m_DebouncePressedState;
 	bool m_DebounceReleasedState;
     U16 m_TimeHeld; // Can we make this real time?
+#if PLATFORM_PC
+	// [Blur2PC] m_TimeHeld counts 1/60 s ticks of real held time on PC (it counted rendered frames,
+	// so menus auto-repeated fps/60 times too fast above 60 fps). m_PrevTimeHeld is the value before
+	// this Update, so GetButtonAutoRepeat can fire for every tick crossed during the frame.
+	U16 m_PrevTimeHeld;
+	F32 m_HeldSeconds;
+#endif
 	C_ButtonInput* m_pButtonInput;
 };
 

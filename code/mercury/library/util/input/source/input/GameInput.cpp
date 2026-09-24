@@ -7,6 +7,23 @@ namespace Input
 
 C_GameInputManager* g_pGameInputManager = NULL;
 
+#if PLATFORM_PC
+// [Blur2PC] seconds since the previous input update, measured once per frame by C_GameInputManager::Update
+static F32 s_Blur2PCFrameSeconds = 1.0f / 60.0f;
+static F32 GetFrameSeconds() { return s_Blur2PCFrameSeconds; }
+static void MeasureFrameSeconds()
+{
+	static LARGE_INTEGER s_freq = { 0 }, s_last = { 0 };
+	LARGE_INTEGER now;
+	if(s_freq.QuadPart == 0)
+		QueryPerformanceFrequency(&s_freq);
+	QueryPerformanceCounter(&now);
+	F32 dt = s_last.QuadPart ? (F32)((double)(now.QuadPart - s_last.QuadPart) / (double)s_freq.QuadPart) : (1.0f / 60.0f);
+	s_last = now;
+	s_Blur2PCFrameSeconds = dt > 0.25f ? 0.25f : dt;
+}
+#endif
+
 // C_GameInputButton
 
 C_GameInputButton::C_GameInputButton() 
@@ -14,6 +31,10 @@ C_GameInputButton::C_GameInputButton()
 	, m_DebouncePressedState(false)
 	, m_DebounceReleasedState(false)
 	, m_TimeHeld(0)
+#if PLATFORM_PC
+	, m_PrevTimeHeld(0)	// [Blur2PC]
+	, m_HeldSeconds(0.0f)
+#endif
 	, m_pButtonInput(NULL)
 {
 }
@@ -39,6 +60,21 @@ void C_GameInputButton::Update( F32 buttonPressedThreshold )
 	const bool pressed = m_Value > buttonPressedThreshold;
 	const bool prevPressed = prevValue > buttonPressedThreshold;
 
+#if PLATFORM_PC
+	// [Blur2PC] real-time held counter, in 1/60 s ticks (first pressed frame = 1)
+	m_PrevTimeHeld = m_TimeHeld;
+	if(pressed)
+	{
+		m_HeldSeconds = prevPressed ? m_HeldSeconds + GetFrameSeconds() : 0.0f;
+		const F32 ticks = m_HeldSeconds * 60.0f + 1.0f;
+		m_TimeHeld = (ticks >= 65535.0f) ? (U16)65535 : (U16)ticks;
+	}
+	else
+	{
+		m_HeldSeconds = 0.0f;
+		m_TimeHeld = 0;
+	}
+#else
 	if(pressed)
 	{
 		m_TimeHeld++;
@@ -47,6 +83,7 @@ void C_GameInputButton::Update( F32 buttonPressedThreshold )
 	{
 		m_TimeHeld = 0;
 	}
+#endif
 
     if(pressed && !prevPressed)
     {
@@ -198,6 +235,26 @@ const U16 C_GameInput::GetButtonPressedTime( const U32 buttonId ) const
 
 const bool C_GameInput::GetButtonAutoRepeat( const U32 buttonId, const U16 initialDelay, const U16 repeatTime ) const
 {
+#if PLATFORM_PC
+	// [Blur2PC] delays are in 1/60 s ticks; fire if any tick passed this frame matches the original rule
+	const C_GameInputButton& button = m_GameButtonList[ buttonId ];
+	const U32 cur = button.m_TimeHeld;
+	U32 first = (U32)button.m_PrevTimeHeld + 1;
+	if(cur == 0 || first > cur)
+		return false;
+	if(cur - first > 600)
+		first = cur - 600;
+	for(U32 t = first; t <= cur; ++t)
+	{
+		if(t == 1)
+			return true;
+		if(t < initialDelay)
+			continue;
+		if(repeatTime == 0 || ((t - initialDelay) % repeatTime) == 0)
+			return true;
+	}
+	return false;
+#endif
 	const U16 timeHeld = GetButtonPressedTime( buttonId );
 
 	if(timeHeld == 1)
@@ -320,6 +377,9 @@ C_GameInput* C_GameInputManager::GetGameInput( const S32 userIndex )
 
 void C_GameInputManager::Update()
 {
+#if PLATFORM_PC
+	MeasureFrameSeconds();	// [Blur2PC]
+#endif
 	const S32 userCount = m_GameInputList.Size();
 	for(S32 userNo=0; userNo<userCount; userNo++)
 	{

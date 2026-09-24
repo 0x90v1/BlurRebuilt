@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include <Render/Utils/Globals.h>	// [Blur2PC] g_DepthStencilBuffer
+#include "Deferred/Manager.h"	// [Blur2PC] prepass depth copy
 
 #include <AuxFlares/AuxFlares.h>
 
@@ -1037,6 +1039,26 @@ void C_MainView::RenderPrepass1(C_View& gameView)
 	 //    DX debug gives a warning message from 'DrawPrimitive' about not being able to render to a target which is used as a texture.
 
 	 Display::Device()->SetTexture(13, NULL); 			 
+
+	// [Blur2PC] The PC prepass writes view depth into its own R32F target (deferred colour target 1),
+	// which the lights sample. Drop shadows, blob shadows and other depth readers sample the context's
+	// depth texture instead: the global R32F buffer from Render::CreateGlobalDepthStencilBuffer, which
+	// nothing on PC ever wrote, so cars had no shadows. Copy the prepass depth into it (same size/format).
+	{
+		const Framework::C_View& fwView = Framework::C_ApplicationBase::GetInstance()->GetSplitscreenView();
+		const Display::C_Texture2D* pPrepassDepth = m_pViewManager->m_pLightingPrepass->GetDeferredManager()->GetColourTexture(fwView.m_ViewIndex, 1);
+		IDirect3DTexture9* pDst = Render::g_DepthStencilBuffer.IsCreated() ? (IDirect3DTexture9*)Render::g_DepthStencilBuffer.GetTexture().GetGPUTexture() : NULL;
+		IDirect3DTexture9* pSrc = pPrepassDepth ? (IDirect3DTexture9*)pPrepassDepth->GetGPUTexture() : NULL;
+		if (pSrc && pDst)
+		{
+			IDirect3DSurface9* pSrcSurface = NULL;
+			IDirect3DSurface9* pDstSurface = NULL;
+			if (SUCCEEDED(pSrc->GetSurfaceLevel(0, &pSrcSurface)) && SUCCEEDED(pDst->GetSurfaceLevel(0, &pDstSurface)))
+				Display::Device()->GetD3DDevice()->StretchRect(pSrcSurface, NULL, pDstSurface, NULL, D3DTEXF_NONE);
+			if (pSrcSurface) pSrcSurface->Release();
+			if (pDstSurface) pDstSurface->Release();
+		}
+	}
 
 #endif
 

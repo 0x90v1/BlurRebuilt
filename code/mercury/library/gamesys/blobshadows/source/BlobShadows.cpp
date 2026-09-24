@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "blobshadows/BlobShadows.h"
+#include <world_render/ModelInstance.h>	// [Blur2PC] Blur2PCBlendMatrix
 #include <renderingdata/renderingdata.h>
 #include <renderingdata/context.h>
 #include "Render/Shaders/Constants.h"
@@ -818,6 +819,11 @@ void C_BlobShadows::PreRender()
 	if (!gDebugBlobShadowsEnable)
 		return;
 
+	// [Blur2PC] interpolated poses for this render
+	for (Btl::List<C_BaseBlobShadowInstance*>::Iterator it = m_BlobShadowInstanceList.Begin(); it != m_BlobShadowInstanceList.End(); ++it)
+		if ((*it)->GetType() == E_BlobShadowType_Dynamic)
+			static_cast<C_DynamicBlobShadowInstance*>(*it)->Blur2PCApplyRenderPose();
+
 	//Distribute shadows
 	CalculateProcessShadows();
 
@@ -1385,6 +1391,14 @@ C_DynamicBlobShadowInstance::C_DynamicBlobShadowInstance()
 	m_pShadowModelInstance = NULL;
 
 	m_DoubleBufferShadowCastersVector = 0;
+
+	// [Blur2PC] render interpolation state
+	m_Blur2PCPrevCaster.SetIdentity();
+	m_Blur2PCCurCaster.SetIdentity();
+	m_Blur2PCPrevShadowPos = Maths::HVec3(0.f, 0.f, 0.f);
+	m_Blur2PCCurShadowPos = Maths::HVec3(0.f, 0.f, 0.f);
+	m_Blur2PCTick = 0;
+	m_Blur2PCHasPrev = false;
 }
 
 C_DynamicBlobShadowInstance::~C_DynamicBlobShadowInstance()
@@ -1405,6 +1419,20 @@ void C_DynamicBlobShadowInstance::AddShadowCaster( const C_BlobShadowCaster& sha
 
 void C_DynamicBlobShadowInstance::UpdatePosition( const Maths::HMat43& casterWorldMatrix, const Maths::HVec3& shadowPosition, const Maths::HVec3& shadowNormal, F32 priority, F32 cameraDistant, F32 intensity)
 {
+	// [Blur2PC] keep the previous update's pose for render interpolation (see Blur2PCApplyRenderPose)
+	{
+		const U32 tick = WorldRender::Blur2PCInterpCurrentTick();
+		if (m_Blur2PCTick != tick)
+		{
+			const bool consecutive = (m_Blur2PCTick + 1 == tick);
+			m_Blur2PCPrevCaster = consecutive ? m_Blur2PCCurCaster : casterWorldMatrix;
+			m_Blur2PCPrevShadowPos = consecutive ? m_Blur2PCCurShadowPos : shadowPosition;
+			m_Blur2PCHasPrev = consecutive && (F32)(casterWorldMatrix.AW() - m_Blur2PCPrevCaster.AW()).Length() < 20.0f;
+			m_Blur2PCTick = tick;
+		}
+		m_Blur2PCCurCaster = casterWorldMatrix;
+		m_Blur2PCCurShadowPos = shadowPosition;
+	}
 	m_CasterWorldMatrix = casterWorldMatrix;
 	m_ShadowPosition = shadowPosition;
 	m_ShadowNormal = shadowNormal;
@@ -1412,6 +1440,23 @@ void C_DynamicBlobShadowInstance::UpdatePosition( const Maths::HMat43& casterWor
 	m_CameraDistant = cameraDistant;
 	m_GroundDistant = casterWorldMatrix.AW().Y() - shadowPosition.Y();
 	m_Intensity = intensity;
+}
+
+// [Blur2PC] before a render, place the shadow at the pose the car is drawn at (between the last two updates)
+void C_DynamicBlobShadowInstance::Blur2PCApplyRenderPose()
+{
+	const F32 alpha = WorldRender::Blur2PCInterpRenderAlpha();
+	if (m_Blur2PCHasPrev && m_Blur2PCTick == WorldRender::Blur2PCInterpCurrentTick() && alpha < 1.f)
+	{
+		m_CasterWorldMatrix = WorldRender::Blur2PCBlendMatrix(m_Blur2PCPrevCaster, m_Blur2PCCurCaster, alpha);
+		m_ShadowPosition = m_Blur2PCPrevShadowPos + (m_Blur2PCCurShadowPos - m_Blur2PCPrevShadowPos) * alpha;
+	}
+	else
+	{
+		m_CasterWorldMatrix = m_Blur2PCCurCaster;
+		m_ShadowPosition = m_Blur2PCCurShadowPos;
+	}
+	m_GroundDistant = m_CasterWorldMatrix.AW().Y() - m_ShadowPosition.Y();
 }
 
 void C_DynamicBlobShadowInstance::CalculateShadowCasters(F32 quality, S32 maxShadowsSetting, F32 maxShadowDistant, F32 deltaFade)

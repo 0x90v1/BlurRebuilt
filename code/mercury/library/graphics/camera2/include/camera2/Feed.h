@@ -39,6 +39,9 @@ public:
 
 	static void DeflectMatrix(F32 zoom, F32 dx, F32 dy, F32 heightScale = 1.f);
 	static void SetShutterEnd(F32 end);
+	static void SetRenderOffset(F32 offset);	// [Blur2PC] see Feed.cpp
+	static void Blur2PCAdvanceTick();	// [Blur2PC] once per decoupled update
+	static U32 Blur2PCTick();
 	static void StrafeMatrix(F32 movex, F32 movey, F32 anglex, F32 angley);
 	static void SetGlobalShutter(bool enable, F32 angle);
 

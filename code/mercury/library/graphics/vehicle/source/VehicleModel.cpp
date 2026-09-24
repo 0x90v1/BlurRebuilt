@@ -1419,11 +1419,24 @@ void C_VehicleModel::SetDynamicShaderParameters(bool force)
 		
 		handle = GetParameter(iInstance, E_CachedParamName_UndercoatColour);
 		if (handle.index != -1 && handle.offset != -1)
-			pInstance->SetParameter(handle, &GetPaintJob()->GetUndercoatColour());			
+		{
+			// [Blur2PC] The retail PC vehicle shaders read .w of these two registers as damage amounts:
+			// undercoat.w scales the dent offsets/normals, scuff.w is the scratch/undercoat level. The
+			// paint job builds them as (r, g, b, 1), so every car rendered fully dented and scratched a
+			// moment after load. Upload the colour with w = damage amount (0 = pristine; per-part race
+			// damage is not wired yet, see docs/analysis.md).
+			MathsStorage::Float4 colour = GetPaintJob()->GetUndercoatColour();
+			colour.w = 0.0f;
+			pInstance->SetParameter(handle, &colour);
+		}			
 
 		handle = GetParameter(iInstance, E_CachedParamName_ScuffColour);
 		if (handle.index != -1 && handle.offset != -1)
-			pInstance->SetParameter(handle, &GetPaintJob()->GetScuffColour());			
+		{
+			MathsStorage::Float4 colour = GetPaintJob()->GetScuffColour();	// [Blur2PC] w = damage amount, see above
+			colour.w = 0.0f;
+			pInstance->SetParameter(handle, &colour);
+		}			
 
 #ifndef CFG_GOLD
 		handle = GetParameter(iInstance, E_CachedParamName_LiverySettings);
