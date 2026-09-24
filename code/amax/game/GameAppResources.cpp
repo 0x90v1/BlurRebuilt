@@ -1447,10 +1447,16 @@ void C_GameApp::ReleaseAllGlobalResources()
 	for(DynamicEffect::Textures::Iterator pIterator = m_pParticleTextures->Begin(); pIterator != m_pParticleTextures->End(); )
 	{
 		DynamicEffect::Textures::Iterator pNext = pIterator;
+#if PLATFORM_PC
+		++pNext;	// [Blur2PC] retail (Blur.exe 1.2 0x00433380) walks to the next texture; the snapshot never advanced and destroyed the first one twice
+#endif
 		Display::C_RefTexture* pRefTexture = pIterator->GetValue();
 		Display::Device()->Destroy(pRefTexture);
 
 		delete pRefTexture;
+#if PLATFORM_PC
+		pIterator = pNext;	// [Blur2PC]
+#endif
 	}
 	m_pParticleTextures->Clear();
 }

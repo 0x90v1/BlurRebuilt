@@ -24,8 +24,25 @@ This is a multi-session, multi-agent project. **Start every session by reading `
 External inputs (never modified, never copied into the repo):
 
 - Prototype discs: `C:\AIProjects\Blur\GameData\Blur 2 X360 prototypes\` (Aug 31, Nov 4, Nov 9, Nov 10, Nov 25 DAMAGED).
-- Retail Blur 1 X360: `C:\AIProjects\Blur\GameData\Xbox 360\`. Retail Blur 1 PC: `C:\Program Files (x86)\Activision\Blur(TM)` (native little-endian reference for every format the source reads).
-- Extraction tooling and format knowledge: `C:\AIProjects\Blur2Test` (Python 3.12 + QuickBMS; pak, texture, model, level, KSLF/XT and audio decoders; XenosRecomp for shaders; per-disc catalogues in `_work\archive_index\`). Read its `AGENTS.md` and `_notes\disc_resource_map.md` before writing any decoder.
+- Retail Blur 1 X360: `C:\AIProjects\Blur\GameData\Xbox 360\`.
+- Retail Blur 1 PC: `C:\Program Files (x86)\Activision\Blur(TM)` (native little-endian reference for every format the source reads).
+- X360/Blur 2 extraction tooling and format knowledge: `C:\AIProjects\Blur2Test` (Python 3.12 + QuickBMS; pak, texture, model, level, KSLF/XT and audio decoders; XenosRecomp for shaders; per-disc catalogues in `_work\archive_index\`). Read its `AGENTS.md` and `_notes\disc_resource_map.md` before writing any decoder.
+
+## Project stages/layers
+
+We're dividing the project's lifetime into stages/layers.
+1. **PC Blur 1**: Get a 100% faithful reproduction of the retail Blur. During this stage, it is of the utmost importance that any corrections we make will 100% be made based on decompiling Blur 1 PC retail code, especially if it's for issues that are known not to exist in the retail game. This decompile will mainly be performed using Ghidra. For any code extracted using this method, for which we have no symbols, try your best to give code entities proper names to try to keep the code human-readable, adding a tag to each of them indicating this fact.
+2. **Multiplatform Blur 1**: Get the project to run on Xbox 360 retail data (PlayStation 3 support to be added later). See game source abstraction below.
+3. **Blur 2 support**: Get the project to run on Blur 2 prototype data (see asset catalog section below)
+Each of them will be organized and implemented in such a way that they're independent layers, and at any given time the upper ones can be removed with no interference to the lower ones.
+For example, we should have a 100% faithful Blur 1 PC source, then a standalone version that's able to run just Blur 1 from PC and Xbox with no sign of Blur 2 support.
+
+## Future goals
+
+In the future we'll want to:
+* Move the project to 64-bit compilation
+* Implement HDR support
+* Move to a newer version of DirectX (probably 11 to avoid unnecessary complications)
 
 ## Building
 
@@ -85,6 +102,20 @@ What the tree shipped with, for reference:
 
 Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` databases lost), zero-filled 32 KB blocks in several level files, 60-byte stub `.levelanim` files. It alone has `mp_la_docksbowl`, `user_feargal_p` and a full `liverpool`. Full details and per-disc counts: `docs/analysis.md`.
 
+## Game source abstraction
+
+From the "multi-platform Blur 1" layer and upwards, we'll want to have a component that creates an abstraction layer for a game's disc source, independent of platform, and allows the game to play off of it.
+
+## Asset catalog
+
+Extending on the game source abstraction, when the time comes to consume from the 5 Blur 2 prototype discs, we'll want to have a component that we can ask for game assets and it will deliver them from the disc that's a better fit.
+For this, the component will hold a persisted catalog of every asset present in all of the game discs, which it will use for the decision.
+
+## Shader cache
+
+For non-PC platforms, the first time the game is run on a given source, the game's runtime will perform a disassemble+recompile of the shaders to run on PC.
+Recompiled shaders will be cached per each game source alongside the executable.
+
 ## Conventions
 
 - New engine code lives beside what it extends (the inventory layer under `code/mercury/library/util/logicalFs/`, for example). New tools live under `code/tools/<name>/`. Do not restructure the source tree.
@@ -100,6 +131,7 @@ Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` database
 3. **Decisions** that change direction go in `docs/decisions.md` as a new numbered entry with status `proposed` until the user confirms. Never silently reverse an `accepted` decision.
 4. **Facts** discovered about the source, the discs or the formats go in `docs/analysis.md`, not in the ledger.
 5. **Finish** by appending a ledger entry (template at the top of that file): what changed, what was verified and how, what is blocked, and the exact next step. Then update the board row. If you stop mid-task, say where in the ledger so the next agent can resume.
-6. Commit only when the user asks.
+6. Commit only when the user asks, and commit your changes only, staging by hunk if needed.
 7. **Do not launch the game in foreground** Every time you launch a foreground process you're interrupting anything the user is doing. Launch the game minimized, never hidden: a minimized window stays on the taskbar, so the user can spot a stray session. `_work/run/run_script.ps1` does this (the game shows its window minimized without activation while `BLUR2PC_AUTOMATION` is set, and keeps rendering).
+8. **Never kill processes you don't own**.
 9. **One exe for the user: `_work/run/Amax.exe`.** It is what `play.bat` and `Blur.lnk` start, so it is the only place the user tests. Build with the standard command into `_work/build/vs/Release`, then copy `Amax.exe` and `Amax.pdb` to `_work/run`. If `_work/run/Amax.exe` is running, wait for it to exit and then copy. Do not build or copy to another output directory, a renamed exe or a private folder because the usual one is busy. A private copy for automated runs is fine, but it does not count as delivery. Do not tell the user a change is ready to test until `_work/run/Amax.exe` contains it; if you have to stop before then, say so plainly.
