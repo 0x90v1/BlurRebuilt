@@ -30,6 +30,13 @@ static Debug::Bool FlyCamera_SwapSticks("Camera2.FlyCamera.SwapSticks", false, D
 // combine a button input with an existing one
 void AddButtonInput( Input::C_GameInput* pGameInput, const U32 buttonId, Input::C_ButtonInput* pNewButtonInput )
 {
+	// [Blur2PC] a button with no binding yet takes the new input directly (the retail PC keyboard map
+	// leaves some UI buttons without a key; combining with a NULL input asserted and crashed)
+	if ( pGameInput->GetButtonInput(buttonId) == NULL )
+	{
+		pGameInput->SetButtonInput(buttonId, pNewButtonInput);
+		return;
+	}
 	Input::C_ButtonInputCombiner* pButtonCombiner = new Input::C_ButtonInputCombiner();
 	pButtonCombiner->AddButtonInput( pGameInput->GetButtonInput(buttonId) );
 	pButtonCombiner->AddButtonInput( pNewButtonInput );

@@ -434,7 +434,7 @@ void C_KeyboardPC::Update()
 		for(S32 i=0; i<256; i++)
 		{
 			const S32 buttonIndex = ConvertFromDirectInputKey(i);
-			if(buttonIndex > 0)
+			if(buttonIndex >= 0)	// [Blur2PC] was > 0, which dropped Escape (index 0); retail Blur.exe 0x00845360 tests >= 0
 			{
 				if(deviceState[i] != 0)
 				{
@@ -464,7 +464,7 @@ void C_KeyboardPC::Update()
 			if (!Blur2PCAutomation::IsKeyDown(i))
 				continue;
 			const S32 buttonIndex = ConvertFromDirectInputKey(i);
-			if (buttonIndex > 0)
+			if (buttonIndex >= 0)
 				m_ButtonValues[buttonIndex] = 1.0f;
 		}
 	}

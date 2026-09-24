@@ -99,3 +99,17 @@ Verified: the user's 10:48 save loads ("profile save load succeeded"); with the 
 Blocked: importing the retail 100% save needs the 1373 -> 1378 save-format differences (not attempted).
 Next: user play test. Open items unchanged (AI car models not drawn, per-part damage, close crash, collision stall).
 Files touched: code/amax/game/GameLogic/Lua/SaveInfoInterfaces.inl; code/amax/game/GameLogic/SinglePlayer/SP_Lua.cpp; code/mercury/library/gamesys/debugsystems/source/DebugHUDSubscriber.cpp; play.bat, play_complete_career.bat; docs/analysis.md, this ledger.
+
+## 2026-09-24 11:40 — session 1 (Claude) — Escape no longer quits; original key map restored
+Did: removed the framework's Escape-closes-window shortcut (ApplicationPC.cpp `MyKeyDown`). At the user's request restored `GameControls.cpp` to the pristine file (drops the earlier Enter/Escape Confirm/Cancel remap).
+Verified: a WM_KEYDOWN Escape posted to the window no longer closes it; with the original map, B opens and closes the career hub's quit prompt, Escape (pad Back) does nothing there, Enter navigates menus.
+Blocked: user decision on how Escape should reach Cancel without editing game code (see analysis.md "Controls on PC").
+Next: per the user's answer.
+Files touched: code/mercury/library/gamesys/framework/source/application/ApplicationPC.cpp; code/amax/game/Game/GameControls/GameControls.cpp (restored); docs/analysis.md, this ledger.
+
+## 2026-09-24 12:30 — session 1 (Claude) — keyboard menus match retail; Escape works
+Did: read retail Blur.exe with Ghidra (scripts now in `code/tools/ghidra_retail`): the menu key table in retail `SetupAmaxUserControls` (0x00415a30) and the keyboard update (0x00845360). Ported the retail single-keyboard menu layout into `GameControls.cpp` and the `>= 0` key-index test into `KeyboardPC.cpp` (Escape, index 0, was dropped by the original `> 0`). `Framework::AddButtonInput` tolerates an empty button. Details: analysis.md "Controls on PC".
+Verified: scripted run on the career hub: Escape opens the quit prompt, Escape closes it, Escape + Enter on Yes returns to the main menu; Enter opens the career.
+Blocked: none.
+Next: retail keyboard driving keys (custom-controls table and defaults) are not ported; ask the user before changing driving controls.
+Files touched: code/amax/game/Game/GameControls/GameControls.cpp; code/mercury/library/util/input/source/input/KeyboardPC.cpp; code/mercury/library/gamesys/framework/source/application/UserControls.cpp; code/tools/ghidra_retail/*; docs/analysis.md, this ledger.

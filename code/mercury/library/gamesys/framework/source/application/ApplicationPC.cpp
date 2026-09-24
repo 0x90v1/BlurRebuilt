@@ -298,14 +298,8 @@ void C_Application::MyKeyDown(const U8 key)
 	switch(key)
 	{
 	case VK_ESCAPE:
-		/*if(m_ClipCursor)
-		{
-			m_ClipCursor = false;
-		}
-		else*/
-		{
-			SendMessage(m_Window.m_hWnd, WM_CLOSE, 0, 0);
-		}
+		// [Blur2PC] Escape closed the window (a framework development shortcut). The game uses Escape
+		// for Back/Cancel in its menus, so it no longer quits; close the window or use the menus to exit.
 		break;
 	}
 }

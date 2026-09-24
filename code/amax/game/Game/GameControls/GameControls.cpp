@@ -250,37 +250,40 @@ void SetupAmaxUserControls( C_GameInput* pGameInput, C_Device* pKeyboard, C_Devi
 
 	/////////////////////////////////////////////
 	// Ui Buttons
-	pGameInput->SetButtonInput(E_UiButton_Pad_Up,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Up));
-	pGameInput->SetButtonInput(E_UiButton_Pad_Down,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Down));
-	pGameInput->SetButtonInput(E_UiButton_Pad_Left,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Left));
-	pGameInput->SetButtonInput(E_UiButton_Pad_Right,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Right));
-	pGameInput->SetButtonInput(E_UiButton_Confirm,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Return));	// [Blur2PC] was V; the UI prompts show Enter (retail PC layout)
-	pGameInput->SetButtonInput(E_UiButton_Cancel,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Escape));	// [Blur2PC] was B; the UI prompts show Esc (retail PC layout)
-	pGameInput->SetButtonInput(E_UiButton_Option1,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_X));
-	pGameInput->SetButtonInput(E_UiButton_Option2,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_C));
-	pGameInput->SetButtonInput(E_UiButton_LeftTrigger,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Comma));
-	pGameInput->SetButtonInput(E_UiButton_RightTrigger,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Period));
-	pGameInput->SetButtonInput(E_UiButton_LeftShoulder,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Delete));
-	pGameInput->SetButtonInput(E_UiButton_RightShoulder,				new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Next));
-	pGameInput->SetButtonInput(E_UiButton_LeftThumb,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Insert));
-	pGameInput->SetButtonInput(E_UiButton_RightThumb,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Prior));
-	pGameInput->SetButtonInput(E_UiButton_Start,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Return));
-	pGameInput->SetButtonInput(E_UiButton_Back,							new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Escape));
+	// [Blur2PC] Keyboard menu bindings as in retail Blur PC (Blur.exe 1.2, SetupAmaxUserControls at
+	// 0x00415a30, single-keyboard layout: table 0x00e653b8 rows {button, key, split-screen key, pad},
+	// fixed axes after it). Retail binds no keys to E_UiButton_Pad_*; this snapshot had arrows there,
+	// V/B for Confirm/Cancel, Enter for Start and Escape for Back. Details: docs/analysis.md.
+	pGameInput->SetButtonInput(E_UiButton_Confirm,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Return));
+	Framework::AddButtonInput(pGameInput, E_UiButton_Confirm,			new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Space));
+	pGameInput->SetButtonInput(E_UiButton_Cancel,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Escape));
+	pGameInput->SetButtonInput(E_UiButton_Option1,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_RShift));
+	pGameInput->SetButtonInput(E_UiButton_Option2,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_RControl));
+	pGameInput->SetButtonInput(E_UiButton_LeftTrigger,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Prior));
+	pGameInput->SetButtonInput(E_UiButton_RightTrigger,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Next));
+	pGameInput->SetButtonInput(E_UiButton_LeftShoulder,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Insert));
+	pGameInput->SetButtonInput(E_UiButton_RightShoulder,				new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Delete));
+	pGameInput->SetButtonInput(E_UiButton_RightThumb,					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Delete));
+	pGameInput->SetButtonInput(E_UiButton_Start,						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_F1));
+	Framework::AddButtonInput(pGameInput, E_UiButton_Start,				new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Escape));
+	pGameInput->SetButtonInput(E_UiButton_Back,							new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_F2));
 
 	/////////////////////////////////////////////
 	// Ui Axis
+	// [Blur2PC] retail: left stick A/D and S/W, right stick arrows (argument order negative, positive,
+	// as retail's steering axis SteerLeft, SteerRight); this snapshot had W/S and the numeric keypad
 	C_ButtonInput* pUILeftStickUpButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_W);
 	C_ButtonInput* pUILeftStickDownButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_S);
 	C_ButtonInput* pUILeftStickLeftButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_A);
 	C_ButtonInput* pUILeftStickRightButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_D);
-	C_ButtonInput* pUIRightStickUpButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_NumPad8);
-	C_ButtonInput* pUIRightStickDownButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_NumPad2);
-	C_ButtonInput* pUIRightStickLeftButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_NumPad4);
-	C_ButtonInput* pUIRightStickRightButton =					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_NumPad6);
+	C_ButtonInput* pUIRightStickUpButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Up);
+	C_ButtonInput* pUIRightStickDownButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Down);
+	C_ButtonInput* pUIRightStickLeftButton =						new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Left);
+	C_ButtonInput* pUIRightStickRightButton =					new C_ButtonInputFromDevice(pKeyboard, 	C_Keyboard::E_Button_Right);
 
-	pGameInput->SetAxisInput(E_UiAxis_LeftStick_UD,						new C_AxisInputFromButtons(pUILeftStickUpButton,		pUILeftStickDownButton));
+	pGameInput->SetAxisInput(E_UiAxis_LeftStick_UD,						new C_AxisInputFromButtons(pUILeftStickDownButton,	pUILeftStickUpButton));
 	pGameInput->SetAxisInput(E_UiAxis_LeftStick_LR,						new C_AxisInputFromButtons(pUILeftStickLeftButton,	pUILeftStickRightButton));
-	pGameInput->SetAxisInput(E_UiAxis_RightStick_UD,					new C_AxisInputFromButtons(pUIRightStickUpButton,	pUIRightStickDownButton));
+	pGameInput->SetAxisInput(E_UiAxis_RightStick_UD,					new C_AxisInputFromButtons(pUIRightStickDownButton,	pUIRightStickUpButton));
 	pGameInput->SetAxisInput(E_UiAxis_RightStick_LR,					new C_AxisInputFromButtons(pUIRightStickLeftButton,	pUIRightStickRightButton));
 
 	//////////////////////////////////////
