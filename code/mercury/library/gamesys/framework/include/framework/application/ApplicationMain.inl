@@ -234,6 +234,18 @@ int main(int argc, char *argv[])
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
+	// [Blur2PC] Retail names this mutex "BlurMutex" (found via Ghidra on Blur.exe 1.2) and checks
+	// for it before anything else runs; a second instance without this guard starts to a black
+	// screen. Keep the mutex handle open for the process lifetime; the OS closes it on exit.
+	HANDLE hSingleInstanceMutex = CreateMutexA(NULL, FALSE, "BlurMutex");
+	if (GetLastError() == ERROR_ALREADY_EXISTS)
+	{
+		// ExitProcess, not return: global statics such as Game::C_ReplayDirector::s_Instance
+		// assume the normal init path ran and crash in their destructor otherwise (null
+		// m_Vehicles[] entries) when the CRT unwinds static objects on a plain return/exit.
+		ExitProcess(1);
+	}
+
 	PerformanceLogging::UpdateCounters(PerformanceLogging::kGameSubSessionStarted);
 
 	#ifdef CFG_DEBUG
