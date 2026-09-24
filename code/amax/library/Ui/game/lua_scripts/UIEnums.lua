@@ -373,6 +373,7 @@ UIEnums =
 		RetryWriteToLeaderboards				= 200,
 		FriendDemandRemovedFriend				= 201,
 		FriendDemandNotFriend					= 202,
+		ConfirmVideoSettings					= 203,	-- [Blur2PC] retail Blur PC graphics options (retail value 225)
 	},
 	
 	-- Racebook message system types

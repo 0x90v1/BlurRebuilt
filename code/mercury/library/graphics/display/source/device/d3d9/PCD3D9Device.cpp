@@ -178,7 +178,10 @@ void C_PCD3D9Device::SetPresentParamsD3D9()
 	m_d3dPresentParams.EnableAutoDepthStencil		= TRUE;
 	m_d3dPresentParams.AutoDepthStencilFormat		= D3D9Format(m_DeviceParams.m_DepthStencilFormat);
 	m_d3dPresentParams.Flags						= 0;
-	m_d3dPresentParams.FullScreen_RefreshRateInHz	= m_DeviceParams.m_Windowed ? 0 : m_DeviceParams.m_PresentInterval == E_PresentInterval_One ? 60 : 0;
+	// [Blur2PC] retail PC carries the chosen mode's refresh rate in the device params (set with the size by
+	// the application, retail 0x0084a450). The code that builds retail's present parameters lives in the
+	// DRM-relocated section and was not recovered, so using it here is inferred; see docs/analysis.md.
+	m_d3dPresentParams.FullScreen_RefreshRateInHz	= m_DeviceParams.m_Windowed ? 0 : m_DeviceParams.m_RefreshRate;
 	m_d3dPresentParams.PresentationInterval			= D3D9PresentInterval(m_DeviceParams.m_PresentInterval);
 
 	#if !defined(CFG_GOLD) && defined(USER_LLOYDW)

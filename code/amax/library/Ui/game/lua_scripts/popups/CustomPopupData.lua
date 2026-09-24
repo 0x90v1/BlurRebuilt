@@ -3138,7 +3138,7 @@ CustomPopup =
 											CustomPopup.CurrentData.message_text_ID = UIText.RBC_SERVER_CONNECTION_FAILED 
 											-- 24967
 											if ( UIEnums.CurrentPlatform == UIEnums.Platform.PS3 ) and ( Profile.PadProfileOnline( Profile.GetPrimaryPad() ) == false ) then
-												-- "You must be signed in to PlayStation®Network to access online features."
+												-- "You must be signed in to PlayStationï¿½Network to access online features."
 												CustomPopup.CurrentData.message_text_ID = UIText.RBC_SERVER_CONNECTION_FAILED_ONLINE_REQUIRED
 											end
 										else
@@ -5862,12 +5862,49 @@ CustomPopup =
 		{
 			darken			= true,
 			no_back			= true,
-			
+
 			next_text_ID	= UIText.INFO_A_OK,
-			
+
 			title_text_ID	= UIText.POP_TITLE_INFO,
 			message_text_ID	= UIText.RBC_FC_NOT_FRIEND,
-		},	
+		},
+
+		-- [Blur2PC] retail Blur PC (ported from the Blur.exe 1.2 bytecode): keep the new video settings?
+		-- Reverts after 10 seconds without an answer. The message is the GAME_OPTION_COUNTDOWN<n> variable
+		-- text (POP_CONFIRM_VIDEO_SETTINGS with the seconds left).
+		[UIEnums.CustomPopups.ConfirmVideoSettings] =
+		{
+			darken			= true,
+
+			next_text_ID	= UIText.INFO_YES_A,
+			back_text_ID	= UIText.INFO_NO_B,
+
+			title_text_ID	= UIText.POP_TITLE_ALERT,
+			message_text_ID	= UIText.CMN_NOWT,
+
+			init_CB			= function()
+								PopupGUI.timer = 10
+								CustomPopup.CurrentData.message_text_ID = "GAME_OPTION_COUNTDOWN" .. PopupGUI.timer
+							end,
+
+			update_CB		= function( time )
+								UIButtons.ChangeText( SCUI_Popup.name_to_id.message, "GAME_OPTION_COUNTDOWN" .. math.ceil( PopupGUI.timer ) )
+								PopupGUI.timer = PopupGUI.timer - time
+								if PopupGUI.timer <= 0 then
+									PopupGUI.timer = 0
+									PopupCancel()
+									OptionsGraphics_RevertSettings()
+								end
+							end,
+
+			next_CB			= function()
+								OptionsGraphics_BackupSettings()
+							end,
+
+			back_CB			= function()
+								OptionsGraphics_RevertSettings()
+							end,
+		},
 	},
 }
 

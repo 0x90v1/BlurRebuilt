@@ -270,6 +270,23 @@ void ProfileOptions::SendToLua( lua_State* pState )
 {
 	Lua::AddDataMember(pState,"gamma", mGammaIndex );
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (0x00b9e8e0) adds the graphics settings, read live from the application (they
+	// are stored in settings.xml, not in the profile)
+	{
+		S32 resolutionIndex = 0;
+		S32 multisampleIndex = 0;
+		bool windowed = true;
+		bool vsync = true;
+		C_GameApp::GetInstance()->GetGraphicsOptions(&resolutionIndex, &multisampleIndex, &windowed, &vsync);
+		Lua::AddDataMember(pState,"resolution", resolutionIndex );
+		Lua::AddDataMember(pState,"aa", multisampleIndex );
+		Lua::AddDataMember(pState,"fullscreen", (U8)(windowed ? 0 : 1) );
+		Lua::AddDataMember(pState,"vsync", (U8)(vsync ? 1 : 0) );
+		Lua::AddDataMember(pState,"graphics_quality", (S32)C_GameApp::GetInstance()->GetGraphicalDetail() );
+	}
+#endif
+
 	Lua::AddDataMember(pState,"difficulty", mGameDifficulty );
 	//Lua::AddDataMember(pState,"steering_assist", mSteeringAssist );
 	//Lua::AddDataMember(pState,"braking_assist", mBrakingAssist );
@@ -299,6 +316,34 @@ void ProfileOptions::SendToLua( lua_State* pState )
 void ProfileOptions::GetFromLua( lua_State* pState )
 {
 	Lua::GetDataMember(pState,"gamma", mGammaIndex, true );
+
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (0x00b9eae0) reads the graphics settings as bytes and applies them to the
+	// application: graphical detail first, then resolution, multisample, full screen and vsync. Retail leaves
+	// the bytes uninitialised when a key is missing; here a missing key keeps the current value.
+	{
+		S32 resolutionIndex = 0;
+		S32 multisampleIndex = 0;
+		bool windowed = true;
+		bool vsync = true;
+		C_GameApp::GetInstance()->GetGraphicsOptions(&resolutionIndex, &multisampleIndex, &windowed, &vsync);
+
+		U8 graphicsQuality	= (U8)C_GameApp::GetInstance()->GetGraphicalDetail();
+		U8 resolution		= (U8)resolutionIndex;
+		U8 fullscreen		= windowed ? 0 : 1;
+		U8 aa				= (U8)multisampleIndex;
+		U8 vsyncByte		= vsync ? 1 : 0;
+
+		Lua::GetDataMember(pState,"graphics_quality", graphicsQuality, true );
+		Lua::GetDataMember(pState,"resolution", resolution, true );
+		Lua::GetDataMember(pState,"fullscreen", fullscreen, true );
+		Lua::GetDataMember(pState,"aa", aa, true );
+		Lua::GetDataMember(pState,"vsync", vsyncByte, true );
+
+		C_GameApp::GetInstance()->SetGraphicalDetail(graphicsQuality);
+		C_GameApp::GetInstance()->ApplyGraphicsOptions(resolution, aa, fullscreen == 0, vsyncByte == 1);
+	}
+#endif
 
 	Lua::GetDataMember(pState,"difficulty",mGameDifficulty);
 	//Lua::GetDataMember(pState,"steering_assist", mSteeringAssist, true );

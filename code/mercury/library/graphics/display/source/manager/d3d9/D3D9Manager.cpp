@@ -107,18 +107,23 @@ bool C_D3D9Manager::Initialise()
 		const E_Format colourFormat = E_Format_X8R8G8B8;
 		const E_Format depthStencilFormat = E_Format_D24S8;
 
-		E_Multisample multisamples[3] = 
+		// [Blur2PC] retail Blur PC (D3D9Manager::Initialise, 0x005b7590) offers None, 2x, 4x, 8x and 16x and,
+		// like this file's CFG_GOLD path, only tests full-screen support (colour then depth format).
+		const U32 multisampleCount = 5;
+		E_Multisample multisamples[multisampleCount] =
 		{
 			E_Multisample_None,
 			E_Multisample_2,
 			E_Multisample_4,
+			E_Multisample_8,
+			E_Multisample_16,
 		};
 
-		for(U32 i=0; i<3; i++)
+		for(U32 i=0; i<multisampleCount; i++)
 		{
 			const E_Multisample multisample = multisamples[i];
 
-			#ifdef CFG_GOLD
+			#if defined(CFG_GOLD) || defined(PLATFORM_PC)	// [Blur2PC] retail PC is a gold build
 			bool windowedSupported = true;
 			#else
 			bool windowedSupported = false;
@@ -173,11 +178,10 @@ bool C_D3D9Manager::Initialise()
 
 			s_pd3dObject->EnumAdapterModes(D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8, adapterModeIndex, &displayMode);
 
-			#ifdef USE_GAMES_FOR_WINDOWS_LIVE_SUPPORTED_RESOLUTIONS
-			if(displayMode.Width >= 800 && displayMode.Height >= 600)
-			#endif
+			// [Blur2PC] retail keeps every mode of at least 640x480, with its refresh rate
+			if(displayMode.Width >= 640 && displayMode.Height >= 480)
 			{
-				bool newVideoMode = AddVideoMode(displayMode.Width, displayMode.Height, E_Format_A8R8G8B8, false, false);
+				bool newVideoMode = AddVideoMode(displayMode.Width, displayMode.Height, E_Format_A8R8G8B8, displayMode.RefreshRate, false, false);
 
 				#if !defined(CFG_GOLD)
 				if(newVideoMode)
@@ -230,12 +234,85 @@ bool C_D3D9Manager::AddVideoMode(const U32 width, const U32 height, const E_Form
 	videoMode.m_Width			= width;
 	videoMode.m_Height			= height;
 	videoMode.m_Format			= format;
+	#ifdef PLATFORM_PC
+	videoMode.m_RefreshRate		= 0;	// [Blur2PC]
+	#endif
 	videoMode.m_WideScreen		= wideScreen;
 	videoMode.m_HiDef			= hiDef;
 	m_VideoModeList.PushBack(videoMode);
 
 	return true;
 }
+
+#ifdef PLATFORM_PC
+// [Blur2PC] retail 0x005b7420: same duplicate test as above (the refresh rate is not compared, so each
+// size keeps the refresh rate it was first enumerated with)
+bool C_D3D9Manager::AddVideoMode(const U32 width, const U32 height, const E_Format format, const U32 refreshRate, const bool wideScreen, const bool hiDef)
+{
+	for(S32 i=0; i<m_VideoModeList.Size(); i++)
+	{
+		C_VideoMode& videoMode = m_VideoModeList[i];
+
+		if(	width == videoMode.m_Width &&
+			height == videoMode.m_Height &&
+			format == videoMode.m_Format &&
+			wideScreen == videoMode.m_WideScreen &&
+			hiDef == videoMode.m_HiDef)
+		{
+			return false;
+		}
+	}
+
+	C_VideoMode videoMode;
+	videoMode.m_Width			= width;
+	videoMode.m_Height			= height;
+	videoMode.m_Format			= format;
+	videoMode.m_RefreshRate		= refreshRate;
+	videoMode.m_WideScreen		= wideScreen;
+	videoMode.m_HiDef			= hiDef;
+	m_VideoModeList.PushBack(videoMode);
+
+	return true;
+}
+
+// [Blur2PC] retail 0x005b7310: the current mode of the primary display device, taken from the video mode
+// list (A8R8G8B8 entry of the same size) with the display's current refresh rate
+bool C_D3D9Manager::GetDesktopVideoMode(C_VideoMode* pVideoMode)
+{
+	DISPLAY_DEVICEA displayDevice;
+	memset(&displayDevice, 0, sizeof(displayDevice));
+	displayDevice.cb = sizeof(displayDevice);
+
+	DEVMODEA devMode;
+	memset(&devMode, 0, sizeof(devMode));
+	devMode.dmSize = sizeof(devMode);
+
+	for(DWORD deviceIndex = 0; EnumDisplayDevicesA(NULL, deviceIndex, &displayDevice, 0); deviceIndex++)
+	{
+		if(!(displayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE))
+			continue;
+
+		EnumDisplaySettingsA(displayDevice.DeviceName, ENUM_CURRENT_SETTINGS, &devMode);
+
+		for(S32 i=0; i<m_VideoModeList.Size(); i++)
+		{
+			const C_VideoMode& videoMode = m_VideoModeList[i];
+			if(devMode.dmPelsWidth == videoMode.m_Width && devMode.dmPelsHeight == videoMode.m_Height && videoMode.m_Format == E_Format_A8R8G8B8)
+			{
+				pVideoMode->m_Width			= devMode.dmPelsWidth;
+				pVideoMode->m_Height		= devMode.dmPelsHeight;
+				pVideoMode->m_Format		= E_Format_A8R8G8B8;
+				pVideoMode->m_RefreshRate	= devMode.dmDisplayFrequency;
+				pVideoMode->m_WideScreen	= false;
+				pVideoMode->m_HiDef			= false;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+#endif
 
 const S32 C_D3D9Manager::FindMultisample(const E_Multisample multisample) const
 {

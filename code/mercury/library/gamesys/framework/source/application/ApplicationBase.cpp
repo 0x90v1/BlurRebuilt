@@ -300,6 +300,17 @@ HRESULT C_ApplicationBase::Initialise(const C_ApplicationParams& params)
 
 	HRESULT hr = S_OK;
 
+	#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (C_ApplicationBase::Initialise, 0x0084cf50) creates the display manager
+	// first: the PC platform initialise reads the graphics settings and matches them to the adapter's modes.
+	MEMORY_TRACKER_PUSH("graphics.display.manager");
+	hr = CreateDisplay();
+	MEMORY_TRACKER_POP("graphics.display.manager");
+
+	if(FAILED(hr))
+		return hr;
+	#endif
+
 	// Initialise platform specific gubbins
 
 	MEMORY_TRACKER_PUSH("gameapp.platform");
@@ -309,6 +320,7 @@ HRESULT C_ApplicationBase::Initialise(const C_ApplicationParams& params)
 	if(FAILED(hr))
 		return hr;
 
+	#ifndef PLATFORM_PC
 	// Create display
 
 	MEMORY_TRACKER_PUSH("graphics.display.manager");
@@ -317,6 +329,7 @@ HRESULT C_ApplicationBase::Initialise(const C_ApplicationParams& params)
 
 	if(FAILED(hr))
 		return hr;
+	#endif
 
 	// Create device
 
@@ -796,6 +809,15 @@ bool C_ApplicationBase::BeginRender()
 	#ifdef PLATFORM_PC
 	if(!CanRender())
 		return false;
+
+	// [Blur2PC] retail BeginRender (0x0084dbe0): apply graphics settings changed through the debug variables
+	// or the window, then the view setup check the console path below also does
+	UpdateGraphicsSettings();
+
+	if(m_ViewSetup != g_debugViewSetup)
+	{
+		SetViewSetup(g_debugViewSetup);
+	}
 	#else
 	{
 		CPU_TIMING(5, Maths::RGBA(255, 255, 255, 255), "CPU.DisplayResize");
@@ -965,6 +987,11 @@ HRESULT C_ApplicationBase::CreateDisplay()
 	{
 		return hr;
 	}
+
+	#ifdef PLATFORM_PC
+	// [Blur2PC] retail CreateDisplay (0x0084d140) fills the resolution list here, with no practical size cap
+	SetupDisplayResolutions(10000, 10000, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, Display::E_Format_Tiled);
+	#endif
 
 	return S_OK;
 }

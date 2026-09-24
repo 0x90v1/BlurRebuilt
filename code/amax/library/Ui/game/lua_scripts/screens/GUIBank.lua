@@ -2640,6 +2640,27 @@ function AddFourThreeBars()
 	UIButtons.AddButton(four_three_bb)
 end
 
+-- [Blur2PC] retail Blur PC ChangeResolution (GuiBank, ported from the Blur.exe 1.2 bytecode), called with
+-- Amax.GetScreenResolution() after the graphics options change. Retail also recomputes SCREEN_WIDTH,
+-- SCREEN_LEFT, SCREEN_RIGHT and the Screen bounds from the aspect ratio (SCREEN_WIDTH = width * 480 / height),
+-- rescales the 3D UI camera and shows or hides the 4:3 bars. That half needs the matching C++ UI change
+-- (retail's variable 2D screen width) and is left to the UI aspect task (docs/BOARD.md T009).
+function ChangeResolution( width, height )
+	if IsNumber( width ) ~= true or IsNumber( height ) ~= true then
+		print( "ChangeResolution : Invalid number" )
+		return
+	end
+
+	if width <= 0 or height <= 0 then
+		print( "ChangeResolution : Invalid dimension", width, height )
+		return
+	end
+
+	UIGlobals.resolution_width = width
+	UIGlobals.resolution_height = height
+	UIGlobals.resolution_aspect = width / height
+end
+
 function Camera_UseFrontend()
 	if UIHardware.WideScreen() == true then
 		return

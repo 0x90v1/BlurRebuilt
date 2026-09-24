@@ -67,7 +67,12 @@ function Init()
 	end
 	
 	if show_audio_image == true then
+		if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+			-- [Blur2PC] retail Blur PC offers Graphics here; image adjust (gamma) is reached from the graphics screen
+			Mp_SetupMenuItemHelpText( GUI.MenuId, 2,	UIText.CMN_OPT_GRAPHICS,	UIText.CMN_HLP_OPT_GRAPHICS,			"Graphics",				"common_icons" )
+		else
 		Mp_SetupMenuItemHelpText( GUI.MenuId, 2,	UIText.CMN_OPT_IMAGE_ADJUST,	UIText.CMN_HLP_OPT_IMAGE_ADJUST,		"brightness",			"common_icons" )
+		end
 		Mp_SetupMenuItemHelpText( GUI.MenuId, 3,	UIText.CMN_OPT_AUDIO,			UIText.CMN_HLP_OPT_AUDIO,				"large_speaker",		"common_icons" )
 		num = num + 2
 	end
@@ -170,7 +175,13 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 		elseif selected == 1 then
 			GoScreen("Shared\\Options_Controller.lua")
 		elseif selected == 2 then
+			if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+				-- [Blur2PC] retail Blur PC: the graphics screen backs up the settings it opens with
+				UIGlobals.SaveGraphicOptions = true
+				GoScreen("Shared\\Options_Graphics.lua")
+			else
 			GoScreen("Shared\\Options_ImageAdjust.lua")
+			end
 		elseif selected == 3 then
 			-- Just by looking at the audio options means we're going to save
 			UIGlobals.SaveOptions = true

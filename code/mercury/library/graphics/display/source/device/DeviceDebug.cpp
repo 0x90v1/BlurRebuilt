@@ -56,6 +56,10 @@ void C_ResolutionManager::ClearResolutions()
 {
 	m_Resolutions.Clear();
 	m_Options.Clear();
+	#ifdef PLATFORM_PC
+	m_Multisamples.Clear();			// [Blur2PC]
+	m_MultisampleOptions.Clear();
+	#endif
 }
 
 void C_ResolutionManager::ResetResolutions()
@@ -66,6 +70,9 @@ void C_ResolutionManager::ResetResolutions()
 	m_Resolutions.Back().m_Value		= 0;
 	m_Resolutions.Back().m_Width		= 0;
 	m_Resolutions.Back().m_Height		= 0;
+	#ifdef PLATFORM_PC
+	m_Resolutions.Back().m_RefreshRate	= 0;	// [Blur2PC]
+	#endif
 	m_Resolutions.Back().m_Multisample	= Display::E_Multisample_None;
 	m_Resolutions.Back().m_Name			= "Disabled";
 }
@@ -94,6 +101,9 @@ void C_ResolutionManager::AddResolution(const U32 width, const U32 height, const
 		m_Resolutions.Back().m_Value		= m_Resolutions.Size()-1;
 		m_Resolutions.Back().m_Width		= width;
 		m_Resolutions.Back().m_Height		= height;
+		#ifdef PLATFORM_PC
+		m_Resolutions.Back().m_RefreshRate	= 0;	// [Blur2PC]
+		#endif
 		m_Resolutions.Back().m_Multisample	= multisample;
 		m_Resolutions.Back().m_Name.Printf("%ix%ix%s", width, height, aa.Chars());
 	}
@@ -137,7 +147,12 @@ void C_ResolutionManager::SetMaxResolution(const U32 width, const U32 height, co
 
 C_Resolution* C_ResolutionManager::GetResolution(const S32 resolutionIndex)
 {
+	#ifdef PLATFORM_PC
+	// [Blur2PC] retail 0x005a4910: every entry is a real mode (there is no "Disabled" entry on PC)
+	if(resolutionIndex >= 0 && resolutionIndex < m_Resolutions.Size())
+	#else
 	if(resolutionIndex > 0 && resolutionIndex < m_Resolutions.Size())
+	#endif
 	{
 		return &m_Resolutions[resolutionIndex];
 	}
@@ -146,6 +161,97 @@ C_Resolution* C_ResolutionManager::GetResolution(const S32 resolutionIndex)
 		return NULL;
 	}
 }
+
+#ifdef PLATFORM_PC
+// [Blur2PC] retail Blur PC resolution manager, recovered from Blur.exe 1.2 (0x005a4840-0x005a4930 and the
+// DRM-relocated 0x01f1c350, 0x01f0b1b0, 0x020c892d). See docs/analysis.md "Graphics options (PC)".
+
+void C_ResolutionManager::AddResolution(const U32 width, const U32 height, const E_Format format, const E_Multisample multisample, const U32 flags, const U32 refreshRate)
+{
+	U32 size = GetSurfaceSize(width, height, flags, format, multisample);
+	if(size <= m_MaxSize || m_MaxSize == 0)
+	{
+		m_Resolutions.PushBack();
+		m_Resolutions.Back().m_Value		= m_Resolutions.Size()-1;
+		m_Resolutions.Back().m_Width		= width;
+		m_Resolutions.Back().m_Height		= height;
+		m_Resolutions.Back().m_RefreshRate	= refreshRate;
+		m_Resolutions.Back().m_Multisample	= multisample;
+		m_Resolutions.Back().m_Name.Printf("%ix%i", width, height);
+	}
+}
+
+void C_ResolutionManager::AddMultisample(const E_Multisample multisample)
+{
+	m_Multisamples.PushBack();
+	m_Multisamples.Back().m_Multisample	= multisample;
+	m_Multisamples.Back().m_Name.Printf("%ix", (S32)multisample);
+}
+
+void C_ResolutionManager::SetResolutions(Debug::EnumBase* pResolutionEnum, Debug::EnumBase* pMultisampleEnum)
+{
+	SetResolutions(pResolutionEnum);
+
+	if(pMultisampleEnum)
+	{
+		const S32 multisampleCount = m_Multisamples.Size();
+		if(multisampleCount > 0)
+		{
+			m_MultisampleOptions.Clear();
+
+			for(S32 multisampleIndex=0; multisampleIndex<multisampleCount; multisampleIndex++)
+			{
+				m_MultisampleOptions.PushBack();
+				m_MultisampleOptions.Back().value = multisampleIndex;
+				m_MultisampleOptions.Back().name = m_Multisamples[multisampleIndex].m_Name.Chars();
+			}
+
+			m_MultisampleOptions.PushBack();
+			m_MultisampleOptions.Back().value = -1;
+			m_MultisampleOptions.Back().name = 0;
+
+			pMultisampleEnum->SetOptions(&m_MultisampleOptions.Front());
+		}
+	}
+}
+
+const S32 C_ResolutionManager::FindResolution(const U32 width, const U32 height) const
+{
+	for(S32 i=0; i<m_Resolutions.Size(); i++)
+	{
+		if(m_Resolutions[i].m_Width == width && m_Resolutions[i].m_Height == height)
+			return i;
+	}
+	return -1;
+}
+
+// retail 0x020c892d: the mode whose pixel count is nearest (first one wins a tie)
+const S32 C_ResolutionManager::FindClosestResolution(const U32 width, const U32 height) const
+{
+	const S32 area = (S32)(width * height);
+	S32 best = -1;
+	S32 bestDifference = 0x7fffffff;
+	for(S32 i=0; i<m_Resolutions.Size(); i++)
+	{
+		S32 difference = (S32)(m_Resolutions[i].m_Width * m_Resolutions[i].m_Height) - area;
+		if(difference < 0)
+			difference = -difference;
+		if(difference < bestDifference)
+		{
+			bestDifference = difference;
+			best = i;
+		}
+	}
+	return best;
+}
+
+const C_MultisampleOption* C_ResolutionManager::GetMultisample(const S32 multisampleIndex) const
+{
+	if(multisampleIndex >= 0 && multisampleIndex < m_Multisamples.Size())
+		return &m_Multisamples[multisampleIndex];
+	return NULL;
+}
+#endif
 
 C_ResolutionManager g_Resolutions;
 

@@ -9,6 +9,7 @@
 #include <GameLogic/Layers/RaceBookLayer.h>
 #include <GameLogic/Layers/AmaxWorldLayer.h>
 #include <GameApp.h>
+#include <Display/Device/DeviceDebug.h>	// [Blur2PC] Display::g_Resolutions (graphics options)
 #include <Game/GameWorld/GameWorld.h>
 #include <ui/Game/UILua.h>
 #include <SafeString.inl>
@@ -3146,6 +3147,86 @@ static int GammaCorrection( lua_State* pState )
 
 	return 0;
 }
+
+#ifdef PLATFORM_PC
+// [Blur2PC] Retail Blur PC graphics options bindings (Blur.exe 1.2 Amax table; see docs/analysis.md
+// "Graphics options (PC)"). The retail error strings are kept, including the two that name older functions.
+
+// retail 0x00b88e20: number of entries in the resolution list (entry 0 is not offered by the options screen)
+static int GraphicResolutionCount( lua_State* pState )
+{
+	if( lua_gettop( pState ) != 0 )
+	{
+		UI::g_pUILua->StackDump( pState, "GetResolutionTable - incorrect arguments ( takes no parameters )\n");
+		return 0;
+	}
+
+	lua_pushnumber( pState, (lua_Number)Display::g_Resolutions.GetResolutionCount() );
+	return 1;
+}
+
+// retail 0x00b88e60: number of multisample options
+static int GraphicAACount( lua_State* pState )
+{
+	if( lua_gettop( pState ) != 0 )
+	{
+		UI::g_pUILua->StackDump( pState, "GetDisplayAATable - incorrect arguments ( takes no parameters )\n");
+		return 0;
+	}
+
+	lua_pushnumber( pState, (lua_Number)Display::g_Resolutions.GetMultisampleCount() );
+	return 1;
+}
+
+// retail 0x00b8dbb0: width and height of a resolution entry, or of the back buffer when no valid index is given
+static int GetScreenResolution( lua_State* pState )
+{
+	if( lua_type( pState, 1 ) == LUA_TNUMBER )
+	{
+		const Display::C_Resolution* pResolution = Display::g_Resolutions.GetResolution( (S32)lua_tonumber( pState, 1 ) );
+		if( pResolution )
+		{
+			lua_pushnumber( pState, (lua_Number)pResolution->m_Width );
+			lua_pushnumber( pState, (lua_Number)pResolution->m_Height );
+			return 2;
+		}
+	}
+
+	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
+	lua_pushnumber( pState, (lua_Number)(S32)backBuffer.GetWidth() );
+	lua_pushnumber( pState, (lua_Number)(S32)backBuffer.GetHeight() );
+	return 2;
+}
+
+// retail 0x00b83ed0: applies an options table (the profile options' GetFromLua, which on PC also applies the
+// graphics settings), then refreshes the UI for the new back buffer (retail 0x00c358c0; see
+// Blur2PCRefreshUIForBackBuffer)
+void Blur2PCRefreshUIForBackBuffer();
+
+static int UpdateGraphicsOptions( lua_State* pState )
+{
+	C_GameProfile* pProfile = C_GameProfileManager::Instance().GetPrimaryProfile();
+	if( pProfile )
+	{
+		if( lua_type( pState, 1 ) != LUA_TTABLE )
+		{
+			UI::g_pUILua->StackDump( pState, "Set UpdateGraphicsOptions - incorrect arguments\n");
+			return 0;
+		}
+
+		pProfile->mOptions.GetFromLua( pState );
+		Blur2PCRefreshUIForBackBuffer();
+	}
+	return 0;
+}
+
+// [Blur2PC] retail 0x00c358c0 sets the UI's 2D screen width from the back buffer's aspect ratio
+// (width * 480 / height) and rebuilds the UI camera for it. This source's UI has a fixed 640 or 853 wide
+// screen; that change belongs with the UI aspect task (docs/BOARD.md T009), so nothing is done here yet.
+void Blur2PCRefreshUIForBackBuffer()
+{
+}
+#endif
 
 static int GetControllerConfigs( lua_State* pState )
 {
@@ -7135,6 +7216,13 @@ static const luaL_reg amax_lib[] =
 	{"Options",						Options},
 	{"Speakers",					Speakers},
 	{"GammaCorrection",				GammaCorrection},
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC graphics options
+	{"UpdateGraphicsOptions",		UpdateGraphicsOptions},
+	{"GraphicResolutionCount",		GraphicResolutionCount},
+	{"GraphicAACount",				GraphicAACount},
+	{"GetScreenResolution",			GetScreenResolution},
+#endif
 	{"UpdateAudioOptions",			UpdateAudioOptions},
 	{"GetControllerConfigs",		GetControllerConfigs},
 	{"Has321Started",				Has321Started},

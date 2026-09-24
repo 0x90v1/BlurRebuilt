@@ -277,6 +277,14 @@ public:
 
 	#ifdef PLATFORM_PC
 	virtual bool CanRender() = 0;
+
+	// [Blur2PC] retail Blur PC: applies graphics settings changed since the last frame (C_Application
+	// override 0x0084bad0), called from BeginRender.
+	virtual void UpdateGraphicsSettings() {}
+
+	// [Blur2PC] retail Blur PC: pushes the graphical detail level (1-4) to the game; the framework's is
+	// empty (retail 0x00407830), the game's applies the quality preset (C_GameApp, retail 0x0042e1c0).
+	virtual void ApplyGraphicalDetail(const U32 graphicalDetail) {}
 	#endif
 
 	void SetupViews();

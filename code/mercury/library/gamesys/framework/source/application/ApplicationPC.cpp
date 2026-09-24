@@ -26,6 +26,10 @@ namespace WorldRender
 #include <atlbase.h>
 #include <atlwin.h>
 #include <wtsapi32.h>
+#include <shlobj.h>						// [Blur2PC] SHGetFolderPathA (settings.xml location)
+
+#include <System/XML/XmlParser.h>		// [Blur2PC] settings.xml
+#include <Display/Device/DeviceDebug.h>	// [Blur2PC] Display::g_Resolutions
 
 #if defined(USER_LLWRIGHT)
 #define DEBUG_OUTPUT_WINDOWS_MESSAGES 0
@@ -89,7 +93,15 @@ C_Application::C_Application() :
 	m_ClipCursor(true),
 	m_ShowCursor(true),
 	m_CameraLook(false),
-	m_hInstance(NULL)
+	m_hInstance(NULL),
+	m_ResolutionIndex(0),		// [Blur2PC] retail C_Application state, see docs/analysis.md "Graphics options (PC)"
+	m_MultisampleIndex(0),
+	m_GraphicalDetail(0),
+	m_DesktopRefreshRate(0),
+	m_MinWidth(640),
+	m_MinHeight(480),
+	m_CursorShown(true),
+	m_TrackWindowSize(true)
 {
 	assert(s_pInstance == NULL);
 	s_pInstance = this;
@@ -103,6 +115,10 @@ C_Application::~C_Application()
 
 HRESULT C_Application::PlatformInitialise(const C_ApplicationParams& params)
 {
+	// [Blur2PC] retail PlatformInitialise (0x0084bc80) reads settings.xml before the window exists
+	if(!LoadSettings())
+		return S_FALSE;
+
 	m_hInstance = params.m_PC.m_hInstance;
 
 	if(MyRegisterClass(params) != S_OK)
@@ -124,16 +140,40 @@ void C_Application::SetupDeviceParams()
 {
 	C_ApplicationBase::SetupDeviceParams();
 
+	// [Blur2PC] retail (0x0084d210) also records the desktop refresh rate
+	Display::C_VideoMode desktopMode;
+	if(m_pDisplayManager->GetDesktopVideoMode(&desktopMode))
+		m_DesktopRefreshRate = desktopMode.m_RefreshRate;
+
 	m_DisplayDeviceParams.m_hDC			= m_Window.m_hDC;
 	m_DisplayDeviceParams.m_hWnd			= m_Window.m_hWnd;
 	m_DisplayDeviceParams.m_hInstance		= m_hInstance;
 	m_DisplayDeviceParams.m_Windowed		= m_Windowed;
 }
 
+// [Blur2PC] retail CanRender (0x0084a400). The window-size polling the original PC code did here moved to
+// UpdateGraphicsSettings in retail; a lost device is reset through ResetDevice.
 bool C_Application::CanRender()
 {
 	assert(m_pDisplayDevice);
-	
+
+	if(m_Window.m_hWnd == NULL || IsIconic(m_Window.m_hWnd))
+		return false;
+
+	if(m_pDisplayDevice->GetLost())
+	{
+		ResetDevice();
+		return m_pDisplayDevice->CanRender();
+	}
+
+	return true;
+}
+
+#if 0	// [Blur2PC] original PC CanRender, kept for reference; replaced by the retail version above
+bool C_Application::CanRenderOriginal()
+{
+	assert(m_pDisplayDevice);
+
 	bool forceReset = false;
 
 	if(m_Windowed)
@@ -231,6 +271,7 @@ bool C_Application::CanRender()
 
 	return true;
 }
+#endif
 
 HRESULT C_Application::MyRegisterClass(const C_ApplicationParams& params)
 {
@@ -264,18 +305,35 @@ HRESULT C_Application::MyRegisterClass(const C_ApplicationParams& params)
 	}
 }
 
+// [Blur2PC] retail window styles (0x0084aa40, 0x0084ab80): a fixed-size captioned window, or a popup covering
+// the screen. Both are created visible.
+static const DWORD kWindowedStyle	= WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;	// 0x16ca0000
+static const DWORD kFullscreenStyle	= WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;									// 0x96000000
+
+// [Blur2PC] retail CreateWindow (0x0084aa40): the window's client area is placed at the saved position and
+// sized to the chosen resolution; the device is then sized to the client area.
 HRESULT C_Application::MyCreateWindow(const C_ApplicationParams& params)
 {
-	m_Window.m_Style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE | (m_Windowed ? WS_OVERLAPPEDWINDOW : WS_POPUP);
+	m_Window.m_Style = m_Windowed ? kWindowedStyle : kFullscreenStyle;
 
-	m_Window.m_hWnd = CreateWindow(
+	// [Blur2PC] scripted runs are started hidden (_work/run/run_script.ps1): create the window without
+	// WS_VISIBLE and show it once, so the start-up show state (hidden) applies. Not in retail.
+	DWORD createStyle = m_Window.m_Style;
+	if(Blur2PCAutomation::IsActive())
+		createStyle &= ~WS_VISIBLE;
+
+	RECT rect;
+	GetWindowRectFromClient(&rect);
+
+	m_Window.m_hWnd = CreateWindowExA(
+		0,
 		m_Class.m_WndClassName.Chars(),
 		m_Window.m_Name.Chars(),
-		m_Window.m_Style,
-		m_Window.m_X,
-		m_Window.m_Y,
-		m_Window.m_W,
-		m_Window.m_H,
+		createStyle,
+		rect.left,
+		rect.top,
+		rect.right - rect.left,
+		rect.bottom - rect.top,
 		NULL,
 		m_Window.m_hMenu,
 		m_hInstance,
@@ -284,11 +342,19 @@ HRESULT C_Application::MyCreateWindow(const C_ApplicationParams& params)
 	if(!m_Window.m_hWnd)
 		return S_FALSE;
 
-	ShowWindow(m_Window.m_hWnd, m_Windowed ? SW_SHOW : SW_HIDE);
+	if(createStyle != m_Window.m_Style)
+		ShowWindow(m_Window.m_hWnd, SW_SHOW);
+
+	HICON hIcon = LoadIconA(GetModuleHandleA(NULL), MAKEINTRESOURCEA(101));
+	SendMessageA(m_Window.m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+	SendMessageA(m_Window.m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 
 	UpdateWindow(m_Window.m_hWnd);
 
 	m_Window.m_hDC = GetDC(m_Window.m_hWnd);
+
+	GetClientRect(m_Window.m_hWnd, &rect);
+	SetDisplaySize(rect.right - rect.left, rect.bottom - rect.top, m_DisplayDeviceParams.m_RefreshRate);
 
 	return S_OK;
 }
@@ -380,6 +446,8 @@ void C_Application::InitMouse()
 	{
 		LOGWARN( Framework::g_Log, "Failed to initialise raw input mouse device" );
 	}
+
+	ShowCursorForWindowMode();	// [Blur2PC] retail InitMouse (0x00849c60)
 }
 
 static double s_Blur2PCAccum = 1.0;
@@ -699,6 +767,61 @@ LRESULT C_Application::MyWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				#if DEBUG_OUTPUT_WINDOWS_MESSAGES
 				LOGINFO(g_Log, "WindowsMessage : WM_SYSCOMMAND\n");
 				#endif
+
+				// [Blur2PC] retail WndProc (0x0084ae70): full screen ignores maximise, size, move and minimise;
+				// the screen saver and monitor power-down are always refused.
+				switch(wParam & 0xfff0)
+				{
+				case SC_MAXIMIZE:
+				case SC_SIZE:
+				case SC_MOVE:
+				case SC_MINIMIZE:
+					if(!m_Windowed)
+						return 0;
+					break;
+				case SC_SCREENSAVE:
+				case SC_MONITORPOWER:
+					return 0;
+				}
+			}
+			break;
+
+			case WM_SYSKEYUP:
+			{
+				// [Blur2PC] retail: Alt+Enter toggles full screen, Alt+F4 closes the window
+				if(wParam == VK_RETURN)
+				{
+					ApplyGraphicsOptions(m_ResolutionIndex, m_MultisampleIndex, !m_Windowed, m_DisplayDeviceParams.m_PresentInterval == Display::E_PresentInterval_One);
+				}
+				else if(wParam == VK_F4)
+				{
+					SendMessageA(hWnd, WM_CLOSE, 0, 0);
+				}
+			}
+			break;
+
+			case WM_SIZING:
+			{
+				// [Blur2PC] retail: the window may not be dragged smaller than 640x480, and a user resize is
+				// followed by UpdateGraphicsSettings
+				RECT* pRect = (RECT*)lParam;
+				if(pRect)
+				{
+					S32 width = pRect->right - pRect->left;
+					S32 height = pRect->bottom - pRect->top;
+					ClampToMinimumSize(&width, &height);
+					m_TrackWindowSize = true;
+
+					if(wParam == WMSZ_LEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_BOTTOMLEFT)
+						pRect->left = pRect->right - width;
+					else
+						pRect->right = pRect->left + width;
+
+					if(wParam == WMSZ_TOP || wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT)
+						pRect->top = pRect->bottom - height;
+					else
+						pRect->bottom = pRect->top + height;
+				}
 			}
 			break;
 
@@ -820,6 +943,8 @@ LRESULT C_Application::MyWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				
 				::ClipCursor(NULL);
 
+				m_Window.m_hWnd = NULL;	// [Blur2PC] retail: nothing renders into a destroyed window
+
 				PostQuitMessage(0);
 			}
 			break;
@@ -920,6 +1045,522 @@ LRESULT C_Application::MyWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 bool C_Application::LoadingScreenEnabledState() const
 {
 	return false;
+}
+
+// ------------------------------------------------------------------------------------------------------------
+// [Blur2PC] Retail Blur PC graphics settings. Recovered from Blur.exe 1.2 with Ghidra (code/tools/ghidra_retail);
+// retail addresses are given per function. Details and what is not verified: docs/analysis.md
+// "Graphics options (PC)".
+// ------------------------------------------------------------------------------------------------------------
+
+enum E_GraphicsOption
+{
+	E_GraphicsOption_First = 0,
+};
+
+}; // namespace Framework
+
+DEBUG_ENUM(Framework::E_GraphicsOption)
+	DE_OPTION(Framework::E_GraphicsOption_First,	"0")
+END_DEBUG_ENUM
+
+namespace Framework
+{
+
+// retail registers these five in the PC framework (0x00e2a4b0, 0x00e2a890, 0x00e2a8d0 and neighbours); the
+// resolution and multisample option lists are filled from Display::g_Resolutions
+static Debug::Bool						g_debugFrameworkWindowed		("Graphics.Framework.Windowed", false);
+static Debug::Bool						g_debugFrameworkVsync			("Graphics.Framework.Vsync", true);
+static Debug::Int						g_debugFrameworkGraphicalDetail	("Graphics.Framework.GraphicalDetail", 0);
+static Debug::Enum<E_GraphicsOption>	g_debugFrameworkResolution		("Graphics.Framework.Resolution", E_GraphicsOption_First);
+static Debug::Enum<E_GraphicsOption>	g_debugFrameworkMultisample		("Graphics.Framework.Multisample", E_GraphicsOption_First);
+
+// retail SetupDisplayResolutions for PC (0x0084e2e0): every adapter mode and every supported multisample
+void C_Application::SetupDisplayResolutions(const U32 width, const U32 height, const Display::E_Format format, const Display::E_Multisample multisample, const U32 flags)
+{
+	Display::g_Resolutions.SetMaxResolution(width, height, format, multisample, flags);
+
+	for(S32 i=0; i<m_pDisplayManager->GetVideoModeCount(); i++)
+	{
+		const Display::C_VideoMode& videoMode = m_pDisplayManager->GetVideoMode(i);
+		Display::g_Resolutions.AddResolution(videoMode.m_Width, videoMode.m_Height, videoMode.m_Format, Display::E_Multisample_None, flags, videoMode.m_RefreshRate);
+	}
+
+	for(S32 i=0; i<m_pDisplayManager->GetMultisampleCount(); i++)
+	{
+		Display::g_Resolutions.AddMultisample(m_pDisplayManager->GetMultisample(i).m_Multisample);
+	}
+
+	Display::g_Resolutions.SetResolutions(&g_debugFrameworkResolution, &g_debugFrameworkMultisample);
+
+	g_debugFrameworkResolution.SetValue(E_GraphicsOption_First);
+	g_debugFrameworkMultisample.SetValue(E_GraphicsOption_First);
+}
+
+// Collects the attributes of the <shared_graphical_settings> element of settings.xml.
+class C_GraphicalSettingsXml : public Sys::C_XmlContent
+{
+public:
+	C_GraphicalSettingsXml() : m_Found(false) {}
+
+	virtual bool StartElement(const Util::C_String& name, const Sys::C_XmlAttributeList& attributes)
+	{
+		if(!m_Found && name == "shared_graphical_settings")
+		{
+			m_Found = true;
+			for(int i=0; i<attributes.Elements(); i++)
+				m_Attributes.Add(attributes.GetKeyByIndex(i), attributes.GetValueByIndex(i));
+		}
+		return true;
+	}
+
+	bool					m_Found;
+	Sys::C_XmlAttributeList	m_Attributes;
+};
+
+// retail LoadSettings (0x0084b570)
+bool C_Application::LoadSettings()
+{
+	// %APPDATA%\Bizarre Creations\<window name>\settings.xml
+	char appData[MAX_PATH + 4];
+	memset(appData, 0, sizeof(appData));
+	SHGetFolderPathA(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, appData);
+
+	Util::C_String folder;
+	folder.Printf("%s\\Bizarre Creations\\%s", appData, m_Window.m_Name.Chars());
+	m_SettingsFileName.Printf("%s\\settings.xml", folder.Chars());
+
+	// [Blur2PC] scripted runs keep their own settings file so they never change the player's; not in retail
+	if(const char* pOverride = getenv("BLUR2PC_SETTINGS"))
+	{
+		m_SettingsFileName = pOverride;
+	}
+	else
+	{
+		Util::C_String bizarre;
+		bizarre.Printf("%s\\Bizarre Creations", appData);
+		CreateDirectoryA(bizarre.Chars(), NULL);
+		CreateDirectoryA(folder.Chars(), NULL);
+	}
+
+	C_GraphicalSettingsXml settings;
+	{
+		HANDLE hFile = CreateFileA(m_SettingsFileName.Chars(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		if(hFile != INVALID_HANDLE_VALUE)
+		{
+			const DWORD size = GetFileSize(hFile, NULL);
+			if(size != INVALID_FILE_SIZE && size > 0)
+			{
+				char* pBuffer = new char[size + 1];
+				DWORD read = 0;
+				if(ReadFile(hFile, pBuffer, size, &read, NULL) && read == size)
+				{
+					pBuffer[size] = 0;
+					Sys::XmlParse(settings, pBuffer, (int)size);
+				}
+				delete [] pBuffer;
+			}
+			CloseHandle(hFile);
+		}
+	}
+
+	// retail reads the attributes by position: width, height, x, y, multisample, windowed, vsync, graphical_detail
+	if(settings.m_Found && settings.m_Attributes.Elements() >= 8)
+	{
+		m_Window.m_W = atoi(settings.m_Attributes.GetValueByIndex(0));
+		m_Window.m_H = atoi(settings.m_Attributes.GetValueByIndex(1));
+		m_Window.m_X = atoi(settings.m_Attributes.GetValueByIndex(2));
+		m_Window.m_Y = atoi(settings.m_Attributes.GetValueByIndex(3));
+		m_MultisampleIndex = atoi(settings.m_Attributes.GetValueByIndex(4));
+		m_Windowed = atoi(settings.m_Attributes.GetValueByIndex(5)) == 1;
+		m_DisplayDeviceParams.m_PresentInterval = atoi(settings.m_Attributes.GetValueByIndex(6)) == 1 ? Display::E_PresentInterval_One : Display::E_PresentInterval_Immediate;
+		m_GraphicalDetail = atoi(settings.m_Attributes.GetValueByIndex(7));
+		ClampToMinimumSize(&m_Window.m_W, &m_Window.m_H);
+	}
+	else
+	{
+		// no settings yet: full screen at the desktop resolution, graphical detail 2
+		Display::C_VideoMode desktopMode;
+		if(!m_pDisplayManager->GetDesktopVideoMode(&desktopMode))
+			return false;
+
+		m_Window.m_W = desktopMode.m_Width;
+		m_Window.m_H = desktopMode.m_Height;
+		m_Windowed = false;
+		m_GraphicalDetail = 2;
+	}
+
+	// [Blur2PC] scripted runs never take over the screen; not in retail
+	if(Blur2PCAutomation::IsActive())
+		m_Windowed = true;
+
+	S32 resolutionIndex = Display::g_Resolutions.FindResolution(m_Window.m_W, m_Window.m_H);
+	if(resolutionIndex == -1)
+	{
+		if(!m_Windowed)
+		{
+			// full screen needs a real mode: take the nearest one
+			resolutionIndex = Display::g_Resolutions.FindClosestResolution(m_Window.m_W, m_Window.m_H);
+			const Display::C_Resolution* pResolution = Display::g_Resolutions.GetResolution(resolutionIndex);
+			if(pResolution)
+			{
+				m_Window.m_W = pResolution->m_Width;
+				m_Window.m_H = pResolution->m_Height;
+			}
+		}
+		else
+		{
+			// a window may be any size
+			resolutionIndex = 0;
+		}
+	}
+	m_ResolutionIndex = resolutionIndex;
+
+	const Display::C_MultisampleOption* pMultisample = Display::g_Resolutions.GetMultisample(m_MultisampleIndex);
+	if(pMultisample)
+	{
+		m_DisplayDeviceParams.m_Multisample = pMultisample->m_Multisample;
+	}
+	else
+	{
+		m_MultisampleIndex = 0;
+		m_DisplayDeviceParams.m_Multisample = Display::E_Multisample_None;
+	}
+
+	g_debugFrameworkResolution.SetValue((E_GraphicsOption)m_ResolutionIndex);
+	g_debugFrameworkMultisample.SetValue((E_GraphicsOption)m_MultisampleIndex);
+	g_debugFrameworkWindowed.SetValue(m_Windowed);
+	g_debugFrameworkVsync.SetValue(m_DisplayDeviceParams.m_PresentInterval == Display::E_PresentInterval_One);
+	g_debugFrameworkGraphicalDetail.SetValue((int)m_GraphicalDetail);
+
+	LOGINFO(g_Log, "Graphics settings %s: %ix%i at %i,%i, resolution %i, multisample %i, windowed %i, vsync %i, detail %i\n",
+		m_SettingsFileName.Chars(), m_Window.m_W, m_Window.m_H, m_Window.m_X, m_Window.m_Y, m_ResolutionIndex, m_MultisampleIndex,
+		m_Windowed ? 1 : 0, m_DisplayDeviceParams.m_PresentInterval == Display::E_PresentInterval_One ? 1 : 0, m_GraphicalDetail);
+
+	return true;
+}
+
+// retail SaveSettings (0x0084a050, document layout from 0x0084a4a0)
+void C_Application::SaveSettings()
+{
+	if(m_SettingsFileName.Length() == 0)
+		return;
+
+	// [Blur2PC] a scripted run (forced windowed) never writes the player's settings file unless it was
+	// given its own with BLUR2PC_SETTINGS; not in retail
+	if(Blur2PCAutomation::IsActive() && getenv("BLUR2PC_SETTINGS") == NULL)
+		return;
+
+	Util::C_String xml;
+	xml.Printf(
+		"<application_settings version=\"1\"/>\r\n"
+		"<shared_graphical_settings width=\"%i\" height=\"%i\" x=\"%i\" y=\"%i\" multisample=\"%i\" windowed=\"%i\" vsync=\"%i\" graphical_detail=\"%i\"/>\r\n",
+		m_Window.m_W, m_Window.m_H, m_Window.m_X, m_Window.m_Y, m_MultisampleIndex,
+		m_Windowed ? 1 : 0,
+		m_DisplayDeviceParams.m_PresentInterval == Display::E_PresentInterval_One ? 1 : 0,
+		m_GraphicalDetail);
+
+	HANDLE hFile = CreateFileA(m_SettingsFileName.Chars(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if(hFile == INVALID_HANDLE_VALUE)
+	{
+		LOGWARN(g_Log, "Failed to write %s\n", m_SettingsFileName.Chars());
+		return;
+	}
+	DWORD written = 0;
+	WriteFile(hFile, xml.Chars(), (DWORD)xml.Length(), &written, NULL);
+	CloseHandle(hFile);
+}
+
+// retail 0x00849750 (called on the window object, whose second size pair is 640x480)
+void C_Application::ClampToMinimumSize(S32* pWidth, S32* pHeight) const
+{
+	if(*pWidth <= m_MinWidth)
+		*pWidth = m_MinWidth;
+	if(*pHeight <= m_MinHeight)
+		*pHeight = m_MinHeight;
+}
+
+// retail 0x0084a450: the resolution becomes the window's client size and the device's back buffer size
+void C_Application::SetDisplaySize(const U32 width, const U32 height, const U32 refreshRate)
+{
+	m_Window.m_W = width;
+	m_Window.m_H = height;
+	m_DisplayDeviceParams.m_Width = width;
+	m_DisplayDeviceParams.m_Height = height;
+	m_DisplayDeviceParams.m_RefreshRate = refreshRate;
+}
+
+// retail 0x008496b0: window rectangle for the saved client position and size, kept on screen
+void C_Application::GetWindowRectFromClient(RECT* pRect) const
+{
+	pRect->left = m_Window.m_X;
+	pRect->right = m_Window.m_X + m_Window.m_W;
+	pRect->top = m_Window.m_Y;
+	pRect->bottom = m_Window.m_Y + m_Window.m_H;
+	AdjustWindowRect(pRect, m_Window.m_Style, FALSE);
+	if(pRect->left < 0)
+	{
+		pRect->right = pRect->right - pRect->left;
+		pRect->left = 0;
+	}
+	if(pRect->top < 0)
+	{
+		pRect->bottom = pRect->bottom - pRect->top;
+		pRect->top = 0;
+	}
+}
+
+// retail 0x00849710
+void C_Application::MoveWindowToClientRect()
+{
+	RECT rect;
+	GetWindowRectFromClient(&rect);
+	SetWindowPos(m_Window.m_hWnd, HWND_NOTOPMOST, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOCOPYBITS | SWP_FRAMECHANGED);
+}
+
+// retail: the cursor is hidden in full screen and shown in a window
+void C_Application::ShowCursorForWindowMode()
+{
+	if(!m_Windowed)
+	{
+		if(m_CursorShown)
+		{
+			::ShowCursor(FALSE);
+			m_CursorShown = false;
+		}
+	}
+	else if(!m_CursorShown)
+	{
+		::ShowCursor(TRUE);
+		m_CursorShown = true;
+	}
+}
+
+// retail 0x00849860
+void C_Application::GetGraphicsOptions(S32* pResolutionIndex, S32* pMultisampleIndex, bool* pWindowed, bool* pVsync) const
+{
+	*pResolutionIndex = m_ResolutionIndex;
+	*pMultisampleIndex = m_MultisampleIndex;
+	*pWindowed = m_Windowed;
+	*pVsync = m_DisplayDeviceParams.m_PresentInterval == Display::E_PresentInterval_One;
+}
+
+// retail 0x0084a200
+void C_Application::SetGraphicalDetail(const U32 graphicalDetail)
+{
+	if(m_GraphicalDetail != graphicalDetail)
+	{
+		g_debugFrameworkGraphicalDetail.SetValue((int)graphicalDetail);
+		m_GraphicalDetail = graphicalDetail;
+		ApplyGraphicalDetail(graphicalDetail);
+		SaveSettings();
+	}
+}
+
+// retail ResetDevice (0x0084a240): saves the settings, then recreates the device's volatile resources
+bool C_Application::ResetDevice()
+{
+	SaveSettings();
+
+	if(m_pDisplayDevice->CanReset())
+	{
+		m_pDisplayDevice->DestroyRenderersVolatile();
+		m_pDisplayDevice->DestroyVolatile();
+
+		// [Blur2PC] kept from the original PC path: on PC the render globals are owned here
+		Render::DestroyGlobalColourBuffer();
+		Render::DestroyGlobalDepthStencilBuffer();
+
+		#if !CFG_SPEED
+		BIZ_ASSERT(g_d3dOcclusionQueryCount == 0);
+		#endif
+
+		if(!m_pDisplayDevice->CreateVolatile(m_DisplayDeviceParams))
+		{
+			LOGWARN(g_Log, "Failed to create volatile display device\n");
+			return false;
+		}
+
+		const Display::C_BackBuffer& backBuffer = m_pDisplayDevice->GetBackBuffer();
+		for(S32 viewIndex = 0; viewIndex < m_SplitscreenViews.Size(); ++viewIndex)
+		{
+			C_View& splitscreenView = m_SplitscreenViews[viewIndex];
+			splitscreenView.m_View.Setup(splitscreenView.m_ViewSetup, backBuffer.GetWidth(), backBuffer.GetHeight());
+		}
+
+		Render::CreateGlobalColourBuffer();
+		Render::CreateGlobalDepthStencilBuffer();
+
+		m_LayerManager.SendMessageToLayers(E_LayerMessage_Resize);
+
+		if(!m_pDisplayDevice->CreateRenderersVolatile())
+		{
+			LOGWARN(g_Log, "Failed to create volatile display device renderers\n");
+		}
+	}
+
+	return true;
+}
+
+// retail ApplyGraphicsOptions (0x0084ab80)
+void C_Application::ApplyGraphicsOptions(const S32 resolutionIndex, const S32 multisampleIndex, const bool windowed, const bool vsync)
+{
+	bool reset = false;
+	bool multisampleChanged = false;
+
+	if(multisampleIndex != m_MultisampleIndex)
+	{
+		m_MultisampleIndex = multisampleIndex;
+		g_debugFrameworkMultisample.SetValue((E_GraphicsOption)multisampleIndex);
+
+		const Display::C_MultisampleOption* pMultisample = Display::g_Resolutions.GetMultisample(multisampleIndex);
+		m_DisplayDeviceParams.m_Multisample = pMultisample ? pMultisample->m_Multisample : Display::E_Multisample_None;
+
+		reset = true;
+		multisampleChanged = true;
+	}
+
+	if(windowed != m_Windowed)
+	{
+		g_debugFrameworkWindowed.SetValue(windowed);
+
+		m_Window.m_Style = windowed ? kWindowedStyle : kFullscreenStyle;
+		m_Windowed = windowed;
+		m_DisplayDeviceParams.m_Windowed = windowed;
+
+		SetWindowLongA(m_Window.m_hWnd, GWL_STYLE, m_Window.m_Style);
+		MoveWindowToClientRect();
+
+		const Display::C_Resolution* pResolution = Display::g_Resolutions.GetResolution(m_ResolutionIndex);
+		RECT clientRect;
+		GetClientRect(m_Window.m_hWnd, &clientRect);
+		if(pResolution && ((S32)pResolution->m_Width != clientRect.right - clientRect.left || (S32)pResolution->m_Height != clientRect.bottom - clientRect.top))
+		{
+			m_TrackWindowSize = false;
+		}
+
+		reset = true;
+	}
+
+	if((m_DisplayDeviceParams.m_PresentInterval == Display::E_PresentInterval_One) != vsync)
+	{
+		g_debugFrameworkVsync.SetValue(vsync);
+		m_DisplayDeviceParams.m_PresentInterval = vsync ? Display::E_PresentInterval_One : Display::E_PresentInterval_Immediate;
+		reset = true;
+	}
+
+	bool applyDetail = false;
+	if(resolutionIndex == 0)
+	{
+		// index 0 means "the mode nearest the current size" in full screen; a window keeps its size
+		if(!m_Windowed)
+		{
+			const S32 closest = Display::g_Resolutions.FindClosestResolution(m_Window.m_W, m_Window.m_H);
+			m_ResolutionIndex = closest;
+			g_debugFrameworkResolution.SetValue((E_GraphicsOption)closest);
+
+			const Display::C_Resolution* pResolution = Display::g_Resolutions.GetResolution(closest);
+			if(pResolution)
+				SetDisplaySize(pResolution->m_Width, pResolution->m_Height, pResolution->m_RefreshRate);
+		}
+		applyDetail = multisampleChanged;
+	}
+	else if(resolutionIndex != m_ResolutionIndex)
+	{
+		m_ResolutionIndex = resolutionIndex;
+		g_debugFrameworkResolution.SetValue((E_GraphicsOption)resolutionIndex);
+
+		const Display::C_Resolution* pResolution = Display::g_Resolutions.GetResolution(resolutionIndex);
+		if(pResolution)
+		{
+			SetDisplaySize(pResolution->m_Width, pResolution->m_Height, pResolution->m_RefreshRate);
+
+			if(m_Windowed)
+			{
+				MoveWindowToClientRect();
+
+				RECT clientRect;
+				GetClientRect(m_Window.m_hWnd, &clientRect);
+				if((S32)pResolution->m_Width != clientRect.right - clientRect.left || (S32)pResolution->m_Height != clientRect.bottom - clientRect.top)
+				{
+					m_TrackWindowSize = false;
+				}
+			}
+		}
+
+		reset = true;
+		applyDetail = true;
+	}
+	else
+	{
+		applyDetail = multisampleChanged;
+	}
+
+	// size-dependent game resources follow the new back buffer
+	if(applyDetail)
+		ApplyGraphicalDetail(m_GraphicalDetail);
+
+	if(reset)
+		ResetDevice();
+
+	ShowCursorForWindowMode();
+}
+
+// retail UpdateGraphicsSettings (0x0084bad0), called from BeginRender
+void C_Application::UpdateGraphicsSettings()
+{
+	const bool vsync = m_DisplayDeviceParams.m_PresentInterval == Display::E_PresentInterval_One;
+
+	const U32 graphicalDetail = (U32)(int)g_debugFrameworkGraphicalDetail;
+	if(m_GraphicalDetail != graphicalDetail)
+	{
+		g_debugFrameworkGraphicalDetail.SetValue((int)graphicalDetail);
+		m_GraphicalDetail = graphicalDetail;
+		ApplyGraphicalDetail(graphicalDetail);
+		SaveSettings();
+	}
+
+	const S32 resolutionIndex = (S32)(E_GraphicsOption)g_debugFrameworkResolution;
+	const S32 multisampleIndex = (S32)(E_GraphicsOption)g_debugFrameworkMultisample;
+	const bool windowed = g_debugFrameworkWindowed;
+	const bool vsyncVar = g_debugFrameworkVsync;
+
+	if((resolutionIndex == 0 || resolutionIndex == m_ResolutionIndex) && multisampleIndex == m_MultisampleIndex && windowed == m_Windowed && vsyncVar == vsync)
+	{
+		if(m_Windowed && m_TrackWindowSize)
+		{
+			RECT clientRect;
+			GetClientRect(m_Window.m_hWnd, &clientRect);
+			const S32 width = clientRect.right - clientRect.left;
+			const S32 height = clientRect.bottom - clientRect.top;
+
+			POINT origin;
+			origin.x = 0;
+			origin.y = 0;
+			ClientToScreen(m_Window.m_hWnd, &origin);
+
+			// remember where the player moved the window (more than 10 pixels)
+			if((origin.x > 0 && abs(origin.x - m_Window.m_X) > 10) || (origin.y > 0 && abs(origin.y - m_Window.m_Y) > 10))
+			{
+				m_Window.m_X = origin.x;
+				m_Window.m_Y = origin.y;
+				SaveSettings();
+			}
+
+			// a resized window becomes the resolution
+			if((width != 0 && width != m_Window.m_W) || (height != 0 && height != m_Window.m_H))
+			{
+				m_ResolutionIndex = 0;
+				g_debugFrameworkResolution.SetValue(E_GraphicsOption_First);
+				SetDisplaySize(width, height, 0);
+				ApplyGraphicalDetail(m_GraphicalDetail);
+				ResetDevice();
+			}
+		}
+		return;
+	}
+
+	ApplyGraphicsOptions(resolutionIndex, multisampleIndex, windowed, vsyncVar);
 }
 
 }; // namespace Framework

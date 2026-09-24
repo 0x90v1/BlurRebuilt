@@ -28,8 +28,11 @@ for s in os.environ["BLUR2PC_STRINGS"].split("|"):
             out.write("   pointer at %s\n" % p)
             for r in rm.getReferencesTo(p): froms.append(r.getFromAddress())
             # Lua reg tables: {name, func}; record the neighbouring function pointer
-            nxt = toAddr(mem.getInt(p.add(4)) & 0xffffffff)
-            if fm.getFunctionAt(nxt): 
+            try:
+                nxt = toAddr("%x" % (mem.getInt(p.add(4)) & 0xffffffff))
+            except Exception:
+                nxt = None
+            if nxt is not None and fm.getFunctionAt(nxt):
                 out.write("   paired function %s\n" % nxt); froms.append(nxt)
         for fa in froms:
             f = fm.getFunctionContaining(fa)

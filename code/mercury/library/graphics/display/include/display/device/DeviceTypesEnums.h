@@ -301,8 +301,15 @@ enum E_Multisample
 	E_Multisample_2							= Display2::E_Multisample_2,
 	E_Multisample_4							= Display2::E_Multisample_4,
 	E_Multisample_Count						= 3,
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC offers 8x and 16x and its values are the sample counts (retail
+	// D3D9Manager::Initialise tests {0,2,4,8,16}; the AA option labels print the value with "%ix")
+	E_Multisample_8							= 8,
+	E_Multisample_16						= 16,
+#else
 	E_Multisample_8							= Display2::E_Multisample_Unknown-2,
 	E_Multisample_16						= Display2::E_Multisample_Unknown-1,
+#endif
 	E_Multisample_Unknown					= Display2::E_Multisample_Unknown,
 };
 

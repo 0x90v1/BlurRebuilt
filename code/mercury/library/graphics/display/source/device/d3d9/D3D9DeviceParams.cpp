@@ -42,6 +42,7 @@ C_DeviceParams::C_DeviceParams()
 	m_Multisample						= E_Multisample_2;
 	m_ColourFormat						= E_Format_A8R8G8B8;
 	m_DepthStencilFormat				= E_Format_D24S8;
+	m_RefreshRate						= 0;	// [Blur2PC]
 	m_Windowed							= true;
 	m_CmdShow							= 1;
 	m_pName								= NULL;

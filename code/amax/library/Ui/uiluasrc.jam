@@ -118,6 +118,7 @@ LUASRC =
 ../Library/Ui/Game/Lua_Scripts/Screens/Shared/Options_Controller.lua
 ../Library/Ui/Game/Lua_Scripts/Screens/Shared/Options_DrivingAssists.lua
 ../Library/Ui/Game/Lua_Scripts/Screens/Shared/Options_ImageAdjust.lua
+../Library/Ui/Game/Lua_Scripts/Screens/Shared/Options_Graphics.lua
 ../Library/Ui/Game/Lua_Scripts/Screens/Shared/Options_LinkYourAccount.lua
 ../Library/Ui/Game/Lua_Scripts/Screens/Shared/Options_SaveLocation.lua
 ../Library/Ui/Game/Lua_Scripts/Screens/Shared/Options_SpeakerPos.lua

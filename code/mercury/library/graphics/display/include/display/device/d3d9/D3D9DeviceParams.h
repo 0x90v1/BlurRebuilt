@@ -59,6 +59,7 @@ public:
 	E_Multisample		m_Multisample;
 	E_Format			m_ColourFormat;
 	E_Format			m_DepthStencilFormat;
+	U32					m_RefreshRate;		// [Blur2PC] retail PC: the chosen mode's refresh rate (0 = default)
 	bool				m_Windowed;
 	S8					m_CmdShow;
 	LPCTSTR				m_pName;

@@ -44,6 +44,9 @@ struct C_VideoMode
 	U32					m_Width;
 	U32					m_Height;
 	E_Format			m_Format;
+	#ifdef PLATFORM_PC
+	U32					m_RefreshRate;	// [Blur2PC] retail PC keeps the adapter mode's refresh rate here
+	#endif
 	bool				m_WideScreen;
 	bool				m_HiDef;
 

@@ -49,8 +49,17 @@ public:
 
 	bool GetVideoMode(C_VideoMode* pVideoMode);
 
+	#ifdef PLATFORM_PC
+	// [Blur2PC] retail 0x005b7310: the primary display's current mode, if it is in the video mode list
+	bool GetDesktopVideoMode(C_VideoMode* pVideoMode);
+	#endif
+
 private:
 
+	#ifdef PLATFORM_PC
+	// [Blur2PC] retail 0x005b7420 also stores the refresh rate (not compared: the first one enumerated is kept)
+	bool AddVideoMode(const U32 width, const U32 height, const E_Format format, const U32 refreshRate, const bool wideScreen, const bool hiDef);
+	#endif
 	bool AddVideoMode(const U32 width, const U32 height, const E_Format format, const bool wideScreen, const bool hiDef);
 
 	bool CheckMultisample(const E_Multisample multisample, const E_Format format, const bool windowed);

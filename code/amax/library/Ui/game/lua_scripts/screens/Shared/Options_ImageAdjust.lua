@@ -53,7 +53,7 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 			UIGlobals.SaveOptions = true
 		end
 
-		GoScreen("Shared\\Options.lua")
+		GoScreen( ImageAdjust_ReturnScreen() )
 	end
 	
 	if message == UIEnums.Message.MenuBack and arg2 == true then
@@ -62,7 +62,7 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 		if GUI.initialGamma ~= gamma then
 			Amax.GammaCorrection( GUI.initialGamma )
 		end
-		GoScreen("Shared\\Options.lua")
+		GoScreen( ImageAdjust_ReturnScreen() )
 	end
 	
 	if message == UIEnums.Message.ButtonX and arg2 == true then
@@ -104,4 +104,12 @@ end
 function End()
 	-- safety, we could leave the screen by other means e.g. accepting an xbox live invite
 	Amax.GammaCorrection( UIGlobals.OptionsTable.gamma )
+end
+
+-- [Blur2PC] retail Blur PC reaches image adjust from the graphics options screen and returns there
+function ImageAdjust_ReturnScreen()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		return "Shared\\Options_Graphics.lua"
+	end
+	return "Shared\\Options.lua"
 end

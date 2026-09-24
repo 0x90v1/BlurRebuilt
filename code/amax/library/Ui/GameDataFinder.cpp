@@ -65,6 +65,8 @@
 #include <Gamelogic\SocialNetworking\EventOwnerManager.h>
 #include <GameLogic/Profile/MultiplayerProfile.h>
 
+#include <Display/Device/DeviceDebug.h>	// [Blur2PC] Display::g_Resolutions (graphics options labels)
+
 #include "bdLobby\bdLobbyCommon\bdAuthCommon.h"
 
 #ifdef CFG_ALLOW_OPTIMIZE_OFF
@@ -403,6 +405,42 @@ const WCHAR* C_GameDataFinder::GetVariableText( const char* pVariableName )
 			m_VariableText.Format( m_sCountdownText.String(), secs, '.', msecs ); // #33395, #36937
 		}
 	}
+#ifdef PLATFORM_PC
+	else
+	if ( !strncmp( pVariableName, "OPTION_", 7 ) )
+	{
+		// [Blur2PC] retail Blur PC graphics options labels (Blur.exe 1.2, 0x00c50005): resolution names
+		// ("1920x1080"), multisample names ("4x"; "0x" shows as Off) and the confirm-settings countdown
+		pVariableName += 7;
+
+		if ( !strncmp( pVariableName, "RESOLUTION", 10 ) )
+		{
+			pVariableName += 10;
+			const Display::C_Resolution* pResolution = Display::g_Resolutions.GetResolution( (S32)ParseIndex( pVariableName, "" ) );
+			if ( pResolution )
+				m_VariableText.Format( L"%S", pResolution->m_Name.Chars() );
+		}
+		else
+		if ( !strncmp( pVariableName, "AATYPE", 6 ) )
+		{
+			pVariableName += 6;
+			const Display::C_MultisampleOption* pMultisample = Display::g_Resolutions.GetMultisample( (S32)ParseIndex( pVariableName, "" ) );
+			if ( pMultisample )
+			{
+				if ( !strcmp( pMultisample->m_Name.Chars(), "0x" ) )
+					m_VariableText = C_TextStringID( "CMN_OFF" ).String();
+				else
+					m_VariableText.Format( L"%S", pMultisample->m_Name.Chars() );
+			}
+		}
+		else
+		if ( !strncmp( pVariableName, "COUNTDOWN", 9 ) )
+		{
+			pVariableName += 9;
+			m_VariableText.Format( C_TextStringID( "POP_CONFIRM_VIDEO_SETTINGS" ).String(), (S32)ParseIndex( pVariableName, "" ) );
+		}
+	}
+#endif
 	else
 	/*--------------------------------------------------------------------------------------
 		REPLAY Data
@@ -2909,8 +2947,8 @@ const WCHAR* C_GameDataFinder::GetVariableText( const char* pVariableName )
 		}
 		else if ( !strncmp( pVariableName, "DESC", 4 ) )
 		{
-			//PK 101, I’ve beaten your challenge in 2 attempts. I re-challenge you to get 2,459 Fans (369 more than you) and a Gold Medal (same as you), whilst still using the Focus RS on Medium difficulty.
-			//%s, I’ve beaten your challenge in %d attempts. I re-challenge you to get %s and a %d, whilst still using the %s on %s difficulty.
+			//PK 101, Iï¿½ve beaten your challenge in 2 attempts. I re-challenge you to get 2,459 Fans (369 more than you) and a Gold Medal (same as you), whilst still using the Focus RS on Medium difficulty.
+			//%s, Iï¿½ve beaten your challenge in %d attempts. I re-challenge you to get %s and a %d, whilst still using the %s on %s difficulty.
 
 			static C_TextStringID id( "FDE_RECHALLENGE" );
 
