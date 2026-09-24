@@ -16,6 +16,10 @@ void __cdecl D3DBeginTimingCallback(DWORD context);
 void __cdecl D3DEndTimingCallback(DWORD context);
 #endif
 
+#ifdef PLATFORM_PC
+struct IDirect3DQuery9;	// [Blur2PC] PC GPU timing queries
+#endif
+
 namespace Display
 {
 
@@ -34,6 +38,10 @@ public:
 	static void ResetPeaks();
 	static void BeginFrame();
 	static void EndFrame();
+
+	#ifdef PLATFORM_PC
+	static void ReleaseQueries();	// [Blur2PC] before the D3D9 device is destroyed
+	#endif
 
 	#ifdef PLATFORM_PS3
 	void AdvanceTimingRead();
@@ -58,6 +66,17 @@ public:
 	U64											m_EndTime;
 	#endif
 
+	#ifdef PLATFORM_PC
+	// [Blur2PC] PC backend (the snapshot has none): D3D9 timestamp query pairs per event, read back
+	// m_FrameCount frames later like the PS3 path; m_DisplayTime is in nanoseconds (the unit MiniPerfMonitor
+	// assumes off Xenon)
+	static const U32							m_FrameCount = 4;
+	static const U32							m_PairCount = 8;
+	IDirect3DQuery9*							m_pQueries[m_FrameCount][m_PairCount][2];
+	U32											m_PairsUsed[m_FrameCount];
+	U64											m_DisplayTime;
+	#endif
+
 	static Util::C_List<C_GPUTimingStats>		m_StatsList;
 };
 
@@ -76,6 +95,10 @@ public:
 	
 	#ifdef PLATFORM_PS3
 	U32											m_Index;
+	#endif
+
+	#ifdef PLATFORM_PC
+	S32											m_Pair;	// [Blur2PC] query pair issued by this event, -1 if none
 	#endif
 
 private:

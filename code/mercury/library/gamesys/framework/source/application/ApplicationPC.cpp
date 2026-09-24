@@ -11,6 +11,7 @@ namespace WorldRender
 }
 #include <system/debug/Blur2PCAutomation.h>	// [Blur2PC]
 #include "Framework/Application/ApplicationPC.h"
+#include "Framework/Application/TimingColours.h"	// [Blur2PC] mini perf monitor timings
 #include "Framework/Layer/Layer.h"
 
 #include <System/Serialise.h>
@@ -468,6 +469,9 @@ void C_Application::IdleLoop()
 {
 	UpdateCursor();
 
+	{	// [Blur2PC] frame timing scopes the MiniPerfMonitor reads, as in Application360.cpp Run(); the PC loop had none
+	CPU_TIMING(0, Maths::RGBA(255, 255, 255, 255), "CPU");
+
 	CHECK_MEMORY_INTEGRITY();
 
 	// [Blur2PC] Decoupled update/render. The simulation is hard-wired to 1/60 s steps (car physics
@@ -515,6 +519,7 @@ void C_Application::IdleLoop()
 			::WorldRender::Blur2PCInterpTick();
 			Cam2::I_Feed::Blur2PCAdvanceTick();
 		}
+		CPU_TIMING(1, g_TimingColour_Update, "CPU.Update");	// [Blur2PC] as Application360.cpp
 		OnUpdate();
 	}
 
@@ -529,7 +534,19 @@ void C_Application::IdleLoop()
 	}
 
 	Display::Device()->AcquireThreadOwnership();
-	OnRender();
+	{	// [Blur2PC] GPU/render timing scopes as Application360.cpp
+		GPU_TIMING_BEGIN_FRAME();
+		{
+			GPU_TIMING(0, Maths::RGBA(255, 255, 255, 255), "GPU");
+			{
+				CPU_TIMING(1, g_TimingColour_Render, "CPU.Render");
+				OnRender();
+			}
+		}
+		GPU_TIMING_END_FRAME();
+		// [Blur2PC] 360 runs this after releasing the device; on PC it reads D3D9 queries, so it stays inside
+		GPU_TIMING_UPDATE();
+	}
 	Display::Device()->ReleaseThreadOwnership();
 
 	if (s_decouple)
@@ -544,9 +561,14 @@ void C_Application::IdleLoop()
 		if (t - s_t0 >= 5000) { LOGINFO(Debug::GetLogger("blur2pc.render"), "render %.1f fps, update %.1f Hz\n", s_frames * 1000.0f / (t - s_t0), s_updates * 1000.0f / (t - s_t0)); s_t0 = t; s_frames = s_updates = 0; }
 	}
 
-	Blur2PCFrameLimitWait();	// [Blur2PC] optional render cap (Timer.cpp)
+	Blur2PCFrameLimitWait();	// [Blur2PC] optional render cap (Timer.cpp); inside "CPU" so the monitor's FPS counts it, like the 360's vsync wait in Present
+	}	// [Blur2PC] end of "CPU"
 
 	Perf::ProfilerCommon::Instance().EndFrame();
+
+	#ifdef USE_CPU_TIMINGS	// [Blur2PC] as Application360.cpp
+	Perf::C_CPUTimingStats::UpdateStats();
+	#endif
 
 	if (m_RunState != E_RunState_Run)
 	{

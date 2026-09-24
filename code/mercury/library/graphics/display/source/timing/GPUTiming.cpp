@@ -7,6 +7,10 @@
 
 #include "System/Perf/ProfilerEnable.h"
 
+#ifdef PLATFORM_PC
+#include "Display/Device/Device.h"	// [Blur2PC] D3D9 timestamp queries
+#endif
+
 #ifdef ENABLE_MERCURY_PROFILER
 #include <System/Perf/Profiler.h>
 #include <System/Perf/ProfilerBackend.h>
@@ -64,6 +68,87 @@ void __cdecl D3DEndTimingCallback(DWORD context)
 namespace Display
 {
 
+#ifdef PLATFORM_PC
+
+// [Blur2PC] PC GPU timing. The snapshot only has Xenon (GPU callbacks) and PS3 (GCM timestamps) backends, so
+// on PC every GPU stat read 0. Not from retail (a Master build, CFG_GOLD, compiles GPU timing out). Each
+// enabled event issues a D3D9 timestamp pair; a frame's pairs are read m_FrameCount-1 frames later, when
+// the GPU has finished them, under that frame's disjoint and frequency queries.
+
+namespace
+{
+	S32					s_PCTimingState = -1;	// -1 not tried, 0 unsupported, 1 ready
+	bool				s_PCInFrame = false;
+	U32					s_PCFrame = 0;
+	IDirect3DQuery9*	s_pPCDisjoint[C_GPUTimingStats::m_FrameCount];
+	IDirect3DQuery9*	s_pPCFreq[C_GPUTimingStats::m_FrameCount];
+	bool				s_PCFrameIssued[C_GPUTimingStats::m_FrameCount];
+
+	bool PCTimingReady()
+	{
+		if(s_PCTimingState < 0)
+		{
+			IDirect3DDevice9* pDevice = Device()->GetD3DDevice();
+			s_PCTimingState = 0;
+			if(pDevice && SUCCEEDED(pDevice->CreateQuery(D3DQUERYTYPE_TIMESTAMP, NULL)))
+			{
+				s_PCTimingState = 1;
+				for(U32 i=0; i<C_GPUTimingStats::m_FrameCount; i++)
+				{
+					s_PCFrameIssued[i] = false;
+					if(FAILED(pDevice->CreateQuery(D3DQUERYTYPE_TIMESTAMPDISJOINT, &s_pPCDisjoint[i])))
+						s_pPCDisjoint[i] = NULL;
+					if(FAILED(pDevice->CreateQuery(D3DQUERYTYPE_TIMESTAMPFREQ, &s_pPCFreq[i])))
+						s_pPCFreq[i] = NULL;
+					if(!s_pPCDisjoint[i] || !s_pPCFreq[i])
+						s_PCTimingState = 0;
+				}
+			}
+		}
+		return s_PCTimingState == 1;
+	}
+}
+
+void C_GPUTimingStats::ReleaseQueries()
+{
+	for(C_GPUTimingStats* pStats = m_StatsList.First(); pStats; pStats = pStats->Next())
+	{
+		for(U32 f=0; f<m_FrameCount; f++)
+		{
+			for(U32 p=0; p<m_PairCount; p++)
+			{
+				for(U32 e=0; e<2; e++)
+				{
+					if(pStats->m_pQueries[f][p][e])
+					{
+						pStats->m_pQueries[f][p][e]->Release();
+						pStats->m_pQueries[f][p][e] = NULL;
+					}
+				}
+			}
+			pStats->m_PairsUsed[f] = 0;
+		}
+	}
+
+	if(s_PCTimingState >= 0)
+	{
+		for(U32 i=0; i<m_FrameCount; i++)
+		{
+			if(s_pPCDisjoint[i])
+				s_pPCDisjoint[i]->Release();
+			if(s_pPCFreq[i])
+				s_pPCFreq[i]->Release();
+			s_pPCDisjoint[i] = NULL;
+			s_pPCFreq[i] = NULL;
+			s_PCFrameIssued[i] = false;
+		}
+	}
+	s_PCTimingState = -1;
+	s_PCInFrame = false;
+}
+
+#endif // PLATFORM_PC
+
 // C_GPUTimingStats
 
 Util::C_List<C_GPUTimingStats> C_GPUTimingStats::m_StatsList;
@@ -83,6 +168,12 @@ C_GPUTimingStats::C_GPUTimingStats(const S32 level, const Maths::RGBA colour, co
 	m_StartTime		= 0;
 	m_TempTime		= 0;
 	m_EndTime		= 0;
+	#endif
+
+	#ifdef PLATFORM_PC
+	memset(m_pQueries, 0, sizeof(m_pQueries));
+	memset(m_PairsUsed, 0, sizeof(m_PairsUsed));
+	m_DisplayTime	= 0;
 	#endif
 
 	m_StatsList.PushLast(this);
@@ -125,6 +216,23 @@ void C_GPUTimingStats::UpdateStats()
 	//cellGcmFinish(0);
 	#endif
 
+	#ifdef PLATFORM_PC
+	// [Blur2PC] the oldest issued frame, in the slot the next BeginFrame reuses
+	const U32 readSlot = s_PCFrame % m_FrameCount;
+	bool pcFrameReady = false;
+	U64 pcFreq = 0;
+	if(s_PCTimingState == 1 && s_PCFrameIssued[readSlot])
+	{
+		BOOL disjoint = TRUE;
+		if(s_pPCDisjoint[readSlot]->GetData(&disjoint, sizeof(disjoint), 0) == S_OK && !disjoint &&
+			s_pPCFreq[readSlot]->GetData(&pcFreq, sizeof(pcFreq), 0) == S_OK && pcFreq)
+		{
+			pcFrameReady = true;
+		}
+		s_PCFrameIssued[readSlot] = false;
+	}
+	#endif
+
 	C_GPUTimingStats* pTimingStats = m_StatsList.First();
 	while(pTimingStats)
 	{
@@ -148,6 +256,31 @@ void C_GPUTimingStats::UpdateStats()
 			#ifdef PLATFORM_XENON
 			pTimingStats->m_Frames[Perf::E_TimingFrame_Curr].m_TotalTime = pTimingStats->m_DisplayTime;
 
+			#endif
+
+			#ifdef PLATFORM_PC
+			// [Blur2PC] keeps the last good value when a frame's queries are not ready or were disjoint
+			if(pcFrameReady && pTimingStats->m_PairsUsed[readSlot])
+			{
+				U64 ticks = 0;
+				bool complete = true;
+				for(U32 p=0; p<pTimingStats->m_PairsUsed[readSlot] && complete; p++)
+				{
+					U64 t0 = 0, t1 = 0;
+					if(pTimingStats->m_pQueries[readSlot][p][0]->GetData(&t0, sizeof(t0), 0) == S_OK &&
+						pTimingStats->m_pQueries[readSlot][p][1]->GetData(&t1, sizeof(t1), 0) == S_OK)
+					{
+						ticks += (t1 > t0) ? t1-t0 : 0;
+					}
+					else
+					{
+						complete = false;
+					}
+				}
+				if(complete)
+					pTimingStats->m_DisplayTime = (U64)((double)ticks * 1000000000.0 / (double)pcFreq);
+			}
+			pTimingStats->m_Frames[Perf::E_TimingFrame_Curr].m_TotalTime = pTimingStats->m_DisplayTime;
 			#endif
 		}
 		else
@@ -173,6 +306,19 @@ void C_GPUTimingStats::ResetPeaks()
 
 void C_GPUTimingStats::BeginFrame()
 {
+	#ifdef PLATFORM_PC
+	if(PCTimingReady())
+	{
+		// [Blur2PC] this slot was read (or given up on) by the last UpdateStats
+		const U32 slot = s_PCFrame % m_FrameCount;
+		for(C_GPUTimingStats* pStats = m_StatsList.First(); pStats; pStats = pStats->Next())
+			pStats->m_PairsUsed[slot] = 0;
+		s_PCFrameIssued[slot] = false;
+		s_pPCDisjoint[slot]->Issue(D3DISSUE_BEGIN);
+		s_PCInFrame = true;
+	}
+	#endif
+
 	#ifdef PLATFORM_XENON
 	GetD3DDevice()->SetPredication(D3DPRED_ALL_RENDER | D3DPRED_ALL_Z);
 	GetD3DDevice()->InsertCallback(D3DCALLBACK_IMMEDIATE, D3DBeginFrameCallback, 0);
@@ -182,6 +328,18 @@ void C_GPUTimingStats::BeginFrame()
 
 void C_GPUTimingStats::EndFrame()
 {
+	#ifdef PLATFORM_PC
+	if(s_PCInFrame)
+	{
+		const U32 slot = s_PCFrame % m_FrameCount;
+		s_pPCFreq[slot]->Issue(D3DISSUE_END);
+		s_pPCDisjoint[slot]->Issue(D3DISSUE_END);
+		s_PCFrameIssued[slot] = true;
+		s_PCFrame++;
+		s_PCInFrame = false;
+	}
+	#endif
+
 	#ifdef PLATFORM_XENON
 	GetD3DDevice()->SetPredication(D3DPRED_ALL_RENDER | D3DPRED_ALL_Z);
 	GetD3DDevice()->InsertCallback(D3DCALLBACK_IMMEDIATE, D3DEndFrameCallback, 0);
@@ -201,10 +359,39 @@ C_GPUTimingEvent::C_GPUTimingEvent(C_GPUTimingStats& stats) // __restrict // JAS
 	m_pParent	= pParent;
 	m_pStats	= &stats;
 	m_Depth		= m_pParent ? m_pParent->m_Depth+1 : m_Depth = 0;
+
+	#ifdef PLATFORM_PC
+	m_Pair		= -1;
+	#endif
 	
 	if(m_Depth <= g_debugDisplayGPUTimingDepth && stats.m_Level <= g_debugDisplayGPUTimingLevel)
 	{
 		stats.SetDepth(m_Depth);
+
+		#ifdef PLATFORM_PC
+		// [Blur2PC] events outside Begin/EndFrame (device resize, loading screen) are not timed
+		if(s_PCInFrame)
+		{
+			const U32 slot = s_PCFrame % C_GPUTimingStats::m_FrameCount;
+			const U32 pair = stats.m_PairsUsed[slot];
+			if(pair < C_GPUTimingStats::m_PairCount)
+			{
+				IDirect3DQuery9** ppQuery = stats.m_pQueries[slot][pair];
+				IDirect3DDevice9* pDevice = Device()->GetD3DDevice();
+				for(U32 e=0; e<2; e++)
+				{
+					if(!ppQuery[e] && FAILED(pDevice->CreateQuery(D3DQUERYTYPE_TIMESTAMP, &ppQuery[e])))
+						ppQuery[e] = NULL;
+				}
+				if(ppQuery[0] && ppQuery[1])
+				{
+					ppQuery[0]->Issue(D3DISSUE_END);
+					stats.m_PairsUsed[slot] = pair+1;
+					m_Pair = (S32)pair;
+				}
+			}
+		}
+		#endif
 
 		#ifdef PLATFORM_PS3
 		m_Index = Display::GCM::GCMGetNextReportIndex2();
@@ -239,6 +426,11 @@ C_GPUTimingEvent::~C_GPUTimingEvent() // __restrict // JASOND: Intel compiler do
 		#ifdef PLATFORM_PS3
 		pTimings->m_TimingIndex[pTimings->m_TimingWrite] = m_Index;
 		GCMSetTimeStamp(m_Index+1);
+		#endif
+
+		#ifdef PLATFORM_PC
+		if(m_Pair >= 0 && s_PCInFrame)
+			pTimings->m_pQueries[s_PCFrame % C_GPUTimingStats::m_FrameCount][m_Pair][1]->Issue(D3DISSUE_END);
 		#endif
 
 		#ifdef PLATFORM_XENON

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Display/Device/D3D9/D3D9Device.h"
+#include "Display/Timing/GPUTiming.h"	// [Blur2PC] C_GPUTimingStats::ReleaseQueries
 #include "Display/Memory/MemoryGraphics.h"
 #include "Display/Shaders/Constants.h"
 
@@ -201,6 +202,10 @@ void C_D3D9Device::DestroyD3D9()
 		{
 			#if TRACK_DISPLAY2_RESOURCES
 			m_Display2.DumpResources(); // We're about to destroy d3d so let's dump any resources that haven't been destroyed...
+			#endif
+
+			#ifdef PLATFORM_PC
+			C_GPUTimingStats::ReleaseQueries();	// [Blur2PC] the PC GPU timing queries hold device references
 			#endif
 
 			const ULONG refCount = m_pd3dDevice->Release();
