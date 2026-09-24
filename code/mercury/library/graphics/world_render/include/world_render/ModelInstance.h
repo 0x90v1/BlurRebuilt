@@ -24,6 +24,20 @@ class C_Model;
 Maths::HMat43 Blur2PCBlendMatrix(const Maths::HMat43& a, const Maths::HMat43& b, F32 t);
 U32 Blur2PCInterpCurrentTick();		// [Blur2PC] update tick counter (advances once per decoupled update)
 F32 Blur2PCInterpRenderAlpha();		// [Blur2PC] render fraction during a render, 1 otherwise
+// [Blur2PC] records a world matrix the game has just stored at pDst (inside owner's material data)
+// so renders between updates can blend it; see ModelInstance.cpp
+void Blur2PCInterpRecordStore(const void* owner, MathsStorage::MatrixRow44* pDst, const Maths::HMat43& m);
+// [Blur2PC] same, for a store that belongs to the current update tick even when issued inside a render
+// (deferred update tasks flushed at frame start, e.g. animated models); the blend is written immediately
+void Blur2PCInterpRecordTickStore(const void* owner, MathsStorage::MatrixRow44* pDst, const Maths::HMat43& m);
+void Blur2PCInterpRecordTickStore43(const void* owner, MathsStorage::MatrixRow43* pDst, const Maths::HMat43& m);
+void Blur2PCInterpForget(const void* owner);
+// [Blur2PC] render hooks: called with begin=true after the blend pass that starts a render, and with
+// begin=false before the true values are restored. For game objects that keep render positions outside
+// material data (light flares, point lights) and move them to the render pose for the frame.
+typedef void (*T_Blur2PCRenderHook)(void* ctx, bool begin);
+void Blur2PCInterpAddRenderHook(T_Blur2PCRenderHook fn, void* ctx);
+void Blur2PCInterpRemoveRenderHook(T_Blur2PCRenderHook fn, void* ctx);
 
 class C_ModelInstance : public SceneGraph::C_ModelInstance
 {

@@ -390,6 +390,14 @@ bool UIPerks2::MessageHandler( const Messaging::C_MessageBase* pMessage )
 			if( m_AttachedToCar )
 			{
 				m_Panel = E_GameSpritePanel_VP0 + m_sLocalPlayerIndex;
+#if PLATFORM_PC
+				if( m_sLocalPlayerIndex == 0 )
+				{	// [Blur2PC] own panel, re-placed at the car's render pose each frame (C_UiManager::PreRender)
+					m_Panel = E_GameSpritePanel_VP0_CAR;
+					m_Blur2PCBuilt = false;
+					s_pBlur2PCCarGadget = this;
+				}
+#endif
 				m_LightVisibilityFlags = Game::E_ViewTypeFlag_Main1 + m_sLocalPlayerIndex;
 
 				// Unit distance
@@ -523,7 +531,13 @@ void UIPerks2::Render()
 	if( m_AttachedToCar && Parent() )
 	{
 		// New code start
-		const Maths::HVec3 idealDir = m_pLogicActor->GetWorldMatrix().AZ();
+#if PLATFORM_PC
+		// [Blur2PC] render interpolation: this runs per rendered frame, so follow the pose the car is drawn at
+		const Maths::HMat43 carMatrix = m_pVehicleActor->Blur2PCRenderMatrix();
+#else
+		const Maths::HMat43 carMatrix = m_pLogicActor->GetWorldMatrix();
+#endif
+		const Maths::HVec3 idealDir = carMatrix.AZ();
 		const Maths::HVec3 currDir = Maths::HMat33(m_PrevQuat).AZ();
 		const Maths::HVec3 upDir = Maths::Constants<Maths::HVec3>::UnitAxisPositiveY();
 		Maths::HVec3 idealSideDir = idealDir ^ upDir;
@@ -561,7 +575,7 @@ void UIPerks2::Render()
 		F32 newAngleMag = angle + (( idealAngleMag - angle) * adjustedDamping);
 		F32 newAngleMagNormalised = 1.0f - Maths::Clamped<F32>( newAngleMag / angle, 0.0f,1.0f );
 
-		Maths::C_Quaternion currRotation( m_pLogicActor->GetWorldMatrix().Rotation() );
+		Maths::C_Quaternion currRotation( carMatrix.Rotation() );
 		Maths::C_Quaternion newRotation = m_PrevQuat.Slerp( currRotation, newAngleMagNormalised);
 
 		PrevAngle = angle;
@@ -597,9 +611,13 @@ void UIPerks2::Render()
 		Maths::HMat43 parentMat = Parent()->Matrix();
 
 		parentMat.Rotation( newRotation/*m_PrevQuat.Normalised()*/ );
-		parentMat.AW( m_pLogicActor->GetWorldMatrix().AW() );
+		parentMat.AW( carMatrix.AW() );
 
 		Parent()->SetMatrix(parentMat);
+#if PLATFORM_PC
+		m_Blur2PCBuiltMatrix = carMatrix;	// [Blur2PC]
+		m_Blur2PCBuilt = true;
+#endif
 
 		// Push render state change
 		gSimple2D.AddSprite( m_Layer,		m_Panel, E_SpriteType_SetRendersStateStack, 1 );
@@ -835,8 +853,25 @@ void UIPerks2::Render()
 		gSimple2D.AddSprite( m_Layer, m_Panel, E_SpriteType_SetRendersStateStack, 0 );
 }
 
+#if PLATFORM_PC
+UIPerks2* UIPerks2::s_pBlur2PCCarGadget = NULL;	// [Blur2PC]
+
+bool UIPerks2::Blur2PCCarPanelDelta( Maths::HMat43& delta )
+{
+	UIPerks2* p = s_pBlur2PCCarGadget;
+	if( !p || !p->m_Blur2PCBuilt || !p->m_pVehicleActor )
+		return false;
+	delta = p->m_Blur2PCBuiltMatrix.InverseRotTrans() * p->m_pVehicleActor->Blur2PCRenderMatrix();
+	return true;
+}
+#endif
+
 void UIPerks2::Exit( )
 {
+#if PLATFORM_PC
+	if( s_pBlur2PCCarGadget == this )	// [Blur2PC]
+		s_pBlur2PCCarGadget = NULL;
+#endif
 	// Remove light
 	if( m_AttachedToCar )
 	{

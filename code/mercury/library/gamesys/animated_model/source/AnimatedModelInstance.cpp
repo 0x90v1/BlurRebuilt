@@ -295,6 +295,9 @@ void C_AnimatedModelInstance::Update(const Maths::HMat43& worldMatrix, const Ani
 			{
 			#ifndef PLATFORM_SPU
 				*pElements[i].worldMatrix = rowMajorWorldMatrix;
+				#if PLATFORM_PC
+				WorldRender::Blur2PCInterpRecordTickStore(this, pElements[i].worldMatrix, worldMatrix);	// [Blur2PC] render interpolation
+				#endif
 			#else
 				// TODO: assuming destination is 16-byte aligned... definitely a multiple of 16-bytes, but is it aligned?!
 				Spu::Store(pElements[i].worldMatrix, &rowMajorWorldMatrix, sizeof(MathsStorage::MatrixRow44));
@@ -783,6 +786,9 @@ void C_AnimatedModelInstance::SetJointTransformParameters(
 #else
 			MathsStorage::MatrixRow44* destMatrix = reinterpret_cast<MathsStorage::MatrixRow44*>(destParamData);
 			StoreMat43(destMatrix, jointMatrix);
+			#if PLATFORM_PC
+			WorldRender::Blur2PCInterpRecordTickStore(this, destMatrix, Maths::HMat43(jointMatrix));	// [Blur2PC] render interpolation
+			#endif
 #endif
 
 		}
@@ -798,6 +804,9 @@ void C_AnimatedModelInstance::SetJointTransformParameters(
 #else
 			MathsStorage::MatrixRow43* destMatrix = reinterpret_cast<MathsStorage::MatrixRow43*>(destParamData);
 			StoreMat43(destMatrix, jointMatrix);
+			#if PLATFORM_PC
+			WorldRender::Blur2PCInterpRecordTickStore43(this, destMatrix, Maths::HMat43(jointMatrix));	// [Blur2PC] render interpolation
+			#endif
 #endif
 		}
 	}
@@ -845,6 +854,9 @@ void C_AnimatedModelInstance::Destroy()
 	
 	// Notify task manager so that PostUpdate doesn't get called on this object after it has been deleted.
 	AnimatedModel::TaskManager().OnAnimatedModelInstanceDestroyed(this);
+#if PLATFORM_PC
+	WorldRender::Blur2PCInterpForget(this);	// [Blur2PC] render interpolation
+#endif
 		
 	RemoveFromSceneGraph();
 

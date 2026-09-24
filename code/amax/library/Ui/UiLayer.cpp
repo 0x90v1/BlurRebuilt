@@ -53,9 +53,11 @@ extern Debug::Bool g_debugOKToDumpDumpResources;
 #endif
 
 // Global UI render buffer switch (DOF + bloom + render buffer)
-#if defined(PLATFORM_PC)
-	#define _DISABLE_GFX_BUFFERS		1
-#endif
+// [Blur2PC] The snapshot defined _DISABLE_GFX_BUFFERS on PC. Retail Blur.exe 1.2 compiles and calls
+// both C_UiLayer::CreateFePostProcessBuffer and CreateIgPostProcessBuffer (Ghidra: the
+// "UiPostProcessBuffer" renderer constructor at 0x00c30210 is called from 0x00c303e0 and 0x00c30470),
+// so retail keeps the UI render buffers on. Without them, RenderOnce drew the HUD with no target of
+// its own, into whatever the blob shadow pre-render left bound. Define removed to match retail.
 
 EXTERN_SHADER(psBloomComposite);
 
@@ -140,8 +142,10 @@ void C_UiLayer::SetupViews()
 {
 	m_pPostProcessMgr->ClearViews();
 
-	const U32 sizeX = m_IsFrontend ? Display::Device()->GetBackBuffer().GetWidth() : m_IngamePostProcessWidth;
-	const U32 sizeY = m_IsFrontend ? Display::Device()->GetBackBuffer().GetHeight() : m_IngamePostProcessHeight; 
+	// [Blur2PC] in-game size follows the composite buffer (back buffer / 4, as retail sizes it); the
+	// fixed 1280/4 x 720/4 constants only matched a 1280x720 back buffer
+	const U32 sizeX = m_IsFrontend ? Display::Device()->GetBackBuffer().GetWidth() : (Display::Device()->GetBackBuffer().GetWidth() >> 2);
+	const U32 sizeY = m_IsFrontend ? Display::Device()->GetBackBuffer().GetHeight() : (Display::Device()->GetBackBuffer().GetHeight() >> 2); 
 
 	const S32 viewCount = Render::C_ViewManager::Instance().GetViewCount();
 	const Render::C_View* pView = Render::C_ViewManager::Instance().GetView(1);
@@ -382,8 +386,9 @@ void C_UiLayer::CreateIgPostProcessBuffer()
 		return;
 	}
 
-	m_pIgCompositeRT->SetWidth( m_IngamePostProcessWidth );
-	m_pIgCompositeRT->SetHeight( m_IngamePostProcessHeight );
+	// [Blur2PC] retail (0x00c30470) sizes the in-game composite from the back buffer, a quarter each way
+	m_pIgCompositeRT->SetWidth( Display::Device()->GetBackBuffer().GetWidth() >> 2 );
+	m_pIgCompositeRT->SetHeight( Display::Device()->GetBackBuffer().GetHeight() >> 2 );
 	m_pIgCompositeRT->SetUseDepth( false );
 #if defined(PLATFORM_PC) || defined(PLATFORM_PS3)
 	m_pIgCompositeRT->SetMultiSample( Display::E_Multisample_None );
@@ -618,7 +623,11 @@ void C_UiLayer::IgRenderComposite()
 	Display::Device()->SetupView(&m_View.m_View, m_View.m_ViewSetup, m_pIgCompositeRT->GetWidth(), m_pIgCompositeRT->GetHeight());
 	Display::Device()->SetView(&m_View.m_View);
 
-	Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth | Display::E_Clear_Stencil, Maths::RGBA(0, 0, 0, 0));
+	// [Blur2PC] retail (C_UiLayer::IgRenderComposite, Blur.exe 0x00c30c20) clears the colour only. The
+	// composite buffer has no depth surface, and on D3D9 a clear that names the depth or stencil buffer
+	// when none is bound fails as a whole, so the snapshot's Colour|Depth|Stencil clear never cleared
+	// the buffer and the HUD accumulated across frames.
+	Display::Device()->Clear(Display::E_Clear_Colour, Maths::RGBA(0, 0, 0, 0));
 	Display::Device()->SetDepthEnable(Display::E_Bool_True);
 	Display::Device()->SetDepthWriteEnable(Display::E_Bool_True);
 
@@ -654,7 +663,9 @@ void C_UiLayer::IgRenderPost()
 	Display::Quad::DrawFullScreen( &m_pIgCompositeRT->GetTexture() );
 
 	// Do Bloom
-	m_pBloom->Display(*m_pBloomParameters);
+	// [Blur2PC] retail (0x00c2fb20) keeps the bloom result for RenderFullscreen and deactivates the manager
+	m_pBloomTexture = m_pBloom->Display(*m_pBloomParameters);
+	m_pPostProcessMgr->SetActive(false);
 	m_pPostProcessMgr->End();
 }
 
@@ -827,7 +838,9 @@ HRESULT C_UiLayer::RenderFullscreen()
 				Display::Device()->SetAlphaTestEnable( Display::E_Bool_False );
 
 #if !defined ( _DISABLE_GFX_BUFFERS )
-				Display::Quad::DrawFullScreen( &m_pIgCompositeRT->GetTexture() );
+				// [Blur2PC] retail (C_UiLayer::RenderFullscreen, 0x00c305c0) adds the bloom result here,
+				// not the composite itself (which would draw the HUD a second time)
+				Display::Quad::DrawFullScreen( m_pBloomTexture );
 #endif
 
 #ifdef PLATFORM_XENON

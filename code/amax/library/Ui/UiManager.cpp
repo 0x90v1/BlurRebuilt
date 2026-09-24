@@ -1,4 +1,7 @@
 #include "Stdafx.h"
+#if PLATFORM_PC
+#include "game/Gadgets/Hud/UIPerks2.h"	// [Blur2PC] car panel delta
+#endif
 
 #ifdef PLATFORM_PS3
 #define AVOID_ONE_POINT_SEVEN_SECOND_UI_BLOCK
@@ -952,6 +955,9 @@ C_UiManager::C_UiManager( const U32 sInitParam ) :
 		"_RT1",
 		"_RT2",
 		"_RT3",
+#if PLATFORM_PC
+		"_VP0_CAR",	// [Blur2PC]
+#endif
 	};
 
 	m_FrontendShapesLoaded = false;
@@ -967,6 +973,9 @@ C_UiManager::C_UiManager( const U32 sInitParam ) :
 	gSimple2D.AddPanelUsage3D( E_GameSpritePanel_VP1 );
 	gSimple2D.AddPanelUsage3D( E_GameSpritePanel_VP2 );
 	gSimple2D.AddPanelUsage3D( E_GameSpritePanel_VP3 );
+#if PLATFORM_PC
+	gSimple2D.AddPanelUsage3D( E_GameSpritePanel_VP0_CAR );	// [Blur2PC]
+#endif
 
 #ifdef PLATFORM_PC
 	// [Blur2PC] retail UI init (0x00c3c68d): the 2D screen width follows the back buffer's aspect ratio
@@ -2454,6 +2463,17 @@ void C_UiManager::PreRender()
 
 		// E_GameSpritePanel_VPn
 		gSimple2D.SetTransformMatrixByPanel( E_GameSpritePanel_VP0 + i, settings3D.GetWorldToDevice() );
+#if PLATFORM_PC
+		if( i == 0 )
+		{	// [Blur2PC] render interpolation: the sprites in this panel were placed at the car's update pose
+			// (the UI builds its sprite lists during the game update); move them to the pose the car is drawn at
+			Maths::HMat44 carPanel = settings3D.GetWorldToDevice();
+			Maths::HMat43 delta;
+			if( UIPerks2::Blur2PCCarPanelDelta( delta ) )
+				carPanel = Maths::HMat44( delta ) * carPanel;
+			gSimple2D.SetTransformMatrixByPanel( E_GameSpritePanel_VP0_CAR, carPanel );
+		}
+#endif
 
 		if( i == 0 )
 		{			
@@ -2605,6 +2625,13 @@ void C_UiManager::RenderAA( )
 				gSimple2D.SetTransformMatrix3D( gSimple2D.GetTransformMatrixByPanel( E_GameSpritePanel_VP0 + i ), settings3D.GetCameraPosition() );
 				gSimple2D.RenderPanel( E_GameSpritePanel_VP0 + i );
 			}
+#if PLATFORM_PC
+			if( i == 0 && gSimple2D.ShouldRender( E_GameSpritePanel_VP0_CAR ) )
+			{	// [Blur2PC] see PreRender
+				gSimple2D.SetTransformMatrix3D( gSimple2D.GetTransformMatrixByPanel( E_GameSpritePanel_VP0_CAR ), settings3D.GetCameraPosition() );
+				gSimple2D.RenderPanel( E_GameSpritePanel_VP0_CAR );
+			}
+#endif
 
 			// _3DAA_WORLD
 #ifndef CFG_GOLD

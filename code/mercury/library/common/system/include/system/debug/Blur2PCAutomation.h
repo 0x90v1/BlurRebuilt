@@ -12,7 +12,7 @@
 //     <time> up   <KEY>               release
 //     <time> shot <file.png>          save the next presented frame (path relative to the script)
 //     <time> quit                     exit the process
-// KEY: RETURN ESCAPE SPACE TAB UP DOWN LEFT RIGHT, A-Z, 0-9, F1-F12.
+// KEY: RETURN ESCAPE SPACE TAB UP DOWN LEFT RIGHT RSHIFT LSHIFT RCONTROL LCONTROL PGUP PGDN INSERT DELETE, A-Z, 0-9, F1-F12.
 //
 // Header-only on purpose: the input, display and framework libraries all include it, and inline
 // functions with function-local statics share one instance across translation units.
@@ -66,7 +66,7 @@ namespace Blur2PCAutomation
 		struct Pair { const char* n; int dik; };
 		static const Pair table[] = {
 			{"RETURN",0x1C},{"ENTER",0x1C},{"ESCAPE",0x01},{"ESC",0x01},{"SPACE",0x39},{"TAB",0x0F},
-			{"UP",0xC8},{"DOWN",0xD0},{"LEFT",0xCB},{"RIGHT",0xCD},
+			{"UP",0xC8},{"DOWN",0xD0},{"LEFT",0xCB},{"RIGHT",0xCD},{"RSHIFT",0x36},{"LSHIFT",0x2A},{"RCONTROL",0x9D},{"LCONTROL",0x1D},{"PGUP",0xC9},{"PGDN",0xD1},{"INSERT",0xD2},{"DELETE",0xD3},
 			{"Q",0x10},{"W",0x11},{"E",0x12},{"R",0x13},{"T",0x14},{"Y",0x15},{"U",0x16},{"I",0x17},{"O",0x18},{"P",0x19},
 			{"A",0x1E},{"S",0x1F},{"D",0x20},{"F",0x21},{"G",0x22},{"H",0x23},{"J",0x24},{"K",0x25},{"L",0x26},
 			{"Z",0x2C},{"X",0x2D},{"C",0x2E},{"V",0x2F},{"B",0x30},{"N",0x31},{"M",0x32},

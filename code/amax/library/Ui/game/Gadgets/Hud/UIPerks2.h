@@ -70,6 +70,11 @@ public:
 	void 			Render();
 	void			Setup( lua_State* pState );
 	void			Exit();
+#if PLATFORM_PC
+	// [Blur2PC] world transform that moves the car-attached perks sprites (built at the update pose) to the
+	// car's render pose for the frame being rendered; false when there is no such gadget
+	static bool		Blur2PCCarPanelDelta( Maths::HMat43& delta );
+#endif
 
 private:
 	C_UIPerkInfo*	GetPerkInfo( const E_PICKUP_TYPE type, const S32 sAmount = 0, const bool bHasExtraBoltMod = false );
@@ -137,6 +142,11 @@ private:
 	C_RenderState						m_SelectedRS;
 
 	Maths::HMat43						m_PrevMatrix;
+#if PLATFORM_PC
+	Maths::HMat43						m_Blur2PCBuiltMatrix;	// [Blur2PC] car matrix the sprites were last built with
+	bool								m_Blur2PCBuilt;
+	static UIPerks2*					s_pBlur2PCCarGadget;
+#endif
 	Maths::HVec3						m_Vel;
 	U32									m_LightVisibilityFlags;
 

@@ -79,6 +79,9 @@ enum E_GameSpritePanel
 	E_GameSpritePanel_RT1,					// 18 : VP1 Map
 	E_GameSpritePanel_RT2,					// 19 : VP2 Map
 	E_GameSpritePanel_RT3,					// 20 : VP3 Map
+#if PLATFORM_PC
+	E_GameSpritePanel_VP0_CAR,				// 21 : [Blur2PC] VP0 sprites attached to the player car (perks); built per update, moved to the car's render pose per frame
+#endif
 
 	E_GameSpritePanel_Count,
 };

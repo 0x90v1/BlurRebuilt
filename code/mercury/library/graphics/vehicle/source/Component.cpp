@@ -1586,7 +1586,12 @@ void C_PartList::UpdateMatrix(C_Part *pNode, Maths::HMat43 &p_Matrix, const Scen
 	}
 	
 	if (pNode->m_pWorldMatrix)
+	{
 		Maths::Store((Maths::HMat44)pNode->m_Matrix, pNode->m_pWorldMatrix);
+#if PLATFORM_PC
+		WorldRender::Blur2PCInterpRecordStore(pNode->m_pModelInstance, pNode->m_pWorldMatrix, pNode->m_Matrix);	// [Blur2PC] render interpolation
+#endif
+	}
 }
 
 

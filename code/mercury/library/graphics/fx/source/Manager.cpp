@@ -107,6 +107,13 @@ ReloadableEffect *Manager::LoadEffectInternal(const char *pszFilename)
 void Manager::LoadEffects(const Btl::Vector<const char *> &list, Btl::Vector<FX::I_Effect*> &pointers)
 {
 	pointers.Resize(list.Size());
+#if PLATFORM_PC
+	// [Blur2PC] retail (Blur.exe 1.2 FX::Manager::LoadEffects, 0x00682400) clears every entry after the resize;
+	// newly loaded effects are not stored below, so without this their entries kept garbage and
+	// C_GameApp::ReleaseAllGlobalResources released it on shutdown (crash on Alt-F4 / window close)
+	for (int i=0; i<pointers.Size(); i++)
+		pointers[i] = NULL;
+#endif
 	for (int i=0; i<list.Size(); i++)
 	{
 		const char *pszFilename = list[i];

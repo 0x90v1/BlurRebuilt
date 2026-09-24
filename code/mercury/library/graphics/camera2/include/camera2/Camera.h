@@ -112,6 +112,11 @@ private:
 	F32 m_PrevFov, m_FovShake;
 public:
 	U32 m_Blur2PCTick;	// [Blur2PC] update tick of the last GetPrevPosition (render interpolation)
+	// [Blur2PC] pose at the previous update, for render interpolation. m_PrevPosition/m_PrevShaken are
+	// the motion-blur inputs, which the chase and photo cameras overwrite with an artificial blur vector.
+	Maths::HVec3 m_Blur2PCPrevPosition;
+	Maths::C_Quaternion m_Blur2PCPrevShaken;
+	F32 m_Blur2PCPrevFov;
 	C_ShakeWorld* m_pShakeWorld; // The shake events which this camera reacts to, or 0 for none
 	C_ShakeCamera* m_pShakeCamera; // Extra shake
 	F32 m_Period;

@@ -92,6 +92,9 @@ void C_Camera::GetPrevPosition() // todo - change this method name to 'StorePrev
 	m_PrevShaken = Shaken();
 	m_PrevFov = Fov();
 	m_Blur2PCTick = I_Feed::Blur2PCTick();	// [Blur2PC]
+	m_Blur2PCPrevPosition = m_PrevPosition;	// [Blur2PC]
+	m_Blur2PCPrevShaken = m_PrevShaken;
+	m_Blur2PCPrevFov = m_PrevFov;
 }
 
 void C_Camera::GetCameraShake(C_Quaternion& rotate, F32& fov) const
@@ -139,6 +142,9 @@ void C_Camera::CopyFrom(const C_Camera& other)
 	m_PrevShaken = other.m_PrevShaken;
 	m_PrevFov = other.m_PrevFov;
 	m_Blur2PCTick = other.m_Blur2PCTick;	// [Blur2PC]
+	m_Blur2PCPrevPosition = other.m_Blur2PCPrevPosition;	// [Blur2PC]
+	m_Blur2PCPrevShaken = other.m_Blur2PCPrevShaken;
+	m_Blur2PCPrevFov = other.m_Blur2PCPrevFov;
 }
 
 // Get the look quaternion for looking in a direction

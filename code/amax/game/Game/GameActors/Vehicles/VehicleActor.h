@@ -384,6 +384,22 @@ public:
 	~C_VehicleActor();
 
 	const Maths::HMat43 &						GetMatrix() const {return m_Matrix;}
+#if PLATFORM_PC
+	// [Blur2PC] render interpolation: m_Matrix blended between the last two update ticks while a frame
+	// renders (the pose the car's model is drawn at), m_Matrix otherwise. For render-time readers such
+	// as the HUD gadgets drawn in the world around the car.
+	Maths::HMat43								Blur2PCRenderMatrix() const;
+private:
+	struct S_Blur2PCTickMatrix { Maths::HMat43 prev, cur; U32 tick; S_Blur2PCTickMatrix() : tick(0) {} } m_Blur2PCMatrix;
+	// [Blur2PC] light flares, aux flares and the rear point light hold world positions computed from m_Matrix
+	// during the update; this render hook moves them to the render pose for each frame and back afterwards
+	static void								Blur2PCRenderHook(void* ctx, bool begin);
+	void									Blur2PCPlaceLights(const Maths::HMat43& matrix, bool begin);
+	Btl::Vector<MathsStorage::Float4A16>		m_Blur2PCSavedFlarePos;
+	bool									m_Blur2PCHookAdded;
+	bool									m_Blur2PCLightsMoved;
+public:
+#endif
 	const Maths::HMat43 &						GetRawMatrix() const {return m_RawMatrix;}
 	const Maths::HVec3	&						GetVelocity() const {return m_Velocity;}
 	void										SetMatrix(Maths::HMat43);
@@ -793,6 +809,9 @@ private:
 
 	Vehicle::C_VehicleModel*					m_pVehicleModel;					//!< Render/game model
 	Btl::Vector<MathsStorage::MatrixRow44*>		m_WorldMatrices;
+#if PLATFORM_PC
+	Btl::Vector<const void*>					m_Blur2PCWorldMatrixOwners;			//!< [Blur2PC] model instance per m_WorldMatrices entry (render interpolation)
+#endif
 	
 	RacingPhysics::Car*							m_pVehiclePhysics;					//!< Physics model
 	AmaxCam::C_PhysicsChecks*					m_pPhysicsChecks;

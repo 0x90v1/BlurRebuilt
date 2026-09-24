@@ -517,6 +517,10 @@ C_VehicleActor::C_VehicleActor()
 	m_pConstraint		= NULL;
 	m_pAlphaTransitionCurve = NULL;
 	m_pAuxFlareModelResource = NULL;
+#if PLATFORM_PC
+	m_Blur2PCHookAdded = false;	// [Blur2PC]
+	m_Blur2PCLightsMoved = false;
+#endif
 	m_pPendingImpactEffect	= NULL;
 
 	mPickupSFXArray.Clear();
@@ -630,6 +634,10 @@ NOTE: Destructor
 */
 C_VehicleActor::~C_VehicleActor()
 {
+#if PLATFORM_PC
+	if (m_Blur2PCHookAdded)	// [Blur2PC]
+		WorldRender::Blur2PCInterpRemoveRenderHook(&C_VehicleActor::Blur2PCRenderHook, this);
+#endif
 	Destroy();
 
 	delete m_pGroundRay;
@@ -756,6 +764,26 @@ void C_VehicleActor::DeferredUpdate()
 			DCBF(0x10, m_WorldMatrices[i]);
 		}
 		*m_WorldMatrices[i] = matrix;
+#if PLATFORM_PC
+		if (!m_Blur2PCHookAdded)
+		{	// [Blur2PC] render hook for the flares and rear light (see Blur2PCPlaceLights)
+			WorldRender::Blur2PCInterpAddRenderHook(&C_VehicleActor::Blur2PCRenderHook, this);
+			m_Blur2PCHookAdded = true;
+			m_Blur2PCLightsMoved = false;
+		}
+		{	// [Blur2PC] keep the last two tick matrices for render-time readers (Blur2PCRenderMatrix)
+			const U32 tick = WorldRender::Blur2PCInterpCurrentTick();
+			if (tick != m_Blur2PCMatrix.tick)
+			{
+				m_Blur2PCMatrix.prev = (m_Blur2PCMatrix.tick + 1 == tick) ? m_Blur2PCMatrix.cur : m_Matrix;
+				m_Blur2PCMatrix.tick = tick;
+			}
+			m_Blur2PCMatrix.cur = m_Matrix;
+		}
+		// [Blur2PC] render interpolation: these stores bypass SetElementMatrix, record them too
+		for (i = 0; i < m_WorldMatrices.Size(); ++i)
+			WorldRender::Blur2PCInterpRecordStore(m_Blur2PCWorldMatrixOwners[i], m_WorldMatrices[i], m_Matrix);
+#endif
 	}
 
 	{
@@ -4039,6 +4067,13 @@ NOTE: Shutsdown vehicle, but doesn't destroy everything
 */
 void C_VehicleActor::Shutdown()
 {
+#if PLATFORM_PC
+	if (m_Blur2PCHookAdded)
+	{	// [Blur2PC]
+		WorldRender::Blur2PCInterpRemoveRenderHook(&C_VehicleActor::Blur2PCRenderHook, this);
+		m_Blur2PCHookAdded = false;
+	}
+#endif
 	//Destroy flushes and sets group to NONE
 	if (m_hUpdateSchedulerGroup != Scheduler::JQ_GROUP_NONE)
 		Scheduler::DestroyGroup(m_hUpdateSchedulerGroup);
@@ -4929,6 +4964,73 @@ NAME: SynchData
 NOTE: Syncs racing physics data with model data - done in a thread-safe happy place
 ===============
 */
+#if PLATFORM_PC
+void C_VehicleActor::Blur2PCRenderHook(void* ctx, bool begin)	// [Blur2PC]
+{
+	C_VehicleActor* pThis = (C_VehicleActor*)ctx;
+	if (begin)
+	{
+		if (WorldRender::Blur2PCInterpRenderAlpha() >= 1.0f)
+			return;
+		pThis->Blur2PCPlaceLights(pThis->Blur2PCRenderMatrix(), true);
+	}
+	else if (pThis->m_Blur2PCLightsMoved)
+		pThis->Blur2PCPlaceLights(pThis->m_Matrix, false);
+}
+
+// [Blur2PC] Re-places what UpdateLightFlares, UpdateAuxFlares and UpdateDynamicLights positioned from
+// m_Matrix, using 'matrix'. begin: save the update values and move to 'matrix'; !begin: restore.
+void C_VehicleActor::Blur2PCPlaceLights(const Maths::HMat43& matrix, bool begin)
+{
+	if (!m_pVehicleModel)
+		return;
+	const Maths::HMat43 delta = m_Matrix.InverseRotTrans() * matrix;
+
+	Btl::Vector<Vehicle::C_Flare>& flares = m_pVehicleModel->GetLightFlares()->m_LightFlareVector;
+	if (begin)
+		m_Blur2PCSavedFlarePos.Resize(flares.Size());
+	for (int i = 0; i < flares.Size() && i < m_Blur2PCSavedFlarePos.Size(); i++)
+	{
+		DynamicEffect::C_Node& node = flares[i].m_Node;
+		if (begin)
+		{
+			m_Blur2PCSavedFlarePos[i] = node.GetPosition();
+			const MathsStorage::Float4A16& p = m_Blur2PCSavedFlarePos[i];
+			node.SetPosition(Maths::HVec3(p.x, p.y, p.z) * delta);
+		}
+		else
+			node.SetPosition(m_Blur2PCSavedFlarePos[i]);
+	}
+
+	for (int i = 0; i < m_pVehicleModel->GetAuxFlares()->m_AuxFlareVector.Size(); i++)
+	{
+		Vehicle::C_AuxFlare& auxFlare = m_pVehicleModel->GetAuxFlares()->m_AuxFlareVector[i];
+		if (!auxFlare.m_pAuxFlareInstance)
+			continue;
+		const Maths::HMat43 flareMatrix = auxFlare.m_Matrix * matrix;	// as UpdateAuxFlares
+		auxFlare.m_pAuxFlareInstance->UpdatePosition(flareMatrix.Translation());
+		auxFlare.m_pAuxFlareInstance->UpdateDirection(flareMatrix.AZ());
+	}
+
+	if (SceneGraph::C_PointLight* pLight = m_RearLightHandle.Object())
+	{	// as UpdateDynamicLights
+		const Maths::HVec3 position(Maths::HVec3(0.f, F32(g_DefaultLightOffsetY), -m_pVehicleModel->GetDamageLayer()->GetVehicleInfo()->m_Extents.Z() + g_DefaultLightOffsetZ) * matrix);
+		pLight->SetDimensions(position, g_DefaultLightRadius);
+	}
+
+	m_Blur2PCLightsMoved = begin;
+}
+
+Maths::HMat43 C_VehicleActor::Blur2PCRenderMatrix() const	// [Blur2PC]
+{
+	const F32 alpha = WorldRender::Blur2PCInterpRenderAlpha();
+	if (alpha >= 1.0f || m_Blur2PCMatrix.tick == 0 || m_Blur2PCMatrix.tick != WorldRender::Blur2PCInterpCurrentTick()
+		|| (F32)(m_Blur2PCMatrix.cur.AW() - m_Blur2PCMatrix.prev.AW()).Length() >= 20.0f)	// teleport: no blend
+		return m_Matrix;
+	return WorldRender::Blur2PCBlendMatrix(m_Blur2PCMatrix.prev, m_Blur2PCMatrix.cur, alpha);
+}
+#endif
+
 void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& photoOffset)
 {	
 	if (!m_pVehicleModel->GetModelInput()->m_bShouldUpdate)// || !m_pVehicleModel->GetModelInput()->m_bShouldRender)
@@ -5056,15 +5158,30 @@ void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& pho
 		//Update matrices for wheel elements
 		Vehicle::C_Part* pPart = &m_pVehicleModel->GetComponentList()[Vehicle::E_PartCode_Tyre].m_Nodes[eLocCode];
 		if(pPart->m_pWorldMatrix)
+		{
 			Maths::Store((Maths::HMat44)wheelMatrix, pPart->m_pWorldMatrix);
+#if PLATFORM_PC
+			WorldRender::Blur2PCInterpRecordStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix);	// [Blur2PC] render interpolation
+#endif
+		}
 
 		pPart = &m_pVehicleModel->GetComponentList()[Vehicle::E_PartCode_AlloyRim].m_Nodes[eLocCode];		
 		if(pPart->m_pWorldMatrix)
+		{
 			Maths::Store((Maths::HMat44)wheelMatrix, pPart->m_pWorldMatrix);
+#if PLATFORM_PC
+			WorldRender::Blur2PCInterpRecordStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix);	// [Blur2PC] render interpolation
+#endif
+		}
 		
 		pPart = &m_pVehicleModel->GetComponentList()[Vehicle::E_PartCode_BrakeDisc].m_Nodes[eLocCode];
 		if(pPart->m_pWorldMatrix)
+		{
 			Maths::Store((Maths::HMat44)wheelMatrix, pPart->m_pWorldMatrix);
+#if PLATFORM_PC
+			WorldRender::Blur2PCInterpRecordStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix);	// [Blur2PC] render interpolation
+#endif
+		}
 		
 		//Brake calipers mustn't rotate
 		//if (pPart && pPart->m_pModelInstance && pPart->m_pElement)
@@ -5077,6 +5194,9 @@ void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& pho
 			pPart->m_Matrix = pPart->m_RestMatrix * wheelMat;
 			pPart->m_Matrix.AW((pPart->m_Matrix.AW() - (pPart->m_Matrix.AW() - pWheelInput->m_mMatrix.AW())) + photoOffset);
 			Maths::Store((Maths::HMat44)pPart->m_Matrix, pPart->m_pWorldMatrix);
+#if PLATFORM_PC
+			WorldRender::Blur2PCInterpRecordStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, pPart->m_Matrix);	// [Blur2PC] render interpolation
+#endif
 		}
 
 		//Now must do alloys...
@@ -5595,7 +5715,12 @@ bool C_VehicleActor::Create()
 			{
 				const WorldRender::MaterialParameter* pElementMatrixParam = pModelInstance->GetRenderModel()->GetWorldMatrixParameter(iElement);
 				if(pElementMatrixParam && pElementMatrixParam->index >= 0)
+				{
 					m_WorldMatrices.PushBack((MathsStorage::MatrixRow44*)pModelInstance->GetParameter(*pElementMatrixParam));
+#if PLATFORM_PC
+					m_Blur2PCWorldMatrixOwners.PushBack(pModelInstance);	// [Blur2PC]
+#endif
+				}
 			}
 
 			if (pNode && pNode->m_PartCode == Vehicle::E_PartCode_HeadlightCover && g_debugDisableHeadlightCovers)

@@ -89,12 +89,26 @@ void I_Feed::ToViewSetup(Display::C_ViewSetup3D& vs, bool blurEnd) const
 	
 	// Get matrix at start / end of motion blur:
 
-	// [Blur2PC] render interpolation offset, only for a camera that moved on the latest update
-	F32 timeVal = g_ShutterEnd + ((camera.m_Blur2PCTick == g_Blur2PCTick) ? g_Blur2PCRenderOffset : 0.f);
+	F32 timeVal = g_ShutterEnd;
 	if (!blurEnd)
 		timeVal -= camera.ShutterAngle();
 
 	vs.m_CameraToWorld = camera.InterMat43(timeVal);
+	F32 fov = camera.InterFov(timeVal);
+
+	// [Blur2PC] render interpolation: for a camera updated on the latest tick, move the view from the
+	// latest pose to the pose at the render fraction between the previous and the latest update. The
+	// shift is applied on top of the motion-blur pose above, whose 'previous' values are blur inputs.
+	if (camera.m_Blur2PCTick == g_Blur2PCTick && g_Blur2PCRenderOffset != 0.f)
+	{
+		const F32 t = 1.f + g_Blur2PCRenderOffset;
+		const Maths::HVec3 renderPos = camera.m_Blur2PCPrevPosition + (camera.Position() - camera.m_Blur2PCPrevPosition) * t;
+		const Maths::C_Quaternion renderShaken = camera.m_Blur2PCPrevShaken.ShortestSlerp(camera.Shaken(), t);
+		const Maths::HMat43 latest(camera.Shaken(), camera.Position());
+		const Maths::HMat43 render(renderShaken, renderPos);
+		vs.m_CameraToWorld = vs.m_CameraToWorld * (latest.InverseRotTrans() * render);
+		fov += (camera.m_Blur2PCPrevFov + (camera.Fov() - camera.m_Blur2PCPrevFov) * t) - camera.Fov();
+	}
 
 	// Strafe matrix to create depth of field in Photo Mode:
 	HVec3 strafe((F32)g_StrafeMoveX, (F32)g_StrafeMoveY, 0.f);
@@ -104,7 +118,6 @@ void I_Feed::ToViewSetup(Display::C_ViewSetup3D& vs, bool blurEnd) const
 	vs.m_PerspDist = 1024.f;
 
 	F32 fovScale = 1.f;
-	F32 fov = camera.InterFov(timeVal);
 
 	F32 width = 0.f, height = 0.f;
 

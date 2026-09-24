@@ -17,12 +17,15 @@ namespace WorldRender
 
 #if PLATFORM_PC
 // [Blur2PC] Render interpolation for decoupled update/render (see C_Application::IdleLoop, PC).
-// The game updates at 60 Hz; the renderer may run faster. Every element world matrix written during
-// an update tick is recorded with the value it had on the previous tick. Before a render, each element
-// that moved on the latest tick is written as a blend of the two, and the true value is written back
-// after the render, so game code never sees the blended matrix.
+// The game updates at 60 Hz; the renderer may run faster. Every world matrix the game stores into
+// material data during an update tick (C_ModelInstance::SetElementMatrix, and vehicle parts that
+// store through their own world-matrix pointer, see Blur2PCInterpRecordStore) is recorded by its
+// destination address with the value it had on the previous tick. Before a render, each destination
+// written on the latest tick receives a blend of the two; the true value is written back after the
+// render, so game code never reads a blended matrix.
 }	// namespace WorldRender
 #include <map>
+#include <vector>
 #include <windows.h>
 namespace WorldRender
 {
@@ -30,21 +33,32 @@ namespace
 {
 	struct S_InterpEntry
 	{
+		const void*		owner;			// model instance whose material data holds the destination
 		Maths::HMat43	prev;
 		Maths::HMat43	cur;
 		U32				tick;
 		bool			hasPrev;
 		bool			written;		// blended value written for the current render
-		bool			overridden;		// set during the render by other code: do not restore
+		bool			overridden;		// stored again during the render by other code: do not restore
+		bool			row43;			// destination is a MathsStorage::MatrixRow43 (skinning palette), else MatrixRow44
 	};
-	typedef std::pair<const C_ModelInstance*, S32> T_InterpKey;
-	typedef std::map<T_InterpKey, S_InterpEntry> T_InterpMap;
+	typedef std::map<void*, S_InterpEntry> T_InterpMap;
 
 	bool				g_InterpEnabled = false;
 	bool				g_InterpInRender = false;
 	U32					g_InterpTick = 1;
 	F32					g_InterpRenderAlpha = 1.0f;
 	T_InterpMap*		g_pInterpMap = NULL;
+	struct S_RenderHook { T_Blur2PCRenderHook fn; void* ctx; };
+	std::vector<S_RenderHook>*	g_pRenderHooks = NULL;
+
+	void CallRenderHooks(bool begin)
+	{
+		if (!g_pRenderHooks)
+			return;
+		for (size_t i = 0; i < g_pRenderHooks->size(); ++i)
+			(*g_pRenderHooks)[i].fn((*g_pRenderHooks)[i].ctx, begin);
+	}
 	CRITICAL_SECTION	g_InterpLock;
 
 	T_InterpMap& InterpMap()
@@ -74,13 +88,125 @@ namespace
 		r.AZ(r.AZ() * (saz + (sbz - saz) * t));
 		return r;
 	}
+
+	void StoreMatrix(void* pDst, bool row43, const Maths::HMat43& m)
+	{
+		if (row43)
+		{
+			// same layout as AnimatedModel's StoreMat43(MatrixRow43*): three float4 columns (x, y, z of rows AX..AW)
+			MathsStorage::MatrixRow43* dest = (MathsStorage::MatrixRow43*)pDst;
+			dest->v[0] = (F32)m.AX().X(); dest->v[1] = (F32)m.AY().X(); dest->v[2]  = (F32)m.AZ().X(); dest->v[3]  = (F32)m.AW().X();
+			dest->v[4] = (F32)m.AX().Y(); dest->v[5] = (F32)m.AY().Y(); dest->v[6]  = (F32)m.AZ().Y(); dest->v[7]  = (F32)m.AW().Y();
+			dest->v[8] = (F32)m.AX().Z(); dest->v[9] = (F32)m.AY().Z(); dest->v[10] = (F32)m.AZ().Z(); dest->v[11] = (F32)m.AW().Z();
+		}
+		else
+			Maths::Store(Maths::HMat44(m), (MathsStorage::MatrixRow44*)pDst);
+	}
+
+	// tickStore: the value belongs to the current update tick even when the store happens inside a
+	// render (deferred update tasks flushed at the start of the frame, e.g. animated models); the blend
+	// is written right away so the render already shows it. Other stores inside a render are render-
+	// specific values and are left alone (overridden).
+	void RecordImpl(const void* owner, void* pDst, bool row43, const Maths::HMat43& m, bool tickStore)
+	{
+		if (!g_InterpEnabled || !pDst)
+			return;
+		T_InterpMap& map = InterpMap();
+		EnterCriticalSection(&g_InterpLock);
+		T_InterpMap::iterator it = map.find(pDst);
+		if (g_InterpInRender && !tickStore)
+		{
+			if (it != map.end())
+				it->second.overridden = true;
+		}
+		else if (it == map.end())
+		{
+			S_InterpEntry e;
+			e.owner = owner; e.prev = m; e.cur = m; e.tick = g_InterpTick; e.hasPrev = false; e.written = false; e.overridden = false; e.row43 = row43;
+			map.insert(std::make_pair(pDst, e));
+		}
+		else
+		{
+			S_InterpEntry& e = it->second;
+			e.owner = owner;
+			e.row43 = row43;
+			if (e.tick == g_InterpTick)
+				e.cur = m;
+			else
+			{
+				const bool consecutive = (e.tick + 1 == g_InterpTick);
+				e.prev = consecutive ? e.cur : m;
+				e.cur = m;
+				e.tick = g_InterpTick;
+				// a jump of more than 20 m in one tick is a teleport (reset, respawn): no blend
+				e.hasPrev = consecutive && (F32)(m.AW() - e.prev.AW()).Length() < 20.0f;
+			}
+			if (g_InterpInRender && e.hasPrev && g_InterpRenderAlpha < 1.0f)
+			{
+				StoreMatrix(pDst, row43, BlendMatrixImpl(e.prev, e.cur, g_InterpRenderAlpha));
+				e.written = true;
+				e.overridden = false;
+			}
+		}
+		LeaveCriticalSection(&g_InterpLock);
+	}
 }
 
 void Blur2PCInterpEnable(bool enable)	{ g_InterpEnabled = enable; }
+void Blur2PCInterpTick()				{ ++g_InterpTick; }
 Maths::HMat43 Blur2PCBlendMatrix(const Maths::HMat43& a, const Maths::HMat43& b, F32 t) { return BlendMatrixImpl(a, b, t); }
 U32 Blur2PCInterpCurrentTick()			{ return g_InterpTick; }
 F32 Blur2PCInterpRenderAlpha()			{ return g_InterpRenderAlpha; }
-void Blur2PCInterpTick()				{ ++g_InterpTick; }
+
+void Blur2PCInterpRecordStore(const void* owner, MathsStorage::MatrixRow44* pDst, const Maths::HMat43& m)
+{
+	RecordImpl(owner, pDst, false, m, false);
+}
+
+void Blur2PCInterpRecordTickStore(const void* owner, MathsStorage::MatrixRow44* pDst, const Maths::HMat43& m)
+{
+	RecordImpl(owner, pDst, false, m, true);
+}
+
+void Blur2PCInterpRecordTickStore43(const void* owner, MathsStorage::MatrixRow43* pDst, const Maths::HMat43& m)
+{
+	RecordImpl(owner, pDst, true, m, true);
+}
+
+void Blur2PCInterpAddRenderHook(T_Blur2PCRenderHook fn, void* ctx)
+{
+	if (!g_pRenderHooks)
+		g_pRenderHooks = new std::vector<S_RenderHook>;
+	S_RenderHook h = { fn, ctx };
+	g_pRenderHooks->push_back(h);
+}
+
+void Blur2PCInterpRemoveRenderHook(T_Blur2PCRenderHook fn, void* ctx)
+{
+	if (!g_pRenderHooks)
+		return;
+	for (size_t i = 0; i < g_pRenderHooks->size(); ++i)
+		if ((*g_pRenderHooks)[i].fn == fn && (*g_pRenderHooks)[i].ctx == ctx)
+		{
+			g_pRenderHooks->erase(g_pRenderHooks->begin() + i);
+			return;
+		}
+}
+
+void Blur2PCInterpForget(const void* owner)
+{
+	if (!g_pInterpMap)
+		return;
+	EnterCriticalSection(&g_InterpLock);
+	for (T_InterpMap::iterator it = g_pInterpMap->begin(); it != g_pInterpMap->end(); )
+	{
+		if (it->second.owner == owner)
+			it = g_pInterpMap->erase(it);
+		else
+			++it;
+	}
+	LeaveCriticalSection(&g_InterpLock);
+}
 
 void Blur2PCInterpBeginRender(F32 alpha)
 {
@@ -96,74 +222,30 @@ void Blur2PCInterpBeginRender(F32 alpha)
 		e.overridden = false;
 		if (!e.hasPrev || e.tick != g_InterpTick || alpha >= 1.0f)
 			continue;
-		const_cast<C_ModelInstance*>(it->first.first)->WriteElementMatrix(it->first.second, BlendMatrixImpl(e.prev, e.cur, alpha));
+		StoreMatrix(it->first, e.row43, BlendMatrixImpl(e.prev, e.cur, alpha));
 		e.written = true;
 	}
 	g_InterpInRender = true;
 	LeaveCriticalSection(&g_InterpLock);
+	CallRenderHooks(true);
 }
 
 void Blur2PCInterpEndRender()
 {
 	if (!g_InterpEnabled)
 		return;
-	T_InterpMap& map = InterpMap();
+	CallRenderHooks(false);
 	g_InterpRenderAlpha = 1.0f;
+	T_InterpMap& map = InterpMap();
 	EnterCriticalSection(&g_InterpLock);
 	g_InterpInRender = false;
 	for (T_InterpMap::iterator it = map.begin(); it != map.end(); ++it)
 	{
 		S_InterpEntry& e = it->second;
 		if (e.written && !e.overridden)
-			const_cast<C_ModelInstance*>(it->first.first)->WriteElementMatrix(it->first.second, e.cur);
+			StoreMatrix(it->first, e.row43, e.cur);
 		e.written = false;
 	}
-	LeaveCriticalSection(&g_InterpLock);
-}
-
-static void InterpRecord(const C_ModelInstance* pInstance, S32 elementIndex, const Maths::HMat43& m)
-{
-	T_InterpMap& map = InterpMap();
-	EnterCriticalSection(&g_InterpLock);
-	const T_InterpKey key(pInstance, elementIndex);
-	T_InterpMap::iterator it = map.find(key);
-	if (g_InterpInRender)
-	{
-		if (it != map.end())
-			it->second.overridden = true;
-	}
-	else if (it == map.end())
-	{
-		S_InterpEntry e;
-		e.prev = m; e.cur = m; e.tick = g_InterpTick; e.hasPrev = false; e.written = false; e.overridden = false;
-		map.insert(std::make_pair(key, e));
-	}
-	else
-	{
-		S_InterpEntry& e = it->second;
-		if (e.tick == g_InterpTick)
-			e.cur = m;
-		else
-		{
-			const bool consecutive = (e.tick + 1 == g_InterpTick);
-			e.prev = consecutive ? e.cur : m;
-			e.cur = m;
-			e.tick = g_InterpTick;
-			// a jump of more than 20 m in one tick is a teleport (reset, respawn): no blend
-			e.hasPrev = consecutive && (F32)(m.AW() - e.prev.AW()).Length() < 20.0f;
-		}
-	}
-	LeaveCriticalSection(&g_InterpLock);
-}
-
-static void InterpForget(const C_ModelInstance* pInstance)
-{
-	if (!g_pInterpMap)
-		return;
-	EnterCriticalSection(&g_InterpLock);
-	T_InterpMap::iterator it = g_pInterpMap->lower_bound(T_InterpKey(pInstance, -0x7fffffff));
-	while (it != g_pInterpMap->end() && it->first.first == pInstance)
-		it = g_pInterpMap->erase(it);
 	LeaveCriticalSection(&g_InterpLock);
 }
 #endif
@@ -201,7 +283,7 @@ C_ModelInstance::C_ModelInstance( const C_RenderModelData* pRenderModelData, con
 C_ModelInstance::~C_ModelInstance()
 {
 #if PLATFORM_PC
-	InterpForget(this);	// [Blur2PC]
+	Blur2PCInterpForget(this);	// [Blur2PC]
 #endif
 	return;
 }
@@ -291,8 +373,22 @@ void C_ModelInstance::SetNearFarDistance(const F32 nearDistance, const F32 farDi
 void C_ModelInstance::SetElementMatrix( const S32 elementIndex, const Maths::HMat43 PCREF m )
 {
 #if PLATFORM_PC
-	if (g_InterpEnabled && m_pRenderModel)
-		InterpRecord(this, elementIndex, m);	// [Blur2PC] render interpolation
+	if (g_InterpEnabled && m_pRenderModel && m_pMaterialListData)
+	{
+		// [Blur2PC] render interpolation, recorded per destination matrix (a write to all elements
+		// records each element, so a later write to one element owns that element)
+		const S32 first = elementIndex < 0 ? 0 : elementIndex;
+		const S32 last = elementIndex < 0 ? m_pRenderModel->GetNumElements() - 1 : elementIndex;
+		for (S32 j = first; j <= last && j < m_pRenderModel->GetNumElements(); ++j)
+		{
+			const MaterialParameter* element = m_pRenderModel->GetWorldMatrixParameter(j);
+			if (element != NULL && element->index >= 0 && element->index < m_pMaterialListData->GetNumMaterials())
+			{
+				RenderingData::Material& material = m_pMaterialListData->GetMaterial(element->index);
+				Blur2PCInterpRecordStore(this, (MathsStorage::MatrixRow44*)material.GetData(element->offset), m);
+			}
+		}
+	}
 #endif
 	WriteElementMatrix(elementIndex, m);
 }

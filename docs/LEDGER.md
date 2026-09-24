@@ -180,3 +180,32 @@ Not ported (T062): mirror/reflection render targets sized from the back buffer a
 Not checked: changing the detail live from the options screen during a race; levels 2-3 in a race.
 Next: user review of T013; T062 when wanted.
 Files touched: code/amax/game/{GameApp.h,GameApp.cpp,GameAppResources.cpp}; code/amax/game/Game/GameWorld/{GameWorld.h,GameWorld.cpp,ViewManager.h,ViewManager.cpp,View.h,View.cpp,View/Main.h,View/Main.cpp,View/Mirror.h,View/Mirror.cpp,View/Reflection.h,View/Reflection.cpp,View/CubeMap.h,View/CubeMap.cpp}; code/mercury/library/gamesys/lod/source/LodManager.cpp; docs/analysis.md, docs/BOARD.md, this ledger.
+
+## 2026-09-24 16:55 — session 1 (Claude) — T050: interpolation fixes (body vs parts, photo-mode camera)
+Did: user reported car body parts jittering per frame in motion and the whole scene swinging in photo mode. Both are bugs in the PC render interpolation (user confirmed the uncapped frame rate stays; retail has no interpolation, it runs one update per frame at 60). Causes and fixes in analysis.md "Frame rate": the vehicle body's raw world-matrix stores in `C_VehicleActor::DeferredUpdate` were not recorded (body at latest tick, parts blended); the camera blend reused the motion-blur "previous position", which the chase and photo cameras overwrite with a blur vector each update. Camera now keeps a true previous-update pose and the view shift is applied on top of the unchanged motion-blur matrices.
+Verified: 0 build errors; hidden `scripts/race_long.txt` run boots, races and drives with no crash (drive3.png: 105 mph, HUD and mirror intact). Hidden runs render at ~27-35 fps at 1920x1080, so the blend fraction is rarely exercised there; the visual result at high frame rates and in photo mode needs the user's check.
+Blocked: none.
+Next: user check of body/parts and photo mode; then showroom re-spray (unchanged).
+Files touched: code/mercury/library/graphics/camera2/{include/camera2/Camera.h,source/Camera.cpp,source/Feed.cpp}; code/amax/game/Game/GameActors/Vehicles/{VehicleActor.h,VehicleActor.cpp}; _work/run/scripts/race_long.txt (two retry confirms in the garage); docs/analysis.md, this ledger.
+
+## 2026-09-24 17:25 — session 1 (Claude) — T050: interpolation covers AI rims and animated meshes
+Did: user reported jitter left in AI cars' rims and in the pickup display at the car's rear. Rims: `C_VehicleActor::SynchData` stores tyre/rim/disc/caliper matrices raw; recorded. Animated meshes (drivers, animated special-effect meshes, animated level objects): `C_AnimatedModelInstance` writes element and skinning matrices raw from tasks flushed inside the render, after the blend pass; added tick-store recording that blends immediately (`Blur2PCInterpRecordTickStore`, `...43` for skinning palettes). Details in analysis.md "Frame rate".
+Verified: 0 build errors; hidden `scripts/race_long.txt` boots, races and drives with no crash. Hidden runs sit at 24-30 fps at 1920x1080 (update = render), so the blend is barely exercised; the visual check needs the user at 144 fps.
+Blocked: none.
+Not verified: whether the pickup display at the car's rear is an animated mesh (now blended) or a particle/flare effect (still at the latest tick, see analysis).
+Next: user check; if the pickup display still jitters, blend the special-effect particle emitter/flare transforms (`C_InGameSpecialFXVehicleToMatrix`); then showroom re-spray.
+Files touched: code/mercury/library/graphics/world_render/{include/world_render/ModelInstance.h,source/ModelInstance.cpp}; code/mercury/library/gamesys/animated_model/source/AnimatedModelInstance.cpp; code/amax/game/Game/GameActors/Vehicles/VehicleActor.cpp; docs/analysis.md, this ledger.
+
+## 2026-09-24 17:50 — session 1 (Claude) — T050: perks display behind the car follows the drawn car
+Did: the "pickups carousel" is the `UIPerks2` HUD gadget rendered in world space behind the car; its `Render` placed it at the logic actor's latest-tick matrix every frame. Added `C_VehicleActor::Blur2PCRenderMatrix()` (last two tick matrices blended with the render fraction) and used it there. Details in analysis.md "Frame rate".
+Verified: 0 build errors; hidden `scripts/race_long.txt` boots, races and drives with no crash. Visual check at 144 fps needs the user.
+Blocked: none.
+Next: user check of the perks display; other world-placed HUD gadgets (AI name tags, targeting, race line) can take the same call if they show the same lead; then showroom re-spray.
+Files touched: code/amax/game/Game/GameActors/Vehicles/{VehicleActor.h,VehicleActor.cpp}; code/amax/library/Ui/game/Gadgets/Hud/UIPerks2.cpp; docs/analysis.md, this ledger.
+
+## 2026-09-24 18:30 — session 1 (Claude) — T050: perks panel confirmed; car light flares
+Did: perks display behind the car fixed with a dedicated sprite panel re-placed per frame (user confirmed). Light flares, aux flares and the rear point light now move to the render pose per frame through a new registry render hook (`C_VehicleActor::Blur2PCPlaceLights`). Removed the temporary perks log. User decision: keep interpolated rendering above 60 Hz (the Aib0t write-up gates the update without interpolating). Details in analysis.md "Frame rate".
+Verified: 0 build errors; scripted `race_long.txt` run at 17:50 boots, races, drives and quits with no crash file. `_work/run/Amax.exe` (rebuilt 18:16 from the shared tree) contains the hooks (symbols present in its PDB). Visual check of the flares needs the user.
+Blocked: none.
+Next: user check of the tail-light flares; headlight projection, particles and the other world-space HUD gadgets are the remaining latest-tick consumers; then showroom re-spray.
+Files touched: code/mercury/library/graphics/world_render/{include/world_render/ModelInstance.h,source/ModelInstance.cpp}; code/amax/game/Game/GameActors/Vehicles/{VehicleActor.h,VehicleActor.cpp}; code/amax/library/Ui/{UiManager.h,UiManager.cpp,game/Gadgets/Hud/UIPerks2.h,game/Gadgets/Hud/UIPerks2.cpp}; docs/analysis.md, this ledger.
