@@ -1,0 +1,19 @@
+<job>
+  <script language="JScript" src="Z:\tools\code_tools\scripts\svn_checkout\\svn_checkout.js"/>
+  <script language="JScript" src="z:\tools\code_tools\build_tools\setup_paths.JS"/>
+  <script language="JScript">
+
+//Update build tools  
+SVNCheckout("svn://biztools01/tools/code_tools/trunk", "Z:/tools/code_tools");
+
+//Perform build
+Build(Src + "code\\tools\\attk\\Attk.sln", "Release Cygwin");
+Build(Src + "code\\tools\\attk\\Attk.sln", "Release YDL");
+Build(Src + "code\\tools\\attk\\Attk.sln", "Release Win32");
+Build(Src + "code\\tools\\attk\\Attk.sln", "Release Win64");
+Build(Src + "code\\tools\\attk\\Attk.sln", "Debug Win32");
+
+Finish();
+
+  </script>
+</job>

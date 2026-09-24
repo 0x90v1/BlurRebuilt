@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "the_monkey", "the_monkey.csproj", "{C886FFE8-03C0-40A6-BBBA-C313CF657C9F}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xml_helper", "..\..\libraries\xml_helper\xml_helper.csproj", "{64001E62-266B-4086-A5B7-7A36C9EDB481}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C886FFE8-03C0-40A6-BBBA-C313CF657C9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C886FFE8-03C0-40A6-BBBA-C313CF657C9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C886FFE8-03C0-40A6-BBBA-C313CF657C9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C886FFE8-03C0-40A6-BBBA-C313CF657C9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

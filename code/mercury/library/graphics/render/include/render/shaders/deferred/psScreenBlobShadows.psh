@@ -1,0 +1,48 @@
+#include "../psCommon.h"
+#include "../psConstants.h"
+#include "../psHDR.h"
+
+float4x4	g_ShadowPlaneSpaceMatrix	: register(CCP_RENDER_SETTINGS);
+float4		g_vDepth					: register(CCP_RENDER_SETTINGS_4);
+float4		g_PixelOffset				: register(CCP_RENDER_SETTINGS_5);
+float4		g_ShadowMult				: register(CCP_RENDER_SETTINGS_6);
+
+sampler2D	g_tDepth		: register(s0);
+sampler2D	g_tShadow		: register(s1);
+sampler2D	g_tStencil		: register(s2);
+
+struct PS_INPUT
+{
+	real4	m_Screen	: TEXCOORD0;
+};
+
+#if PLATFORM_PS3
+PS_OUTPUT main(PS_INPUT input, in float4 wpos:WPOS)
+#else
+PS_OUTPUT main(PS_INPUT input)
+#endif
+{
+	PS_OUTPUT output = (PS_OUTPUT) 0;
+
+#if PLATFORM_PS3
+	float2	vUV				= (input.m_Screen.xy * wpos.w);
+#else
+	float2	vUV				= (input.m_Screen.xy / input.m_Screen.w);
+#endif
+
+
+	float3	shadowSpacePosition	= GetWorldPosition(g_tDepth, vUV, g_vDepth, (float4x3) g_ShadowPlaneSpaceMatrix);
+	
+	#if defined(XB2)
+	float fMask = (1.f - tex2D(g_tStencil, vUV + g_PixelOffset.xy).b);
+	#else
+	real fMask = (1.h - h4tex2D(g_tDepth, vUV + g_PixelOffset.xy).a); //in Ps3 read from depth buffer
+	#endif
+		
+	real shadowCol = h4tex2D(g_tShadow, shadowSpacePosition.xy).a;
+	real shadowFactor = saturate(abs(shadowSpacePosition.z));
+	real fShadow = fMask * shadowCol * (real)((1.f - shadowFactor * shadowFactor) * g_ShadowMult.x);
+	output.colour = real4(0.h, 0.h, 0.h, fShadow);
+	
+	return output;
+}

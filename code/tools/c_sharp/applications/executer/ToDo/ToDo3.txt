@@ -1,0 +1,64 @@
+
+Executer project / solution support.
+====================================
+
+Define a solution.
+
+<ExecuterSolution>
+	<Projects>
+		<Project display_name="Project display name" project_file="Executer project file.xml" />
+		<Project display_name="Project display name" project_file="Executer project file.xml" />
+	</Projects>
+</ExecuterSolution>
+
+
+On load project:
+
+if(solution does not exist)
+	CreateDefaultSolution();
+	
+Add project to solution.
+
+
+On load solution:
+
+if(solution is already present)
+	CloseSolution
+	
+RootNode = new SolutionNode(XmlNode xSourceNode)
+foreach(Project node in solution)
+	Solution.AddProject
+	
+	
+========================================================
+========================================================
+
+Big Executer things for next release.
+
+========================================================
+========================================================
+
+Turn public variables into properties and comment them.
+
+Replace message pathway with events.delegate
+
+
+Hook up all the context menus for each tree child type.
+
+Fix tree icons.
+
+Command-line:
+-	Executer must open projects and solutions via the command line.
+-	Executer must honour the existing command line structure, or have a compelling replacement.
+
+Document the template format. Can a schema (.xsd) help?
+
+========================================================
+========================================================
+
+Other todo:
+
+========================================================
+========================================================
+
+Learn DOM!!!

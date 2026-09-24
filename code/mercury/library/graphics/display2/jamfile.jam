@@ -1,0 +1,81 @@
+SubDir TOP Code Mercury Library Graphics Display2 ;
+
+# enable SPU Bus error checking code
+SUBDIRSPUBERR = 1 ;
+
+IncludePath
+$(SUBDIR)/include
+$(TOP)/Code/Mercury/Library/Common/Btl/include
+$(TOP)/Code/Mercury/Library/Common/Core/include
+$(TOP)/Code/Mercury/Library/Common/System/include
+;
+
+if $(PLATFORM) = PC
+{
+IncludePath \"$(DXSDK_PATH)/include\" ;
+}
+
+SRC = 
+source/Display2Logger.cpp
+source/context/Context.cpp
+source/device/BaseDevice.cpp
+source/device/Device.cpp
+source/buffer/Buffer.cpp
+source/memory/Memory.cpp
+source/utils/Utils.cpp
+;
+
+if ( $(PLATFORM) = "XENON" || $(PLATFORM) = "PC" )
+{
+SRC +=
+source/context/D3D9Context.cpp
+source/device/D3D9Device.cpp
+;
+}
+
+if ( $(PLATFORM) = "PC" )
+{
+SRC +=
+source/device/PCD3D9Device.cpp
+source/memory/PCD3D9Memory.cpp
+source/utils/PCD3D9Utils.cpp
+;
+}
+
+if ( $(PLATFORM) = "XENON" )
+{
+SRC +=
+source/device/XB2Device.cpp
+source/memory/XB2Memory.cpp
+source/buffer/XB2Buffer.cpp
+source/utils/XB2Utils.cpp
+;
+}
+
+if ( $(PLATFORM) = "PS3" )
+{
+SRC +=
+source/context/GCMContextSPU.cpp
+source/context/GCMContext.cpp
+source/device/GCMDevice.cpp
+source/memory/GCMMemory.cpp
+source/buffer/GCMBufferSPU.cpp
+source/buffer/GCMBuffer.cpp
+source/utils/GCMUtils.cpp
+source/debug/GCMDebug.cpp
+;
+
+SPUSRC =
+<spu>source/context/GCMContextSPU.cpp
+<spu>source/buffer/GCMBufferSPU.cpp
+;
+
+SrcOptim $(SPUSRC) : -Os ;
+SPULibrary display2_spu : $(SPUSRC) ;
+}
+
+SRC = [ Batch $(SRC) : StdAfx.h ] ;
+
+Library display2 : $(SRC) : StdAfx.cpp ;
+
+ExportVcproj display2 ;

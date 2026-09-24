@@ -1,0 +1,52 @@
+SubDir TOP Code Tools xFarm xFarm ;
+
+SupportedTargets WIN32_TOOL WIN32_TOOL_2008 ;
+
+IncludePath
+./
+../farm_library
+../farm_library/include
+$(TOP)/code/mercury/library/common/core/include
+$(TOP)/code/mercury/library/common/system/include
+$(TOP)/code/mercury/library/util/tools_shared/include
+$(TOP)/code/vendor/tclap/current
+$(TOP)/libs/vendor/commonc++/current/include
+$(TOP)/libs/vendor/mysql/4.1.13a/include
+$(TOP)/libs/vendor/mysqlwrapped/1.4/include
+$(TOP)/code/common
+;
+
+LINKLIBS += ws2_32.lib secur32.lib comctl32.lib xerces-c_2.lib libmysql.lib ;
+LINKFLAGS += /SUBSYSTEM:CONSOLE /MACHINE:X86 
+	/LIBPATH:$(TOP)/libs/vendor/xerces/2.5.0/lib
+	/LIBPATH:$(TOP)/libs/vendor/mysql/4.1.13a/lib/opt
+;
+
+SRC =
+DummySQLaccess.cpp
+FarmUserInterface.cpp
+mdump.cpp
+SQLaccess.cpp
+xFarm.cpp
+../farm_library/farm/Farm.rc
+;
+
+LinkLibraries xFarm :
+	core system tools_shared farm_library commonc++ mysqlwrapped 
+;
+
+Application xFarm : $(SRC) : stdafx.cpp ;
+
+Depends z:/tools/common_tools_wip/win32/xFarm/xFarm.exe : z:/tools/common_tools_wip/win32/xFarm/ ;
+MkDir z:/tools/common_tools_wip/win32/xFarm/ ;
+EmbedManifest z:/tools/common_tools_wip/win32/xFarm/xFarm.exe : xFarm.exe ;
+
+ExportVcproj xFarm ;
+
+SubInclude TOP code mercury library common core ;
+SubInclude TOP code mercury library common system ;
+SubInclude TOP code mercury library util tools_shared ;
+SubInclude TOP libs vendor commonc++ current ;
+SubInclude TOP libs vendor mysqlwrapped 1.4 ;
+SubInclude TOP code tools xfarm farm_library ;
+

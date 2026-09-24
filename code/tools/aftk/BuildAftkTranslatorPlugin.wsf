@@ -1,0 +1,20 @@
+<job>
+  <script language="JScript" src="Z:\tools\code_tools\scripts\dev_setup_stub\svn_checkout.js"/>
+  <script language="JScript" src="z:\tools\code_tools\build_tools\setup_paths.JS"/>
+  <script language="JScript">
+
+g_bUseEnv = true; 
+
+SetVC8Path();
+
+//Update build tools  
+SVNCheckout("svn://biztools01/tools/code_tools/trunk", "Z:/tools/code_tools");
+
+//Perform build
+Build(Src + "code\\tools\\aftk\\AftkTranslatorPlugin_2005.sln", "Release LuntBuild Maya 7.0 Win32");
+Build(Src + "code\\tools\\aftk\\AftkTranslatorPlugin_2005.sln", "Release LuntBuild XSI 7.0 Win32");
+
+Finish();
+
+  </script>
+</job>

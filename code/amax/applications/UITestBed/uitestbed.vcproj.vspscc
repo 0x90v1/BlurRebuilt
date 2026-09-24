@@ -1,0 +1,15 @@
+""
+{
+"FILE_VERSION" = "9237"
+"ENLISTMENT_CHOICE" = "NEVER"
+"PROJECT_FILE_RELATIVE_PATH" = ""
+"NUMBER_OF_EXCLUDED_FILES" = "4"
+"EXCLUDED_FILE0" = "..\\..\\..\\Mercury\\Library\\Graphics\\Display\\include\\display\\shaders\\psConstants.h"
+"EXCLUDED_FILE1" = "..\\..\\..\\Mercury\\Library\\Graphics\\Display\\include\\display\\shaders\\vsConstants.h"
+"EXCLUDED_FILE2" = "..\\..\\..\\Mercury\\Library\\Graphics\\Render\\include\\render\\shaders\\psConstants.h"
+"EXCLUDED_FILE3" = "..\\..\\..\\Mercury\\Library\\Graphics\\Render\\include\\render\\shaders\\vsConstants.h"
+
+"ORIGINAL_PROJECT_FILE_PATH" = ""
+"NUMBER_OF_NESTED_PROJECTS" = "0"
+"SOURCE_CONTROL_SETTINGS_PROVIDER" = "PROJECT"
+}

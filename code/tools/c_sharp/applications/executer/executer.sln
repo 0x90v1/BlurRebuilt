@@ -1,0 +1,196 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "executer", "executer.csproj", "{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xml_helper", "..\..\libraries\xml_helper\xml_helper.csproj", "{64001E62-266B-4086-A5B7-7A36C9EDB481}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "macro_expander", "..\..\libraries\macro_expander\macro_expander.csproj", "{C05914F0-BA9C-44A5-9ED0-91261C366339}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "windows_messages", "..\..\libraries\windows_messages\windows_messages.csproj", "{EA8D9A01-4CBA-458A-A459-2811A4E3975B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "message_handler", "..\..\libraries\message_handler\message_handler.csproj", "{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "memory_variable", "..\..\libraries\memory_variable\memory_variable.csproj", "{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "menu_system_library", "..\..\libraries\xml_menu_system\menu_system_library\menu_system_library.csproj", "{980A03A0-6136-4FF4-9EA6-352E443135C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "super_collections", "..\..\libraries\super_collections\super_collections.csproj", "{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "communications_udp", "..\..\libraries\communications_udp\communications_udp.csproj", "{5C6E757A-D7E9-469A-8E22-0B15168347C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "communications_tcp", "..\..\libraries\communications\communications_library\communications_tcp.csproj", "{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "super_list_view", "..\..\libraries\super_list_view\super_list_view.csproj", "{AAF08F48-F40F-45BB-8508-CDBE6675D25B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "persistent_variables", "..\..\libraries\persistent_variables\persistent_variables.csproj", "{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomMessageBox", "..\CustomMessageBox\CustomMessageBox.csproj", "{23373E48-FB41-4E57-A572-C6F06A4F1859}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject", "UnitTestProject\UnitTestProject.csproj", "{FB45E42B-AF11-4F56-B039-C87073247D54}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7996AACE-C573-438E-BDAA-0694D54A8A5F}"
+	ProjectSection(SolutionItems) = preProject
+		executer.vsmdi = executer.vsmdi
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniDump", "..\..\libraries\MiniDump\MiniDump.csproj", "{BB21419E-163C-462A-AA45-E0756D1EC6DF}"
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = executer.vsmdi
+	EndGlobalSection
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 16
+		SccProjectName0 = Perforce\u0020Project
+		SccLocalPath0 = ..\\..
+		SccProvider0 = MSSCCI:Perforce\u0020SCM
+		SccProjectFilePathRelativizedFromConnection0 = applications\\executer\\
+		SccProjectUniqueName1 = executer.csproj
+		SccLocalPath1 = ..\\..
+		SccProjectFilePathRelativizedFromConnection1 = applications\\executer\\
+		SccProjectUniqueName2 = ..\\..\\libraries\\xml_helper\\xml_helper.csproj
+		SccLocalPath2 = ..\\..
+		SccProjectFilePathRelativizedFromConnection2 = libraries\\xml_helper\\
+		SccProjectUniqueName3 = ..\\..\\libraries\\macro_expander\\macro_expander.csproj
+		SccLocalPath3 = ..\\..
+		SccProjectFilePathRelativizedFromConnection3 = libraries\\macro_expander\\
+		SccProjectUniqueName4 = ..\\..\\libraries\\windows_messages\\windows_messages.csproj
+		SccLocalPath4 = ..\\..
+		SccProjectFilePathRelativizedFromConnection4 = libraries\\windows_messages\\
+		SccProjectUniqueName5 = ..\\..\\libraries\\message_handler\\message_handler.csproj
+		SccLocalPath5 = ..\\..
+		SccProjectFilePathRelativizedFromConnection5 = libraries\\message_handler\\
+		SccProjectUniqueName6 = ..\\..\\libraries\\memory_variable\\memory_variable.csproj
+		SccLocalPath6 = ..\\..
+		SccProjectFilePathRelativizedFromConnection6 = libraries\\memory_variable\\
+		SccProjectUniqueName7 = ..\\..\\libraries\\xml_menu_system\\menu_system_library\\menu_system_library.csproj
+		SccLocalPath7 = ..\\..
+		SccProjectFilePathRelativizedFromConnection7 = libraries\\xml_menu_system\\menu_system_library\\
+		SccProjectUniqueName8 = ..\\..\\libraries\\super_collections\\super_collections.csproj
+		SccLocalPath8 = ..\\..
+		SccProjectFilePathRelativizedFromConnection8 = libraries\\super_collections\\
+		SccProjectUniqueName9 = ..\\..\\libraries\\communications_udp\\communications_udp.csproj
+		SccLocalPath9 = ..\\..
+		SccProjectFilePathRelativizedFromConnection9 = libraries\\communications_udp\\
+		SccProjectUniqueName10 = ..\\..\\libraries\\communications\\communications_library\\communications_tcp.csproj
+		SccLocalPath10 = ..\\..
+		SccProjectFilePathRelativizedFromConnection10 = libraries\\communications\\communications_library\\
+		SccProjectUniqueName11 = ..\\..\\libraries\\super_list_view\\super_list_view.csproj
+		SccLocalPath11 = ..\\..
+		SccProjectFilePathRelativizedFromConnection11 = libraries\\super_list_view\\
+		SccProjectUniqueName12 = ..\\..\\libraries\\persistent_variables\\persistent_variables.csproj
+		SccLocalPath12 = ..\\..
+		SccProjectFilePathRelativizedFromConnection12 = libraries\\persistent_variables\\
+		SccProjectUniqueName13 = ..\\CustomMessageBox\\CustomMessageBox.csproj
+		SccLocalPath13 = ..\\..
+		SccProjectFilePathRelativizedFromConnection13 = applications\\CustomMessageBox\\
+		SccProjectUniqueName14 = UnitTestProject\\UnitTestProject.csproj
+		SccLocalPath14 = ..\\..
+		SccProjectFilePathRelativizedFromConnection14 = applications\\executer\\UnitTestProject\\
+		SccProjectUniqueName15 = ..\\..\\libraries\\MiniDump\\MiniDump.csproj
+		SccLocalPath15 = ..\\..
+		SccProjectFilePathRelativizedFromConnection15 = libraries\\MiniDump\\
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug remote|Any CPU = Debug remote|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}.Debug remote|Any CPU.ActiveCfg = Debug remote|Any CPU
+		{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}.Debug remote|Any CPU.Build.0 = Debug remote|Any CPU
+		{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Debug remote|Any CPU.ActiveCfg = Debug remote|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Debug remote|Any CPU.Build.0 = Debug remote|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64001E62-266B-4086-A5B7-7A36C9EDB481}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C05914F0-BA9C-44A5-9ED0-91261C366339}.Debug remote|Any CPU.ActiveCfg = Debug remote|Any CPU
+		{C05914F0-BA9C-44A5-9ED0-91261C366339}.Debug remote|Any CPU.Build.0 = Debug remote|Any CPU
+		{C05914F0-BA9C-44A5-9ED0-91261C366339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C05914F0-BA9C-44A5-9ED0-91261C366339}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C05914F0-BA9C-44A5-9ED0-91261C366339}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C05914F0-BA9C-44A5-9ED0-91261C366339}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA8D9A01-4CBA-458A-A459-2811A4E3975B}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA8D9A01-4CBA-458A-A459-2811A4E3975B}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{EA8D9A01-4CBA-458A-A459-2811A4E3975B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA8D9A01-4CBA-458A-A459-2811A4E3975B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA8D9A01-4CBA-458A-A459-2811A4E3975B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA8D9A01-4CBA-458A-A459-2811A4E3975B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{980A03A0-6136-4FF4-9EA6-352E443135C0}.Debug remote|Any CPU.ActiveCfg = Debug remote|Any CPU
+		{980A03A0-6136-4FF4-9EA6-352E443135C0}.Debug remote|Any CPU.Build.0 = Debug remote|Any CPU
+		{980A03A0-6136-4FF4-9EA6-352E443135C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{980A03A0-6136-4FF4-9EA6-352E443135C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{980A03A0-6136-4FF4-9EA6-352E443135C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{980A03A0-6136-4FF4-9EA6-352E443135C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}.Debug remote|Any CPU.ActiveCfg = Debug remote|Any CPU
+		{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}.Debug remote|Any CPU.Build.0 = Debug remote|Any CPU
+		{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C6E757A-D7E9-469A-8E22-0B15168347C6}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C6E757A-D7E9-469A-8E22-0B15168347C6}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{5C6E757A-D7E9-469A-8E22-0B15168347C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C6E757A-D7E9-469A-8E22-0B15168347C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C6E757A-D7E9-469A-8E22-0B15168347C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C6E757A-D7E9-469A-8E22-0B15168347C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}.Debug remote|Any CPU.ActiveCfg = Debug remote|Any CPU
+		{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}.Debug remote|Any CPU.Build.0 = Debug remote|Any CPU
+		{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAF08F48-F40F-45BB-8508-CDBE6675D25B}.Debug remote|Any CPU.ActiveCfg = Debug remote|Any CPU
+		{AAF08F48-F40F-45BB-8508-CDBE6675D25B}.Debug remote|Any CPU.Build.0 = Debug remote|Any CPU
+		{AAF08F48-F40F-45BB-8508-CDBE6675D25B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAF08F48-F40F-45BB-8508-CDBE6675D25B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAF08F48-F40F-45BB-8508-CDBE6675D25B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAF08F48-F40F-45BB-8508-CDBE6675D25B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23373E48-FB41-4E57-A572-C6F06A4F1859}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{23373E48-FB41-4E57-A572-C6F06A4F1859}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{23373E48-FB41-4E57-A572-C6F06A4F1859}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23373E48-FB41-4E57-A572-C6F06A4F1859}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23373E48-FB41-4E57-A572-C6F06A4F1859}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23373E48-FB41-4E57-A572-C6F06A4F1859}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB45E42B-AF11-4F56-B039-C87073247D54}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB45E42B-AF11-4F56-B039-C87073247D54}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{FB45E42B-AF11-4F56-B039-C87073247D54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB45E42B-AF11-4F56-B039-C87073247D54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB45E42B-AF11-4F56-B039-C87073247D54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB45E42B-AF11-4F56-B039-C87073247D54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB21419E-163C-462A-AA45-E0756D1EC6DF}.Debug remote|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB21419E-163C-462A-AA45-E0756D1EC6DF}.Debug remote|Any CPU.Build.0 = Debug|Any CPU
+		{BB21419E-163C-462A-AA45-E0756D1EC6DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB21419E-163C-462A-AA45-E0756D1EC6DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB21419E-163C-462A-AA45-E0756D1EC6DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB21419E-163C-462A-AA45-E0756D1EC6DF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

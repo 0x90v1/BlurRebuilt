@@ -1,0 +1,33 @@
+#include "..\..\psCommon.h"
+
+sampler2D textureMap : register(s0);
+sampler2D depthMap : register(s1);
+
+float4 g_vDepthScale : register(CCP_RENDER_POSTPROCESS_PARAMETERS_0);
+
+struct PS_OUTPUT
+{
+	float4 RGBColor0     : COLOR0; 
+};
+
+struct VS_OUTPUT
+{
+    float4 position	: POSITION;		//Pixel position (world-view-proj space)  
+    float2 uv		: TEXCOORD0;
+};
+
+PS_OUTPUT main(VS_OUTPUT input)
+{ 
+    PS_OUTPUT output = (PS_OUTPUT)0;
+
+	float depth = SampleDepthBuffer(depthMap, input.uv, g_vDepthScale);
+	
+	if(g_vDepthScale.w > 0.5f)
+		depth = frac(depth / g_vDepthScale.z);
+	else
+		depth = saturate(depth / g_vDepthScale.z);
+		
+	output.RGBColor0 = float4( depth, depth, depth, 1.0f);
+	
+	return output;
+}

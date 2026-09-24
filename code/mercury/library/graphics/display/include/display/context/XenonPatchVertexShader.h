@@ -1,0 +1,9 @@
+#ifndef __XENONPATCHVERTEXSHADER_H__
+#define __XENONPATCHVERTEXSHADER_H__
+
+LPDIRECT3DVERTEXSHADER9 PatchVertexShader(LPDIRECT3DVERTEXSHADER9 pVertexShader, LPDIRECT3DPIXELSHADER9 pPixelShader, LPDIRECT3DVERTEXDECLARATION9 pVertexDeclaration);
+void FreePatchedVertexShader(D3DVertexShader* pd3dVertexShaders);
+
+void FreePatchedVertexShaders();
+
+#endif

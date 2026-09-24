@@ -1,0 +1,341 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Executer.AboutBox" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>kIAAAAwAACAgCBUAAQCAAAADAAAAEIAAAAAAAAAAAAA=</HashCode>
+      <FileName>about_box.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.ClientJobRequestQueue" Collapsed="true">
+    <Position X="14.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAQAgAAAAQAAgDAAhAAABIAEAHAAgAAAAAIEAAE=</HashCode>
+      <FileName>ClientJobRequestQueue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.CommandDetails" Collapsed="true">
+    <Position X="16.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAAAACAAAAAAABAAAAAAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>CommandDetails.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.debug_text_dialog" Collapsed="true">
+    <Position X="7.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAEICBAABAAAACAAAECAAAAAoAAkCAQAAAAQAA=</HashCode>
+      <FileName>debug_text_dialog.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.DebugWindow" Collapsed="true">
+    <Position X="9.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAgCAAkBAAAACCAAACBAAAAAACAAYQAAAEAAA=</HashCode>
+      <FileName>debug_window.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.Executer_MainForm" Collapsed="true">
+    <Position X="11" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BYfJpL1RiCQm4cJaQObLwMgGMAjA4kALEgwQkVwJoGk=</HashCode>
+      <FileName>executer_main_form.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.ExecuterTreeView" Collapsed="true">
+    <Position X="12.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IgQICgJBMiBAiAKJCCSAkSICCGAASPQAgAAAAAADDQY=</HashCode>
+      <FileName>ExecuterTreeView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.FarmClient" Collapsed="true">
+    <Position X="14.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>jAAQCeFBADACUUQAgiCUoUggmgUQAIQUIAAlGaIIQUA=</HashCode>
+      <FileName>FarmClient.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.ChangedStatusEventArgs" Collapsed="true">
+    <Position X="12.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAACAAAAAAAAAgAAAAAAACAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.ChangedConnectionStateEventArgs" Collapsed="true">
+    <Position X="11" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAACAAAAAAAAAgAAAAAAACAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.ReceivedDataEventArgs" Collapsed="true">
+    <Position X="9.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAgAAAIAAAAAAAAAAAAAAAAAACAAAAAAAAAAgAA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.NotifyChangedJobStatusEventArgs" Collapsed="true">
+    <Position X="11" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAACAAAAAAAAAAAAAAAgEAAABAAAAAAAAAIA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.NotifyReceivedJobDataEventArgs" Collapsed="true">
+    <Position X="12.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAAAAAAABAAAAAAAAAAgAAAAAABAAAAAAAAA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.FarmClientManager" Collapsed="true">
+    <Position X="16.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAgAAAAgAAABACAACAAAAAAQQAEAAAACAAIFEAA=</HashCode>
+      <FileName>FarmClientManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.FarmClientViewer" Collapsed="true">
+    <Position X="7.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAABBACAAkBAAAgCAAAACAAAAAAAAEAAAAQgAABA=</HashCode>
+      <FileName>FarmClientViewer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.Form_NewDatafile" Collapsed="true">
+    <Position X="9.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAoAAAAAACAAAAAIAICABhgGEEACAAAAASAAAIAAEJA=</HashCode>
+      <FileName>form_new_datafile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.JobManager" Collapsed="true">
+    <Position X="12.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAAAAAAgABAgAABAABQABQAIIAAAIAAAA=</HashCode>
+      <FileName>job_manager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.JobPanel" Collapsed="true">
+    <Position X="14.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAACAAACKAAgCAAACAAQAiAAAAhAAAQCAAQgCBAIA=</HashCode>
+      <FileName>job_panel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.JobViewer" Collapsed="true">
+    <Position X="16.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABIAAAAACAAgAACAACAAAACAAAAwAAAAAAAAgQFAAA=</HashCode>
+      <FileName>job_viewer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.Job" Collapsed="true">
+    <Position X="11" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>UAiREQIIAQAAAAQAAAAkAUiikQgAAsABwIDAABAOIIo=</HashCode>
+      <FileName>JobData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.launch_process" Collapsed="true">
+    <Position X="7.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>launch_process.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.LocallyUniqueIdMaker" Collapsed="true">
+    <Position X="9.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAQIAAAAAAAAAAAAA=</HashCode>
+      <FileName>locally_unique_identifier.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.OptionsManager" Collapsed="true">
+    <Position X="14.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAgAACAAAAAIAACEAAACAAAAAAAAAwAAAQIAAAA=</HashCode>
+      <FileName>options_manager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.Program" Collapsed="true">
+    <Position X="16.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AoAAQCCAAAAAEAAAAAAAAAAAAAAQAAAAAAAABAEAAAA=</HashCode>
+      <FileName>program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.PromptSave" Collapsed="true">
+    <Position X="7.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAgACQEABIgBACABAASkQAAAAAggIAAAIAABAA=</HashCode>
+      <FileName>PromptSave.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.RemoteObject" Collapsed="true">
+    <Position X="11" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>remoting.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.SimpleMessageBox" Collapsed="true">
+    <Position X="16.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAABAAAACAAAACAAAAAAAAAAAAAIAAAAA=</HashCode>
+      <FileName>simple_message_box.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.ToolstripUtility" Collapsed="true">
+    <Position X="7.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQBAAACAAAAAAAAgAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>ToolstripUtility.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.TreeObjectProperties" Collapsed="true">
+    <Position X="9.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAgAAAhBCIAAABAAACEAAACACAIgCCCAEAQEAAAgAA=</HashCode>
+      <FileName>tree_object_properties.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.TreeObjectViewer" Collapsed="true">
+    <Position X="11" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AADgAAIEACAAGAAAgACEAEACAAIAAAAQAAAAAgAiAAA=</HashCode>
+      <FileName>tree_object_viewer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.TreeObject" Collapsed="true">
+    <Position X="5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAEEAAAAgAABAAoBogACBAQCIBAAAgAASUAUCCiAhCQ=</HashCode>
+      <FileName>TreeObject.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Executer.TreeObjectBase" Collapsed="true">
+    <Position X="2.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAgEAAAAIAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>TreeObjectBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.TreeProjectObject" Collapsed="true">
+    <Position X="0.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAASIMAAAAIoQIABAACFAACAIAgAjBAAHADEAyGgDA=</HashCode>
+      <FileName>TreeProjectObject.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Executer.TreeSolutionObject" Collapsed="true">
+    <Position X="2.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIQAAACABAARgASCAAASAIAAAgEAABABAACDgCA=</HashCode>
+      <FileName>TreeSolutionObject.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Executer.UtilityFunctions" Collapsed="true">
+    <Position X="12.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAARAA=</HashCode>
+      <FileName>UtilityFunctions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.Properties.Resources" Collapsed="true">
+    <Position X="12.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAAAAAAABMAIAAQAAAAAAAAAAQAAAAIA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Executer.Properties.Settings" Collapsed="true">
+    <Position X="14.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BuildTime" Collapsed="true">
+    <Position X="9.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAQA=</HashCode>
+      <FileName>timestamp.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Executer.IContextMenu" Collapsed="true">
+    <Position X="7.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>IContextMenu.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Executer.ILoadable&lt;T&gt;" Collapsed="true">
+    <Position X="9.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ILoadable.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Executer.IRemoveable" Collapsed="true">
+    <Position X="11" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAACAAAA=</HashCode>
+      <FileName>IRemoveable.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Executer.IRenameable" Collapsed="true">
+    <Position X="12.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAgAA=</HashCode>
+      <FileName>IRenameable.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Executer.ISaveable" Collapsed="true">
+    <Position X="14.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAAAAAAAAACAAAAAAAAABABAAACAAA=</HashCode>
+      <FileName>ISaveable.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="Executer.ClientStatus" Collapsed="true">
+    <Position X="9.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQACAAAAAAAAAAAQAAAAAAAAAAAIQgAAAAAAEAAIA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Executer.ClientConnectionStatus" Collapsed="true">
+    <Position X="7.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAACAAAIAAAAAAAAAQAAAAAAAgEAAAA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Executer.DataType" Collapsed="true">
+    <Position X="12.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Executer.JobStatus" Collapsed="true">
+    <Position X="14.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAQGAAAAAAAAQAAAAAQAAAAAYAABAAAAEAAAA=</HashCode>
+      <FileName>FarmClient.Events.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Executer.CloseMethod" Collapsed="true">
+    <Position X="11" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAACAAAAAAAgAAAAEAAAAAAAAAAIAAA=</HashCode>
+      <FileName>IRemoveable.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Tahoma" Size="8.25" />
+</ClassDiagram>

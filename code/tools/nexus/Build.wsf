@@ -1,0 +1,21 @@
+<job>
+  <script language="JScript" src="Z:\tools\code_tools\scripts\dev_setup_stub\svn_checkout.js"/>
+  <script language="JScript" src="setup_paths.js"/>
+  <script language="JScript">
+
+g_bUseEnv = false; 
+
+SetVC8Path();
+
+//Update build tools  
+SVNCheckout("svn://biztools01/tools/code_tools/trunk", "Z:/tools/code_tools");
+
+//Perform build
+//Build(Src + "code\\tools\\nexus\\Nexus_2005.sln", "Release CMD");
+//Build(Src + "code\\tools\\nexus\\Nexus_2005.sln", "Release APP");
+Build(Src + "code\\tools\\nexus\\Nexus_2005.sln", "Release Maya CMD");
+
+Finish();
+
+  </script>
+</job>

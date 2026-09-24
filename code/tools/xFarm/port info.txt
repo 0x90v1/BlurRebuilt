@@ -1,0 +1,11 @@
+screen saver client farm:
+NetworkPort	= 8769;
+BroadcastPort	= 8769;
+
+64-bit farm PCs
+NetworkPort	= 9765;
+BroadcastPort	= 9766;
+
+robot farm PCs
+NetworkPort	= 8765;
+BroadcastPort	= 8766;

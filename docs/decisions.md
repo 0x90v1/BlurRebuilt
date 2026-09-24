@@ -1,0 +1,52 @@
+# Decision log
+
+Numbered, append-only. Status: `proposed` (needs the user), `accepted`, `superseded by Dnn`. Never edit an accepted decision; add a new one that supersedes it.
+
+## D01 — Approach: file-based conversion, engine reads PC-format files
+**Status:** accepted (user, 2026-09-23)
+Disc assets are converted offline into PC-format files under `_work/data/<disc>/`. The engine reads those through its normal loaders. No runtime big-endian parsing in the engine.
+**Why:** every reader validates the platform FourCC and never endian-swaps; the conversion step is unavoidable and keeping it offline keeps the engine diff small.
+
+## D02 — Asset inventory manager serves each asset from the best disc
+**Status:** accepted (user, 2026-09-23)
+An inventory records every asset on every disc (path, size, content hash, validity, format generation, converted-file location) and a serving policy picks the source per scenario. It plugs into the engine at the overlay file system (`C_OverlayFs::GetBestLayer` or a new `I_FileSystem` layer).
+
+## D03 — Per-disc shader recompilation cache
+**Status:** accepted (user, 2026-09-23)
+Xenos microcode → XenosRecomp HLSL → fxc → PC `.fxb` with a `PCFX` block, cached per disc and keyed by microcode hash, so shaders are rebuilt only when their source bytes change.
+
+## D04 — Toolchain: VS2008 + Jam as shipped
+**Status:** superseded by D08
+
+## D05 — Both disc generations supported from the start
+**Status:** accepted (user, 2026-09-23)
+The inventory and converter handle Generation A (Aug 31) and Generation B (Nov 4-25) from day one. Runtime loaders for Generation B formats are a workstream, not a later phase.
+
+## D06 — Converter is C++ inside this tree
+**Status:** accepted (user, 2026-09-23)
+The 360-to-PC converter is a C++ tool under `code/tools/`, reusing the source's own serialisers so its output matches the loaders by construction. Blur2Test remains the reference decoder for 360 formats.
+
+## D07 — First playable milestone: Showroom + one race with AI
+**Status:** accepted (user, 2026-09-23)
+Boot to front end, load one track, race against AI with pickups. No multiplayer, no online, no Demonware.
+
+## D08 — Toolchain: CMake generated from the jamfiles, built with VS 18
+**Status:** accepted (user delegated the choice to Claude, 2026-09-23; option 2 below)
+Found after D04: the machine has no VS2008 and no DirectX SDK; the tree lacks the custom Jam rules every jamfile depends on (`SupportedTargets`, `IncludePath`, `Define`, …) and the `libs/vendor` tree (Bink, OpenAL, Massive). "As shipped" therefore cannot build anywhere without reconstructing Bizarre's Jambase and installing 2008-era SDKs. Options:
+1. Install VS2008 + DirectX SDK (June 2010) and reconstruct the Jam rules (they are simple: include paths, defines, source globs). Closest to shipped; old compiler.
+2. Generate a CMake (or vcxproj) description from the jamfile source lists and build with the installed VS 18 toolset, D3D9 headers from the Windows SDK, d3dx9 from the DirectX SDK redistributable or DXVK-native shims. Modern debugger and sanitizers; expect a wave of compile fixes.
+Recommendation: option 2, because option 1 still requires reconstructing the rules by hand and then leaves us on a compiler nobody supports. Bink and Massive get stubbed either way; OpenAL 1.1 headers/libs are freely available.
+
+## D09 — Keep Blur 1; target any Blur game from any platform's data
+**Status:** accepted (user, 2026-09-23)
+When the work moves on to Blur 2, the Blur 1 path is kept working, never replaced. The long-term goal is one PC executable that runs any Blur game (Blur 1 retail, the Blur 2 prototypes) from any platform's data (PC, Xbox 360, PS3).
+Consequences:
+- Blur 1 on retail PC data stays a supported, regression-tested configuration (the T005 smoke run is the baseline).
+- Format support is additive and selected by what the data says (pak version, chunk platform FourCC, header versions, the presence of Gen B chunks), never by replacing a Blur 1 reader with a Blur 2 one. Example: the pak reader handles v1 and v2 side by side.
+- Game selection and data source are runtime choices (data root, game/disc profile), not build-time forks. The inventory manager (D01/T010-T012) is the natural place for "which game, which platform, which disc".
+- Converters (D06) take any source platform: 360 and PS3 big-endian data, and PC data as the identity case. PS3 data adds its own formats (GCM textures, PS3 chunk FourCC); the PS3 prototype ELFs (analysis.md section 4) become directly relevant for those.
+- Shader cache (D03) is keyed by platform as well as disc: Xenos microcode (360), RSX/Cg (PS3), native PCFX (PC).
+Architecture (user, 2026-09-23), two switchable layers:
+1. **Platform data layer (bottom).** Reads any platform's data behind one interface: container formats (pak v1/v2/v3, codecs raw/zlib/XMem LZX), byte order (PC little-endian, 360/PS3 big-endian), chunk platform FourCC, texture formats (360 tiled/swizzled, PS3 GCM, PC DDS), shader formats (Xenos microcode, RSX, PCFX) via the per-platform shader cache, and audio banks. Everything above it sees engine-native PC data. It sits under or beside `C_OverlayFs` and the resource readers; the inventory manager (T010-T012) decides which source serves each asset.
+2. **Game profile layer (top).** Selects Blur 1 or Blur 2 behaviour for scene construction (level pipeline, `.levelrender` LNSc vs Scen, `.levelanim`, XT schemas, Tracks/Levels/Ui databases) and game mechanics (pickups, rules, UI flow), chosen at runtime from the data being loaded.
+Open question for the user: D01 says disc assets are converted offline into PC files. The platform layer can either keep doing that (convert once, cache under `_work/`) or decode at load time; both satisfy this architecture. Until decided, converters are written as libraries callable from both an offline tool and a runtime reader.

@@ -1,0 +1,181 @@
+ToDo 2:
+=======
+
+1.1 Done.
+
+1.2 Important now
+
+1.3 Important but not yet.
+
+1.4 Not important.
+
+======================
+
+1.1 Done.
+
+Windows handles:																							Done.
+- Modify code so tree node data is not stored in a form. Do not cache forms for tree nodes.					Done.
+- Big fix of job panels to accomodate this.																	Done.
+- Modify menu system so that merges can be done without creating a single windows control. Ghastly job!		Not necessary.
+
+Farm comments need to be moved from xTask to xAction.														Done.
+
+Rename all source files to lower case.																		Done.
+
+Send keepalive messages to the farm.																		Done.
+
+Prevent a server trying to establish a connection while it is shutting down.								Done. Needs test.
+
+In function DealWithNewData, put a try..catch around the data callback										Done.
+in ChangedJobStatusCallback, don't assume the job being processed actually exists.							Done.
+
+Version check to see if current running Executer is older than one being launched.							Done.
+Pop up a message and bail out.																				Done.
+
+On trapped socket exceptions, debug output the exception message.											Done.
+
+Hide [DEBUG] tasks on the task context menu when not in debug mode.											Done.
+
+*** F5 to reload the currently selected project. ***														Done.
+Radio buttons in menu system.																				Done.
+
+
+----------------------
+1.2 Important now
+----------------------
+
+Seperate user preferences. Global for memory dialogs, local to the exe for 'last projects loaded'			.
+
+DOCUMENTATION.																								.
+
+Streamline debugging????? See Ken.																			Done.
+
+Chris D bug. Executer job feedback not appearing. This is probably not an Executer bug. See Ken.			.
+
+When loading or unloading a project, update the server connections.											.
+* Be careful to get EVERY case, e.g. F5 reload, command line *												.
+
+Verify that actions referenced in a task actually exist.													Done.
+
+Options menu.																								Done.
+
+Template: Detect 'tasks' that are multiply defined in 'type'.												Done.
+
+Detect tasks referring to actions that don't exist, when recursively processing.							Done.
+
+If a task has a dummy action, then it only makes sense to process it recursively.							Done?
+
+----------------------
+1.3 Important but not yet.
+----------------------
+
+Save current job list.
+
+Docking toolbars. See Paul.																					.
+Make a global shelf with buttons that have processes.														.
+- Maybe flag a button as a 'shelf' button?																	.
+
+Refine the startup process:																					.
+- Regarding the command line, selectively load last config / connect to farm etc.							.
+- If the command line didn't start something, start it up after command line processing.					.
+- unless of course it is already running because Executer itself was already running.						.
+
+Refine shutdown process:
+- Define and step through the stages of shutting down.
+- Includes shutting down local farm server, all threads, all network connections etc.						.
+
+Group all the callbacks in Executer_MainForm into regions.													.
+Group all the callbacks in TreeObjectManager into regions.													.
+
+Rename project files to ~.ExecuterProject																	.
+
+Rename template files to ~.ExecuterTemplate																	.
+
+Cmd. line arg. to put text into titlebar.																	.
+
+Debug window, update cmd. line if temp. filename changes.													.
+
+
+----------------------
+1.4 Not important.
+----------------------
+
+Safe-mode startup. If Executer crashes, step through what is loaded the next time round. (config, projects)	.
+
+ServerViewer. Pass it the server object and the message, rather than a bunch of strings.					Done???
+Replace the placeholder server viewer.																		.
+
+In function DealWithNewData, use a thread to empty the Tcp message queue?									No need.
+
+On job feedback panel, show the status of the server tcpconnection.											.
+
+On tcp reconnect, ask farm for the status of each job that is queued / running.								.
+
+Use tab tops to reflect status of jobs, e.g. *Export, +Export, Export etc.									.
+
+Distinguish between JobKilled and JobCancelled.																.
+
+Project has changed outside Executer. Reload?																.
+Template has changed outside Executer. Reload?																.
+
+Info form.																									.
+- States current template in use for each open project.														.
+- Determines list of remote servers that are online.														.
+- Lists current jobs that are being processed.																.
+- States Executer version info. and versions of dll's.														.
+
+In MenuSystemLibrary:
+On creating a menu, pass in a delegate to be called when a button is pressed. The delegate					.
+should accept parameters from the button that are defined in the Xml definition document for that			.
+ button as well as the Xml data for the menu the button is defined in.										.
+
+Define an event to call when the menu wants to communicate back to the farm.								.
+The jobTab must know it's jobId so it can identify itself when it talks back to it's owner job.				.
+
+Default tree creation is broken.																			.
+
+2 projects, each using a local farm on the same ports but with a different name, 2 farms get started.		.
+
+----------------------
+----------------------
+
+
+NEW:
+
+Executer.Macro.Expand: If first param is null it raises an unwanted exception.								Done.
+
+
+
+
+
+MACRO EXPANSION:
+================
+
+Implement macro expansion class.																			Done.
+JobData:
+- Expand m_strCommand
+- Expand m_strClArguments
+- Expand m_strWorkingDirectory
+- Expand strIncludeXmlDataFile for each included file.
+
+Add 'root/use_variables' tag to template.
+Expand template 'root/use_variables' for the macro %source_machine% and for environment variables.
+Expand template 'farm_temp_folder' for the macro %source_machine% and for environment variables.
+
+On project load. (AddRootItem in TreeObjectManager):
+- Expand tree_icon_folder using %source_machine%, xml variables and environment variables.
+- Expand farm_temp_folder as above.
+- If EXECUTER_TEMP env. var. is present, override farm_temp_folder and do expansion as above.
+
+
+Project loads template relative to project file location.
+
+All container definitions in the template have macros expanded in all attributes.
+- Expansion is done on project load.
+
+Rather than playing with the cwd, I've added the following macros. This seemed cleaner and more versatile:
+%project_folder%
+%template_folder%
+%executer_folder%
+%variables_folder%
+

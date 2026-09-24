@@ -1,0 +1,2052 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="ui_shaders_xenon"
+	ProjectGUID="{AB400FBE-D8BF-40B7-A06A-3EB46E154BAE}"
+	RootNamespace="ui_shaders_xenon"
+	Keyword="XenonProj"
+	>
+	<Platforms>
+		<Platform
+			Name="Xbox 360"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Xbox 360"
+			OutputDirectory="./lib"
+			IntermediateDirectory="./obj/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Profile|Xbox 360"
+			OutputDirectory="./lib"
+			IntermediateDirectory="./obj/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Profile_FastCap|Xbox 360"
+			OutputDirectory="./lib"
+			IntermediateDirectory="./obj/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Xbox 360"
+			OutputDirectory="./lib"
+			IntermediateDirectory="./obj/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release_LTCG|Xbox 360"
+			OutputDirectory="./lib"
+			IntermediateDirectory="./obj/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Speed|Xbox 360"
+			OutputDirectory="./lib"
+			IntermediateDirectory="./obj/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Master|Xbox 360"
+			OutputDirectory="./lib"
+			IntermediateDirectory="./obj/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Profile_LTCG|Xbox 360"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Demo_Release|Xbox 360"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="10"
+			UseOfMFC="-1"
+			UseOfATL="0"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCX360DeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+			<DebuggerTool
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Shaders"
+			>
+			<File
+				RelativePath=".\include\ui\shaders\psCommon.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\ui\shaders\psConstants.cp"
+				>
+				<FileConfiguration
+					Name="Debug|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile_FastCap|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_LTCG|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Speed|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Master|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile_LTCG|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Demo_Release|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\psConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\include\ui\shaders\psConstants.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\ui\shaders\vsCommon.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\ui\shaders\vsConstants.cv"
+				>
+				<FileConfiguration
+					Name="Debug|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile_FastCap|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_LTCG|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Speed|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Master|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile_LTCG|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Demo_Release|Xbox 360"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step - $(InputFileName)"
+						CommandLine="..\..\..\..\bin\build_tools\bscc &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="..\mercury/library/graphics/display\include\display\shaders\vsConstants.h"
+						Outputs="$(InputDir)$(InputName).h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\include\ui\shaders\vsConstants.h"
+				>
+			</File>
+			<Filter
+				Name="UI"
+				>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psBlobbyFont.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psFontEffects.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psFontIntensityAsAlpha.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psFontIntensityOutline.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psGreyScale.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psMovie.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psMovieWithAlpha.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psMultiTexture.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psMultiTextureFullAlpha.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psNormalMapOffset.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\psPixelLight.psh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P ps_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\psConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\vsFontEffects.vsh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\vsMultiTexture.vsh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\vsNormalMapOffset.vsh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\include\ui\shaders\ui\vsPixelLight.vsh"
+					>
+					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Speed|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Master|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_LTCG|Xbox 360"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Demo_Release|Xbox 360"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Performing Custom Build Step - $(InputFileName)"
+							CommandLine="..\..\..\..\bin\build_tools\bsc xb2 &quot;$(InputName)&quot; &quot;$(InputPath)&quot; /P vs_3_0&#x0D;&#x0A;"
+							AdditionalDependencies="$(InputDir)..\vsConstants.h"
+							Outputs="$(InputDir)xb2\$(InputName).shader"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
