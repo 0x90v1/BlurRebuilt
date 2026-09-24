@@ -157,7 +157,12 @@ bool C_Application::CanRender()
 {
 	assert(m_pDisplayDevice);
 
-	if(m_Window.m_hWnd == NULL || IsIconic(m_Window.m_hWnd))
+	if(m_Window.m_hWnd == NULL)
+		return false;
+
+	// [Blur2PC] scripted runs keep their window minimised (MyCreateWindow) and still render, so the
+	// back-buffer screenshots work; not in retail
+	if(IsIconic(m_Window.m_hWnd) && !Blur2PCAutomation::IsActive())
 		return false;
 
 	if(m_pDisplayDevice->GetLost())
@@ -316,8 +321,9 @@ HRESULT C_Application::MyCreateWindow(const C_ApplicationParams& params)
 {
 	m_Window.m_Style = m_Windowed ? kWindowedStyle : kFullscreenStyle;
 
-	// [Blur2PC] scripted runs are started hidden (_work/run/run_script.ps1): create the window without
-	// WS_VISIBLE and show it once, so the start-up show state (hidden) applies. Not in retail.
+	// [Blur2PC] scripted runs (_work/run/run_script.ps1) create the window without WS_VISIBLE and leave it
+	// hidden until the device exists (D3D9 CreateDevice fails on a minimised window); Run() then shows it
+	// minimised without activation, so it sits on the taskbar and never takes focus. Not in retail.
 	DWORD createStyle = m_Window.m_Style;
 	if(Blur2PCAutomation::IsActive())
 		createStyle &= ~WS_VISIBLE;
@@ -342,7 +348,7 @@ HRESULT C_Application::MyCreateWindow(const C_ApplicationParams& params)
 	if(!m_Window.m_hWnd)
 		return S_FALSE;
 
-	if(createStyle != m_Window.m_Style)
+	if(createStyle != m_Window.m_Style && !Blur2PCAutomation::IsActive())
 		ShowWindow(m_Window.m_hWnd, SW_SHOW);
 
 	HICON hIcon = LoadIconA(GetModuleHandleA(NULL), MAKEINTRESOURCEA(101));
@@ -377,6 +383,11 @@ void C_Application::MyKeyUp(const U8 key)
 HRESULT C_Application::Run()
 {
 	Display::Device()->ReleaseThreadOwnership();
+
+	// [Blur2PC] scripted runs: the device exists now, show the window minimised without activation (see
+	// MyCreateWindow); not in retail
+	if(Blur2PCAutomation::IsActive())
+		ShowWindow(m_Window.m_hWnd, SW_SHOWMINNOACTIVE);
 
 	MSG  msg;
 	msg.message = WM_NULL;

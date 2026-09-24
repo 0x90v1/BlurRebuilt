@@ -101,4 +101,4 @@ Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` database
 4. **Facts** discovered about the source, the discs or the formats go in `docs/analysis.md`, not in the ledger.
 5. **Finish** by appending a ledger entry (template at the top of that file): what changed, what was verified and how, what is blocked, and the exact next step. Then update the board row. If you stop mid-task, say where in the ledger so the next agent can resume.
 6. Commit only when the user asks.
-7. **Do not launch the game in foreground** Every time you launch a foreground process you're interrupting anything the user is doing. Launch the game minimized.
+7. **Do not launch the game in foreground** Every time you launch a foreground process you're interrupting anything the user is doing. Launch the game minimized, never hidden: a minimized window stays on the taskbar, so the user can spot a stray session. `_work/run/run_script.ps1` does this (the game shows its window minimized without activation while `BLUR2PC_AUTOMATION` is set, and keeps rendering).

@@ -158,3 +158,17 @@ Blocked: none.
 Not verified: in-race HUD, 4:3 modes, changing between aspect ratios live from the options screen.
 Next: T013 (graphical detail preset) or a race-HUD check at 16:10 / 4:3.
 Files touched: code/mercury/library/ui/{include/ui/Graphics/Simple2d.h,include/ui/Graphics/Simple2d.inl,source/ui/Graphics/Simple2d.cpp}; code/amax/library/Ui/UiManager.cpp; code/amax/game/GameLogic/Lua/lua_Amax.cpp; code/amax/library/Ui/game/lua_scripts/screens/{GUIBank.lua,Ingame/HUD.lua,SinglePlayer/Ingame/SpFriendDemand.lua,SinglePlayer/Ingame/SpRaceAwards.lua}; docs/analysis.md, docs/BOARD.md, this ledger.
+
+## 2026-09-24 17:45 — session 3 (Claude) — tooling: scripted runs minimized, not hidden
+Did: scripted runs now show the game minimized on the taskbar (user request: hidden windows made stray sessions hard to spot). `_work/run/run_script.ps1` (and the copies in `_work/run2`, `_work/run_t008`) start Amax.exe with no `-WindowStyle`; PowerShell's `Minimized` activates the window and `Hidden` keeps it off the taskbar. The game does the rest while `BLUR2PC_AUTOMATION` is set: `MyCreateWindow` leaves the window hidden until the D3D9 device exists (CreateDevice fails with "Failed to create d3d9 device" on a minimized window; seen), `Run()` then shows it with SW_SHOWMINNOACTIVE, and `CanRender` skips retail's IsIconic gate so frames and back-buffer screenshots continue. All three run scripts refuse to start without a script file (from session 2's copy): without the variable the game opens normally and takes focus. AGENTS.md rule 7 now says "minimized, never hidden".
+Verified: 0 build errors. Scripted run with a window watcher polling every second: one visible top-level window "Blur Class", iconic the whole run, never foreground, foreground window unchanged; start-screen shot rendered at 1920x1080. `scripts/escape.txt` run minimized: all taps logged, the first Enter leaves the start screen, four shots saved.
+Not verified: a device Reset (Options > Graphics resolution change) while minimized.
+Blocked: none.
+Next: none for this item. `_work/run/run.ps1` and `drive.ps1` are the old desktop-capture/SendInput harness and still launch the game in the foreground; do not use them.
+Files touched: code/mercury/library/gamesys/framework/source/application/ApplicationPC.cpp; _work/run/run_script.ps1, _work/run2/run_script.ps1, _work/run_t008/run_script.ps1; AGENTS.md; this ledger.
+
+## 2026-09-24 18:45 — session 3 (Claude) — tooling: restored the scripted-run harness
+Did: `_work/run` had been wiped (session 4 restored only the binaries); `run_script.ps1`, every script under `scripts/`, and the `_work/run2` / `_work/run_t008` copies were gone. Recreated `_work/run/run_script.ps1` (minimized launch, missing-script guard) and `_work/run/scripts/escape.txt` from this session's copy. The other scripts (race, race_long, garage, showroom, respray, career, profile, ...) are lost; they were short timed key lists (format in Blur2PCAutomation.h).
+Verified: `_work/run/Amax.exe` (18:16 build) contains the minimized-launch change; `run_script.ps1 -Script scripts/escape.txt` ran minimized, logged every tap and saved four shots.
+Next: recreate the race/garage/showroom scripts when a task needs them. `_work/run/crash.txt` (18:30, before this run) is an access violation in `FX::OnEffectRelease` under `FX::Manager::ReleaseEffect`; not investigated.
+Files touched: _work/run/run_script.ps1, _work/run/scripts/escape.txt, this ledger.
