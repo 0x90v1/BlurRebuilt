@@ -246,4 +246,16 @@ void C_View::SetDynamicDetail(const F32 detail)
 		m_pReflection->SetDynamicDetail(detail);
 }
 
+#if PLATFORM_PC
+// [Blur2PC] Retail PC graphical detail for one view (Blur.exe 1.2 0x00419620).
+void C_View::SetGraphicalDetail(const U32 graphicalDetail, const bool inUI)
+{
+	m_MainView.SetGraphicalDetail(graphicalDetail, inUI);
+	if (m_pMirror)
+		m_pMirror->SetGraphicalDetail(graphicalDetail);
+	if (m_pReflection)
+		m_pReflection->SetGraphicalDetail(graphicalDetail);
+}
+#endif
+
 } // namespace Game

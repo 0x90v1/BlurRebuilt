@@ -354,12 +354,18 @@ void CacheBootGlobalResourcesFunc()
 	MEMORY_TRACKER_PUSH_SUB("shaders");
 
 	FX::RegisterSubtechnique("LOD");
+#if PLATFORM_PC
+	FX::RegisterSubtechnique("NoDamage");	// [Blur2PC] retail order (Blur.exe 1.2 0x004340d7)
+#endif
 	FX::RegisterSubtechnique("Prepass");
 	FX::RegisterSubtechnique("Lights");
 	FX::RegisterSubtechnique("LSplitScreen");
 	FX::RegisterSubtechnique("Electric");
 	FX::RegisterSubtechnique("Solid");
 	FX::RegisterSubtechnique("AlphaLuminance");
+#if PLATFORM_PC
+	FX::RegisterSubtechnique("NoDepth");	// [Blur2PC] retail, used by graphical detail 1
+#endif
 
 	GameResource::EffectVariations::Instance().SetVariation("_LN");
 

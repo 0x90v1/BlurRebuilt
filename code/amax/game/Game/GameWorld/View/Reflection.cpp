@@ -60,6 +60,9 @@ C_ReflectionView::C_ReflectionView(C_ViewManager* pViewManager) : I_Renderer("Re
 	m_BlackBorderReflection = false;
 
 	m_DetailFactor = 1.f;
+#if PLATFORM_PC
+	m_GraphicalDetailEnabled = true;	// [Blur2PC] retail ctor 0x00426d00
+#endif
 }
 
 bool C_ReflectionView::OnCreate()
@@ -194,6 +197,10 @@ void C_ReflectionView::Gather(C_View& gameView)
 {
 	if(!g_ReflectionEnable)
 		return;
+#if PLATFORM_PC
+	if(!m_GraphicalDetailEnabled)	// [Blur2PC] retail 0x004278d0
+		return;
+#endif
 
 	PERF_EVENT("Render.GatherReflection");
 
@@ -220,6 +227,10 @@ void C_ReflectionView::Schedule(C_View& gameView)
 {
 	if(!g_ReflectionEnable)
 		return;
+#if PLATFORM_PC
+	if(!m_GraphicalDetailEnabled)	// [Blur2PC] retail 0x00427ad0
+		return;
+#endif
 
 	PERF_EVENT("Render.ScheduleReflection");
 
@@ -286,6 +297,10 @@ void C_ReflectionView::Render(C_View& gameView)
 {
 	if(!g_ReflectionEnable)
 		return;
+#if PLATFORM_PC
+	if(!m_GraphicalDetailEnabled)	// [Blur2PC] retail 0x004297f0
+		return;
+#endif
 
 	CPU_TIMING(5, Maths::RGBA(255, 255, 255, 255), "CPU.RenderReflection");
 	GPU_TIMING(5, Maths::RGBA(255, 255, 255, 255), "GPU.RenderReflection");
@@ -398,6 +413,15 @@ void C_ReflectionView::SetDynamicDetail(F32 detail)
 {
 	m_DetailFactor = detail;
 }
+
+#if PLATFORM_PC
+// [Blur2PC] Retail PC graphical detail for the reflection (Blur.exe 1.2 0x020bffa8). Retail first resizes
+// the reflection render target from the back buffer (0x00427750); not ported (docs/analysis.md).
+void C_ReflectionView::SetGraphicalDetail(const U32 graphicalDetail)
+{
+	m_GraphicalDetailEnabled = graphicalDetail >= 4;
+}
+#endif
 
 void C_ReflectionView::CreateBlackFrame()
 {

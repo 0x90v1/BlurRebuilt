@@ -125,8 +125,15 @@ void C_MirrorView::Destroy()
 }
 
 Debug::Bool g_MirrorEnable("Amax.Views.MirrorEnableTheReturn", true);
+#if PLATFORM_PC
+// [Blur2PC] Retail PC names these Max/Min (Blur.exe 1.2 0x0111e828/0x0111e860, same defaults); the
+// graphical detail preset sets them.
+Debug::Float g_MirrorInstanceDrawDistanceScale("Amax.Views.MirrorInstanceDrawDistanceScaleMax", 0.25f, Debug::Range(0.0f, 1.0f));
+Debug::Float g_MirrorInstanceDrawDistanceScaleLOD("Amax.Views.MirrorInstanceDrawDistanceScaleMin", 0.05f, Debug::Range(0.0f, 1.0f));
+#else
 Debug::Float g_MirrorInstanceDrawDistanceScale("Amax.Views.MirrorInstanceDrawDistanceScale", 0.25f, Debug::Range(0.0f, 1.0f));
 Debug::Float g_MirrorInstanceDrawDistanceScaleLOD("Amax.Views.MirrorInstanceDrawDistanceScaleLOD", 0.05f, Debug::Range(0.0f, 1.0f));
+#endif
 Debug::Float g_MirrorShadowDrawDistance("Amax.Views.MirrorShadowDrawInstance", 30.f);
 Debug::Float g_MirrorDrawDistance("Amax.Views.MirrorDrawDistance", 500.f, Debug::Range(0.f, 1000.f));
 Debug::Float g_MirrorDrawDistanceLOD("Amax.Views.MirrorDrawDistanceLOD", 150.f, Debug::Range(0.f, 1000.f));
@@ -252,6 +259,22 @@ void C_MirrorView::SetDynamicDetail(F32 detail)
 {
 	m_DetailFactor = detail;
 }
+
+#if PLATFORM_PC
+// [Blur2PC] Retail PC graphical detail for the mirror, from Blur.exe 1.2 0x004295f0. Retail then resizes
+// the mirror render target from the back buffer (0x00427660); not ported (docs/analysis.md).
+void C_MirrorView::SetGraphicalDetail(const U32 graphicalDetail)
+{
+	static const F32 s_Max[4] = { 0.15f, 0.2f, 0.3f, 0.5f };
+	static const F32 s_Min[4] = { 0.075f, 0.1f, 0.15f, 0.25f };
+
+	if(graphicalDetail >= 1 && graphicalDetail <= 4)
+	{
+		g_MirrorInstanceDrawDistanceScale = s_Max[graphicalDetail - 1];
+		g_MirrorInstanceDrawDistanceScaleLOD = s_Min[graphicalDetail - 1];
+	}
+}
+#endif
 
 
 } // namespace Game

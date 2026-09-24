@@ -20,6 +20,7 @@
 
 #include <GameLogic/Layers/RaceBookLayer.h>
 #include <GameLogic/Layers/AmaxWorldLayer.h>
+#include <Game/GameWorld/GameWorld.h>	// [Blur2PC] ApplyGraphicalDetail
 #include <GameAudio/GameAudioLayer.h>
 #include <GameLogic/Layers/BootLayer.h>
 
@@ -358,6 +359,16 @@ void C_GameApp::PlatformShutdown()
 
 	Framework::C_Application::PlatformShutdown();
 }
+
+#if PLATFORM_PC
+// [Blur2PC] Retail PC graphical detail hook (Blur.exe 1.2 0x0042e1c0, C_Application vtable +0xe0): hands the
+// level to the game world when one exists; a world created later applies it at the end of its Create.
+void C_GameApp::ApplyGraphicalDetail(const U32 graphicalDetail)
+{
+	if(m_pRaceBookLayer && m_pRaceBookLayer->GetAmaxWorldLayer())
+		m_pRaceBookLayer->GetAmaxWorldLayer()->GetGameWorld()->SetGraphicalDetail(graphicalDetail);
+}
+#endif
 
 void C_GameApp::ExitChecks()
 {

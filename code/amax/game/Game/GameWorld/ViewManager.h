@@ -105,11 +105,19 @@ public:
 	const U32		GetLightsSubtechniqueHandle() const { return m_LightsSubtechniqueHandle; }
 	const U32		GetLightsSplitScreenSubtechniqueHandle() const { return m_LightsSplitScreenSubtechniqueHandle; }
 	const U32		GetEnvironmentSubtechniqueHandle() const { return m_EnvironmentSubtechniqueHandle; }
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC subtechniques (Blur.exe 1.2 view manager ctor 0x00428ff0, +0x7c/+0x80).
+	const U32		GetNoDamageSubtechniqueHandle() const { return m_NoDamageSubtechniqueHandle; }
+	const U32		GetNoDepthSubtechniqueHandle() const { return m_NoDepthSubtechniqueHandle; }
+#endif
 
 	const SceneGraph::RenderStates&		GetGhostDepthStates() const { return m_GhostDepthStates; }
 	const SceneGraph::RenderStates&		GetGhostColourStates() const { return m_GhostColourStates; }
 
 	void			SetDynamicDetail(const F32 cpuDetail, const F32 gpuDetail, const bool immediate);
+#if PLATFORM_PC
+	void			SetGraphicalDetail(const U32 graphicalDetail, const bool inUI);	// [Blur2PC] retail 0x0063ec40
+#endif
 
 	const Render::Reduced::E_Downsample		GetReduceRenderAlpha() const { return m_ReduceRenderAlpha; }
 
@@ -157,6 +165,10 @@ private:
 	U32									m_AlphaLuminanceSubtechniqueHandle;
 	U32									m_LightsSplitScreenSubtechniqueHandle;
 	U32									m_EnvironmentSubtechniqueHandle;
+#if PLATFORM_PC
+	U32									m_NoDamageSubtechniqueHandle;	// [Blur2PC] retail +0x7c
+	U32									m_NoDepthSubtechniqueHandle;	// [Blur2PC] retail +0x80
+#endif
 
 	Render::Reduced::E_Downsample		m_ReduceRenderAlpha;
 	F32									m_ReduceRenderAlphaCycle;

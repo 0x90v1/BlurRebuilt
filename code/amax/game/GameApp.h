@@ -72,6 +72,9 @@ public:
 	void PlatformShutdown();
 
 	virtual void ExitChecks();
+#if PLATFORM_PC
+	virtual void ApplyGraphicalDetail(const U32 graphicalDetail);	// [Blur2PC] retail 0x0042e1c0
+#endif
 
 	HRESULT OnInitialise();
 	void OnShutdown();

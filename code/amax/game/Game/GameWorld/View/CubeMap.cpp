@@ -155,7 +155,11 @@ Debug::String g_CubeMapFileName("Game.CubeMapFileName", "GAME:\\cubemap" );
 
 void C_CubeMapView::Gather()
 {
+#if PLATFORM_PC
+	if(g_CubeMapEnable && m_Enabled && m_GraphicalDetailEnabled)	// [Blur2PC] retail 0x00425c30/0x00425d50/0x00426e50
+#else
 	if(g_CubeMapEnable && m_Enabled)
+#endif
 	{
 		if (g_CaptureCubeMap)
 		{
@@ -184,7 +188,11 @@ void C_CubeMapView::GatherFace(const U32 face)
 
 void C_CubeMapView::Schedule()
 {
+#if PLATFORM_PC
+	if(g_CubeMapEnable && m_Enabled && m_GraphicalDetailEnabled)	// [Blur2PC] retail 0x00425c30/0x00425d50/0x00426e50
+#else
 	if(g_CubeMapEnable && m_Enabled)
+#endif
 	{
 		PERF_EVENT("Render.ScheduleCubeMap");
 		{
@@ -237,7 +245,11 @@ void C_CubeMapView::ScheduleFace(const U32 face)
 
 void C_CubeMapView::Render()
 {
+#if PLATFORM_PC
+	if(g_CubeMapEnable && m_Enabled && m_GraphicalDetailEnabled)	// [Blur2PC] retail 0x00425c30/0x00425d50/0x00426e50
+#else
 	if (g_CubeMapEnable && m_Enabled)
+#endif
 	{
 		CPU_TIMING(5, Maths::RGBA(255, 255, 255, 255), "CPU.RenderCubeMap");
 		GPU_TIMING(5, Maths::RGBA(255, 255, 255, 255), "GPU.RenderCubeMap");

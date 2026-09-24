@@ -99,6 +99,9 @@ public:
 	FX::I_EnvironmentSettings			*GetEnvironmentSettings() { return m_pEnvironmentSettings;};
 	void								ResetEnvironmentSettings(FX::I_EnvironmentSettings* sorceryEnvironmentSettings);
 	void								SetDynamicDetail(const F32 detail);
+#if PLATFORM_PC
+	void								SetGraphicalDetail(const U32 graphicalDetail, const bool inUI);	// [Blur2PC] retail 0x00419620
+#endif
 
 	//Rim generatos
 	C_RimGenerator ALIGN16						m_RimGeneratorVector[GameWorld_MaxRimGenerators];

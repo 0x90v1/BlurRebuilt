@@ -33,6 +33,9 @@ C_ViewManager::C_ViewManager(SceneGraph::C_SceneGraph* pSceneGraph, C_GameWorld*
 	m_pLightTrailsView(0)
 {
 	m_LODSubtechniqueHandle = FX::RegisterSubtechnique("LOD");
+#if PLATFORM_PC
+	m_NoDamageSubtechniqueHandle = FX::RegisterSubtechnique("NoDamage");	// [Blur2PC] retail order, Blur.exe 1.2 0x00428ff0
+#endif
 	m_PrepassSubtechniqueHandle = FX::RegisterSubtechnique("Prepass");
 	m_LightsSubtechniqueHandle = FX::RegisterSubtechnique("Lights");
 	m_LightsSplitScreenSubtechniqueHandle = FX::RegisterSubtechnique("LSplitScreen");
@@ -40,6 +43,9 @@ C_ViewManager::C_ViewManager(SceneGraph::C_SceneGraph* pSceneGraph, C_GameWorld*
 	m_SolidSubtechniqueHandle = FX::RegisterSubtechnique("Solid");
 	m_AlphaLuminanceSubtechniqueHandle = FX::RegisterSubtechnique("AlphaLuminance");
 	m_EnvironmentSubtechniqueHandle = FX::RegisterSubtechnique("Environment");
+#if PLATFORM_PC
+	m_NoDepthSubtechniqueHandle = FX::RegisterSubtechnique("NoDepth");	// [Blur2PC] retail
+#endif
 
 	m_ReflectionBlurX = 1.f;
 	m_ReflectionBlurY = 1.f;
@@ -223,6 +229,32 @@ Debug::Enum<Render::Reduced::E_Downsample> g_MainReduceRenderAlpha	("Amax.Views.
 
 Debug::Float g_DisableAADetailThreshold ("GameSys.Lod.DisableAAThreshold", 0.4f, Debug::Range(0.0f, 1.0f));
 
+#if PLATFORM_PC
+// [Blur2PC] Retail PC view manager dynamic detail (Blur.exe 1.2 vtable 0x00e66a78 slot 1, 0x00426c80):
+// views, the cube map's half-rate toggle and detail factor, and the blob shadow quality. The reduced
+// alpha render and PS3 AA parts are gone on PC.
+void C_ViewManager::SetDynamicDetail(const F32 cpuDetail, const F32 gpuDetail, const bool immediate)
+{
+	for(S32 i = 0; i < m_Views.Size(); ++i)
+		m_Views[i]->SetDynamicDetail(gpuDetail);
+
+	if(m_pCubeMap)
+		m_pCubeMap->SetDynamicDetail(gpuDetail);
+
+	m_pBlobShadows->SetQuality(gpuDetail);
+}
+
+// [Blur2PC] Retail PC graphical detail for the views (Blur.exe 1.2 0x0063ec40): every view, then the
+// cube map, which only renders at detail 3 and 4.
+void C_ViewManager::SetGraphicalDetail(const U32 graphicalDetail, const bool inUI)
+{
+	for(S32 i = 0; i < m_Views.Size(); ++i)
+		m_Views[i]->SetGraphicalDetail(graphicalDetail, inUI);
+
+	if(m_pCubeMap)
+		m_pCubeMap->SetGraphicalDetailEnabled(graphicalDetail > 2);
+}
+#else
 void C_ViewManager::SetDynamicDetail(const F32 cpuDetail, const F32 gpuDetail, const bool immediate)
 {
 	for(S32 i = 0; i < m_Views.Size(); ++i)
@@ -263,5 +295,6 @@ void C_ViewManager::SetDynamicDetail(const F32 cpuDetail, const F32 gpuDetail, c
 	}
 #endif
 }
+#endif
 
 } // namespace Game

@@ -56,6 +56,7 @@
 
 #include <Display/Device/DeviceMarkers.h>
 #include "Game/GameActors/Vehicles/VehicleActor.h"
+#include <shared_actors/Utility/VisibilityDetection.h>	// [Blur2PC] low detail car shadows
 #include <Camera2/Camera.h>
 #include <Camera2/stock/DebugFeed.h>
 #include <Game/AmaxCam/VehicleFeed.h>
@@ -105,6 +106,12 @@ namespace Game
 struct GameWorldFxParams;
 	
 bool g_PrepassEnable = true;
+#if PLATFORM_PC
+extern Debug::Bool g_ReflectionEnable;	// [Blur2PC] View/Reflection.cpp
+// [Blur2PC] Retail PC debug variable (Blur.exe 1.2 0x0111dffc, default true); set by the graphical detail
+// preset (off at detail 1). GameWorld::BeginFrame folds it into g_PrepassEnable.
+Debug::Bool g_MainPrepassEnable("Amax.Views.Main.PrepassEnable", true);
+#endif
 
 extern GameWorldFxParams	g_FxParams;
 extern Debug::Bool g_MainReduceRenderOverride;
@@ -190,10 +197,21 @@ void C_MainView::Create(const C_View& gameView)
 
 	// add a seperate view for the prepass to allow for a shorter draw distance
 	m_pMainPrepass = m_pViewManager->GetSceneGraph()->AddView();
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC prepass view also gathers vehicles and ghosts (mask 0x80e5, Blur.exe 1.2 0x01f03efa),
+	// scheduled only when m_PrepassVehicles is set by the graphical detail preset.
+	m_pMainPrepass->EnableRenderPass(	SceneGraph::Flag<E_RenderPass_Solid>() |
+											SceneGraph::Flag<E_RenderPass_Punch>() |
+											SceneGraph::Flag<E_RenderPass_DynamicObjectSolid>() |
+											SceneGraph::Flag<E_RenderPass_VehicleSolid>() |
+											SceneGraph::Flag<E_RenderPass_AnimatedObjectSolid>() |
+											SceneGraph::Flag<E_RenderPass_Ghost>());
+#else
 	m_pMainPrepass->EnableRenderPass(	SceneGraph::Flag<E_RenderPass_Solid>() |
 											SceneGraph::Flag<E_RenderPass_Punch>() |
 											SceneGraph::Flag<E_RenderPass_DynamicObjectSolid>() |
 											SceneGraph::Flag<E_RenderPass_AnimatedObjectSolid>());
+#endif
 
 	m_pMainPrepass->SetTypeFlag(E_ViewType_Main1 + gameView.GetIndex(), E_ViewTypeFlag_Prepass + (1<<(E_ViewType_Main1+gameView.GetIndex())));
 
@@ -358,6 +376,52 @@ void C_MainView::SetDynamicDetail(F32 detail)
 	m_ModelInstanceDrawDistanceScale = Maths::Lerp(g_MainModelInstanceDrawDistanceScaleMin, g_MainModelInstanceDrawDistanceScaleMax, detail);
 }
 
+#if PLATFORM_PC
+} // namespace Game
+namespace SceneGraph { EXTERN_DEBUG_FLOAT(g_fModelLODDistanceScale) }
+namespace Game
+{
+
+// [Blur2PC] Retail PC graphical detail for the main view, ported from Blur.exe 1.2 0x00425450.
+void C_MainView::SetGraphicalDetail(const U32 graphicalDetail, const bool inUI)
+{
+	// instance min, model instance min, instance max, model instance max, model LOD distance
+	static const F32 s_Settings[4][5] =
+	{
+		{ 0.1f,  0.2f, 0.25f, 0.4f,  200.0f },
+		{ 0.25f, 0.4f, 0.5f,  0.6f,  450.0f },
+		{ 0.5f,  0.6f, 0.75f, 0.8f,  800.0f },
+		{ 0.75f, 0.8f, 1.0f,  1.0f, 1000.0f },
+	};
+
+	m_PrepassVehicles = false;
+
+	if(graphicalDetail >= 1 && graphicalDetail <= 4)
+	{
+		const F32* pSettings = s_Settings[graphicalDetail - 1];
+		g_MainInstanceDrawDistanceScaleMin = pSettings[0];
+		g_MainModelInstanceDrawDistanceScaleMin = pSettings[1];
+		g_MainInstanceDrawDistanceScaleMax = pSettings[2];
+		g_MainModelInstanceDrawDistanceScaleMax = pSettings[3];
+		SceneGraph::g_fModelLODDistanceScale = pSettings[4];
+
+		m_PrepassVehicles = graphicalDetail == 4;
+		m_LightsSubtechniqueHandle = graphicalDetail == 4 ? m_pViewManager->GetLightsSubtechniqueHandle() : m_pViewManager->GetLightsSplitScreenSubtechniqueHandle();
+		m_LowDetailShadows = graphicalDetail == 1;
+		g_MainPrepassEnable = graphicalDetail != 1;
+	}
+
+	if(inUI)
+	{
+		m_PrepassVehicles = true;
+		g_MainModelInstanceDrawDistanceScaleMax = 1.0f;
+	}
+
+	m_InstanceDrawDistanceScale = g_MainInstanceDrawDistanceScaleMax;
+	m_ModelInstanceDrawDistanceScale = g_MainModelInstanceDrawDistanceScaleMax;
+}
+#endif
+
 void C_MainView::Gather(C_View& gameView)
 {
 	if(!g_MainEnable)
@@ -453,12 +517,21 @@ void C_MainView::Schedule(const C_View& gameView)
 			if (gameView.GetReflection() && gameView.GetReflection()->GetRenderTexture())
 			{
 				const void* pReflectionTexAddress = gameView.GetReflection()->GetRenderTexture()->GetTexture().GetGPUTexture();
+			#if PLATFORM_PC
+				// [Blur2PC] Retail binds the black texture while the reflection is off (Blur.exe 1.2 0x0042a170).
+				if (!gameView.GetReflection()->IsGraphicalDetailEnabled() || !g_ReflectionEnable)
+					pReflectionTexAddress = m_BlackTexture.GetGPUTexture();
+			#endif
 				FX::SetParameter(g_FxParams.screenReflectionTexture, &pReflectionTexAddress);
 				FX::SetSamplerState(g_FxParams.screenReflectionTexture, m_MirrorLinear);
 			}
 			if (gameView.GetReflection() && gameView.GetReflection()->GetBlurRenderTexture())
 			{
 				const void* pReflectionTexAddress = gameView.GetReflection()->GetBlurRenderTexture()->GetTexture().GetGPUTexture();
+			#if PLATFORM_PC
+				if (!gameView.GetReflection()->IsGraphicalDetailEnabled() || !g_ReflectionEnable)
+					pReflectionTexAddress = m_BlackTexture.GetGPUTexture();
+			#endif
 				FX::SetParameter(g_FxParams.blurScreenReflectionTexture, &pReflectionTexAddress);
 				FX::SetSamplerState(g_FxParams.blurScreenReflectionTexture, m_ClampLinear);
 			}
@@ -600,6 +673,16 @@ void C_MainView::Schedule(const C_View& gameView)
 		g_PrepassPunchRenderStates.renderFlagsRD.setPass = 0;
 		g_PrepassPunchRenderStates.colourWriteEnable = Display::E_ColourWriteEnable_All;
 		
+#if PLATFORM_PC
+		// [Blur2PC] Retail PC main view schedule (Blur.exe 1.2 0x0042aa73): vehicles and ghosts in the prepass.
+		if(m_PrepassVehicles)
+		{
+			if(g_SceneGraphRenderVehicleSolid)
+				m_pMainPrepass->SchedulePass(E_RenderPass_VehicleSolid);
+			if(g_SceneGraphRenderGhost)
+				m_pMainPrepass->SchedulePass(E_RenderPass_Ghost, &m_pViewManager->GetGhostDepthStates());
+		}
+#endif
 		if(g_SceneGraphRenderSolid)
 			m_pMainPrepass->SchedulePass(E_RenderPass_Solid, &g_PrepassSolidRenderStates);
 		if(g_SceneGraphRenderDynamicObjectSolid)
@@ -619,7 +702,9 @@ void C_MainView::Schedule(const C_View& gameView)
 	if(!g_MainPrepassShow)
 	{
 	#if PLATFORM_PC
-		m_MainWithAASettings.SetSubtechnique(g_PrepassEnable ? m_pViewManager->GetLightsSubtechniqueHandle() : 0);
+		// [Blur2PC] The lights subtechnique is the one the graphical detail preset picked (retail stores it in
+		// m_MainWithAASettings once); kept at 0 while the prepass is off as the snapshot does.
+		m_MainWithAASettings.SetSubtechnique(g_PrepassEnable ? m_LightsSubtechniqueHandle : 0);
 	#endif
 		
 		m_MainWithAASettings.SetWindow(viewIndex, true);
@@ -934,6 +1019,25 @@ void C_MainView::RenderWithoutAA(C_View& gameView)
 			m_pViewManager->m_pReducedRender->Begin(index, m_ReduceRenderAlpha);
 		}
 
+#if PLATFORM_PC
+		// [Blur2PC] Retail PC detail 1 (blob shadows off): each car visible in this view gets its
+		// collision-mesh shadow drawn here (Blur.exe 1.2 0x00427120, same call as the mirror's shadows).
+		if(m_LowDetailShadows && (g_SceneGraphRenderAlpha || g_SceneGraphRenderAlphaVehicleFlares))
+		{
+			Display::Device()->InvalidateState();
+			Game::Actors::RaceLogicCore* pRLC = m_pViewManager->m_pAmaxWorldLayer->GetRaceLogicCore();
+			for(U32 iVehicle = 0; iVehicle < pRLC->GetNumVehicles(); iVehicle++)
+			{
+				Game::Actors::C_VehicleActor* pVehicleActor = const_cast<Game::Actors::C_VehicleActor*>(pRLC->GetVehicleActor(iVehicle));
+				if(pVehicleActor && pVehicleActor->GetVisibleDetect() && (pVehicleActor->GetVisibleDetect()->flag & m_pMain->GetTypeFlag()))
+				{
+					const Btl::Vector<Maths::HVec3>& collisionVertices = pVehicleActor->GetCollisionCacheVertices();
+					if(collisionVertices.Size() > 0)
+						m_pViewManager->m_pBlobShadows->RenderCollisionMeshShadow(pVehicleActor->GetMatrix(), pVehicleActor->GetGroundPosition(), 1.f, &collisionVertices[0], collisionVertices.Size());
+				}
+			}
+		}
+#endif
 		if(g_SceneGraphRenderAlpha || g_SceneGraphRenderAlphaVehicleFlares)
 		{
 			DEVICE_MARKER("RenderSplitscreenWithoutAA.MainWithoutAA");

@@ -54,6 +54,10 @@ public:
 	void	Schedule(C_View& gameView);
 	void	Render(C_View& gameView);
 	void	SetDynamicDetail(F32 detail);
+#if PLATFORM_PC
+	void	SetGraphicalDetail(const U32 graphicalDetail);	// [Blur2PC] retail 0x020bffa8
+	bool	IsGraphicalDetailEnabled() const { return m_GraphicalDetailEnabled; }
+#endif
 
 	const Display::C_RenderTexture2D*	GetRenderTexture() const;
 	const Display::C_RenderTexture2D*	GetBlurRenderTexture() const;
@@ -96,6 +100,9 @@ private:
 	bool								m_FakeSunLightDepthTest;
 
 	F32									m_DetailFactor;
+#if PLATFORM_PC
+	bool								m_GraphicalDetailEnabled;	// [Blur2PC] retail +0x15d: only detail 4 renders the reflection
+#endif
 };
 
 } // namespace Game

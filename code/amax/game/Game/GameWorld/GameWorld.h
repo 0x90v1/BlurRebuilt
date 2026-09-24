@@ -324,6 +324,11 @@ public:
 	const Display::C_RenderTexture2D*			GetReflectionTexture(S32 view = 0) const;
 
 	void										SetDynamicDetail(const F32 cpuDetail, const F32 gpuDetail, const bool immediate);
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC graphical detail preset 1-4 (Blur.exe 1.2 0x0041b9e0; name ours).
+	void										SetGraphicalDetail(const U32 graphicalDetail);
+	U32											GetGraphicalDetail() const { return m_GraphicalDetail; }
+#endif
 
 	Scheduler::GroupHandle						GetRaytraceGroup() {return m_RaytraceGroup;}
 public:
@@ -468,6 +473,9 @@ private:
 #endif
 
 	bool										m_bRunningCarEffectTasks;
+#if PLATFORM_PC
+	U32											m_GraphicalDetail;	// [Blur2PC] retail C_GameWorld +0x3ec
+#endif
 
 	// Car Dynamic Effects Task
 	C_CarDynamicEffectsTaskInit					m_CarDynamicEffectsTaskInit;

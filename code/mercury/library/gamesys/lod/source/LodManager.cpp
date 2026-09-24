@@ -7,7 +7,11 @@
 namespace Lod
 {
 
-#if defined(CFG_SPEED) && !defined(CFG_PROFILE)
+#if PLATFORM_PC
+// [Blur2PC] Retail PC ships with dynamic detail off (Blur.exe 1.2 0x00e32a30); the graphical detail
+// preset sets the draw distance ranges and detail stays at 1.
+Debug::Bool g_LodEnabled("GameSys.Lod.DynamicEnabled", false);
+#elif defined(CFG_SPEED) && !defined(CFG_PROFILE)
 Debug::Bool g_LodEnabled("GameSys.Lod.DynamicEnabled", true);
 #else
 Debug::Bool g_LodEnabled("GameSys.Lod.DynamicEnabled", false);

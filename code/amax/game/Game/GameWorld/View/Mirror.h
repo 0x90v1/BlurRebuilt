@@ -45,6 +45,9 @@ public:
 
 	void	SetupMirror(const Maths::HVec3 position, const Maths::HVec3 view, const Maths::HVec3 up, const F32 fieldOfView);
 	void	SetDynamicDetail(F32 detail);
+#if PLATFORM_PC
+	void	SetGraphicalDetail(const U32 graphicalDetail);	// [Blur2PC] retail 0x004295f0
+#endif
 
 	const Display::C_RenderTexture2D*	GetRenderTexture() const;
 

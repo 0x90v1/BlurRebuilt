@@ -259,6 +259,9 @@ namespace Game
 {
 
 extern bool g_PrepassEnable;
+#if PLATFORM_PC
+extern Debug::Bool g_MainPrepassEnable;	// [Blur2PC] View/Main.cpp
+#endif
 
 #ifndef CFG_GOLD
 Debug::Bool g_DebugGameWorldDebugActorRender("ActorDebug.DebugRender", false);
@@ -442,6 +445,9 @@ C_GameWorld::C_GameWorld()
 	InitialiseEnvironmentSettingsParameters();
 
 	m_bRunningCarEffectTasks = false;
+#if PLATFORM_PC
+	m_GraphicalDetail = 0; // [Blur2PC] set by SetGraphicalDetail at the end of Create
+#endif
 
 	m_HandleUISceneReady = false;
 	m_paksSwitched = false;
@@ -1404,6 +1410,11 @@ bool C_GameWorld::Create( Actor::C_ActorFactory* pActorFactory, const S32 numVie
 
 	SpecialFX::C_AnimatedMeshSpecialFX::CreatePostUpdateSystem();
 
+#if PLATFORM_PC
+	// [Blur2PC] Retail C_GameWorld::Create ends by applying the player's graphical detail (Blur.exe 1.2 0x0042311e).
+	SetGraphicalDetail(C_GameApp::GetInstance()->GetGraphicalDetail());
+#endif
+
 	return true;
 }
 
@@ -1936,6 +1947,14 @@ void C_GameWorld::BeginFrame()
 	}
 	else
 		Game::g_PrepassEnable = true;
+
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC turns the prepass off at graphical detail 1 through Amax.Views.Main.PrepassEnable,
+	// which this garage hack would otherwise overwrite every frame. Retail has no such hack (it checks
+	// mInUI where the prepass is used); combining the two is ours (docs/analysis.md).
+	if(!g_MainPrepassEnable)
+		Game::g_PrepassEnable = false;
+#endif
 
 	if(!notFirstFrame)
 		notFirstFrame++;
@@ -3448,10 +3467,51 @@ Display::C_TextureCube* C_GameWorld::GetVehicleLightCubeMap( U32 vehicleIndex, U
 
 void C_GameWorld::SetDynamicDetail(const F32 cpuDetail, const F32 gpuDetail, const bool immediate)
 {
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC sets particle and post-process quality only from the graphical detail
+	// preset (their setters have no other callers in Blur.exe 1.2), so dynamic detail leaves them alone.
+#else
 	F32 detail = Maths::Min(cpuDetail, gpuDetail);
 
 	m_pParticleManager->SetQuality(Maths::Lerp(0.5f, 1.0f, detail));
-	
+
 	C_GameWorldPostProcess::SetQuality(gpuDetail);
+#endif
 }
+
+#if PLATFORM_PC
+// [Blur2PC] Retail PC graphical detail preset, ported from Blur.exe 1.2 0x0041b9e0 (called from
+// C_GameApp's graphical detail hook 0x0042e1c0 and at the end of Create).
+void C_GameWorld::SetGraphicalDetail(const U32 graphicalDetail)
+{
+	if(graphicalDetail == 1)
+	{
+		m_pParticleManager->SetQuality(0.25f);
+		m_pBlobShadows->SetVisibilityFlags(0);
+		m_pPostProcessMotionBlur->SetSamples(PostProcess::E_MotionBlurSamples_9);
+		if(SceneGraph::C_RenderPass* pRefract = m_pSceneGraph->GetRenderPass(E_RenderPass_Refract))
+			pRefract->SetSubtechniqueHandle(m_pViewManager->GetNoDepthSubtechniqueHandle());
+	}
+	else if(graphicalDetail >= 2 && graphicalDetail <= 4)
+	{
+		static const F32 s_ParticleQuality[3]	= { 0.5f, 0.75f, 1.0f };
+		static const F32 s_BlobQuality[3]		= { 0.5f, 0.75f, 1.0f };
+		static const F32 s_PostQuality[3]		= { 0.5f, 0.5f, 1.0f };
+		const U32 i = graphicalDetail - 2;
+
+		m_pParticleManager->SetQuality(s_ParticleQuality[i]);
+		m_pBlobShadows->SetQuality(s_BlobQuality[i]);
+		m_pBlobShadows->SetVisibilityFlags(Game::E_ViewTypeFlag_Main);
+		C_GameWorldPostProcess::SetQuality(s_PostQuality[i]);
+		if(SceneGraph::C_RenderPass* pRefract = m_pSceneGraph->GetRenderPass(E_RenderPass_Refract))
+			pRefract->SetSubtechniqueHandle(0);
+	}
+
+	// Retail also sets a flag on every display window here (+0xed = detail > 1) that switches a
+	// per-frame depth copy retail's PC device does; this device has no such copy (docs/analysis.md).
+
+	m_GraphicalDetail = graphicalDetail;
+	m_pViewManager->SetGraphicalDetail(graphicalDetail, C_Game::GetInstance()->GetLevelState().mInUI);
+}
+#endif
 } // namespace Game

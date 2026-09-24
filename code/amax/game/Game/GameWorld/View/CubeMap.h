@@ -34,7 +34,11 @@ class C_ViewManager;
 class C_CubeMapView : public GameView::C_CubeMapView
 {
 public:
-	C_CubeMapView(C_ViewManager* pViewManager) : GameView::C_CubeMapView(), m_pViewManager(pViewManager), m_pMultiView(NULL), m_Enabled(true), m_DetailFactor(1.f), m_FarClip(500.f) {}
+	C_CubeMapView(C_ViewManager* pViewManager) : GameView::C_CubeMapView(), m_pViewManager(pViewManager), m_pMultiView(NULL), m_Enabled(true), m_DetailFactor(1.f), m_FarClip(500.f)
+#if PLATFORM_PC
+		, m_GraphicalDetailEnabled(true)	// [Blur2PC] retail ctor 0x0042b260
+#endif
+	{}
 	~C_CubeMapView() {}
 
 	void	Create();
@@ -60,6 +64,14 @@ private:
 	SceneGraph::C_MultiView*			m_pMultiView;
 	SceneGraph::C_RenderGroupSettings	m_RenderGroupSettings;
 	bool								m_Enabled;
+#if PLATFORM_PC
+public:
+	// [Blur2PC] Retail PC +0x2aac: the cube map only renders at graphical detail 3 and 4 (set by
+	// C_ViewManager::SetGraphicalDetail, Blur.exe 1.2 0x0063ec40).
+	void								SetGraphicalDetailEnabled(const bool enabled) { m_GraphicalDetailEnabled = enabled; }
+private:
+	bool								m_GraphicalDetailEnabled;
+#endif
 
 	void			RenderFakeLighting();
 
