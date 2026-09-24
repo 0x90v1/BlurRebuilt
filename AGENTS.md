@@ -91,6 +91,7 @@ Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` database
 - Converted disc data, caches and build output go under `_work/` (gitignored). Never write into the disc folders.
 - The C++ source's own serialisers are the ground truth for PC formats; Blur2Test decoders are the ground truth for 360 formats. When they disagree, record it in `docs/analysis.md`.
 - Blur2Test's rule also applies here: never guess a value to make something load. Record unknowns as unknowns.
+- **Any reported gameplay or engine issue gets fixed by replicating retail's actual code 100% faithfully.** Find the real mechanism (source diff against the pristine snapshot, or Ghidra against the retail binary per `code/tools/ghidra_retail`) and port it exactly. Do not invent a workaround, approximation, or "close enough" substitute. If the real mechanism cannot be recovered (for example, it lives inside DRM-obfuscated code with no source equivalent), say so explicitly, record what part is and isn't verified in `docs/analysis.md`, and treat any substitute as a stopgap, not a fix.
 
 ## Multi-session / multi-agent protocol
 
@@ -100,3 +101,4 @@ Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` database
 4. **Facts** discovered about the source, the discs or the formats go in `docs/analysis.md`, not in the ledger.
 5. **Finish** by appending a ledger entry (template at the top of that file): what changed, what was verified and how, what is blocked, and the exact next step. Then update the board row. If you stop mid-task, say where in the ledger so the next agent can resume.
 6. Commit only when the user asks.
+7. **Do not launch the game in foreground** Every time you launch a foreground process you're interrupting anything the user is doing. Launch the game minimized.
