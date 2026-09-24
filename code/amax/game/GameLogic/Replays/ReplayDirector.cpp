@@ -126,8 +126,16 @@ namespace Game
 	{
 		for(int i=0 ; i< m_Vehicles.Size() ; i++)
 		{
-			m_Vehicles[i]->EraseRecording();
-			SAFE_DELETE_PTR(m_Vehicles[i]);
+			// [Blur2PC] m_Vehicles[i] is NULL for every slot the constructor didn't populate
+			// with an active recording (e.g. Destroy() runs on shutdown without ever racing);
+			// dereferencing it unconditionally crashed on that path. Retail cannot have this
+			// bug (every plain quit-to-desktop would crash), so guard it like every other
+			// member below.
+			if (m_Vehicles[i])
+			{
+				m_Vehicles[i]->EraseRecording();
+				SAFE_DELETE_PTR(m_Vehicles[i]);
+			}
 		}
 		SAFE_DELETE_PTR(m_MiscPacketBuffers[0]);
 		SAFE_DELETE_PTR(m_MiscPacketBuffers[1]);
