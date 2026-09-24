@@ -1109,7 +1109,7 @@ function SetupMovie( slot, name, in_memory, memory_size, renderWorld, background
 		blend_mode = UIEnums.BlendMode.Solid,
 		effect_index = UIEnums.EffectIndex.Movie,
 	}
-	if UIHardware.WideScreen() == false then
+	if UIEnums.CurrentPlatform ~= UIEnums.Platform.PC and UIHardware.WideScreen() == false then	-- [Blur2PC] retail PC: no 4:3 movie adjustment
 		local temp = 480 - (640 * 9 / 16)
 		movie_image.pos.y = temp * 0.5
 		movie_image.size.y = 480 - temp
@@ -1277,7 +1277,12 @@ function PostInit_Wrapper()
 		t.PostInit()
 	end
 
-	if UIGlobals.ScaleCamera == true then
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] retail: main-context screens get the aspect-ratio bars
+		if UIScreen.Context() == 0 then
+			AddAspectRatioBars()
+		end
+	elseif UIGlobals.ScaleCamera == true then
 		AddFourThreeBars()
 	end
 	
@@ -1437,6 +1442,12 @@ function End_Wrapper()
 --	print( "->Context" )
 	SetNil( ContextTable[ UIScreen.Context() ] )
 --	print( "->Done" )
+
+	-- [Blur2PC] retail: the aspect-ratio bars belong to the main context's screen
+	if UIScreen.Context() == 0 then
+		GUIBank.FourThreeBars_BottomId = nil
+		GUIBank.FourThreeBars_TopId = nil
+	end
 
 	ResetContextTable()
 end
@@ -2640,11 +2651,101 @@ function AddFourThreeBars()
 	UIButtons.AddButton(four_three_bb)
 end
 
--- [Blur2PC] retail Blur PC ChangeResolution (GuiBank, ported from the Blur.exe 1.2 bytecode), called with
--- Amax.GetScreenResolution() after the graphics options change. Retail also recomputes SCREEN_WIDTH,
--- SCREEN_LEFT, SCREEN_RIGHT and the Screen bounds from the aspect ratio (SCREEN_WIDTH = width * 480 / height),
--- rescales the 3D UI camera and shows or hides the 4:3 bars. That half needs the matching C++ UI change
--- (retail's variable 2D screen width) and is left to the UI aspect task (docs/BOARD.md T009).
+-- [Blur2PC] Retail Blur PC aspect-ratio handling (GuiBank, ported from the Blur.exe 1.2 bytecode):
+-- the UI is 480 high and SCREEN_WIDTH wide, SCREEN_WIDTH following the back buffer's aspect ratio, and
+-- front-end screens letterbox anything that is not 16:9 with two black bars. The C++ side (UI 2D width,
+-- clip transform, UI camera) follows the same ratio. Consoles keep the snapshot's code above and below.
+
+-- retail AddAspectRatioBars: the two bars, sized and shown by UpdateAspectBars (main context screens only)
+function AddAspectRatioBars()
+	local bar =
+	{
+		layer = UIEnums.Layer.BACKGROUND,
+		panel  = UIEnums.Panel._2DAA,
+		type = UIEnums.ButtonTypes.GRAPHIC,
+		pos = { x = SCREEN_LEFT, y = 0, },
+		size = { x = SCREEN_WIDTH + 2, y = 0, },
+		colour_style = "!255 0 0 0",
+		textures =
+		{
+			{
+				pos = { u = 0, v = 0, },
+				size = { u = 1, v = 1, },
+			},
+		},
+		effect_index = UIEnums.EffectIndex.OneColour,
+	}
+
+	GUIBank.FourThreeBars_TopId = UIButtons.AddButton( bar )
+
+	bar.pos.y = 481
+	bar.justify = UIEnums.Justify.BottomLeft
+	GUIBank.FourThreeBars_BottomId = UIButtons.AddButton( bar )
+
+	UpdateAspectBars()
+end
+
+-- retail UpdateAspectBars: bars only while the front-end camera is in use and the screen is not 16:9
+function UpdateAspectBars()
+	local ratio_16_9 = 16 / 9
+	local scale = UIGlobals.resolution_aspect / ratio_16_9
+	local show = false
+	if UIGlobals.UseAspectRatioBars == true then
+		show = scale ~= 1
+	end
+
+	if IsNumber( GUIBank.FourThreeBars_TopId ) ~= true or IsNumber( GUIBank.FourThreeBars_BottomId ) ~= true then
+		return
+	end
+
+	UIButtons.SetActive( GUIBank.FourThreeBars_TopId, show )
+	UIButtons.SetActive( GUIBank.FourThreeBars_BottomId, show )
+
+	if show == false then
+		return
+	end
+
+	if 1 < ratio_16_9 then	-- as in retail (always true)
+		local bar_height = ( 480 - ( SCREEN_WIDTH * 9 / 16 ) ) / 2
+		UIButtons.ChangePosition( GUIBank.FourThreeBars_TopId, SCREEN_LEFT, 0 )
+		UIButtons.ChangePosition( GUIBank.FourThreeBars_BottomId, SCREEN_LEFT, 482 )
+		UIButtons.ChangeSize( GUIBank.FourThreeBars_TopId, SCREEN_WIDTH, bar_height )
+		UIButtons.ChangeSize( GUIBank.FourThreeBars_BottomId, SCREEN_WIDTH, bar_height )
+	end
+end
+
+-- retail IsWideScreen: 16:9 or wider (PC); consoles ask the hardware
+function IsWideScreen()
+	if UIEnums.CurrentPlatform ~= UIEnums.Platform.PC then
+		return UIHardware.WideScreen()
+	end
+	return UIGlobals.resolution_aspect >= 16 / 9
+end
+
+-- retail CalcScreenBounds: the Screen table for the current SCREEN_* values
+function CalcScreenBounds()
+	Screen =
+	{
+		top		= 0,
+		bottom	= 480,
+		left	= SCREEN_LEFT,
+		right	= SCREEN_RIGHT,
+		width	= SCREEN_WIDTH,
+		height	= 480,
+		safe =
+		{
+			top		= 36,
+			bottom	= 444,
+			left	= SCREEN_LEFT + SCREEN_WIDTH * 0.075,
+			right	= SCREEN_RIGHT - SCREEN_WIDTH * 0.075,
+			width	= SCREEN_WIDTH * 0.85,
+			height	= 408,
+		},
+	}
+end
+
+-- retail ChangeResolution, called with Amax.GetScreenResolution() when this file loads and after the
+-- graphics options change
 function ChangeResolution( width, height )
 	if IsNumber( width ) ~= true or IsNumber( height ) ~= true then
 		print( "ChangeResolution : Invalid number" )
@@ -2659,9 +2760,29 @@ function ChangeResolution( width, height )
 	UIGlobals.resolution_width = width
 	UIGlobals.resolution_height = height
 	UIGlobals.resolution_aspect = width / height
+
+	if UIEnums.CurrentPlatform ~= UIEnums.Platform.PC then
+		return
+	end
+
+	SCREEN_WIDTH = width * ( 480 / height )
+	SCREEN_LEFT = ( ( 640 - SCREEN_WIDTH ) / 2 ) - 0.25
+	SCREEN_RIGHT = SCREEN_LEFT + SCREEN_WIDTH
+	CalcScreenBounds()
+	Camera_UseFrontend()
+	UpdateAspectBars()
 end
 
 function Camera_UseFrontend()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] retail: the 3D UI is scaled by the aspect ratio relative to 16:9, with bars
+		local scale = UIGlobals.resolution_aspect / ( 16 / 9 )
+		UIGlobals.UseAspectRatioBars = true
+		UpdateAspectBars()
+		UISystem.SetCameraScale( true, 0, scale )
+		return
+	end
+
 	if UIHardware.WideScreen() == true then
 		return
 	end
@@ -2671,6 +2792,13 @@ function Camera_UseFrontend()
 end
 
 function Camera_UseInGame()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] retail
+		UISystem.SetCameraScale( true, 0, 1 )
+		UIGlobals.UseAspectRatioBars = false
+		return
+	end
+
 	if UIHardware.WideScreen() == true then
 		return
 	end
@@ -3201,4 +3329,13 @@ function ClearGlobals()
 	print( "[Done]" )
 	collectgarbage()
 	print( "[GC]" )
+end
+
+-- [Blur2PC] retail GuiBank ends by sizing the UI for the current back buffer
+if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+	SCREEN_WIDTH = 640
+	SCREEN_LEFT = 0
+	SCREEN_RIGHT = SCREEN_WIDTH
+	CalcScreenBounds()
+	ChangeResolution( Amax.GetScreenResolution() )
 end

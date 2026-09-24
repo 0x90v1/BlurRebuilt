@@ -455,7 +455,7 @@ function PostInit()
 			
 			-- [PR] - #38066
 			-- in 4:3 with more than two players, "finished" text is outside safe area
-			if UIHardware.WideScreen() == false and GUI.num_players > 2 then
+			if IsWideScreen() == false and GUI.num_players > 2 then	-- [Blur2PC] retail: IsWideScreen
 				local finished_text_id = UIButtons.FindChildByName( ss_finished_rb, "Finished" )
 				UIButtons.ChangeSize( finished_text_id, 375, 80, 0 )
 			end
@@ -501,7 +501,7 @@ function PostInit()
 			local mirror = UIButtons.CloneXtGadgetByName( "hud_objects", "Mirror_Root" )
 			UIButtons.SetParent( mirror, inter_2d, UIEnums.Justify.TopCentre )
 			
-			if UIHardware.WideScreen() == false then
+			if IsWideScreen() == false then	-- [Blur2PC] retail: IsWideScreen
 				local sx, sy = UIButtons.GetScale( mirror )
 				local scale = 0.75
 				UIButtons.ChangeScale( mirror, sx * scale, sy * scale )

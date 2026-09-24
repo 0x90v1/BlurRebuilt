@@ -16,7 +16,11 @@ inline void C_Simple2D::SetClipSize2D( const F32 fClipWidth, const F32 fClipHeig
 {
 	const F32 wBB = fClipWidth;
 	const F32 hBB = fClipHeight;
+#ifdef PLATFORM_PC
+	const F32 wUI = m_ScreenWidth;	// [Blur2PC] retail 0x00799710
+#else
 	const F32 wUI = m_WideScreen ? UI_VSCREEN_SIZEX_WIDE : UI_VSCREEN_SIZEX;
+#endif
 	const F32 hUI = UI_VSCREEN_SIZEY;
 
 	m_fClipWidth = fClipWidth;

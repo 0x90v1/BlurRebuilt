@@ -30,7 +30,7 @@ function Init()
 		UIButtons.SetActive( SCUI.name_to_id[ "background" ], true )
 	end
 
-	if UIHardware.WideScreen() == false then
+	if IsWideScreen() == false then	-- [Blur2PC] retail: IsWideScreen
 		UIButtons.ChangeScale( SCUI.name_to_id[ "centre" ], 1.35, 1.35, 1.35 )
 	end
 end

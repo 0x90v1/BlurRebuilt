@@ -10,6 +10,10 @@
 #include <GameLogic/Layers/AmaxWorldLayer.h>
 #include <GameApp.h>
 #include <Display/Device/DeviceDebug.h>	// [Blur2PC] Display::g_Resolutions (graphics options)
+#include <Display/View/ViewSetup.h>			// [Blur2PC] UI refresh after a graphics options change
+#include <ui/Graphics/Simple2d.h>
+#include <ui/Game/Gadgets/UICamera.h>
+#include <ui/UIDefines.h>
 #include <Game/GameWorld/GameWorld.h>
 #include <ui/Game/UILua.h>
 #include <SafeString.inl>
@@ -3220,11 +3224,15 @@ static int UpdateGraphicsOptions( lua_State* pState )
 	return 0;
 }
 
-// [Blur2PC] retail 0x00c358c0 sets the UI's 2D screen width from the back buffer's aspect ratio
-// (width * 480 / height) and rebuilds the UI camera for it. This source's UI has a fixed 640 or 853 wide
-// screen; that change belongs with the UI aspect task (docs/BOARD.md T009), so nothing is done here yet.
+// [Blur2PC] retail 0x00c358c0: the UI's 2D screen width follows the new back buffer's aspect ratio
+// (width * 480 / height), the 2D clip transform is rebuilt for it (0x00799710) and the UI camera is
+// re-initialised (0x00798140), whose 3D projection depends on the clip size.
 void Blur2PCRefreshUIForBackBuffer()
 {
+	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
+	UI::gSimple2D.SetScreenWidth( (F32)backBuffer.GetWidth() * ( UI_VSCREEN_SIZEY / (F32)backBuffer.GetHeight() ) );
+	UI::gSimple2D.SetClipSize2D( Display::C_ViewSetup::GetDeviceCoords().Max().X(), Display::C_ViewSetup::GetDeviceCoords().Max().Y() );
+	UI::C_UICamera::Instance().Init();
 }
 #endif
 

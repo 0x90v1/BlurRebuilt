@@ -351,6 +351,9 @@ C_Simple2D::C_Simple2D()
 {
 	m_pRenderer						= NULL;
 	m_StencilRef					= 0;
+#ifdef PLATFORM_PC
+	m_ScreenWidth					= UI_VSCREEN_SIZEX;	// [Blur2PC] replaced from the back buffer by the UI manager
+#endif
 
 	m_sPanelUsage3D = 0;
 }

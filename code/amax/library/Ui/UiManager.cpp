@@ -315,9 +315,9 @@ extern "C" char UIBIN_START[], UIBIN_END[];
 XT_TYPE( UI::E_UiSoundEffect, "UISoundEffect" )
 	// frontend sounds
 	XT_OPTION( UI::E_UiSoundEffect_PressStartActionIn,					"Start" )								// when you are asked to press start at the beginning of the game
-	XT_OPTION( UI::E_UiSoundEffect_Forwards,							"Forward" )								// Accept – going through into another window/screen
-	XT_OPTION( UI::E_UiSoundEffect_Back,								"Backward" )							// Cancel – going back to a previous screen
-	XT_OPTION( UI::E_UiSoundEffect_Error,								"Error" )								// When the user has made an error or you can’t move forward
+	XT_OPTION( UI::E_UiSoundEffect_Forwards,							"Forward" )								// Accept ï¿½ going through into another window/screen
+	XT_OPTION( UI::E_UiSoundEffect_Back,								"Backward" )							// Cancel ï¿½ going back to a previous screen
+	XT_OPTION( UI::E_UiSoundEffect_Error,								"Error" )								// When the user has made an error or you canï¿½t move forward
 	XT_OPTION( UI::E_UiSoundEffect_LeftActionIn,						"Left" )								// Choosing to go left on the screen
 	XT_OPTION( UI::E_UiSoundEffect_RightActionIn,						"Right" )								// Choosing to go right on the screen
 	XT_OPTION( UI::E_UiSoundEffect_Move,								"Move" )								// Moving up and down
@@ -348,7 +348,7 @@ XT_TYPE( UI::E_UiSoundEffect, "UISoundEffect" )
 	XT_OPTION( UI::E_UiSoundEffect_GraphicForwardActionIn,				"GraphicForward" )						// graphics motion in, like on the options screen enter
 	XT_OPTION( UI::E_UiSoundEffect_GraphicBackwardActionIn,				"GraphicBackward" )						// graphics motion out, like on the options screen exit
 	XT_OPTION( UI::E_UiSoundEffect_GraphicPowerButtonActionIn,			"GraphicPowerButton" )					// this needs a hook when it and the title "blur" appear and pulses
-	XT_OPTION( UI::E_UiSoundEffect_GraphicMenuTopActionIn,				"GraphicMenuTop" )						// in MP, there is a blue bar that enters and fills the top of the screen, just before the ‘TabsOpen’ sound plays
+	XT_OPTION( UI::E_UiSoundEffect_GraphicMenuTopActionIn,				"GraphicMenuTop" )						// in MP, there is a blue bar that enters and fills the top of the screen, just before the ï¿½TabsOpenï¿½ sound plays
 	XT_OPTION( UI::E_UiSoundEffect_GraphicStartFlyForwardActionIn,		"GraphicStartFlyForward" )				// start button screen fly forward
 	XT_OPTION( UI::E_UiSoundEffect_GraphicStartFlyBackwardActionIn,		"GraphicStartFlyBackward" )				// fly back to start button screen
 	XT_OPTION( UI::E_UiSoundEffect_TutorialSplashScreen01ActionIn,		"TutorialSplashScreen01" )
@@ -357,7 +357,7 @@ XT_TYPE( UI::E_UiSoundEffect, "UISoundEffect" )
 	XT_OPTION( UI::E_UiSoundEffect_PressStartButtonScreenActionIn,		"PressStartButtonScreen" )				// on start screen startup
 
 	// hud and ingame sounds
-	XT_OPTION( UI::E_UiSoundEffect_RaceGoActionIn,						"RaceStart" )							// Triggered at start of race – “Go!” essentially
+	XT_OPTION( UI::E_UiSoundEffect_RaceGoActionIn,						"RaceStart" )							// Triggered at start of race ï¿½ ï¿½Go!ï¿½ essentially
 	XT_OPTION( UI::E_UiSoundEffect_RaceStartCountdownActionIn,			"RaceStartCountdown" )					// 3-2-1 intro countdown
 	XT_OPTION( UI::E_UiSoundEffect_LockHardActionIn,					"LockHard" )							// hardlock on player
 	XT_OPTION( UI::E_UiSoundEffect_LockSoftActionIn,					"LockSoft" )						//X	// softlockonplayer
@@ -376,7 +376,7 @@ XT_TYPE( UI::E_UiSoundEffect, "UISoundEffect" )
 	XT_OPTION( UI::E_UiSoundEffect_CountDownActionIn,					"CountDown" )							// Timer countdown
 	XT_OPTION( UI::E_UiSoundEffect_CountDown03ActionIn,					"CountDown03" )							// Timer countdown - last 3 seconds
 	XT_OPTION( UI::E_UiSoundEffect_BankFanActionIn,						"BankFan" )								// Number of fans being banked
-	XT_OPTION( UI::E_UiSoundEffect_MessageOtherActionIn,				"MessageOther" )						// when you get told you’ve shunted/barged/drifted/360
+	XT_OPTION( UI::E_UiSoundEffect_MessageOtherActionIn,				"MessageOther" )						// when you get told youï¿½ve shunted/barged/drifted/360
 	XT_OPTION( UI::E_UiSoundEffect_PerkSwitchActionIn,					"PerkSwitch" )						//X	// switch perk sound
 	XT_OPTION( UI::E_UiSoundEffect_EliminationCountDown10ActionIn,		"EliminationCountDown10" )			//X	// First 7 out of 10 seconds
 	XT_OPTION( UI::E_UiSoundEffect_EliminationCountDown03ActionIn,		"EliminationCountDown03" )			//X	// Last 3 seconds
@@ -397,7 +397,7 @@ XT_TYPE( UI::E_UiSoundEffect, "UISoundEffect" )
 	XT_OPTION( UI::E_UiSoundEffect_MPFocusOnWinnerActionIn,				"MPFocusOnWinner" )						// when the camera zooms onto the winning player (from the start of the sequence)
 	XT_OPTION( UI::E_UiSoundEffect_MPPositionInActionIn,				"MPPositionIn" )						// the white text telling the player their position (from the text just about appearing)
 	XT_OPTION( UI::E_UiSoundEffect_MPNumberGlowActionIn,				"MPNumberGlow" )						// For the 1, 2 or 3 numbers that come across the screen (form the swirly-ness just about appearing)
-	XT_OPTION( UI::E_UiSoundEffect_MPFinishInActionIn,					"MPFinishIn" )							// when “Finish” zooms to the front of the screen (from start of sequence)
+	XT_OPTION( UI::E_UiSoundEffect_MPFinishInActionIn,					"MPFinishIn" )							// when ï¿½Finishï¿½ zooms to the front of the screen (from start of sequence)
 	XT_OPTION( UI::E_UiSoundEffect_MPRankAwayActionIn,					"MPRankAway" )							// 
 	XT_OPTION( UI::E_UiSoundEffect_MPRankInActionIn,					"MPRankIn" )							// 
 	XT_OPTION( UI::E_UiSoundEffect_GiftHealthActionIn,					"GiftHealth" )							// when a Mod gives you health
@@ -968,8 +968,15 @@ C_UiManager::C_UiManager( const U32 sInitParam ) :
 	gSimple2D.AddPanelUsage3D( E_GameSpritePanel_VP2 );
 	gSimple2D.AddPanelUsage3D( E_GameSpritePanel_VP3 );
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail UI init (0x00c3c68d): the 2D screen width follows the back buffer's aspect ratio
+	{
+		const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
+		gSimple2D.SetScreenWidth( (F32)backBuffer.GetWidth() * ( UI_VSCREEN_SIZEY / (F32)backBuffer.GetHeight() ) );
+	}
+#endif
 	gSimple2D.SetClipSize2D( Display::C_ViewSetup::GetDeviceCoords().Max().X(), Display::C_ViewSetup::GetDeviceCoords().Max().Y() );
-	
+
 	// Set up the world light
 	C_Renderer::C_Light& light	= gSimple2D.GetLight( E_GameSpritePanel_3DAA_WORLD );
 	light.m_ColourTo			= Maths::HVec4( 0.0f, 0.0f, 0.0f, 0.1f );
@@ -2451,7 +2458,13 @@ void C_UiManager::PreRender()
 		if( i == 0 )
 		{			
 			// E_GameSpritePanel_3DAA_WORLD
+#ifdef PLATFORM_PC
+			// [Blur2PC] retail's C_Simple2D has no widescreen flag; the UI 3D camera scale carries the aspect
+			// ratio (Lua Camera_UseFrontend: aspect / (16/9)), so the scaled path is always used (identical at 16:9)
+			if( false )
+#else
 			if( gSimple2D.WideScreen() )
+#endif
 			{
 				gSimple2D.SetTransformMatrixByPanel( E_GameSpritePanel_3DAA_WORLD, settings3D.GetWorldToDevice() );
 			}

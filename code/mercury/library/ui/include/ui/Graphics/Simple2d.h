@@ -656,10 +656,19 @@ public:
 	const bool			WideScreen()														{ return m_WideScreen; }
 	void				WideScreen( const bool bWideScreen )								{ m_WideScreen = bWideScreen; }
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC: the 2D screen is 480 high and as wide as the back buffer's aspect ratio makes it
+	// (width * 480 / height), centred on the 640-wide design area (retail C_Simple2D +0x14, set by the UI
+	// manager at start-up and after a graphics options change)
+	const F32			ScreenWidth( )														{ return m_ScreenWidth; }
+	const F32			ScreenLeft( )														{ return (UI_VSCREEN_SIZEX - m_ScreenWidth) * 0.5f; }
+	void				SetScreenWidth( const F32 fScreenWidth )							{ m_ScreenWidth = fScreenWidth; }
+#else
 	/// Get 2D screen width (different when in widescreen)
 	const F32			ScreenWidth( )														{ return m_WideScreen ? UI_VSCREEN_SIZEX_WIDE : UI_VSCREEN_SIZEX; }
 	/// Get 2D left screen coordinate (not 0 in widescreen)
 	const F32			ScreenLeft( )														{ return m_WideScreen ? (UI_VSCREEN_SIZEX - ScreenWidth()) * 0.5f : 0.0f; }
+#endif
 	/// Get 2D right screen coordinate 
 	const F32			ScreenRight( )														{ return ScreenLeft() + ScreenWidth(); }
 #ifdef _UI_AUTO_CLIPWINDOW
@@ -802,6 +811,9 @@ private:
 
 	C_Renderer*									m_pRenderer;
 	bool										m_WideScreen;
+#ifdef PLATFORM_PC
+	F32											m_ScreenWidth;		// [Blur2PC] see ScreenWidth()
+#endif
 	U32											m_StencilRef;
 	E_SpriteType								m_ePreviousSpriteType;
 

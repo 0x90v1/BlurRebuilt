@@ -117,7 +117,7 @@ function Init()
 		UIButtons.SetActive( SCUI.name_to_id[ "background" ], true )
 	end
 	
-	if UIHardware.WideScreen() == false then
+	if UIEnums.CurrentPlatform ~= UIEnums.Platform.PC and UIHardware.WideScreen() == false then	-- [Blur2PC] retail PC has no 4:3 rescale here
 		UIButtons.ChangeScale( SCUI.name_to_id[ "centre" ], 1.35, 1.35, 1.35 )
 	end
 end
