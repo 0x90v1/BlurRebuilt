@@ -12,6 +12,9 @@
 
 // [Blur1Multi] the converting layer over m_pFileSystem for an Xbox 360 or PS3 source (NULL otherwise)
 static X360Convert::C_ConvertFs* s_pConvertFs = NULL;
+#include <AudioCacheFs.h> // [Blur1Multi] Xbox 360 audio banks through the audio cache (T075, D15)
+// [Blur1Multi] over s_pConvertFs for an Xbox 360 source (NULL otherwise)
+static X360Convert::C_AudioCacheFs* s_pAudioFs = NULL;
 // [Blur1Multi] the game source chosen in Initialise (GameSource::Select)
 static GameSource::C_SourceInfo s_source;
 static bool s_sourceFound = false;
@@ -155,6 +158,7 @@ void C_GameSystems::Shutdown()
 	RenderingData::Target::StreamManager::Instance().Destroy();
 
 	SetFileSystems(&Sys::C_FileSystem::Instance(), NULL);
+	SAFE_DELETE_PTR(s_pAudioFs);	// [Blur1Multi]
 	SAFE_DELETE_PTR(s_pConvertFs);	// [Blur1Multi]
 	SAFE_DELETE_PTR(m_pFileSystem);
 	SAFE_DELETE_PTR(m_pMemoryFileSystem);
@@ -385,11 +389,19 @@ void C_GameSystems::CreateFsLayers()
 		s_pConvertFs = new X360Convert::C_ConvertFs(m_pFileSystem);
 		SetFileSystems(s_pConvertFs, m_pMemoryFileSystem);
 		FX::SetFileSystem(s_pConvertFs);
+		// Xbox 360 audio banks are XMA: decoded once into the audio cache (D15); PS3
+		// banks are converted in place by the converting layer
+		if (xbox360Source)
+		{
+			s_pAudioFs = new X360Convert::C_AudioCacheFs(s_pConvertFs, nativeFs, "x360");
+			SetFileSystems(s_pAudioFs, m_pMemoryFileSystem);
+		}
 		LOGINFO(Framework::g_BootLog, "GameSource: %s assets are converted to PC format on load",
 			GameSource::PlatformName(GameSource::Current().m_Platform));
 	}
 
-	const int dumped = GameSource::DumpListedFiles(s_pConvertFs ? *(Sys::I_FileSystem*)s_pConvertFs : *(Sys::I_FileSystem*)m_pFileSystem);
+	const int dumped = GameSource::DumpListedFiles(s_pAudioFs ? *(Sys::I_FileSystem*)s_pAudioFs :
+		s_pConvertFs ? *(Sys::I_FileSystem*)s_pConvertFs : *(Sys::I_FileSystem*)m_pFileSystem);
 	if (dumped >= 0)
 		LOGINFO(Framework::g_BootLog, "GameSource: BLUR1MULTI_PAKDUMP wrote %d files", dumped);
 	// BLUR1MULTI_X360_CONTINUE=1 / BLUR1MULTI_PS3_CONTINUE=1 (exploration only) boot on past

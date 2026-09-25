@@ -86,6 +86,16 @@ target_sources(Amax PRIVATE
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/X360ConvertFs.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/EngineConverters.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/LevelConvert.cpp)
+
+# Xbox 360 audio banks (T075, D15): XMA2 rows decoded with FFmpeg's XMA2 decoder
+# (vgmstream's n5.1.2 Win32 DLLs, loaded at run time from the exe's folder: copy
+# avcodec-vgmstream-59.dll and avutil-vgmstream-57.dll from BLUR_FFMPEG_ROOT/bin-win32
+# into _work/run), into the per-source cache by AudioCacheFs.
+set(BLUR_FFMPEG_ROOT ${BLUR_VENDOR}/ffmpeg-5.1.2 CACHE PATH "FFmpeg 5.1.2 headers (include/) and vgmstream's Win32 DLLs (bin-win32/)")
+target_sources(x360convert PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XmaBankConvert.cpp)
+set_source_files_properties(${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XmaBankConvert.cpp PROPERTIES
+    INCLUDE_DIRECTORIES ${BLUR_FFMPEG_ROOT}/include)
+target_sources(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/AudioCacheFs.cpp)
 target_include_directories(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine)
 # LevelConvert.cpp runs the level block readers (as game_resource does, which has these paths).
 target_include_directories(Amax PRIVATE

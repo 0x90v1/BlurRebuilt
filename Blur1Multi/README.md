@@ -110,6 +110,17 @@ default a 360 source still stops after mounting; `BLUR1MULTI_X360_CONTINUE=1`
 boots on (`_work/run/run_x360.ps1`). Details and results: docs/analysis.md
 "Xbox 360 -> PC conversion".
 
+Audio banks (T075, D15): XMA rows are decoded with FFmpeg's XMA2 decoder and
+re-encoded to the PC banks' ADPCM with WaveBundler's encoder
+(`source/XmaBankConvert.cpp`), once per bank, into
+`_work/run/audiocache/x360/<bank>.<key>.baf` (`engine/AudioCacheFs.cpp`, above the
+converting layer). The FFmpeg DLLs (`avcodec-vgmstream-59.dll`,
+`avutil-vgmstream-57.dll`, from `../_work/vendor/ffmpeg-5.1.2/bin-win32`) must sit
+beside `Amax.exe`; without them banks are served as stored and the engine rejects
+them. First boot of retail 360 data converts 81 banks (about 440 MB of cache).
+Check: `code/tools/xma-verify` (`_work/tools/build_xma_verify.bat`):
+`xma_verify <360 bank> [--ref <Blur2Test wav folder>] [--pc <retail PC bank>]`.
+
 ## PS3 (T076)
 
 A PS3 source (`PS3_GAME/USRDIR` with a big-endian `cache/root.pak`; point
