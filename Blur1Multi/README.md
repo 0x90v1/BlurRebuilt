@@ -12,16 +12,23 @@ untouched; improvements made in Blur1PC reach this build at the next generate.
   path *replaces* the base file in the build (sources, headers through the
   include path, PCH headers, built-in shaders, Lua scripts). A file at a new
   path is a *new* file and must be declared in `cmake/multi.cmake`.
-- **Manifest**: `overlay.json` records, for every replaced base file, the git
-  blob hash of the base at copy time and why the copy exists. A replaced file
-  no longer inherits Blur1PC changes by itself, so keep overrides few and
-  small, and run the check before every build:
+- **Manifest**: `overlay.json` records, for every replaced base file, why the
+  copy exists, the Blur1PC commit and git blob it was last brought in line with
+  (`base_commit`, `base_blob`), when (`synced`), and a `history` of the take
+  and every sync. A replaced file no longer inherits Blur1PC changes by itself,
+  so keep overrides few and small, and run the check before every build. When
+  the check reports a change: read `changes`, merge it into the copy, rebuild,
+  then `sync` with a note saying what was merged. `take` and `sync` refuse
+  while the base file has uncommitted edits, so every record names a commit.
 
 ```
-python tools/overlay.py check                       # lists base files that changed since their copy
+python tools/overlay.py check                       # lists base files that changed since their last sync
+python tools/overlay.py status                      # every copy: last sync date and commit, base commits since
+python tools/overlay.py changes <relpath>           # Blur1PC commits and diff to the base file since the last sync
+python tools/overlay.py history <relpath>           # when the copy was taken and every sync since
 python tools/overlay.py take <relpath> "<why>"      # start overriding a base file
 python tools/overlay.py diff <relpath>              # what the override changes
-python tools/overlay.py sync <relpath>              # after merging a base change into the copy
+python tools/overlay.py sync <relpath> "<note>"     # after merging the base changes into the copy
 ```
 
 - **Define**: every translation unit is compiled with `BLUR1MULTI=1`.
