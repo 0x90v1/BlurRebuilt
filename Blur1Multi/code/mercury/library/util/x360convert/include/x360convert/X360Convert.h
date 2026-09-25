@@ -46,4 +46,13 @@ namespace X360Convert
 	// TextureDesc + levels appended to 'out'. 'consumed' is the 360 bytes used.
 	E_Result ConvertTexturePayload(const unsigned char* p, size_t avail, size_t& consumed,
 		std::vector<unsigned char>& out, std::string& error);
+
+	// A texture as RenderingData's LodWriter<Texture> splits it for one lod
+	// (renderingdata build/archive.cpp): the 64-byte Xenon header of the texture
+	// from that lod's top level down, and separately the GPU data of its first
+	// levels (all of them for lod 0, the first one for any later lod). The header
+	// becomes a PC TextureDesc, the data the PC levels.
+	E_Result ConvertTextureLodHeader(const unsigned char* header, size_t size, std::vector<unsigned char>& out, std::string& error);
+	E_Result ConvertTextureLodData(const unsigned char* header, int lod, const unsigned char* data, size_t dataSize,
+		std::vector<unsigned char>& out, std::string& error);
 }

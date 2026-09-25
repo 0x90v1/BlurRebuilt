@@ -53,6 +53,13 @@ namespace X360Convert
 	// after the base slice.
 	void MakeXgFetch2D(unsigned width, unsigned height, unsigned levels, unsigned xenosFormat, const XenosFormat& fmt, XenosFetch& f);
 
+	// XGGetMipTailBaseLevel(width, height, FALSE): the first level in the packed tail.
+	unsigned XgMipTailBaseLevel(unsigned width, unsigned height);
+
+	// The allocation XGSetTextureHeader reports for a MakeXgFetch2D layout (base
+	// slice plus every stored mip level, 4 KB pages).
+	unsigned XgTexture2DSize(unsigned width, unsigned height, unsigned levels, const XenosFormat& fmt);
+
 	// Decodes a tiled 2D allocation (already endian-normalised) into its mip
 	// levels, row-major blocks, top level first. See b2_extract_textures.py
 	// decode_xenos_2d_chain for the layout rules; every check there is kept.

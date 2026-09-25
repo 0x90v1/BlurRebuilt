@@ -16,12 +16,20 @@
 #include <animation/cycle/CycleDeserialise.inl>
 #include <animation/skeleton/Skeleton.h>
 #include <animation/skeleton/SkeletonDeserialise.inl>
+#include <gravity/sdk/PhysicsSDK.h>
+#include <gravity/importer/Importer.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#include "../source/ChunkFile.h"
 
 namespace X360Convert
 {
+	// SceneTranscode.cpp (RenderingData library).
+	bool TranscodeSceneArchive(const unsigned char* in, size_t size, std::vector<unsigned char>& out, std::string& error);
+
 	namespace
 	{
 		class C_TranscodeStream
@@ -146,11 +154,363 @@ namespace X360Convert
 			}
 			return E_Result_Converted;
 		}
+
+		// A block whose payload is one U32 read with BinaryDeserialiser (the model
+		// and render Header blocks: the file version).
+		bool ConvertVersionBlock(const Block& b, std::vector<unsigned char>& out, std::string& error)
+		{
+			if (b.PayloadSize() != 4)
+			{
+				error = "Header block of " + std::to_string((unsigned long long)b.PayloadSize()) + " bytes";
+				return false;
+			}
+			const size_t at = BeginBlockLE(out, b, b.count);
+			PutLE32(out, BE32(b.payload));
+			EndBlockLE(out, at);
+			return true;
+		}
+
+		// Swaps every 32-bit word of a payload (size must be a multiple of 4).
+		bool PutSwapped32(const unsigned char* p, size_t n, std::vector<unsigned char>& out)
+		{
+			if (n % 4)
+				return false;
+			for (size_t i = 0; i < n; i += 4)
+				PutLE32(out, BE32(p + i));
+			return true;
+		}
+
+		// C_ModelData::Read (gamesys/game_resource/source/ModelData.cpp): child blocks
+		// read with BinaryDeserialiser. Header, Models, Element and Constr hold only
+		// 32-bit fields (S32, F32 matrices and bounds); StrTab is Util::C_StringTable,
+		// Ut::Vector<U32> offsets then Ut::Vector<char> (U32 count before each).
+		bool ConvertMdlDatBlock(const Block& mdl, std::vector<unsigned char>& out, std::string& error)
+		{
+			std::vector<Block> kids;
+			if (!ChildrenBE(mdl, kids))
+			{
+				error = "MdlDat children do not fill it";
+				return false;
+			}
+			const size_t at = BeginBlockLE(out, mdl, mdl.count);
+			for (size_t i = 0; i < kids.size(); ++i)
+			{
+				const Block& k = kids[i];
+				const size_t kat = BeginBlockLE(out, k, k.count);
+				const unsigned char* p = k.payload;
+				const size_t n = k.PayloadSize();
+				if (k.id == "StrTab")
+				{
+					if (n < 4)
+					{
+						error = "StrTab too short";
+						return false;
+					}
+					const unsigned offsets = BE32(p);
+					const size_t charsAt = 4 + (size_t)offsets * 4;
+					if (charsAt + 4 > n || charsAt + 4 + BE32(p + charsAt) != n)
+					{
+						error = "StrTab sizes do not fill it";
+						return false;
+					}
+					PutSwapped32(p, charsAt + 4, out);
+					out.insert(out.end(), p + charsAt + 4, p + n);
+				}
+				else if (k.id == "Header" || k.id == "Models" || k.id == "Element" || k.id == "Constr")
+				{
+					if (!PutSwapped32(p, n, out))
+					{
+						error = "MdlDat '" + k.id + "' is not whole 32-bit words";
+						return false;
+					}
+				}
+				else
+				{
+					error = "unknown MdlDat child '" + k.id + "'";
+					return false;
+				}
+				EndBlockLE(out, kat);
+			}
+			EndBlockLE(out, at);
+			return true;
+		}
+
+		// A read-only stream whose buffer is always empty, so every read reaches
+		// Underflow with its exact target and size (I_BinaryStream::Read). A reader
+		// that pulls only scalars through BinaryDeserialiser therefore hands this
+		// stream one scalar per Underflow: 2-, 4- and 8-byte reads are taken
+		// big-endian and returned (and recorded) little-endian, bytes as they are.
+		class C_ScalarSwapStream : public Sys::I_BinaryStream
+		{
+		public:
+			// The first 'rawPrefix' bytes (a character tag read as a U32) are passed through.
+			C_ScalarSwapStream(const unsigned char* p, size_t n, size_t rawPrefix, const Btl::String& name, std::vector<unsigned char>& out)
+				: m_p(p), m_n(n), m_at(0), m_raw(rawPrefix), m_name(name), m_out(out), m_version(0), m_failed(false) {}
+
+			const bool IsWriting() const { return false; }
+			Btl::String Name() const { return m_name; }
+			const bool GetEndianSwapFlag() const { return false; }
+			void SetEndianSwapFlag(const bool) {}
+			U32 GetVersionNumber() const { return m_version; }
+			void SetVersionNumber(U32 v) { m_version = v; }
+			const Sys::C_StreamPos GetPosition() const { return (U64)m_at; }
+			bool Overflow() { return false; }
+
+			bool Underflow(UnderflowContext& uc)
+			{
+				const U32 n = uc.readSize;
+				if (m_failed || m_at + n > m_n || !uc.readTarget)
+				{
+					Fail(!uc.readTarget ? "skip read" : "read past the end");
+					return false;
+				}
+				const unsigned char* src = m_p + m_at;
+				if (m_at + n <= m_raw)
+					memcpy(uc.readTarget, src, n);
+				else if (n == 2 || n == 4 || n == 8)
+				{
+					for (U32 i = 0; i < n; ++i)
+						uc.readTarget[i] = src[n - 1 - i];
+				}
+				else if (n == 1)
+					uc.readTarget[0] = src[0];
+				else
+				{
+					char text[64];
+					sprintf_s(text, "%u-byte raw read", n);
+					Fail(text);
+					return false;
+				}
+				m_out.insert(m_out.end(), uc.readTarget, uc.readTarget + n);
+				m_at += n;
+				uc.bytesRead = n;
+				return true;
+			}
+
+			bool Failed() const { return m_failed; }
+			const std::string& Error() const { return m_error; }
+			size_t Consumed() const { return m_at; }
+
+		private:
+			void Fail(const char* what)
+			{
+				if (!m_failed)
+				{
+					char text[128];
+					sprintf_s(text, "%s at byte %u of %u", what, (unsigned)m_at, (unsigned)m_n);
+					m_error = text;
+				}
+				m_failed = true;
+			}
+
+			const unsigned char* m_p;
+			size_t m_n, m_at, m_raw;
+			Btl::String m_name;
+			std::vector<unsigned char>& m_out;
+			U32 m_version;
+			bool m_failed;
+			std::string m_error;
+		};
+
+		// C_ImportScene::Import (physics/gravity/source/importer/Importer.cpp) reads
+		// the Coll block through BinaryDeserialiser<NoEndianSwap>, scalars only (the
+		// triangle stream too: C_TriangleHeader/AABBTreeTriangle::DeSerialise), so it
+		// runs over a C_ScalarSwapStream and the recorded bytes are the PC block.
+		bool ConvertCollBlock(const Block& coll, std::vector<unsigned char>& out, std::string& error)
+		{
+			// The importer reads a U32 and compares its bytes with "Head"; both exporters
+			// wrote the four characters as they are.
+			const size_t tag = (coll.PayloadSize() >= 4 && memcmp(coll.payload, "Head", 4) == 0) ? 4 : 0;
+			if (!tag)
+			{
+				error = "Coll block without the 'Head' tag (unversioned Gravity data)";
+				return false;
+			}
+			std::vector<unsigned char> payload;
+			C_ScalarSwapStream stream(coll.payload, coll.PayloadSize(), tag, Btl::String("x360:Coll"), payload);
+			Gravity::C_ImportScene* pScene = Gravity::C_PhysicsSDK::PhysicsSDK()->CreateImportScene();
+			const bool imported = pScene->Import(&stream);
+			Gravity::C_PhysicsSDK::PhysicsSDK()->ReleaseImportScene(pScene);
+			if (stream.Failed())
+			{
+				error = "Coll: " + stream.Error();
+				return false;
+			}
+			if (!imported || stream.Consumed() != coll.PayloadSize())
+			{
+				char text[128];
+				sprintf_s(text, "Coll: importer %s after %u of %u bytes", imported ? "stopped" : "failed",
+					(unsigned)stream.Consumed(), (unsigned)coll.PayloadSize());
+				error = text;
+				return false;
+			}
+			const size_t at = BeginBlockLE(out, coll, coll.count);
+			out.insert(out.end(), payload.begin(), payload.end());
+			EndBlockLE(out, at);
+			return true;
+		}
+
+		// A block the converter cannot convert yet, copied with a PC header when
+		// BLUR1MULTI_X360_PARTIAL is set (verification dumps only: the engine cannot
+		// read it).
+		bool CopyUnconverted(const Block& b, std::vector<unsigned char>& out, std::string& error)
+		{
+			if (!getenv("BLUR1MULTI_X360_PARTIAL"))
+			{
+				error = "'" + b.id + "' block not converted yet";
+				return false;
+			}
+			const size_t at = BeginBlockLE(out, b, b.count);
+			out.insert(out.end(), b.payload, b.payload + b.PayloadSize());
+			EndBlockLE(out, at);
+			return true;
+		}
+
+		// C_RenderModel::Read: Render { Header, Scene }; the Scene payload is the
+		// rendering-data archive WorldRender::ReadScene reads.
+		bool ConvertRenderBlock(const Block& render, std::vector<unsigned char>& out, std::string& error);
+
+		// C_ModelResource hands C_RenderModel::Read the model's Render block, and
+		// Read opens a Render block inside it.
+		bool ConvertModelRenderBlock(const Block& outer, std::vector<unsigned char>& out, std::string& error)
+		{
+			std::vector<Block> kids;
+			if (!ChildrenBE(outer, kids))
+			{
+				error = "model Render block children do not fill it";
+				return false;
+			}
+			const size_t at = BeginBlockLE(out, outer, outer.count);
+			for (size_t i = 0; i < kids.size(); ++i)
+			{
+				if (kids[i].id != "Render")
+				{
+					error = "model Render block holds '" + kids[i].id + "'";
+					return false;
+				}
+				if (!ConvertRenderBlock(kids[i], out, error))
+					return false;
+			}
+			EndBlockLE(out, at);
+			return true;
+		}
+
+		bool ConvertRenderBlock(const Block& render, std::vector<unsigned char>& out, std::string& error)
+		{
+			std::vector<Block> kids;
+			if (!ChildrenBE(render, kids))
+			{
+				error = "Render block children do not fill it";
+				return false;
+			}
+			const size_t at = BeginBlockLE(out, render, render.count);
+			for (size_t i = 0; i < kids.size(); ++i)
+			{
+				const Block& k = kids[i];
+				if (k.id == "Header")
+				{
+					if (!ConvertVersionBlock(k, out, error))
+						return false;
+				}
+				else if (k.id == "Scene")
+				{
+					std::vector<unsigned char> scene;
+					if (!TranscodeSceneArchive(k.payload, k.PayloadSize(), scene, error))
+					{
+						error = "Scene: " + error;
+						return false;
+					}
+					const size_t sat = BeginBlockLE(out, k, k.count);
+					out.insert(out.end(), scene.begin(), scene.end());
+					EndBlockLE(out, sat);
+				}
+				else
+				{
+					error = "unknown Render child '" + k.id + "'";
+					return false;
+				}
+			}
+			EndBlockLE(out, at);
+			return true;
+		}
+
+		// C_ModelResource::LoadModelData: platform FourCC, Model { Header, MdlDat,
+		// Render, Coll }, then MtaDbg. Older exports have no FourCC and start with
+		// the Model block (50 retail 360 models, the same 50 on PC).
+		E_Result ConvertModel(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error)
+		{
+			out.clear();
+			out.reserve(inSize * 2);
+			size_t skip = 0;
+			if (inSize >= 4 && memcmp(in, "360 ", 4) == 0)
+			{
+				out.insert(out.end(), (const unsigned char*)"  CP", (const unsigned char*)"  CP" + 4);
+				skip = 4;
+			}
+			else if (inSize < 8 || memcmp(in, "Model\0\0\0", 8) != 0)
+			{
+				error = "not a 360 model";
+				return E_Result_Failed;
+			}
+
+			const unsigned char* p = in + skip;
+			size_t left = inSize - skip;
+			while (left)
+			{
+				Block b;
+				if (!ReadBlockBE(p, left, b))
+				{
+					error = "bad block header";
+					return E_Result_Failed;
+				}
+				if (b.id == "Model")
+				{
+					std::vector<Block> kids;
+					if (!ChildrenBE(b, kids))
+					{
+						error = "Model block children do not fill it";
+						return E_Result_Failed;
+					}
+					const size_t at = BeginBlockLE(out, b, b.count);
+					for (size_t i = 0; i < kids.size(); ++i)
+					{
+						const Block& k = kids[i];
+						bool ok;
+						if (k.id == "Header")
+							ok = ConvertVersionBlock(k, out, error);
+						else if (k.id == "Render")
+							ok = ConvertModelRenderBlock(k, out, error);
+						else if (k.id == "MdlDat")
+							ok = ConvertMdlDatBlock(k, out, error);
+						else if (k.id == "Coll")
+							ok = ConvertCollBlock(k, out, error);
+						else
+							ok = CopyUnconverted(k, out, error);
+						if (!ok)
+							return E_Result_Failed;
+					}
+					EndBlockLE(out, at);
+				}
+				else if (b.id == "MtaDbg")
+				{
+					// Export log, read only by non-GOLD builds for logging when bytes
+					// remain after the model (C_ModelResource). Not converted: its strings
+					// are raw reads whose layout the scalar stream cannot tell apart.
+					if (getenv("BLUR1MULTI_X360_PARTIAL") && !CopyUnconverted(b, out, error))
+						return E_Result_Failed;
+				}
+				else if (!CopyUnconverted(b, out, error))
+					return E_Result_Failed;
+				p += b.size;
+				left -= b.size;
+			}
+			return E_Result_Converted;
+		}
 	}
 
 	bool EngineHandlesPath(const char* path)
 	{
-		return path && (EndsWith(path, ".cycle") || EndsWith(path, ".skeleton"));
+		return path && (EndsWith(path, ".cycle") || EndsWith(path, ".skeleton") || EndsWith(path, ".model"));
 	}
 
 	E_Result EngineConvertFile(const char* path, const unsigned char* in, size_t inSize,
@@ -160,6 +520,8 @@ namespace X360Convert
 			return ConvertCycle(in, inSize, out, error);
 		if (path && EndsWith(path, ".skeleton"))
 			return ConvertSkeleton(in, inSize, out, error);
+		if (path && EndsWith(path, ".model"))
+			return ConvertModel(in, inSize, out, error);
 		return E_Result_NotHandled;
 	}
 }

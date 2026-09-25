@@ -66,3 +66,13 @@ target_sources(Amax PRIVATE
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/EngineConverters.cpp)
 target_include_directories(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine)
 target_link_libraries(Amax PRIVATE x360convert)
+
+# Scene archives (.model Render/Scene, later level render files): the engine's
+# scene reader runs over a converting archive. The overlay copy of
+# renderingdata/source/noninterface/target/archive.cpp includes
+# SceneTranscodeInstantiate.inl to instantiate the reader for it;
+# SceneTranscode.cpp holds the payload conversions (vertices, strips, normals).
+target_sources(RenderingData PRIVATE
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/SceneTranscode.cpp)
+target_include_directories(RenderingData PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine)
+target_link_libraries(RenderingData PRIVATE x360convert)

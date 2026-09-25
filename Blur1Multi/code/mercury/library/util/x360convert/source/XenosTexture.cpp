@@ -215,6 +215,30 @@ namespace X360Convert
 		}
 	}
 
+	unsigned XgMipTailBaseLevel(unsigned width, unsigned height)
+	{
+		return PackedMipLevel(width, height);
+	}
+
+	unsigned XgTexture2DSize(unsigned width, unsigned height, unsigned levels, const XenosFormat& fmt)
+	{
+		// DecodeXenos2DChain's extentMax for a MakeXgFetch2D layout
+		const unsigned bw = fmt.blockW, bh = fmt.blockH, bpb = fmt.bytesPerBlock;
+		const unsigned pitchBlocks = Align((width + bw - 1) / bw, 32);
+		const unsigned baseRows = Align(Align(height, bh) / bh, 32);
+		unsigned size = Align(pitchBlocks * baseRows * bpb, 0x1000);
+		const unsigned last = MinU(levels ? levels - 1 : 0, PackedMipLevel(width, height));
+		for (unsigned level = 1; level <= last; ++level)
+		{
+			const unsigned levelPitchTexels = MaxU(NextPow2(width) >> level, 1);
+			const unsigned levelRowsTexels = MaxU(NextPow2(height) >> level, 1);
+			const unsigned levelPitchBlocks = Align(Align(levelPitchTexels, bw) / bw, 32);
+			const unsigned rowsBlocks = Align(Align(levelRowsTexels, bh) / bh, 32);
+			size += Align(levelPitchBlocks * rowsBlocks * bpb, 0x1000);
+		}
+		return size;
+	}
+
 	bool DecodeXenos2DChain(const unsigned char* payload, size_t size, const XenosFetch& f,
 		const XenosFormat& fmt, std::vector<std::vector<unsigned char> >& levels, std::string& error)
 	{

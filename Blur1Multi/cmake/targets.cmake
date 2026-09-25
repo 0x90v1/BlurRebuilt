@@ -1740,6 +1740,7 @@ add_library(portal STATIC
 )
 target_include_directories(portal PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Portal
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Graphics
     ${BLUR_TOP}/Code/Mercury/Library/Graphics
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Portal/include
     ${BLUR_TOP}/code/mercury/library/common/btl/include
@@ -1767,7 +1768,7 @@ add_library(RenderingData STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/context.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/reloadabletextures.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/resources.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/archive.cpp
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/archive.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/streamdata.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/streamdebug.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/streamrequest.cpp
@@ -1779,6 +1780,7 @@ add_library(RenderingData STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/source/noninterface/target/spufetch.cpp
 )
 target_include_directories(RenderingData PRIVATE
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Graphics/RenderingData
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/RenderingData/include
     ${BLUR_TOP}/Code/Mercury/Library/Common/Core/include

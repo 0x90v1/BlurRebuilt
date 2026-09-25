@@ -29,6 +29,21 @@
   "synced": "2026-09-24T21:20:19-03:00",
   "why": "CreateFsLayers selects the game source (GameSource::Select) before the retail pak mounts"
  },
+ "code/mercury/library/graphics/renderingdata/source/noninterface/target/archive.cpp": {
+  "base_blob": "d3ef74b1eb49d62987f1aa9ba9c76dabf8ca8d36",
+  "base_commit": "91dd9554222e093a3d9af81856f3d098a9d9515a",
+  "history": [
+   {
+    "action": "take",
+    "base_blob": "d3ef74b1eb49d62987f1aa9ba9c76dabf8ca8d36",
+    "base_commit": "91dd9554222e093a3d9af81856f3d098a9d9515a",
+    "date": "2026-09-24T22:59:48-03:00",
+    "note": "Instantiates the scene reader for the Xbox 360 scene converter's archive (X360SceneTranscoder); the templates live in this file"
+   }
+  ],
+  "synced": "2026-09-24T22:59:48-03:00",
+  "why": "Instantiates the scene reader for the Xbox 360 scene converter's archive (X360SceneTranscoder); the templates live in this file"
+ },
  "code/mercury/library/util/logicalFs/source/pakfs/impl/PakEntryFile.cpp": {
   "base_blob": "3392260efd9813e21ffa55b466e6751f2378906f",
   "base_commit": "b1c5e493e675e93674c4d05408347d653f7cb719",

@@ -26,6 +26,7 @@ namespace X360Convert
 	{
 		const unsigned kD3DFMT_A8R8G8B8 = 21;
 		const unsigned kD3DFMT_A8 = 28;
+		const unsigned kD3DFMT_A8L8 = 51;
 		unsigned FourCC(const char* s) { return s[0] | (s[1] << 8) | (s[2] << 16) | ((unsigned)s[3] << 24); }
 
 		// The D3DFORMAT the PC build stores for a Xenos format (from the retail
@@ -39,6 +40,7 @@ namespace X360Convert
 			case 0x14: d3d = FourCC("DXT5"); return true;
 			case 0x06: d3d = kD3DFMT_A8R8G8B8; return true;
 			case 0x02: d3d = kD3DFMT_A8; return true;
+			case 0x0A: d3d = kD3DFMT_A8L8; return true;	// scene textures (uv_distort*), retail PC models
 			default: return false;
 			}
 		}
@@ -105,6 +107,81 @@ namespace X360Convert
 		PutLE32(out, type);
 		for (size_t l = 0; l < levels.size(); ++l)
 			out.insert(out.end(), levels[l].begin(), levels[l].end());
+		return E_Result_Converted;
+	}
+
+	E_Result ConvertTextureLodHeader(const unsigned char* header, size_t size, std::vector<unsigned char>& out, std::string& error)
+	{
+		if (size != 64)
+			return Fail(error, "Xenon texture header of unexpected size");
+		XenosFetch f;
+		ParseFetch(header + 0x1c, f);
+		unsigned d3dFormat;
+		if (!PcFormat(f.format, d3dFormat))
+		{
+			char msg[64];
+			sprintf_s(msg, "Xenos texture format 0x%02x not handled", f.format);
+			return Fail(error, msg);
+		}
+		if (f.dimension != 1 && f.dimension != 3)
+			return Fail(error, "texture dimension other than 2D or cube");
+		PutLE32(out, f.width);
+		PutLE32(out, f.height);
+		PutLE32(out, 1);					// Depth
+		PutLE32(out, f.mipMaxLevel + 1);	// Levels
+		PutLE32(out, d3dFormat);
+		PutLE32(out, 0);					// Usage (see ConvertTexturePayload)
+		PutLE32(out, f.dimension == 1 ? 3 : 5);
+		return E_Result_Converted;
+	}
+
+	E_Result ConvertTextureLodData(const unsigned char* header, int lod, const unsigned char* data, size_t dataSize,
+		std::vector<unsigned char>& out, std::string& error)
+	{
+		XenosFetch h;
+		ParseFetch(header + 0x1c, h);
+		XenosFormat fmt;
+		if (!GetXenosFormat(h.format, fmt))
+			return Fail(error, "Xenos texture format not handled");
+		if (h.dimension != 1)
+			return Fail(error, "resource block texture other than 2D not handled");
+		if (!h.tiled)
+			return Fail(error, "linear (untiled) Xenos texture not handled");
+
+		// LodCalculator::GetMipLevelsForLod: lod 0 writes every level from its first
+		// to the last (the header's whole chain), any later lod one level.
+		const unsigned levels = lod == 0 ? h.mipMaxLevel + 1 : 1;
+
+		// NglXeTex::SerialOutTexture writes sizeUsed bytes: the XG allocation, less
+		// 4 KB (DXT1) or 8 KB (DXT5) when the chain reaches the packed tail and the
+		// texture is less than four times taller than wide.
+		unsigned used = XgTexture2DSize(h.width, h.height, levels, fmt);
+		if (levels > XgMipTailBaseLevel(h.width, h.height) && h.height < h.width * 4)
+		{
+			if (h.format == 0x12)
+				used -= 4096;
+			else if (h.format == 0x14)
+				used -= 8192;
+		}
+		if (used != dataSize)
+		{
+			char msg[160];
+			sprintf_s(msg, "texture data of 0x%x bytes where %u levels of %ux%u take 0x%x",
+				(unsigned)dataSize, levels, h.width, h.height, used);
+			return Fail(error, msg);
+		}
+
+		XenosFetch f;
+		MakeXgFetch2D(h.width, h.height, levels, h.format, fmt, f);
+		std::vector<unsigned char> gpu(data, data + dataSize);
+		if (!EndianNormalize(gpu.empty() ? NULL : &gpu[0], gpu.size(), h.endian))
+			return Fail(error, "endian unit does not divide the GPU data");
+		std::vector<std::vector<unsigned char> > decoded;
+		std::string e;
+		if (!DecodeXenos2DChain(gpu.empty() ? NULL : &gpu[0], gpu.size(), f, fmt, decoded, e))
+			return Fail(error, "2D: " + e);
+		for (size_t l = 0; l < decoded.size(); ++l)
+			out.insert(out.end(), decoded[l].begin(), decoded[l].end());
 		return E_Result_Converted;
 	}
 
