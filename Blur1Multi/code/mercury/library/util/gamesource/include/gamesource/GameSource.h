@@ -62,6 +62,14 @@ namespace GameSource
 	// The source Select() chose (platform E_Platform_Unknown before Select runs).
 	const C_SourceInfo& Current();
 
+	// Whether the current source is console data (Xbox 360 or PS3): big-endian paks
+	// mounted with the console builds' layout (USE_NEW_PAK_LAYOUT: root, root_streaming,
+	// shaders-speed; the boot paks) and chunk files converted to PC format on load.
+	inline bool IsConsole()
+	{
+		return Current().m_Platform == E_Platform_Xbox360 || Current().m_Platform == E_Platform_PS3;
+	}
+
 	// One line for the log: platform, byte order, pak version, root, reason.
 	void Describe(const C_SourceInfo& info, char* buf, size_t bufSize);
 

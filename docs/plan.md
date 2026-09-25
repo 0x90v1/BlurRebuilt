@@ -46,13 +46,13 @@ Convert the frame-counted consumers listed in `analysis.md` §2 to elapsed time;
 ## Phase layout (D10, 2026-09-24)
 The repo is split into `Blur1PC/` (phase 1), `Blur1Multi/` (phase 2) and `Blur2/` (phase 3). A phase builds the one below as a read-only base with its own `code/` laid over it (`gen_cmake.py --overlay`), so Blur1PC fixes flow up and nothing flows down. M1 and M7 work continues in Blur1PC; M9 is the first Blur1Multi milestone; M2-M6 (Blur 2) will move into `Blur2/` when they start, and their converters/loaders are written as Blur2 overlay or new files, never as Blur1PC edits.
 
-## M9 — Phase 2: Blur 1 from Xbox 360 retail data (Blur1Multi)
+## M9 — Phase 2: Blur 1 from Xbox 360 and PS3 retail data (Blur1Multi)
 The retail X360 Blur 1 disc is Generation A data (the Aug 31 prototype's layout), so every reader written here is reused by M3/M4 for the Aug 31 disc.
 - W9.1 Game source (done 2026-09-24): `--source=<dir>` / `BLUR_SOURCE`, platform detection, PC path unchanged (T070).
 - W9.2 360 pak layer: big-endian pak v1 + XMem/LZX codecs on PC (T071).
 - W9.3 Platform data layer (D11): files converted in memory when opened and served through a file-system layer, nothing stored (T072); textures (T073); shaders (T074); audio (T075).
 - W9.4 Showroom, then one race, from the 360 disc; keep the Blur1PC and Blur1Multi PC smoke runs passing (T077).
-- W9.5 PS3 after 360 (T076).
+- W9.5 PS3 (T076, started 2026-09-25, D14): the 360 layer takes the source as a parameter; PS3 paks, detection, models, levels, textures, audio banks and audio objects convert; RSX effects to HLSL; then the same showroom/race milestones as W9.4.
 
 ## Standing goal (D09)
 Blur 1 on retail PC data remains a supported configuration after every milestone; re-run the T005 smoke test (boot, start screen, Showroom, one race) before closing any milestone. Readers and converters grow additively per platform (PC, 360, PS3) and per game (Blur 1, Blur 2 Gen A/Gen B).

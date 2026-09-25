@@ -44,6 +44,36 @@
   "synced": "2026-09-24T22:59:48-03:00",
   "why": "Instantiates the scene reader for the Xbox 360 scene converter's archive (X360SceneTranscoder); the templates live in this file"
  },
+ "code/mercury/library/graphics/vehicle/source/VehicleModel.cpp": {
+  "base_blob": "63c10d6d64c940f434770df4ef82811af0314b95",
+  "base_commit": "f4c8fe1494410941fc8bbd6f289c41c8f9b87d32",
+  "history": [
+   {
+    "action": "take",
+    "base_blob": "63c10d6d64c940f434770df4ef82811af0314b95",
+    "base_commit": "f4c8fe1494410941fc8bbd6f289c41c8f9b87d32",
+    "date": "2026-09-25T11:08:45-03:00",
+    "note": "PS3 sources: create, bind and destroy the stream-3 damage-offset buffers the PS3 vehicle effects read position and normal from (PS3 branch at VehicleModel.cpp:255-351, :478-486), selected at run time"
+   }
+  ],
+  "synced": "2026-09-25T11:08:45-03:00",
+  "why": "PS3 sources: create, bind and destroy the stream-3 damage-offset buffers the PS3 vehicle effects read position and normal from (PS3 branch at VehicleModel.cpp:255-351, :478-486), selected at run time"
+ },
+ "code/mercury/library/graphics/vehicle/source/damage/DamageLayer.cpp": {
+  "base_blob": "350ed7980cf0e8cfc49008fa27954ff9b712c6c8",
+  "base_commit": "f4c8fe1494410941fc8bbd6f289c41c8f9b87d32",
+  "history": [
+   {
+    "action": "take",
+    "base_blob": "350ed7980cf0e8cfc49008fa27954ff9b712c6c8",
+    "base_commit": "f4c8fe1494410941fc8bbd6f289c41c8f9b87d32",
+    "date": "2026-09-25T11:08:46-03:00",
+    "note": "PS3 sources: run the CPU port of the SPU damage job (Ps3DamageStream) where the PS3 build kicked it (InitSPUDamage, FinaliseSPUDamageJob, forceRun triggers), selected at run time"
+   }
+  ],
+  "synced": "2026-09-25T11:08:46-03:00",
+  "why": "PS3 sources: run the CPU port of the SPU damage job (Ps3DamageStream) where the PS3 build kicked it (InitSPUDamage, FinaliseSPUDamageJob, forceRun triggers), selected at run time"
+ },
  "code/mercury/library/util/logicalFs/source/pakfs/impl/PakEntryFile.cpp": {
   "base_blob": "3392260efd9813e21ffa55b466e6751f2378906f",
   "base_commit": "b1c5e493e675e93674c4d05408347d653f7cb719",

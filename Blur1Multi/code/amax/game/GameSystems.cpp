@@ -7,10 +7,14 @@
 #include <MemoryFs/MemoryFs.h>
 #include <GameFs/GameHelpers.h>
 #include <gamesource/GameSource.h> // [Blur1Multi] game source selection (see Blur1Multi/README.md)
-#include <X360ConvertFs.h> // [Blur1Multi] Xbox 360 assets served in PC format
+#include <X360ConvertFs.h> // [Blur1Multi] Xbox 360 and PS3 assets served in PC format
+#include <x360convert/X360Convert.h>
 
-// [Blur1Multi] the converting layer over m_pFileSystem for an Xbox 360 source (NULL otherwise)
+// [Blur1Multi] the converting layer over m_pFileSystem for an Xbox 360 or PS3 source (NULL otherwise)
 static X360Convert::C_ConvertFs* s_pConvertFs = NULL;
+// [Blur1Multi] the game source chosen in Initialise (GameSource::Select)
+static GameSource::C_SourceInfo s_source;
+static bool s_sourceFound = false;
 
 #include <GameSystems.h>
 #include <SchedulerConfig.h>
@@ -132,6 +136,11 @@ HRESULT C_GameSystems::Initialise(const Framework::C_CoreSystemsParams& params)
 	Framework::SetPrimaryPadQueryCallback(&PrimaryPadQuery);
 	Sys::SetFileRwErrorCallback(&Framework::CriticalReadErrorDialog);
 
+	// [Blur1Multi] Select the game source before the game file system exists: CreateGameFs
+	// makes the working directory layer 0, so the source must be the working directory by
+	// then (a PS3 source moves it into PS3_GAME/USRDIR). CreateFsLayers reports the result.
+	s_sourceFound = GameSource::Select(s_source);
+
 	m_pFileSystem = LogicalFs::GameHelpers::CreateGameFs();
 	m_pMemoryFileSystem = new LogicalFs::C_MemoryFs();
 	SetFileSystems(m_pFileSystem, m_pMemoryFileSystem);
@@ -172,24 +181,26 @@ void C_GameSystems::CreateFsLayers()
 
 	Sys::I_FileSystem& nativeFs = Sys::C_FileSystem::Instance();
 
-	// [Blur1Multi] Select the game source before any layer is mounted: --source=<dir> or
-	// BLUR_SOURCE, default the working directory as retail. The source becomes the working
+	// [Blur1Multi] The game source was selected in Initialise, before CreateGameFs: --source=<dir>
+	// or BLUR_SOURCE, default the working directory as retail. The source became the working
 	// directory, which is layer 0 of the overlay file system. A PC source then gets the
-	// retail PC mount sequence unchanged; an Xbox 360 source gets the Xenon build's mounts
-	// (the non-PC branches below, selected at run time). Other platforms stop here.
+	// retail PC mount sequence unchanged; an Xbox 360 or PS3 source gets the console
+	// builds' mounts (the non-PC branches below, selected at run time; both consoles used
+	// USE_NEW_PAK_LAYOUT). Other sources stop here.
 	{
-		GameSource::C_SourceInfo source;
-		bool found = GameSource::Select(source);
+		const GameSource::C_SourceInfo& source = s_source;
+		const bool found = s_sourceFound;
 		char text[1024];
 		GameSource::Describe(source, text, sizeof text);
 		LOGINFO(Framework::g_BootLog, "GameSource: %s", text);
-		if (!found || (source.m_Platform != GameSource::E_Platform_PC && source.m_Platform != GameSource::E_Platform_Xbox360))
+		if (!found || (source.m_Platform != GameSource::E_Platform_PC && !GameSource::IsConsole()))
 		{
 			LOGWARN(Framework::g_BootLog, "GameSource: this build has no data layer for that source; stopping");
 			GameSource::FailUnsupported(source, text);
 		}
 	}
 	const bool xbox360Source = GameSource::Current().m_Platform == GameSource::E_Platform_Xbox360;
+	const bool consoleSource = GameSource::IsConsole();
 
 #ifdef PLATFORM_PS3
 	LogicalFs::GameHelpers::SetTitleId(PlatformPS3::g_ps3_titleId);
@@ -211,7 +222,7 @@ void C_GameSystems::CreateFsLayers()
 		AUDIO_XMA_BUFFER_SIZE_K*1024, // buffer size
 #else
 		//PC & PS3
-		// [Blur1Multi] an Xbox 360 source streams XMA audio: the Xenon buffer size
+		// [Blur1Multi] an Xbox 360 source streams XMA audio: the Xenon buffer size (PS3 as PC)
 		(xbox360Source ? AUDIO_XMA_BUFFER_SIZE_K : AUDIO_ADPCM_BUFFER_SIZE_K)*1024,
 #endif
 		true, //iscritical
@@ -231,16 +242,17 @@ void C_GameSystems::CreateFsLayers()
 		char* pcDstPaths[] =		{ "/",				"/models/",					"/graphics/shaders/speed/",	"/audio/"};
 		char* pcSrcPaths[] =		{ "/",				"/models/",					"/",						"/"};
 		Sys::C_OpenParams* pcOpt[] ={ &defaultPakParams,&defaultPakParams,			&defaultPakParams,			&unalignedUbPakParams};
-		// [Blur1Multi] Xbox 360 source: the Xenon list (the #else branch below), unchanged.
+		// [Blur1Multi] Xbox 360 or PS3 source: the console list (the #else branch below, which
+		// both the Xenon and the PS3 build compiled), unchanged.
 		char* x360Paks[] =			{ "cache/root.pak",	"cache/root_streaming.pak",	"cache/shaders-speed.pak"};
 		char* x360DstPaths[] =		{ "/",				"/",						"/graphics/shaders/speed/"};
 		char* x360SrcPaths[] =		{ "/",				"/",						"/"};
 		Sys::C_OpenParams* x360Opt[] ={ &defaultPakParams,&unalignedUbPakParams,	&defaultPakParams};
-		char** nonSecurePaks = xbox360Source ? x360Paks : pcPaks;
-		char** nonSecureDstPaths = xbox360Source ? x360DstPaths : pcDstPaths;
-		char** nonSecureSrcPaths = xbox360Source ? x360SrcPaths : pcSrcPaths;
-		Sys::C_OpenParams** opt = xbox360Source ? x360Opt : pcOpt;
-		const S32 nonSecureCount = xbox360Source ? lengthof(x360Paks) : lengthof(pcPaks);
+		char** nonSecurePaks = consoleSource ? x360Paks : pcPaks;
+		char** nonSecureDstPaths = consoleSource ? x360DstPaths : pcDstPaths;
+		char** nonSecureSrcPaths = consoleSource ? x360SrcPaths : pcSrcPaths;
+		Sys::C_OpenParams** opt = consoleSource ? x360Opt : pcOpt;
+		const S32 nonSecureCount = consoleSource ? lengthof(x360Paks) : lengthof(pcPaks);
 	#else
 		char* nonSecurePaks[] =		{ "cache/root.pak",	"cache/root_streaming.pak",	"cache/shaders-speed.pak"};
 		char* nonSecureDstPaths[] =	{ "/",				"/",						"/graphics/shaders/speed/"};
@@ -328,7 +340,7 @@ void C_GameSystems::CreateFsLayers()
 #ifndef PLATFORM_PC
 	if (g_bootRamPakEnable)
 #else
-	if (xbox360Source && g_bootRamPakEnable)	// [Blur1Multi] the Xenon boot RAM pak, for Xbox 360 sources
+	if (consoleSource && g_bootRamPakEnable)	// [Blur1Multi] the console boot RAM pak, for Xbox 360 and PS3 sources
 #endif
 	{
 		Security::RSASecurity rsa(1024);
@@ -365,24 +377,29 @@ void C_GameSystems::CreateFsLayers()
 	// (big-endian chunk files, Xenos textures and shaders) and the conversion layer is T072.
 	// [Blur1Multi] An Xbox 360 source's assets are read through the converting layer:
 	// every reader (resource manager, default file system, Display, FX) gets it.
-	if (xbox360Source && !s_pConvertFs)
+	// A PS3 source goes through the same layer: the formats both consoles share convert
+	// the same way, the rest by source (X360Convert::SetSource).
+	if (consoleSource && !s_pConvertFs)
 	{
+		X360Convert::SetSource(xbox360Source ? X360Convert::E_Source_Xbox360 : X360Convert::E_Source_PS3);
 		s_pConvertFs = new X360Convert::C_ConvertFs(m_pFileSystem);
 		SetFileSystems(s_pConvertFs, m_pMemoryFileSystem);
 		FX::SetFileSystem(s_pConvertFs);
-		LOGINFO(Framework::g_BootLog, "GameSource: Xbox 360 assets are converted to PC format on load");
+		LOGINFO(Framework::g_BootLog, "GameSource: %s assets are converted to PC format on load",
+			GameSource::PlatformName(GameSource::Current().m_Platform));
 	}
 
 	const int dumped = GameSource::DumpListedFiles(s_pConvertFs ? *(Sys::I_FileSystem*)s_pConvertFs : *(Sys::I_FileSystem*)m_pFileSystem);
 	if (dumped >= 0)
 		LOGINFO(Framework::g_BootLog, "GameSource: BLUR1MULTI_PAKDUMP wrote %d files", dumped);
-	// BLUR1MULTI_X360_CONTINUE=1 (exploration only) boots on past this point to see which
-	// asset fails first.
-	if (xbox360Source && !getenv("BLUR1MULTI_X360_CONTINUE"))
+	// BLUR1MULTI_X360_CONTINUE=1 / BLUR1MULTI_PS3_CONTINUE=1 (exploration only) boot on past
+	// this point to see which asset fails first.
+	if (consoleSource && !getenv(xbox360Source ? "BLUR1MULTI_X360_CONTINUE" : "BLUR1MULTI_PS3_CONTINUE"))
 	{
 		char text[1024];
 		GameSource::Describe(GameSource::Current(), text, sizeof text);
-		LOGWARN(Framework::g_BootLog, "GameSource: Xbox 360 paks mounted; asset conversion (T072) not written yet; stopping");
+		LOGWARN(Framework::g_BootLog, "GameSource: %s paks mounted; asset conversion (T072/T076) not complete; stopping",
+			GameSource::PlatformName(GameSource::Current().m_Platform));
 		GameSource::FailUnsupported(GameSource::Current(), text);
 	}
 }
@@ -392,7 +409,7 @@ void C_GameSystems::UnloadGamedataRampak()
 #ifndef PLATFORM_PC
 	if (g_bootRamPakEnable)
 #else
-	if (GameSource::Current().m_Platform == GameSource::E_Platform_Xbox360 && g_bootRamPakEnable)	// [Blur1Multi]
+	if (GameSource::IsConsole() && g_bootRamPakEnable)	// [Blur1Multi]
 #endif
 	{
 		LogicalFs::GameHelpers::UnmountRamPakLayer(

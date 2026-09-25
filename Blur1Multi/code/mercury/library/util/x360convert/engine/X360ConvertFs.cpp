@@ -78,11 +78,14 @@ namespace X360Convert
 			return read;
 		}
 
-		// Xenos effects (.fxb) are recompiled once and kept beside the executable
-		// (decisions D03, D11): <exe dir>\shadercache\x360\<name>.<hash>.fxb, the
-		// hash taken over the 360 file and the converter tag, so a different disc's
+		// Console effects (.fxb) are recompiled once and kept beside the executable
+		// (decisions D03, D11): <exe dir>\shadercache\<x360|ps3>\<name>.<hash>.fxb, the
+		// hash taken over the console file and the converter tag, so a different disc's
 		// effect of the same name, or a converter change, gets its own entry.
-		const char* const kShaderConverterTag = "xenosrecomp-d3d9 1";
+		const char* ShaderConverterTag()
+		{
+			return GetSource() == E_Source_PS3 ? "rsx-hlsl-d3d9 2" : "xenosrecomp-d3d9 1";
+		}
 
 		unsigned long long Fnv1a64(const unsigned char* p, size_t n, unsigned long long h = 0xcbf29ce484222325ull)
 		{
@@ -101,7 +104,7 @@ namespace X360Convert
 			std::string dir(exe, n);
 			dir = dir.substr(0, dir.find_last_of("\\/") + 1) + "shadercache";
 			CreateDirectoryA(dir.c_str(), NULL);
-			dir += "\\x360";
+			dir += GetSource() == E_Source_PS3 ? "\\ps3" : "\\x360";
 			CreateDirectoryA(dir.c_str(), NULL);
 			return dir + "\\";
 		}
@@ -154,7 +157,7 @@ namespace X360Convert
 				return false;
 
 			const unsigned long long hash = Fnv1a64(in.empty() ? NULL : &in[0], in.size(),
-				Fnv1a64((const unsigned char*)kShaderConverterTag, strlen(kShaderConverterTag)));
+				Fnv1a64((const unsigned char*)ShaderConverterTag(), strlen(ShaderConverterTag())));
 			std::string name = key.substr(key.find_last_of('\\') + 1);
 			name = name.substr(0, name.size() - 4);
 			char suffix[32];
@@ -166,7 +169,10 @@ namespace X360Convert
 			EffectStats stats;
 			std::string error;
 			const DWORD start = GetTickCount();
-			if (ConvertEffect(in.empty() ? NULL : &in[0], in.size(), bytes, error, &stats) == E_Result_Converted)
+			const E_Result converted = GetSource() == E_Source_PS3
+				? ConvertPs3Effect(in.empty() ? NULL : &in[0], in.size(), bytes, error, &stats)
+				: ConvertEffect(in.empty() ? NULL : &in[0], in.size(), bytes, error, &stats);
+			if (converted == E_Result_Converted)
 			{
 				WriteDiskFile(cachePath, bytes);
 				LOGINFO(g_convertLog, "X360Convert: shader %s recompiled (%u programs, %u ms) into %s",
@@ -241,11 +247,151 @@ namespace X360Convert
 			U64 m_position;
 			U32 m_version;
 		};
+
+		// A PS3 streaming audio bank served in place: the header region comes from the
+		// converted copy (BankPatch::headers), payload reads go to the file as stored with
+		// the DATA chunk sizes and PCM samples swapped (PlanBank), so a streaming bank (up
+		// to 328 MB, ingamemusic.baf) is never held in memory. Sizes do not change. The
+		// inner file is only repositioned when a read does not continue where the last
+		// one ended (a seek inside a compressed pak is slow and asserts).
+		class C_BankFile : public Sys::I_File
+		{
+		public:
+			C_BankFile(Sys::I_File* pInner, U64 innerPosition, const BankPatch& patch, const Btl::String& name)
+				: m_pInner(pInner), m_innerPosition(innerPosition), m_patch(patch), m_name(name), m_position(0), m_version(0) {}
+			~C_BankFile() { delete m_pInner; }
+
+			const bool IsWriting() const { return false; }
+			Btl::String Name() const { return m_name; }
+			const bool GetEndianSwapFlag() const { return false; }
+			void SetEndianSwapFlag(const bool) {}
+			U32 GetVersionNumber() const { return m_version; }
+			void SetVersionNumber(U32 v) { m_version = v; }
+			const Sys::C_StreamPos GetPosition() const { return m_position; }
+			const Sys::C_StreamSize Length() { return m_pInner->Length(); }
+			void SetPosition(const Sys::C_StreamPos p) { m_position = p; }
+			bool Overflow() { return false; }
+
+			bool Underflow(UnderflowContext& uc)
+			{
+				if (m_position + uc.readSize > m_pInner->Length())
+					return false;
+				if (uc.readTarget && uc.readSize && !Fill(uc.readTarget, m_position, uc.readSize))
+					return false;
+				m_position += uc.readSize;
+				uc.bytesRead = uc.readSize;
+				return true;
+			}
+
+		private:
+			// The converted bytes of [at, at + size).
+			bool Fill(U8* target, U64 at, U32 size)
+			{
+				// the header region: converted already
+				const U64 headers = m_patch.headers.size();
+				if (at < headers)
+				{
+					const U32 n = (U32)((at + size <= headers ? at + size : headers) - at);
+					memcpy(target, &m_patch.headers[(size_t)at], n);
+					target += n;
+					at += n;
+					size -= n;
+					if (!size)
+						return true;
+				}
+				unsigned long long from = at, count = size;
+				WidenForBankPatch(m_patch, from, count);
+				U8* p = target;
+				if (from != at || count != size)
+				{
+					m_scratch.resize((size_t)count);	// a swapped word straddles the read
+					p = &m_scratch[0];
+				}
+				if (from != m_innerPosition)
+					m_pInner->SetPosition(from);
+				if (!m_pInner->Read(p, (U32)count))
+					return false;
+				m_innerPosition = from + count;
+				ApplyBankPatch(m_patch, from, p, (size_t)count);
+				if (p != target)
+					memcpy(target, p + (at - from), size);
+				return true;
+			}
+
+			Sys::I_File* m_pInner;
+			U64 m_innerPosition;
+			BankPatch m_patch;
+			Btl::String m_name;
+			U64 m_position;
+			U32 m_version;
+			std::vector<U8> m_scratch;
+		};
+
+		// Opens a PS3 bank through 'fs', reading it front to back only: an in-memory bank
+		// (chStreaming 0) is read whole and converted in memory; a streaming bank is served
+		// by a C_BankFile. NULL if the file cannot be opened; a bank that cannot be
+		// converted is served unchanged (logged; the engine then rejects its endian byte).
+		Sys::I_File* OpenBank(Sys::I_FileSystem& fs, const Sys::C_FilePath& path, const Sys::C_OpenParams& params)
+		{
+			Sys::I_File* pFile = fs.Open(path, Sys::E_FileAccess_Read, params);
+			if (!pFile)
+				return NULL;
+			const size_t length = (size_t)pFile->Length();
+			std::vector<unsigned char> head;
+			std::string error;
+			// grows 'head' to 'want' bytes by reading on from where it ends
+			struct Local
+			{
+				static bool ReadTo(Sys::I_File* f, std::vector<unsigned char>& h, size_t want)
+				{
+					const size_t have = h.size();
+					if (want <= have)
+						return true;
+					h.resize(want);
+					return f->Read(&h[have], (U32)(want - have));
+				}
+			};
+			size_t needed = 0x34 < length ? 0x34 : length;
+			while (error.empty())
+			{
+				if (!Local::ReadTo(pFile, head, needed < length ? needed : length))
+					error = "short read of the bank headers";
+				else if (BankHeadersSize(head.empty() ? NULL : &head[0], head.size(), needed) || needed > length || needed <= head.size())
+					break;
+			}
+
+			const bool streaming = head.size() > 0x11 && head[0x11] != 0;
+			if (error.empty() && !streaming)
+			{
+				std::vector<unsigned char> bytes;
+				if (!Local::ReadTo(pFile, head, length))
+					error = "short read of the bank";
+				else if (ConvertBank(head.empty() ? NULL : &head[0], head.size(), bytes, error) == E_Result_Converted)
+				{
+					delete pFile;
+					C_OwnedMemoryFile* pMemory = new C_OwnedMemoryFile(bytes);
+					pMemory->OpenOwned(Btl::String(path.Chars()), params);
+					return pMemory;
+				}
+			}
+			BankPatch patch;
+			if (error.empty() && PlanBank(head.empty() ? NULL : &head[0], head.size(), length, patch, error) == E_Result_Converted)
+				return new C_BankFile(pFile, head.size(), patch, Btl::String(path.Chars()));
+			LOGERROR(g_convertLog, "X360Convert: cannot convert %s: %s", path.Chars(), error.c_str());
+			delete pFile;
+			return fs.Open(path, Sys::E_FileAccess_Read, params);
+		}
 	}
 
 	struct C_ConvertFs::Impl
 	{
 		CRITICAL_SECTION lock;
+		// Guards 'levels' and level preparation. Separate from 'lock' because preparing a
+		// level runs the engine's scene reader, which takes RenderingData's serialise lock:
+		// the main thread holds that lock while FX opens an effect through this layer
+		// (Effect::OnLoad -> FX::LoadEffect -> Open, which takes 'lock'), so holding 'lock'
+		// here deadlocked the two (seen on a PS3 source, 2026-09-25).
+		CRITICAL_SECTION levelLock;
 
 		// Recently converted files, so FileInfo followed by Open converts once.
 		std::list<std::pair<std::string, std::vector<unsigned char> > > recent;
@@ -256,8 +402,8 @@ namespace X360Convert
 		// Converted levels (scene + stream layout), most recent first.
 		std::list<std::pair<std::string, std::shared_ptr<C_LevelConversion> > > levels;
 
-		Impl() : recentBytes(0) { InitializeCriticalSection(&lock); }
-		~Impl() { DeleteCriticalSection(&lock); }
+		Impl() : recentBytes(0) { InitializeCriticalSection(&lock); InitializeCriticalSection(&levelLock); }
+		~Impl() { DeleteCriticalSection(&levelLock); DeleteCriticalSection(&lock); }
 
 		bool Find(const std::string& k, std::vector<unsigned char>& out)
 		{
@@ -298,9 +444,9 @@ namespace X360Convert
 			// 360 FourCC, Render { ..., Scene, ... }
 			Block root, scene;
 			std::vector<Block> kids;
-			if (render.size() < 4 || memcmp(&render[0], "360 ", 4) != 0 || !ReadBlockBE(&render[4], render.size() - 4, root) || !ChildrenBE(root, kids))
+			if (render.size() < 4 || memcmp(&render[0], SourceFourCC(), 4) != 0 || !ReadBlockBE(&render[4], render.size() - 4, root) || !ChildrenBE(root, kids))
 			{
-				error = dir + "level.levelrender is not a 360 Render block tree";
+				error = dir + "level.levelrender is not a console Render block tree";
 				return std::shared_ptr<C_LevelConversion>();
 			}
 			bool found = false;
@@ -387,9 +533,9 @@ namespace X360Convert
 	std::shared_ptr<C_LevelConversion> C_ConvertFs::LevelFor(const std::string& key)
 	{
 		std::string error;
-		EnterCriticalSection(&m_pImpl->lock);
+		EnterCriticalSection(&m_pImpl->levelLock);
 		std::shared_ptr<C_LevelConversion> level = m_pImpl->Level(*m_pInner, LevelDir(key), error);
-		LeaveCriticalSection(&m_pImpl->lock);
+		LeaveCriticalSection(&m_pImpl->levelLock);
 		if (!level)
 			LOGERROR(g_convertLog, "X360Convert: cannot convert the level of %s: %s", key.c_str(), error.c_str());
 		return level;
@@ -401,6 +547,9 @@ namespace X360Convert
 		bool levelRender, levelStream;
 		if (fileAccess != Sys::E_FileAccess_Read || !Handles(fileName, k, levelRender, levelStream))
 			return m_pInner->Open(fileName, fileAccess, params);
+
+		if (GetSource() == E_Source_PS3 && EndsWith(k, ".baf"))
+			return OpenBank(*m_pInner, fileName, params);
 
 		if (levelStream)
 		{
@@ -438,6 +587,8 @@ namespace X360Convert
 		bool levelRender, levelStream;
 		if (!pInfo || pInfo->m_FileType != Sys::E_FileType_File || !Handles(p, k, levelRender, levelStream))
 			return true;
+		if (GetSource() == E_Source_PS3 && EndsWith(k, ".baf"))
+			return true;	// served in place (C_BankFile): same size
 
 		if (levelStream)
 		{

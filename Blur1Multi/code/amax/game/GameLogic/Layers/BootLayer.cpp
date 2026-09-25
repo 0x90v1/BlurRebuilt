@@ -13,7 +13,7 @@
 #include <Game/GameControls/GameControls.h>
 #include <Game/Game.h>
 #include <PakNames.h>
-#include <gamesource/GameSource.h> // [Blur1Multi] Xbox 360 sources mount the Xenon boot paks
+#include <gamesource/GameSource.h> // [Blur1Multi] console sources (Xbox 360, PS3) mount the console boot paks
 
 #include <Game\Messaging\GameflowMessages.h>
 #include "PlatformCallbacks/PlatformCallbacks.h"
@@ -161,7 +161,7 @@ void C_BootLayer::CacheCommon()
 #ifndef PLATFORM_PC
 	if (g_bootRamPakEnable)
 #else
-	if (GameSource::Current().m_Platform == GameSource::E_Platform_Xbox360 && g_bootRamPakEnable)	// [Blur1Multi]
+	if (GameSource::IsConsole() && g_bootRamPakEnable)	// [Blur1Multi]
 #endif
 	{
 		Time::C_SimpleTimer simpleTimer;
@@ -194,7 +194,7 @@ void C_BootLayer::CacheCommon()
 #ifndef PLATFORM_PC
 	if (g_bootPakEnable)
 #else
-	if (GameSource::Current().m_Platform == GameSource::E_Platform_Xbox360 && g_bootPakEnable)	// [Blur1Multi]
+	if (GameSource::IsConsole() && g_bootPakEnable)	// [Blur1Multi]
 #endif
 	{
 		m_bootPakFilePath = 
@@ -275,7 +275,7 @@ HRESULT C_BootLayer::Destroy(bool shuttingDown)
 #ifndef PLATFORM_PC
 	if (!shuttingDown)
 #else
-	if (!shuttingDown && GameSource::Current().m_Platform == GameSource::E_Platform_Xbox360)	// [Blur1Multi]
+	if (!shuttingDown && GameSource::IsConsole())	// [Blur1Multi]
 #endif
 	{
 		if (g_bootPakEnable)

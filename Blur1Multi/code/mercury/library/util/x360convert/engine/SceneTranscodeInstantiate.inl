@@ -36,6 +36,7 @@ namespace
 		{
 			SceneState& state = ar.State();
 			state.nodes.push_back(std::vector<size_t>());
+			state.streamNodes.push_back(std::vector<size_t>());
 
 			RenderingData::Target::RenderListNode& node = *(RenderingData::Target::RenderListNode*) p;
 			ar & node;
@@ -51,6 +52,22 @@ namespace
 				}
 			}
 			state.nodes.pop_back();
+
+			// [Blur1Multi] The same for primitive streams and the node's
+			// VertexBufferSource (read after its primitives and instances too).
+			const std::vector<size_t>& streams = state.streamNodes.back();
+			for (size_t i = 0; i < streams.size(); ++i)
+			{
+				SceneState::StreamRecord& r = state.streams[streams[i]];
+				if (r.listIndex >= 0 && r.listIndex < node.GetNumVertexBuffers())
+				{
+					RenderingData::ResourceIndex source = node.GetVertexBufferSource(r.listIndex);
+					r.buffer = SceneState::BufferId(source.GetBlock(), source.GetIndex());
+				}
+				else
+					r.buffer = SceneState::BufferId(-2, node.GetNumVertexBuffers());	// for the error message
+			}
+			state.streamNodes.pop_back();
 		}
 	};
 }

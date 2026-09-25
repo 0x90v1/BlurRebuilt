@@ -12,6 +12,9 @@
 // swaps, SHHD_3N normals re-packed as U8_4N the way Scene::Finish does for PC,
 // index strips re-stitched with degenerates the way the ATG stripper does
 // without ATGTRISTRIPPER_USE_RESET_INDEX, and draw ranges moved to match.
+// PS3 sources (T076) take the same path; there SHHD_3N becomes F16_4 (x, y, z, 1)
+// for the translated RSX programs, and the vertex layouts, declarations and
+// primitive-stream byte offsets widen to match (SceneState::VertexLayout).
 #pragma once
 
 #include <misc_shared/archive/archive.h>
@@ -22,6 +25,7 @@
 #include <renderingdata/streaming.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -64,13 +68,65 @@ namespace X360Convert
 		std::map<BufferId, std::vector<Range> > segments;			// pass 1 result: draw ranges per index buffer
 		std::map<BufferId, std::map<Range, Range> > remap;			// pass 2: old range -> new range
 		std::map<BufferId, std::map<S32, S32> > boundaries;			// pass 2: old segment boundary -> new
+		std::set<BufferId> indexBuffersRead;						// every index buffer the file holds (all passes)
+
+		// [Blur1Multi] PS3 sources (T076): every SHHD_3N element becomes F16_4, so
+		// vertex layouts grow by 4 bytes per SHHD_3N element. What moves with them:
+		// VertexFormat DataSize and Offsets, VertexDeclaration element offsets, and
+		// PrimitiveStream::vertexOffset, a byte offset into its vertex buffer
+		// (build/resourceblockbuild.cpp:409 'data.offset = offset * vertexSize').
+
+		// One vertex layout as the console file has it and as the PC file gets it.
+		struct VertexLayout
+		{
+			S32 stride, newStride;
+			std::vector<S32> types, offsets, newOffsets;
+		};
+		std::map<BufferId, VertexLayout> vertexLayouts;			// every vertex buffer read; kept across passes
+
+		// VertexDeclaration elements as read: (stream, offset, type) per scene declaration.
+		struct DeclElement { S32 stream, offset, newOffset, type; };
+		std::vector<std::vector<DeclElement> > declarations;
+
+		// A PrimitiveStream as read, and where its vertexOffset was written.
+		struct StreamRecord
+		{
+			size_t outPos;
+			S32 vertexOffset;
+			S32 listIndex;				// PrimitiveStream::vertexBuffer (index into the node's VertexBufferSource)
+			S32 streamIndex;
+			S32 declaration;			// the primitive's vertex declaration; -1 for instance streams
+			BufferId buffer;			// resolved when the node is complete; (-1,-1) if not
+		};
+		std::vector<StreamRecord> streams;
+		std::vector<std::vector<size_t> > streamNodes;	// stream records of the RenderListNodes being read
+		S32 primitiveDeclaration;
+		bool countStats;								// this pass produces the output: add to SceneTranscodeStats
 
 		// statistics for the log
 		unsigned normalsRepacked, strips, reversedAmbiguous, trianglesChecked;
 
 		SceneState() : pass(0), primitiveIndexBuffer(-1), block(-1), indexBufferCount(0), vertexBufferCount(0),
-			normalsRepacked(0), strips(0), reversedAmbiguous(0), trianglesChecked(0) {}
+			primitiveDeclaration(-1), countStats(false), normalsRepacked(0), strips(0), reversedAmbiguous(0), trianglesChecked(0) {}
 	};
+
+	// [Blur1Multi] Running totals over every scene converted in this process, for
+	// verification harnesses and the log.
+	struct SceneTranscodeStats
+	{
+		unsigned normalsRepacked;		// SHHD_3N -> U8_4N (Xbox 360 sources)
+		unsigned shhdExpanded;			// SHHD_3N -> F16_4 element values (PS3 sources)
+		unsigned shhdExtreme;			// of those, components at the negative extreme (-1024 or -512)
+		unsigned strips;
+		unsigned trianglesChecked;
+		unsigned streamsPatched;		// PrimitiveStream vertex offsets moved
+		unsigned streamsWithoutBuffer;	// PrimitiveStreams whose VertexBufferSource is (-1,-1) (run-time buffers)
+		unsigned streamsBlockAbsent;		// PrimitiveStreams whose vertex buffer's resource block the file never holds
+		unsigned rangesBlockAbsent;		// draw ranges whose index buffer's resource block the file never holds
+		unsigned declElementsChecked;	// declaration elements matched against their vertex buffer's layout
+		unsigned byUsage[16][8];		// SHHD_3N vertex-format elements expanded, by usage and usage index
+	};
+	const SceneTranscodeStats& GetSceneTranscodeStats();
 
 	// Runs ReadScene's reads (WorldRender::ReadScene) over a 360 Scene block
 	// payload; 'out' receives the PC payload. Returns false with 'error' set if
@@ -229,6 +285,8 @@ namespace Arch
 		void OutAlign(U32 alignment);
 		size_t OutPos() const { return m_out.size(); }
 		void PatchU32(size_t at, U32 v) { memcpy(&m_out[at], &v, 4); }
+		void PatchU16(size_t at, U16 v) { memcpy(&m_out[at], &v, 2); }
+		U16 OutU16At(size_t at) const { U16 v = 0; if (at + 2 <= m_out.size()) memcpy(&v, &m_out[at], 2); return v; }
 
 		// The tag and version operator>> would read for a T, moved to the output.
 		template<typename T>
@@ -279,6 +337,7 @@ namespace RenderingData
 	void Deserialise(Arch::X360SceneTranscoder& ar, VertexElementType& t);
 	void Deserialise(Arch::X360SceneTranscoder& ar, RenderListNode::Primitive& t);
 	void Deserialise(Arch::X360SceneTranscoder& ar, RenderListNode::Primitive::Lod& t);
+	void Deserialise(Arch::X360SceneTranscoder& ar, RenderListNode::PrimitiveStream& t);
 	void Deserialise(Arch::X360SceneTranscoder& ar, ChunkInfo& t);
 
 	namespace Target

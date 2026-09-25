@@ -1,6 +1,12 @@
-// [Blur1Multi] Xbox 360 -> PC scene archive conversion. See SceneTranscode.h.
+// [Blur1Multi] Xbox 360 and PS3 -> PC scene archive conversion. See SceneTranscode.h.
 //
 // Payload rules, all from the exporter in renderingdata/source/noninterface/build:
+//  - PS3 (T076) writes the same grammar with PlatformType PS3, ZLIB_COMPRESSION in
+//    place of XMEM (zlib-wrapped fragments, Compression::C_Deflate; the PS3 reader
+//    uses the same Mercury zlib path, misc_shared compression/InflateTask.cpp), and
+//    U8_4/U8_4N elements already in PC byte order: Scene::Finish(PS3) runs
+//    ReverseU8_4 before the endian-swapping serialiser writes them as U32
+//    (build/scenebuild.cpp, vertexbuffer.cpp VertexData::ReverseU8_4).
 //  - Arch::Serialiser blocks (archive.cpp Serialise(VertexBuffer/IndexBuffer)):
 //    360 writes XMEM_COMPRESSION when the payload is 128 bytes or more, PC writes
 //    NO_COMPRESSION with the endian flag 0; alignment 16 on both.
@@ -10,6 +16,11 @@
 //  - Normals: Scene::Finish(PC) runs ChangeVertexElementType(SHHD_3N, U8_4N)
 //    before anything else, i.e. PC's U8_4N normal is a function of the SHHD_3N
 //    value the 360 file carries (vertexbuffer.cpp ChangeDataType).
+//  - PS3 normals (T076): the PS3 effects are RSX programs translated to HLSL, which
+//    read SHHD_3N as the RSX fetches it (CELL_GCM_VERTEX_CMP: signed normalised
+//    11:11:10, w = 1), so every SHHD_3N element becomes F16_4 (x, y, z, 1). That
+//    widens the vertex: VertexFormat DataSize/Offsets, VertexDeclaration offsets and
+//    PrimitiveStream vertexOffset (bytes) move with it (ExpandShhd, PatchStreams).
 //  - Indices: Scene::BuildStrips strips each index buffer lod with the ATG
 //    stripper; 360/PS3 pass ATGTRISTRIPPER_USE_RESET_INDEX, which rewrites the
 //    stitched strip through ConvertDegensToResetIndex (atg/AtgStrip.cpp). PC keeps
@@ -23,6 +34,7 @@
 #include "renderingdata/noninterface/archive.inl"
 
 #include <misc_shared/compression/xmemcompress.h>
+#include <zlib.h>
 #include <x360convert/X360Convert.h>
 #include <world_render/WorldRender.h>
 #include <world_render/pvs.h>
@@ -170,6 +182,40 @@ namespace X360Convert
 				if (at != size)
 					ar.Fail("XMem fragments give %u of %u bytes", at, size);
 			}
+			else if (compression == Arch::ZLIB_COMPRESSION && X360Convert::GetSource() == X360Convert::E_Source_PS3)
+			{
+				// the same fragment framing; each fragment a zlib stream (inflateInit)
+				const U32 count = ar.InU32();
+				U32 at = 0;
+				for (U32 i = 0; i < count; ++i)
+				{
+					const U32 originalSize = ar.InU32();
+					const U32 compressedSize = ar.InU32();
+					ar.InAlign(alignment);
+					const U8* p = ar.InBytes(compressedSize);
+					if (at + originalSize > size)
+						ar.Fail("zlib fragments exceed the declared %u bytes", size);
+					if (ar.GetFailed())
+						return;
+					z_stream z;
+					memset(&z, 0, sizeof z);
+					z.next_in = const_cast<U8*>(p);
+					z.avail_in = compressedSize;
+					z.next_out = originalSize ? &data[at] : NULL;
+					z.avail_out = originalSize;
+					int result = inflateInit(&z);
+					if (result == Z_OK)
+					{
+						result = inflate(&z, Z_FINISH);
+						inflateEnd(&z);
+					}
+					if (result != Z_STREAM_END || z.total_out != originalSize)
+						ar.Unconverted("zlib fragment %u decoded to %u of %u bytes (zlib %d)", i, (U32)z.total_out, originalSize, result);
+					at += originalSize;
+				}
+				if (at != size)
+					ar.Fail("zlib fragments give %u of %u bytes", at, size);
+			}
 			else
 				ar.Fail("unexpected Arch::Serialiser compression %u", compression);
 		}
@@ -209,6 +255,60 @@ namespace X360Convert
 			U32 v;
 			memcpy(&v, &n, 4);
 			return v;
+		}
+
+		SceneTranscodeStats g_stats = {};
+
+		// [Blur1Multi] PS3 sources (T076). The translated RSX vertex programs use
+		// SHHD_3N as the RSX fetches it: CELL_GCM_VERTEX_CMP (GCMDevice.cpp:2966-2977;
+		// fx/include/fx/targets/cell/gcm.h:109,118 CELL_GCM_VERTEX_CMP ==
+		// CELL_GCM_VERTEX_S11_11_10_NR), signed normalised 11:11:10 with w = 1. D3D9
+		// has no such type, so the element becomes F16_4 (x, y, z, 1).
+		bool ExpandsShhd()
+		{
+			return X360Convert::GetSource() == X360Convert::E_Source_PS3;
+		}
+
+		// Bytes per element type (renderingdata/source/noninterface/vertexbuffer.cpp:9-24).
+		U32 ElementSize(S32 type)
+		{
+			static const U32 sizes[] = { 4, 8, 4, 8, 4, 8, 12, 16, 4, 8, 4, 4, 4, 4 };
+			return type >= 0 && type < (S32)(sizeof(sizes) / sizeof(sizes[0])) ? sizes[type] : 0;
+		}
+
+		// The PC layout of a vertex format: on PS3 every SHHD_3N element grows from
+		// 4 to 8 bytes and every byte after it moves by 4.
+		void BuildLayout(SceneState::VertexLayout& layout)
+		{
+			layout.newOffsets = layout.offsets;
+			layout.newStride = layout.stride;
+			if (!ExpandsShhd())
+				return;
+			for (size_t e = 0; e < layout.types.size(); ++e)
+			{
+				if (layout.types[e] != RenderingData::VERTEX_ELEMENT_TYPE_SHHD_3N)
+					continue;
+				layout.newStride += 4;
+				for (size_t f = 0; f < layout.offsets.size(); ++f)
+					if (layout.offsets[f] > layout.offsets[e])
+						layout.newOffsets[f] += 4;
+			}
+		}
+
+		// DataTypes::SHHD_3N (renderingdata/datatypes.h:333-367) is x:11, y:11, z:10
+		// from bit 0; the exporter writes it as x * 1023, y * 1023, z * 511
+		// (datatypes.h:340-343, 349-351) and decodes it with the same divisors
+		// (datatypes.h:345-347), which is the scaling used here. w = 1 as RSX CMP
+		// fetches it. -1024 and -512 decode to just under -1 and are counted.
+		void ExpandShhd(U32 shhd, U8* out, unsigned& extreme)
+		{
+			const S32 x = ((S32)(shhd << 21)) >> 21;
+			const S32 y = ((S32)(shhd << 10)) >> 21;
+			const S32 z = ((S32)shhd) >> 22;
+			if (x == -1024 || y == -1024 || z == -512)
+				++extreme;
+			const RenderingData::DataTypes::F16_4 v(((float) x) / 1023.0f, ((float) y) / 1023.0f, ((float) z) / 511.0f, 1.0f);
+			memcpy(out, &v, 8);
 		}
 
 		// The triangles a strip draws, winding kept (rotated so the smallest index is
@@ -284,6 +384,8 @@ namespace X360Convert
 						out.push_back(s[0]);
 					out.insert(out.end(), s, s + len);
 					++state.strips;
+					if (state.countStats)
+						++g_stats.strips;
 				}
 				start = end + 1;
 			}
@@ -298,14 +400,17 @@ namespace RenderingData
 		const size_t at = ar.OutPos();
 		S32 value;
 		ar & value;
-		if (value != PLATFORM_TYPE_360)
-			ar.Fail("platform type %d where the 360 exporter writes %d", value, (int)PLATFORM_TYPE_360);
+		const S32 expected = X360Convert::GetSource() == X360Convert::E_Source_PS3 ? PLATFORM_TYPE_PS3 : PLATFORM_TYPE_360;
+		if (value != expected)
+			ar.Fail("platform type %d where the console exporter writes %d", value, (int)expected);
 		ar.PatchU32(at, PLATFORM_TYPE_PC);
 		t = PLATFORM_TYPE_PC;
 	}
 
 	// Scene::Finish(PC): ChangeVertexElementType(SHHD_3N, U8_4N). The value keeps
 	// the 360 type so the vertex buffer reader knows what it is converting.
+	// [Blur1Multi] PS3 sources: SHHD_3N becomes F16_4 (ExpandShhd), in vertex
+	// formats and vertex declarations alike.
 	void Deserialise(Arch::X360SceneTranscoder& ar, VertexElementType& t)
 	{
 		const size_t at = ar.OutPos();
@@ -313,7 +418,7 @@ namespace RenderingData
 		ar & value;
 		t = (VertexElementType) value;
 		if (t == VERTEX_ELEMENT_TYPE_SHHD_3N)
-			ar.PatchU32(at, VERTEX_ELEMENT_TYPE_U8_4N);
+			ar.PatchU32(at, X360Convert::ExpandsShhd() ? VERTEX_ELEMENT_TYPE_F16_4 : VERTEX_ELEMENT_TYPE_U8_4N);
 	}
 
 	// RenderingData::Deserialise(Archive&, RenderListNode::Primitive&) in
@@ -341,10 +446,48 @@ namespace RenderingData
 		ar & t.lods;
 		ar.State().primitiveIndexBuffer = -1;
 
+		ar.State().primitiveDeclaration = t.vertexDeclaration;
 		ar & t.primitiveStreams;
+		ar.State().primitiveDeclaration = -1;
 
 		t.primitiveType = primitiveType;
 		t.blendState = 0;
+	}
+
+	// [Blur1Multi] Deserialise(Archive&, RenderListNode::PrimitiveStream&)
+	// (renderingdata/noninterface/archive.inl:793-806), with a record of the
+	// stream so PatchStreams can move its vertexOffset, a byte offset into the
+	// vertex buffer (build/resourceblockbuild.cpp:409), when the PS3 path widens
+	// that buffer's vertices.
+	void Deserialise(Arch::X360SceneTranscoder& ar, RenderListNode::PrimitiveStream& t)
+	{
+		X360Convert::SceneState& state = ar.State();
+		S32 vertexBuffer, streamIndex;
+
+		ar & vertexBuffer;
+		ar & streamIndex;
+		X360Convert::SceneState::StreamRecord r;
+		r.outPos = ar.OutPos();
+		ar & t.vertexOffset;
+		ar & t.frequency;
+		ar & t.material;
+
+		t.vertexBuffer = vertexBuffer;
+		t.streamIndex = streamIndex;
+
+		r.vertexOffset = t.vertexOffset;
+		r.listIndex = vertexBuffer;
+		r.streamIndex = streamIndex;
+		r.declaration = state.primitiveDeclaration;
+		r.buffer = X360Convert::SceneState::BufferId(-1, -1);
+		if (state.streamNodes.empty())
+		{
+			if (X360Convert::ExpandsShhd())
+				ar.Fail("primitive stream outside a RenderListNode");
+			return;
+		}
+		state.streamNodes.back().push_back(state.streams.size());
+		state.streams.push_back(r);
 	}
 
 	void Deserialise(Arch::X360SceneTranscoder& ar, RenderListNode::Primitive::Lod& t)
@@ -390,6 +533,7 @@ namespace RenderingData
 		{
 			X360Convert::SceneState& state = ar.State();
 			const X360Convert::SceneState::BufferId id(state.block, state.indexBufferCount++);
+			state.indexBuffersRead.insert(id);
 
 			const size_t sizeAt = ar.OutPos();
 			S32 size;
@@ -470,6 +614,8 @@ namespace RenderingData
 						ar.Unconverted("draw range (%d,%d) of index buffer (%d,%d): %u triangles on the 360, %u re-stitched",
 							first, count, id.first, id.second, (unsigned)before.size(), (unsigned)after.size());
 					state.trianglesChecked += (unsigned)before.size();
+					if (state.countStats)
+						X360Convert::g_stats.trianglesChecked += (unsigned)before.size();
 					result.insert(result.end(), lod.begin(), lod.end());
 					remap[ranges[r]] = X360Convert::SceneState::Range(newFirst, (S32)lod.size());
 					boundaries[first] = newFirst;
@@ -503,14 +649,59 @@ namespace RenderingData
 		void Deserialise(Arch::X360SceneTranscoder& ar, VertexBuffer& t)
 		{
 			X360Convert::SceneState& state = ar.State();
-			state.vertexBufferCount++;
+			const X360Convert::SceneState::BufferId id(state.block, state.vertexBufferCount++);
+
+			// [Blur1Multi] The VertexFormat, read field by field (Serialise(VertexFormat&),
+			// renderingdata/noninterface/archive.inl:246-252: DataSize, Elements, Offsets)
+			// so the PS3 path can move DataSize and Offsets for its F16_4 elements.
+			X360Convert::SceneState::VertexLayout layout;
+			std::vector<VertexFormat::VertexElement> elements;
+			std::vector<size_t> offsetAt;
+			ar.TagFor<VertexFormat>();
+			const size_t strideAt = ar.OutPos();
+			ar >> layout.stride;
+			ar.TagFor<Btl::Vector<VertexFormat::VertexElement> >();
+			S32 nElements;
+			ar >> nElements;
+			if (nElements < 0 || nElements > 64)
+				ar.Fail("vertex format with %d elements", nElements);
+			for (S32 e = 0; e < nElements && !ar.GetFailed(); ++e)
+			{
+				VertexFormat::VertexElement element;
+				ar >> element;
+				elements.push_back(element);
+				layout.types.push_back(element.type);
+			}
+			ar.TagFor<Btl::Vector<U16> >();
+			S32 nOffsets;
+			ar >> nOffsets;
+			if (nOffsets != nElements)
+				ar.Fail("vertex format with %d elements and %d offsets", nElements, nOffsets);
+			for (S32 e = 0; e < nOffsets && !ar.GetFailed(); ++e)
+			{
+				offsetAt.push_back(ar.OutPos());
+				U16 offset;
+				ar >> offset;
+				layout.offsets.push_back(offset);
+			}
+			if (ar.GetFailed())
+				return;
+			X360Convert::BuildLayout(layout);
+			for (S32 e = 0; e < nElements; ++e)
+			{
+				if (layout.offsets[e] + X360Convert::ElementSize(layout.types[e]) > (U32)layout.stride)
+					ar.Fail("vertex element %d of type %d at %d outside a %d-byte vertex", e, layout.types[e], layout.offsets[e], layout.stride);
+				if (layout.newOffsets[e] != layout.offsets[e])
+					ar.PatchU16(offsetAt[e], (U16)layout.newOffsets[e]);
+			}
+			if (layout.newStride != layout.stride)
+				ar.PatchU32(strideAt, (U32)layout.newStride);
+			state.vertexLayouts[id] = layout;
 
 			S32 size;
-			VertexFormat vertexFormat;
-			ar & vertexFormat;
 			ar & size;
 
-			const U32 stride = vertexFormat.GetDataSize();
+			const U32 stride = layout.stride;
 			const U32 bufferSize = size * stride;
 
 			std::vector<U8> data;
@@ -531,12 +722,13 @@ namespace RenderingData
 			if (ar.GetFailed())
 				return;
 
+			const bool expand = layout.newStride != layout.stride;
 			for (S32 v = 0; v < size; ++v)
 			{
-				for (int e = 0; e < vertexFormat.GetNumVertexElements(); ++e)
+				for (int e = 0; e < nElements; ++e)
 				{
-					U8* p = &data[v * stride + vertexFormat.GetOffset(e)];
-					switch (vertexFormat.GetVertexElement(e).type)
+					U8* p = &data[v * stride + layout.offsets[e]];
+					switch (layout.types[e])
 					{
 						case VERTEX_ELEMENT_TYPE_S16_2:
 						case VERTEX_ELEMENT_TYPE_S16_2N:
@@ -555,20 +747,78 @@ namespace RenderingData
 							break;
 						case VERTEX_ELEMENT_TYPE_U8_4:
 						case VERTEX_ELEMENT_TYPE_U8_4N:
+							// PS3: reversed by the exporter, then written as a BE U32: PC order already
+							if (X360Convert::GetSource() != X360Convert::E_Source_PS3)
+								X360Convert::Swap32(p);
+							break;
 						case VERTEX_ELEMENT_TYPE_SDDD_3N:
 							X360Convert::Swap32(p);
 							break;
 						case VERTEX_ELEMENT_TYPE_SHHD_3N:
 						{
+							// PS3: expanded to F16_4 below, from these big-endian bytes
+							if (X360Convert::ExpandsShhd())
+								break;
 							const U32 shhd = ((U32)p[0] << 24) | ((U32)p[1] << 16) | ((U32)p[2] << 8) | p[3];
 							const U32 n = X360Convert::RepackNormal(shhd);
 							memcpy(p, &n, 4);
 							++state.normalsRepacked;
+							if (state.countStats)
+								++X360Convert::g_stats.normalsRepacked;
 							break;
 						}
 						default:
-							ar.Unconverted("vertex element type %d", (int)vertexFormat.GetVertexElement(e).type);
+							ar.Unconverted("vertex element type %d", (int)layout.types[e]);
 					}
+				}
+			}
+
+			// [Blur1Multi] PS3: every byte moves to its new offset, and each SHHD_3N
+			// becomes an F16_4 (ExpandShhd). Padding bytes move with the element before them.
+			if (expand)
+			{
+				std::vector<S32> byteShift(stride, -1);		// -1: inside an SHHD_3N element
+				for (U32 b = 0; b < stride; ++b)
+				{
+					S32 shift = 0;
+					bool inside = false;
+					for (int e = 0; e < nElements; ++e)
+						if (layout.types[e] == VERTEX_ELEMENT_TYPE_SHHD_3N)
+						{
+							if ((U32)layout.offsets[e] + 4 <= b)
+								shift += 4;
+							else if ((U32)layout.offsets[e] <= b)
+								inside = true;
+						}
+					if (!inside)
+						byteShift[b] = shift;
+				}
+				unsigned extreme = 0;
+				std::vector<U8> expanded(size * layout.newStride);
+				for (S32 v = 0; v < size; ++v)
+				{
+					const U8* src = &data[v * stride];
+					U8* dst = &expanded[v * layout.newStride];
+					for (U32 b = 0; b < stride; ++b)
+						if (byteShift[b] >= 0)
+							dst[b + byteShift[b]] = src[b];
+					for (int e = 0; e < nElements; ++e)
+						if (layout.types[e] == VERTEX_ELEMENT_TYPE_SHHD_3N)
+						{
+							const U8* p = src + layout.offsets[e];
+							X360Convert::ExpandShhd(((U32)p[0] << 24) | ((U32)p[1] << 16) | ((U32)p[2] << 8) | p[3], dst + layout.newOffsets[e], extreme);
+						}
+				}
+				data.swap(expanded);
+				if (state.countStats)
+				{
+					for (int e = 0; e < nElements; ++e)
+						if (layout.types[e] == VERTEX_ELEMENT_TYPE_SHHD_3N)
+						{
+							X360Convert::g_stats.shhdExpanded += size;
+							X360Convert::g_stats.byUsage[elements[e].usage & 15][elements[e].usageIndex & 7]++;
+						}
+					X360Convert::g_stats.shhdExtreme += extreme;
 				}
 			}
 
@@ -580,15 +830,45 @@ namespace RenderingData
 
 		// Target::Deserialise(Archive&, VertexDeclaration&) without the device
 		// declaration; the element types go through the VertexElementType overload.
+		//
+		// [Blur1Multi] PS3: an element's offset grows by 4 for every SHHD_3N element
+		// before it in the same stream, as the vertex formats' offsets do (BuildLayout);
+		// PatchStreams checks each primitive's declaration against its vertex buffer.
 		void Deserialise(Arch::X360SceneTranscoder& ar, VertexDeclaration& t)
 		{
+			typedef X360Convert::SceneState::DeclElement DeclElement;
+			std::vector<DeclElement> elements;
+			std::vector<size_t> offsetAt;
 			S32 nElements;
 			ar & nElements;
-			for (int i = 0; i < nElements; i++)
+			for (int i = 0; i < nElements && !ar.GetFailed(); i++)
 			{
+				const size_t at = ar.OutPos();
 				RenderingData::VertexDeclaration::VertexElement element;
 				ar & element;
+				// Serialise(VertexDeclaration::VertexElement&) (archive.inl:256-265):
+				// the object tag (if any), S16 stream, S16 offset, ...
+				const size_t fields = at + (ar.OutU16At(at) == 'AR' ? 4 : 0);
+				if ((S16)ar.OutU16At(fields) != element.stream || (S16)ar.OutU16At(fields + 2) != element.offset)
+					ar.Fail("vertex declaration element %d not where Serialise(VertexElement) writes it", i);
+				offsetAt.push_back(fields + 2);
+				DeclElement d;
+				d.stream = element.stream;
+				d.offset = element.offset;
+				d.newOffset = element.offset;
+				d.type = element.type;
+				elements.push_back(d);
 			}
+			if (X360Convert::ExpandsShhd())
+				for (size_t i = 0; i < elements.size(); ++i)
+				{
+					for (size_t j = 0; j < elements.size(); ++j)
+						if (elements[j].type == VERTEX_ELEMENT_TYPE_SHHD_3N && elements[j].stream == elements[i].stream && elements[j].offset < elements[i].offset)
+							elements[i].newOffset += 4;
+					if (elements[i].newOffset != elements[i].offset)
+						ar.PatchU16(offsetAt[i], (U16)elements[i].newOffset);
+				}
+			ar.State().declarations.push_back(elements);
 		}
 
 		// Target::Deserialise(Archive&, Texture&): a whole texture as Writer<Texture>
@@ -848,6 +1128,7 @@ namespace X360Convert
 			PutArchiveHeader(out);
 
 			Arch::X360SceneTranscoder ar((const U8*)in, (U32)size, 12, out, state);
+			state.declarations.clear();	// Scene::m_vertexDeclarations, read below
 
 			// BinaryInputArchive_t::Open
 			ar.Read(0, 4);
@@ -947,6 +1228,107 @@ namespace X360Convert
 			return true;
 		}
 
+		// [Blur1Multi] After pass 2, PS3 sources: move every PrimitiveStream vertex
+		// offset read in this pass to its buffer's widened vertices, and check each
+		// primitive's vertex declaration against that buffer's layout (the element
+		// the declaration names must be in the buffer, same type, same new offset).
+		bool PatchStreams(SceneState& state, std::vector<U8>& out, std::string& error)
+		{
+			if (!ExpandsShhd())
+				return true;
+			char text[256];
+			for (size_t i = 0; i < state.streams.size(); ++i)
+			{
+				const SceneState::StreamRecord& r = state.streams[i];
+				if (r.buffer == SceneState::BufferId(-1, -1))
+				{
+					// VertexBufferSource (-1,-1): no scene buffer; the node's slot is left
+					// empty (target/render.cpp:335-347) for a buffer supplied at run time.
+					// Nothing to move, unless its declaration stream would widen.
+					if (r.declaration >= 0 && r.declaration < (S32)state.declarations.size())
+					{
+						const std::vector<SceneState::DeclElement>& decl = state.declarations[r.declaration];
+						for (size_t d = 0; d < decl.size(); ++d)
+							if (decl[d].stream == r.streamIndex && (decl[d].type == RenderingData::VERTEX_ELEMENT_TYPE_SHHD_3N || decl[d].newOffset != decl[d].offset))
+							{
+								sprintf_s(text, "vertex declaration %d changes element %u of stream %d, which has no scene vertex buffer",
+									r.declaration, (unsigned)d, r.streamIndex);
+								error = text;
+								return false;
+							}
+					}
+					if (state.countStats)
+						++g_stats.streamsWithoutBuffer;
+					continue;
+				}
+				std::map<SceneState::BufferId, SceneState::VertexLayout>::const_iterator it = state.vertexLayouts.find(r.buffer);
+				if (it == state.vertexLayouts.end() && r.buffer.first >= 0)
+				{
+					// A resource block the file never holds (no ChunkInfo item names it, and
+					// the scene does not carry it): the node's slot never gets a buffer
+					// (target/render.cpp:335-376) and the engine skips the primitive
+					// (target/context.cpp:486-496), so the offset is never used. A block the
+					// file does hold must have this buffer.
+					std::map<SceneState::BufferId, SceneState::VertexLayout>::const_iterator b =
+						state.vertexLayouts.lower_bound(SceneState::BufferId(r.buffer.first, -1));
+					if (b == state.vertexLayouts.end() || b->first.first != r.buffer.first)
+					{
+						if (state.countStats)
+							++g_stats.streamsBlockAbsent;
+						continue;
+					}
+				}
+				if (it == state.vertexLayouts.end())
+				{
+					sprintf_s(text, "primitive stream %u (stream %d, list index %d, declaration %d, vertex offset %d) has no vertex buffer read (%d,%d)",
+						(unsigned)i, r.streamIndex, r.listIndex, r.declaration, r.vertexOffset, r.buffer.first, r.buffer.second);
+					error = text;
+					return false;
+				}
+				const SceneState::VertexLayout& layout = it->second;
+				if (layout.newStride != layout.stride)
+				{
+					if (r.vertexOffset % layout.stride)
+					{
+						sprintf_s(text, "vertex offset %d of vertex buffer (%d,%d) is not whole %d-byte vertices", r.vertexOffset, r.buffer.first, r.buffer.second, layout.stride);
+						error = text;
+						return false;
+					}
+					const S32 offset = r.vertexOffset / layout.stride * layout.newStride;
+					memcpy(&out[r.outPos], &offset, 4);
+					if (state.countStats)
+						++g_stats.streamsPatched;
+				}
+				if (r.declaration < 0)
+					continue;
+				if (r.declaration >= (S32)state.declarations.size())
+				{
+					sprintf_s(text, "primitive stream %u names vertex declaration %d of %u", (unsigned)i, r.declaration, (unsigned)state.declarations.size());
+					error = text;
+					return false;
+				}
+				const std::vector<SceneState::DeclElement>& decl = state.declarations[r.declaration];
+				for (size_t d = 0; d < decl.size(); ++d)
+				{
+					if (decl[d].stream != r.streamIndex)
+						continue;
+					size_t e = 0;
+					while (e < layout.offsets.size() && layout.offsets[e] != decl[d].offset)
+						++e;
+					if (e == layout.offsets.size() || layout.types[e] != decl[d].type || layout.newOffsets[e] != decl[d].newOffset)
+					{
+						sprintf_s(text, "vertex declaration %d element %u (stream %d, offset %d, type %d) does not match vertex buffer (%d,%d)",
+							r.declaration, (unsigned)d, decl[d].stream, decl[d].offset, decl[d].type, r.buffer.first, r.buffer.second);
+						error = text;
+						return false;
+					}
+					if (state.countStats)
+						++g_stats.declElementsChecked;
+				}
+			}
+			return true;
+		}
+
 		// After pass 2: move every draw range read in this pass to its re-stitched lod.
 		bool PatchLods(SceneState& state, std::vector<U8>& out, std::string& error)
 		{
@@ -960,6 +1342,17 @@ namespace X360Convert
 					std::map<SceneState::Range, SceneState::Range>::const_iterator it = m.find(SceneState::Range(r.offset, r.nIndices));
 					if (it == m.end())
 					{
+						// [Blur1Multi] An index buffer the file never holds: its resource
+						// block is in no ChunkInfo item and not in the scene, so the engine
+						// never binds it (target/render.cpp:358-364, 512-518) and skips the
+						// primitive (target/context.cpp:422-425). The range is never drawn;
+						// it keeps the console values.
+						if (state.indexBuffersRead.find(r.buffer) == state.indexBuffersRead.end())
+						{
+							if (state.countStats)
+								++g_stats.rangesBlockAbsent;
+							continue;
+						}
 						char text[160];
 						sprintf_s(text, "draw range (%d,%d) of index buffer (%d,%d) was not re-stitched", r.offset, r.nIndices, r.buffer.first, r.buffer.second);
 						error = text;
@@ -978,16 +1371,25 @@ namespace X360Convert
 				memcpy(&out[r.outPos], &offset, 4);
 				memcpy(&out[r.outPos + 4], &count, 4);
 			}
-			return true;
+			return PatchStreams(state, out, error);
 		}
 
-		void StartPass(SceneState& state, int pass)
+		// 'final': this pass's output is the one kept (counted in SceneTranscodeStats).
+		void StartPass(SceneState& state, int pass, bool final = false)
 		{
 			state.pass = pass;
+			state.countStats = final;
 			state.lods.clear();
 			std::vector<std::vector<size_t> >().swap(state.nodes);
+			state.streams.clear();
+			std::vector<std::vector<size_t> >().swap(state.streamNodes);
 			state.chunks.clear();
 		}
+	}
+
+	const SceneTranscodeStats& GetSceneTranscodeStats()
+	{
+		return g_stats;
 	}
 
 	bool TranscodeSceneArchive(const unsigned char* in, size_t size, std::vector<unsigned char>& out, std::string& error)
@@ -998,7 +1400,7 @@ namespace X360Convert
 		StartPass(state, 1);
 		if (!ReadScenePass(in, size, out, state, error) || !CollectSegments(state, error))
 			return false;
-		StartPass(state, 2);
+		StartPass(state, 2, true);
 		if (!ReadScenePass(in, size, out, state, error) || !PatchLods(state, out, error))
 			return false;
 
@@ -1045,7 +1447,7 @@ namespace X360Convert
 				error = text;
 				return false;
 			}
-			StartPass(state, pass);
+			StartPass(state, pass, patch);
 			if (!ReadChunkPass(&in[0], in.size(), c.items, out, state, error))
 			{
 				char text[48];
@@ -1122,7 +1524,7 @@ namespace X360Convert
 		m.streamLength = at;
 
 		// Pass 2 over the scene, with the chunk table moved to the PC layout.
-		StartPass(state, 2);
+		StartPass(state, 2, true);
 		if (!ReadScenePass(sceneIn, sceneSize, m.scene, state, error) || !PatchLods(state, m.scene, error))
 		{
 			error = "scene: " + error;

@@ -85,6 +85,8 @@ Facts established by reading the source and the discs. Add to this file when you
 - **Controls on PC.** `C_ControlConfig::RemapGameControls` replaced every driving binding with Xbox pad buttons when a profile loaded, dropping the keyboard; it now combines keyboard + pad (`C_RemapCombiner`). The keyboard menu map follows retail Blur PC, read with Ghidra (`code/tools/ghidra_retail`): retail `SetupAmaxUserControls` is `0x00415a30`; its menu table at `0x00e653b8` has rows {button, key, split-screen key, pad button} and retail key numbers equal this source's `C_Keyboard` enum (DirectInput scan code - 1). Single-keyboard layout: Confirm = Enter + Space, Cancel = Esc, Option1 = Right Shift, Option2 = Right Ctrl, Left/Right trigger = Page Up/Page Down, Left/Right shoulder = Insert/Delete, Right thumb = Delete, Start = F1 + Esc, Back = F2, nothing on the plain d-pad buttons; menu stick axes A/D, S/W (down key first), arrows for the right stick; arrows on the pad-or-stick directions (unchanged). The snapshot had V/B for Confirm/Cancel, Enter for Start, Esc for Back. Menus act on Cancel, not Start, so F1 has no visible effect there. **Escape never reached the game in this snapshot**: `C_KeyboardPC::Update` kept keys with `ConvertFromDirectInputKey(i) > 0`, and Escape is index 0; retail's keyboard update (`0x00845360`) tests `>= 0`. Fixed the same way. `Framework::AddButtonInput` now sets the input when the button has none (the combiner asserted on NULL). The window shell (`C_Application::MyKeyDown`) closed the window on Escape; removed. DirectInput keyboard is foreground-only. Retail keyboard driving keys come from a per-profile custom table (Lua `SetCustomKeyboardControls`, fields Throttle/Brake/EBrake/ChangeView/RearView/Pause/SwitchPerk/.../SteerLeft/SteerRight) and default tables at `0x00e64f98`/`0x00e65100`; not ported.
 - **AI never ran.** (1) The Showroom has no `.aid`, and that failure cleared `AmaxAIR::m_SystemsInitialised`, so later `LoadAICityData` calls were skipped. (2) `InitTrackDataSystem` cached the track-data interface before the object existed (NULL), so `AllOK()` was false and the AI update never ran. (3) Race logic looked for splits via `GetTrackDataSystem()`, which is NULL until `InitRace`; it now uses `GetLoadedTrackDataSystem()`. After (1)-(3) the splits are found; AI cars on track not yet confirmed visually.
 - **Vehicle damage rendering (fixed 2026-09-24).** Retail PC vehicle shaders (`shaders-speed.pak`) are built with `_DAMAGE_USE_F32`: the vertex damage volume (vertex stage 257) is added to the position unscaled, so PC now creates it as A32B32G32R32F (`BLUR2PC_DAMAGE_VOLUME_F32` in `DamageLayer.cpp`; this removed the dents), and FX binds a zeroed 1x1x1 volume where it would bind its 2D default on a vertex sampler. The scratched/undercoat paint came from constants: the retail paint vertex shaders read `c203.w` as the dent amount and `c204.w` as the scratch level (`mul o3.w, r0.x, c204.w`; `mad r0.xyz, r0, c203.w, v0`), and those registers are the undercoat and scuff colours, which this source uploads with w = 1 (fully damaged). `VehicleModel.cpp` now uploads both with w = 0. Consequence: per-part race damage is not shown on PC; the source that fed those `.w` values in retail is unknown (open).
+- **Level stream chunk allocator: 4 MB, as retail (fixed 2026-09-25).** `StreamManager`'s chunk allocator was 2 MB in the snapshot (`renderingdata/source/noninterface/target/streammanager.cpp:237`); retail PC Blur.exe initialises it with 4 MB (`FUN_006cc5c0`, `Initialise(0x400000, 0x10)`, `_work/ghidra/streammanager_ctor.c`, otherwise identical to the source). A chunk larger than the allocator is disabled at setup (`streamdata.cpp:93-103`) and never loads; a chunk that lists it as a prerequisite can never cache (`CacheChunk`, `:438-445`), so `m_cacheFailed` is set on every update and `StreamData::Busy()` stays true: the race load never finishes. Retail PC levelstreams hold chunks up to 2,623,488 bytes (usa_amboy, usa_la_longbeachdocks and uk_brighton have chunks that depend on ones over 2 MB); the career's first event (spa_barcelona_oval) hung on Blur1PC and on PS3 data. Converted console chunks stay under 2,623,428 bytes (per-level table in the T076 notes). Verified: Blur1PC `race_long.txt` reaches the grid and drives; the PS3 source reaches the same race.
+- **Render-hook list race (fixed 2026-09-25).** `WorldRender::Blur2PCInterpAddRenderHook` (the T050 interpolation hooks, `world_render/source/ModelInstance.cpp`) pushed into a global vector from `C_VehicleActor::DeferredUpdate`, which runs one scheduler job per car, while the render thread iterated it: two cars' first updates could reallocate it together (crash in `memmove` at the start of a 20-car race). The list is now guarded by an SRW lock and the render side calls a copy.
 - **Car shadows (fixed 2026-09-24).** Cars use blob shadows (`BlobShadows`, one dynamic instance per vehicle; drop shadows come from level scene-graph objects, not cars). Two faults on PC: (1) `BlobShadows::RenderScreenShadow` reconstructs world position from the context's depth texture, the global R32F buffer from `Render::CreateGlobalDepthStencilBuffer`, which nothing on PC wrote; `C_MainView::RenderPrepass1` now `StretchRect`s the prepass depth (deferred colour target 1, hardware z/w, the same encoding every deferred consumer decodes) into it. (2) `psScreenBlobShadows.psh` masks cars out with `1 - depth.a` on every non-Xbox target, a PS3 depth-buffer stencil trick; the PC R32F alpha reads 1, so every pixel was masked. `shadergen.py` now passes `/D BLUR2PC=1` to built-in shaders and the PC path uses mask 1 (cars may receive a little of their neighbours' blob shadow; the height falloff limits it). Verified by an A/B run of `scripts/race.txt` with blob shadows disabled: car-sized shadows appear at the grid slots ahead of the player and vanish with blobs off. **Those shadows have no car above them: the AI cars exist and cast shadows but their models are not drawn** (the "no AI cars ahead" issue is a render problem, not placement). **HUD projected on the road (fixed 2026-09-24, matched to retail).** The snapshot defines `_DISABLE_GFX_BUFFERS` on PC (UiLayer.cpp), so the UI's composite/bloom buffers are never made and `C_UiLayer::RenderOnce` draws the HUD through `RenderAA()` with no render target of its own; the blob shadow pre-render (`C_BlobShadows::PreRender`, run just before in BeginFrame) leaves its last blob texture bound, so the HUD landed in a blob texture and the screen shadow pass projected it from the car (mirrored by the shadow-plane mapping; which texture caught it varied with the shadow count, hence intermittent). Retail Blur.exe 1.2 (Ghidra, scripts in `code/tools/ghidra_retail`): its blob pre-render (0x00734e80) also leaves the target bound, so a restore there is not what retail does; instead retail compiles and calls both `CreateFePostProcessBuffer` (0x00c303e0) and `CreateIgPostProcessBuffer` (0x00c30470, size = back buffer / 4, no depth), i.e. the UI buffers are on, and `RenderOnce` (0x00c30d90) binds the composite before drawing. Three further retail differences in that path were found and ported: `IgRenderComposite` (0x00c30c20) clears the colour only (the snapshot's Colour|Depth|Stencil clear is refused by D3D9 when no depth surface is bound, so the HUD accumulated); `IgRenderPost` (0x00c2fb20) keeps the bloom texture and deactivates the manager; `RenderFullscreen` (0x00c305c0) adds the bloom texture, not the composite. `SetupViews` (0x00c30e60) sizes the in-game bloom view from the back buffer / 4 as well. Changes: UiLayer.cpp only (define removed; composite and bloom view sizes; clear; bloom texture kept; full-screen add). Verified: scripted race frames show a clean road and a glowing HUD.
 - **32 fps on a 4K desktop (environmental).** Stack samples during a 32 fps spell show the main thread waiting in `Present` inside DWM (`DwmpDxGetWindowSharedSurface`) after the desktop resolution changed to 3840x2160; it comes and goes between runs with no code change. Not a game bug.
 - **Shutdown crash on window close / Alt-F4 (2026-09-24).** The scripted `quit` calls `ExitProcess` and skips shutdown; a real close runs `C_GameApp::ReleaseAllGlobalResources` then `C_ApplicationBase::Shutdown`, which hit three latent snapshot bugs in turn. (1) `FX::Manager::LoadEffects` resizes the output list and stores only reused or failed entries, leaving newly loaded ones uninitialised; retail (0x00682400) clears every entry after the resize, so its boot list holds NULL for new effects. Ported. (2) The particle-texture release loop in `ReleaseAllGlobalResources` never advances its iterator (`pNext` unused) and destroyed the first texture twice; retail (0x00433380) walks the map in order. Ported. (3) Open: `Cam2::C_DebugTools::SetLocalCamera` assigns the live camera with `C_Camera`'s implicit `operator=`, sharing its owned `m_pShakeCamera`/`m_EffectInfo`; `C_CameraSystem::UpdateDebugTools` calls it every update outside `CFG_GOLD`, so the debug tools' copy and the dynamic-camera actor both delete them (double free during `C_CameraSystem::Exit`). Retail is a gold build and never compiles that call; our Speed build does. Log noise seen in the same runs and matching retail: `PreviouslyOnBlur.lua` `ChangeText` warnings come from `FindChildByName(node, "Amount")` returning nil (retail's decompiled script makes the same calls; its logging is compiled out); missing `.bik` movies (Bink removed) and `audio\dat\*.dat` files absent from retail data.
@@ -110,6 +112,292 @@ Facts established by reading the source and the discs. Add to this file when you
     - Not ported: retail resizes the mirror (0x00427660: 0.45 x 0.125 of the back buffer, rounded up to 32, window multisample) and reflection (0x00427750: half the back buffer, then /4, /2 or x2 by the city's reflection resolution, rounded up to 32) render targets from the back buffer, here and on creation; its offscreen/reflection views (0x00b1fd20/0x00b20450) and texture render (0xc4 bytes, ctor 0x006919b0) have fields the snapshot lacks, so the snapshot keeps 512x64 and the city sizes. Retail also sets a flag on every display window (+0xed = level > 1) that gates a per-frame depth copy in retail's PC device (0x005ac830, texture made at 0x005ac640); the snapshot's PC device has no such copy. The main view's black-reflection check and the per-level lights subtechnique follow retail; the snapshot still zeroes the subtechnique while the prepass is off. The snapshot's garage hack in `C_GameWorld::BeginFrame` rewrites the prepass flag every frame (retail has no hack and checks `mInUI` where the prepass is used, e.g. 0x00426390); ours turns the prepass off when either says so. Stopgap, recorded here.
   - *UI aspect (T009, 2026-09-24).* Retail PC replaces the UI's fixed 640/853 virtual width with `width * 480 / height` of the back buffer: a `C_Simple2D` member (retail +0x14 of the object at 0x01160f38) set at UI init (0x00c3c68d) and after `UpdateGraphicsOptions` (0x00c358c0), which then rebuilds the 2D clip transform (`SetClipSize2D`, 0x00799710, with the 1024x768 device coords) and re-initialises `C_UICamera` (0x00798140; its 3D projection uses the clip size and the device aspect, which retail does not change on PC as far as found). Retail's `C_Simple2D` has no widescreen byte (no reads found), so `C_UiManager::PreRender` uses the camera-scaled 3D world panel always on PC (inferred; identical at 16:9). Retail Lua: `ChangeResolution` sets `SCREEN_WIDTH = width*480/height`, `SCREEN_LEFT/RIGHT`, `CalcScreenBounds` (safe area 36..444), `Camera_UseFrontend` (3D UI scale = aspect / (16/9), bars on) / `Camera_UseInGame` (scale 1, bars off), `AddAspectRatioBars` + `UpdateAspectBars` (two black bars on main-context screens when the aspect is not 16:9), `IsWideScreen` = aspect >= 16/9 (HUD, SpFriendDemand), no 4:3 adjustment for movies or SpRaceAwards; GuiBank ends with `ChangeResolution(Amax.GetScreenResolution())`. Ported for PC (consoles keep the snapshot's code): `Simple2d.h/.inl/.cpp`, `UiManager.cpp`, `Blur2PCRefreshUIForBackBuffer` (lua_Amax.cpp), GUIBank.lua, HUD.lua, SpFriendDemand.lua, SpRaceAwards.lua. Verified: at 1920x1080 the front end and garage fill the screen with no bars and the 3D carousel at scale 1 (the snapshot showed 4:3 bars and scale 0.75); at 1680x1050 the retail bars appear top and bottom. Not verified: in-race HUD, 4:3 modes, a live resolution change across aspect ratios.
   - Verified (scripted, hidden, `_work/run_t008`): settings loaded from a copy of the user's retail file (1920x1080 windowed, 8x AA, vsync, detail 4) give a 1920x1080 back buffer; the adapter here offers None/2x/4x/8x (16x fails, so index 3 = 8x as in the retail file); Options > Graphics shows the retail layout with live values; changing resolution to 1680x1050 and AA to 2x, Accept, resets the device to 1680x1050 (screenshots), shows "Do you want to keep these settings? Reverting in 7 seconds", Yes keeps it and settings.xml reads `width="1680" height="1050" ... multisample="1"`. Open: after that reset, red light-trail streaks cover the scene (seen once; not yet compared with the pre-port reset path).
+
+### PS3 -> PC conversion (T076, 2026-09-25)
+
+Blur1Multi plays retail Blur 1 PS3 data (`C:\AIProjects\Blur\GameData\PlayStation 3`, disc dated 2010-04-03) through the same layer as the 360: `X360Convert::C_ConvertFs` with `X360Convert::SetSource(E_Source_PS3)` (the library keeps its first name). Extracts used for every check: `Blur1Multi/_work/extract/ps3/<pak>/` (`code/tools/xmem-verify/paklist_pc.py --extract-all`, which now reads big-endian paks). Test source: `Blur1Multi/_work/sources/ps3_retail/PS3_GAME/USRDIR/{cache,levels,ui}` (junctions to the disc, so the game's writes stay off it); `_work/run/run_ps3.ps1` boots it minimised.
+
+- **Disc layout.** `PS3_GAME/USRDIR/`: `cache/` with the Xenon pak set (boot, boot_rampak, gamedata(+sig), gamedata_boot(+sig), lut_rampak, root 548 MB, root_streaming 586 MB, shaders-speed), 21 loose levels (the 7 retail 360 levels plus jpn_mharuna, jpn_tokyo_shutoko, spa_barcelona_bowl_multiplayer, spa_barcelona_gracia, uk_brighton_multiplayer, uk_london_hackney, usa_amboy_multiplayer, usa_la_downtown_multiplayer, usa_la_longbeach_multiplayer, usa_la_multiplayer_highrise, usa_la_observatory, usa_ny_dumbo, usa_sanfran_russianhill, usa_sanfran_sausalito), `ui/movies/*.bik`, `install/install_compressed.pak` (holds one file: a byte copy of `root_streaming.pak`, the HDD install).
+- **Paks.** Every PS3 pak is v1, big-endian (`PAK2`), codec 4 (PacketZLib, the codec PC already has; `root_streaming` codec 1, raw). The engine's pak reader and the big-endian FAT handling written for the 360 read them unchanged; the RSA signatures of `gamedata` and `gamedata_boot` verify (the FAT is hashed in stored byte order, as on the 360). Mounts: the console list of `CreateFsLayers` (`USE_NEW_PAK_LAYOUT`, compiled by both the Xenon and the PS3 build: root and root_streaming at `/`, shaders-speed at `/graphics/shaders/speed/`), the boot paks and the gamedata_boot RAM pak; stream buffers use the ADPCM size ("PC & PS3"). Engine dump of 1,421 sampled paths (`run_dump.ps1`, `pakdump_compare.py`): identical to the Python extraction.
+- **Same bytes as the 360.** Byte-identical between PS3 and retail 360 for every file both carry: `.cycle` (802/803, the other same size), `.skeleton`, `.loc`, XT flasks (`.bin`, `.xt`), `.particlemesh`, `.dat` audio objects (all but `finalperksubmix.dat`); identical on all three platforms: `.csv`, `.ipf`, `.aid`, `.pf`, `.wbl`, most `.dds`. The 360 converters serve these unchanged.
+- **Detection.** `GameSource::Detect` moves a disc root into `PS3_GAME/USRDIR` and reports PS3 for a big-endian `root.pak` there. The selection now runs before `CreateGameFs` (overlay `GameSystems.cpp`, `Initialise`): `CreateGameFs` makes the working directory layer 0, so a source that was not already the working directory (any `--source` pointing elsewhere, and always a PS3 disc root) had no loose layer and no paks. The 360 runs passed only because the scripts start the exe in the source.
+- **Models** (`.model`, 1,540). The 360 grammar with four differences, all from the exporter (`renderingdata/source/noninterface/build`): FourCC `PS3 `; scene `PlatformType` 1 (`renderingdata/scene.h`); Arch::Serialiser blocks of 128 bytes or more use `ZLIB_COMPRESSION` (zlib-wrapped 32 KB fragments, `Compression::C_Deflate`; the PS3 runtime inflates them with the same Mercury zlib path, `misc_shared/.../InflateTask.cpp`: "Can't use Edge ZLib"); U8_4/U8_4N vertex elements are already in PC byte order (`Scene::Finish` runs `ReverseU8_4` for PS3 before the endian-swapping serialiser writes them as U32, `build/scenebuild.cpp`, `vertexbuffer.cpp`). SHHD_3N normals, F16/F32 elements and the U16 0xFFFF-reset index strips are byte-identical to the 360's (2,538 of 2,538 pairable vertex buffers, 1,684 of 1,685 index buffers; the other is a re-exported model). No Edge geometry segments: renderingdata never references Edge, every buffer is a plain Arch VB/IB. `SceneTranscode.cpp` takes all of this by source. Engine dump of all 1,540 models against retail PC (`modelcmp.py`): all convert, no failure; Header 1,540/1,540 identical, MdlDat 1,540/1,540, Coll 915, Render 214 (the 360 path: 171; PC re-shares vertices after its normal change, so most Render blocks cannot match).
+- **Levels.** `.level` differs from the 360 only in its FourCC; `.levelphysics` has the same tree and sizes; every `.levelrender` block except Scene (Header, LS, Lights, PVSData, CubePt2, Crowd) is byte-identical to the 360's. The levelstream is loose, 2 KB-aligned ARCH chunks, with its own chunk partition (count, grouping, offsets differ from the 360: showroom 32/32, amboy 421/413); `C_LevelConversion` follows the scene's ChunkInfo table, so nothing changes. Engine dump of the 21 levels (level, physics, render; showroom and amboy streams in full): all convert, every draw range passes the triangle check; against the 19 levels PC has, `.level` identical in every block, the rest at the 360 path's rate (content differences between the console and PC exports: physics Main, lightmap LS data, PVSData, Crowd).
+- **Converting layer.** Level preparation runs under its own lock (`C_ConvertFs::Impl::levelLock`). Under the file cache lock it deadlocked with the main thread: `Effect::OnLoad` holds RenderingData's serialise lock while FX opens an effect through the layer (which takes the cache lock), and the scene reader inside level preparation waits for the serialise lock. First seen on the PS3 source (its effects are never served from the cache); the 360 path had the same order.
+
+- **Front end (2026-09-25).** `run_ps3.ps1` with `scripts/escape.txt`: the PS3 source mounts, 265 effects recompile on the first run (cached after), the showroom level converts and streams, the menu script runs to the end (single player, the first-run "welcome to Blur" popup, back out, quit; exit 0). Screens: `Blur1Multi/_work/verify/ps3_shots/`. The button glyphs are the PS3 ones from the PS3 `ui_common` bundle. Fixes found on the way: SHHD_3N as F16_4, the constant-array sizing for relatively addressed vertex programs (street trees and every skinned program were missing), the vehicle damage stream (car bodies were missing; the user's smoke test), the 4 MB stream chunk allocator (the race load never finished; Blur1PC fix, retail value). Race (2026-09-25, `race_long.txt`): career first event, Barcelona Oval, grid and driving at 144 fps with bodies drawn (`Blur1Multi/_work/verify/ps3_race/`). Open: the showroom ground renders near-white with black outlines on both consoles where retail PC shows dark wet cobblestones (`_work/verify/pc_shots/main.png`); the showroom's 32 fps / 30 ms GPU is the same on retail PC data, so it is the scene's cost.
+- **Draw ranges into absent resource blocks (fixed 2026-09-25, both consoles).** 12 PS3 levelstreams (spa_barcelona_bowl_multiplayer, spa_barcelona_oval, uk_brighton_multiplayer, uk_london_hackney, usa_amboy_multiplayer, usa_la_downtown_multiplayer, usa_la_longbeach_multiplayer, usa_la_multiplayer_highrise, usa_la_river, usa_ny_dumbo, usa_sanfran_russianhill, usa_sanfran_sausalito) and 2 of the 360's 7 (spa_barcelona_oval chunk 1, usa_la_river chunk 0) failed 1 to 4 chunks each with "draw range (a,b) of index buffer (block,0) was not re-stitched", and the engine read those chunks as zeros. Every failing range belongs to a RenderListNode whose IndexBufferSource names a resource block the level does not contain (no ChunkInfo item lists it, the scene has no inline copy). The engine never draws such a range: the index-buffer slot is bound only when the block's lod loads (`renderingdata/source/noninterface/target/render.cpp:358-364`, `:512-518`) and `Context::RenderPrimitive` returns on a null index buffer (`target/context.cpp:422-425`). `SceneTranscode.cpp` now leaves those ranges with their console values (`SceneTranscodeStats::rangesBlockAbsent`; PS3: 299 ranges, 301 primitive streams; 360: 2 ranges); a range whose buffer was read and not re-stitched is still an error. Every chunk of the 21 PS3 and 7 360 levels converts, triangle checks pass (about 42 million over models and levels); models of both consoles byte-identical to before. Why the exporter kept nodes into blocks it put in no chunk is not known.
+
+#### PS3 SHHD_3N vertex elements: converted to F16_4
+
+Source paths are relative to `Blur1PC/code/mercury/library/` unless they start with `Blur1Multi/`.
+
+**Why.** The PS3 effects are RSX vertex programs translated to HLSL. They read SHHD_3N as the RSX
+fetches it: `CELL_GCM_VERTEX_CMP` (`graphics/display/source/device/gcm/GCMDevice.cpp:2966-2977`;
+`graphics/fx/include/fx/targets/cell/gcm.h:109,118` gives CMP the same value as
+`CELL_GCM_VERTEX_S11_11_10_NR`, i.e. signed and normalised, 11:11:10). The Xbox 360 path repacks
+SHHD_3N as PC's U8_4N (n*0.5+0.5, w byte 0), which is what the PC effects expect but not what the
+translated PS3 programs expect. A decode in the shader does not work because the same semantic
+changes type between declarations: NORMAL and TEXCOORD2 are always SHHD_3N, while TEXCOORD1 and
+TEXCOORD3 are mixed (TEXCOORD3 is SHHD_3N on vehicles and perks and U8_4 bone indices on skinned
+characters). For PS3 sources only, every SHHD_3N element is therefore converted to **F16_4
+(x, y, z, 1)**. The 360 path is unchanged.
+
+**Scaling.** x / 1023, y / 1023, z / 511, w = 1. The source supports this:
+- `DataTypes::SHHD_3N` (`graphics/renderingdata/include/renderingdata/datatypes.h:333-367`) packs x:11,
+  y:11, z:10 from bit 0.
+- The exporter encodes x * 1023, y * 1023, z * 511 (datatypes.h:340-343, 349-351) and decodes with the
+  same divisors (datatypes.h:345-347).
+- The PC exporter's own SHHD_3N -> U8_4N conversion goes through that decode
+  (`graphics/renderingdata/source/noninterface/vertexbuffer.cpp` ChangeDataType).
+
+The exact RSX CMP normalisation is **not documented in the tree**: the gcm headers carry only the enum
+names, and no Sony GCM documentation is available here. For reference only: RPCS3's vertex fetch
+(`rpcs3/Emu/RSX/Program/GLSLSnippets/RSXProg/RSXVertexFetch.glsl`, `fetch_attribute`, COMP32 branch)
+shifts each field into 16 bits and divides by 32767. That gives x*32/32767 (about x/1023.97) and
+z*64/32767 (about z/511.98), with w = 1. Against x/1023 the difference is under 0.1%, about 2 F16
+ulps. RPCS3 is an emulator, so this is a cross-check, not ground truth. The w = 1 value is the same in
+both. -1024 (x, y) and -512 (z) decode to slightly below -1 and are not clamped; 11 components across
+all 1540 PS3 models hit those values, and none in the levels.
+
+**What moves** (`Blur1Multi/code/mercury/library/util/x360convert/engine/SceneTranscode.{h,cpp}`,
+`SceneTranscodeInstantiate.inl`):
+- **Element type:** SHHD_3N is written as F16_4 in both vertex formats and vertex declarations (the
+  `VertexElementType` overload).
+- **Vertex data:** each SHHD_3N grows from 4 to 8 bytes. Every later byte of the vertex, padding
+  included, moves by 4 per earlier SHHD_3N element. The VertexFormat DataSize (stride) and Offsets
+  (`noninterface/archive.inl:246-252`) are rewritten, and so are the Arch::Serialiser block sizes,
+  since the blocks are rewritten uncompressed.
+- **VertexDeclaration element offsets** (`archive.inl:256-277`): +4 for every SHHD_3N element before
+  them in the same stream.
+- **`PrimitiveStream::vertexOffset`** is a byte offset into its vertex buffer. The exporter sets it as
+  `offset * vertexSize` (`build/resourceblockbuild.cpp:409`), so it is rescaled from the old stride to
+  the new one. The buffer is found through the node's VertexBufferSource, which the node reads after
+  its primitives. The two-pass machinery from the strip re-stitching handles this: layouts are
+  collected in pass 1 over the scene and every levelstream chunk, and offsets are patched in pass 2
+  (PatchStreams, called from PatchLods).
+- **Declaration check:** every primitive's declaration is checked against its buffer's layout. Each
+  element of that stream must exist in the buffer with the same type and the same new offset.
+- **Level stream layout:** C_LevelConversion takes its layout from the pass-2 output sizes, so its
+  chunk offsets and sizes follow the wider vertices with no further change.
+- **Two kinds of stream have nothing to move:**
+  - Streams whose VertexBufferSource is (-1,-1) take a buffer supplied at run time;
+    `target/render.cpp:335-347` leaves the slot empty. The conversion fails if such a stream's
+    declaration would change.
+  - Streams whose resource block the file never holds: no ChunkInfo item names the block and the scene
+    does not carry it. The engine never gets a buffer for them (`target/render.cpp:335-376`) and skips
+    the primitive (`target/context.cpp:486-496`).
+
+**Built-in PC shaders.** None of them read model or level vertex buffers:
+- All 85 `.vsh` files were checked. The ones with NORMAL/TANGENT/BINORMAL inputs (vsMesh, vsMinimal,
+  vsCloth, vsParticle, vsAuxFlares, vsCrowdFlag, vsLightTrails, the UI polygon shaders, vsSkinnedMesh,
+  vsSPTRender) are fed by their own dynamic or mesh buffers, or belong to tools and samples.
+- The built-in passes that draw scene-like geometry (drop shadows, blob and collision-mesh shadows,
+  mask, occlusion) read POSITION only.
+- Scene primitives always draw with their scene effect (`Effect::OnLoad`).
+- No runtime CPU code reads scene vertex-buffer contents or strides apart from the renderer's
+  `vertexSize`, which comes from the rewritten DataSize.
+
+**Verified** with a scratch harness that links the engine libraries and runs the engine converters
+outside the game (`scratchpad/vtx/scenetest.cpp`, `build.bat`):
+
+| Check | Result |
+|---|---|
+| PS3 models | 1540/1540 convert |
+| PS3 SHHD_3N values expanded (models) | 6,652,065 |
+| PS3 SHHD_3N vertex-format elements, by usage (models) | NORMAL 2395, TEXCOORD1 1, TEXCOORD2 449, TEXCOORD3 448 |
+| Strips re-stitched (models) | 1,347,233 |
+| Triangles checked (models) | 7,673,750, all match |
+| Stream offsets rescaled (models) | 14,839 |
+| Declaration elements checked against buffers (models) | 63,874 |
+| Run-time-buffer streams (models) | 17,181 |
+| PS3 levels (21) | Every .level, .levelphysics and .levelrender converts |
+| PS3 SHHD_3N values expanded (levels) | 23,181,198, all NORMAL |
+| Declaration elements checked (levels) | 539,733 |
+| Stream offsets rescaled (levels) | 137,054 |
+| Streams in blocks absent from the file (levels) | 2 |
+| Xbox 360 models | All 1544 byte-identical to before the change (SHA-1 per file) |
+| Xbox 360 levels (7) | All four files byte-identical to before |
+| Independent check against retail PC | See below |
+
+Independent check against retail PC: in 8 PS3 model vertex buffers that share the PC file's vertex
+order, every non-normal element is byte-identical to PC, and every F16_4 normal matches PC's U8_4N
+within 1/255 once remapped as n*0.5+0.5, with w = 1.0 on every vertex. The 1/255 comes from half
+rounding.
+
+The levelstream chunks that failed during this check are covered under "Draw ranges into absent resource blocks" above.
+
+#### PS3 vehicle bodies: the damage stream (stream 3)
+
+288 of the 306 PS3 `veh_*` effects have no POSITION input: their vertex input declaration lists TANGENT 0 and BINORMAL 0 on stream 3 (annotation `stream` 3, F16_4). The translated programs take the body's position from TANGENT and its normal from BINORMAL; only `veh_alloy*` (rims) and `veh_shadow*` (18 effects) read POSITION. No other PS3 effect uses a stream the engine generates at run time: across the 820 effects, the only `stream` annotations are these. The level vertex colours (`instancemode instance`) come from the level files.
+- *PS3 build.* `C_VehicleModel` creates the stream under `PLATFORM_PS3` (`vehicle/source/VehicleModel.cpp:255-351`): one dynamic primitive stream per body primitive (`streamIndex` 3, `vertexOffset = (offset / stride) << 4`) and one buffer per body vertex buffer, 16 bytes per vertex, initialised to x = y = z = 0.0 and the U32 0x80000000. It destroys them at :478-486. The platform-neutral render path binds the stream (`scenegraph/source/Context.cpp:564-567`, `renderingdata/source/noninterface/target/context.cpp:303-310, 513-524`). The SPU job `SpuDamage::DamageTask` (`vehicle/source/damage/SPU/SPUDamageJob.cpp:642-801`) fills it. For each vertex it reads the position (F16_4, +0) and normal (SHHD_3N, +8) of stream 0, the morph offsets (TEXCOORD2/3, SHHD_3N), the control-point bytes (TEXCOORD4) and the colour's first byte. It adds the damage lattice (trilinear over 3 layers of 8x8 nodes), the control-point blend and the morph targets scaled by the deform level. It writes position.xyz with w = 2 x scratch, and normal.xyz with w = min(0.996, deform) + rear-light attenuation, as 8 F16 halves. `C_DamageLayer` kicks the job (`InitSPUDamage` `DamageLayer.cpp:149-262`, from `VehicleActor.cpp:6374-6376`; `FinaliseSPUDamageJob` :775-812) when `forceRun` is set. That happens at creation, in `SetUpdateInfoTexture` (:467), `ProcessDeformEvents` (:766), `Repair` (:2586), `RestoreDamageState` (:3497) and every frame while `m_UpdateVolumeTexture` is set (`UpdateDamageTextures` :688-692, which the PS3 never clears once set). `C_ContextManager::FinaliseContext` runs at most one job per frame (`m_MaxPerFrame = 1`, `SPUDamageContext.cpp:11, 56-65`; the count is zeroed at the start of `C_GameWorld::Update`, `GameWorld.cpp:2205-2207`). The PC build creates no stream 3 and deforms in the vertex shader, so for a PS3 source the body drew from an unbound stream and was invisible.
+- *Port* (`Blur1Multi/code/mercury/library/graphics/vehicle/source/damage/Ps3DamageStream.{h,cpp}`; overlay copies of `VehicleModel.cpp` and `damage/DamageLayer.cpp`, each PS3 branch mirrored under `GameSource::Current().m_Platform == E_Platform_PS3`). The stream-3 buffers and dynamic streams are created and destroyed as on the PS3. The body buffer bytes are read once when the stream is created (managed pool). The damage context is kept per layer; the five `forceRun` triggers, the `UpdateDamageTextures` branch and `ForceDamageContextToRun` are mirrored, as are `FinaliseSPUDamageJob` (including "if (!forceRun) SetUpdateVolumeTexture(false)") and the one-job-per-frame limit. A frame starts when a layer that already updated since the last start updates again, which matches the PS3 when every layer updates once per game-world update. `InitSPUDamage` runs on the layer's first `Update`: `C_VehicleModel::Initialise` has by then set the extents, built the height profile and filled the control points (`VehicleModel.cpp:220-224, :357`), and every vehicle model is created by `C_VehicleActor` (`VehicleActor.cpp:5493`). The job runs synchronously, reading the lattice as it is; the PS3's lattice double buffer (`SwapBuffers`) served only to give the SPU a stable copy.
+- *Job port* (`Ps3DamageJob::Run`): the vertex loop step by step, with scalar versions of the SPU-only helpers:
+  - `load_unaligned_float16_4`: the SPU's bit trick, not IEEE; half denormals and infinities decode as it did.
+  - `load_unaligned_SSHD_3N`: (word << {21, 10, 0}) & masks, / 2^31, one fused multiply-add with the listed scale and bias.
+  - `float32_to_float16` (Edge): truncation; below 2^-15 flushed to 0 without its sign; 2^16 and above clamped to 0x7BFF.
+  - `saturate`: through unsigned 0.32 fixed point, so 1.0 becomes 0.99999994.
+  - The SPU's single-precision rounding (towards zero, denormals flushed) is set for the duration of the job.
+  - Input comes from the converted declaration: F16_4 position and normal wherever the declaration puts them. The model converter writes SHHD_3N as F16_4 (x/1023, y/1023, z/511, 1); the job recovers the SHHD_3N word by rounding each component (exact: consecutive values are more than two F16 steps apart) and decodes it as the SPU did.
+  - Output is little-endian F16.
+  - Not reproduced: the SPU's saturation in place of infinities and NaNs, and the rsqrt-estimate `Normalised()` (here 1/sqrtf).
+- *Verification* (offline harness on 12 PS3 vehicle models converted by the engine converters, 165,879 body vertices in 67 buffers):
+  - Every SHHD_3N word (497,637) is recovered exactly from the converted F16_4.
+  - With a zero lattice and zero control points, the job's position halves equal stream 0's and w = 0 for 164,088 vertices. The other 1,791 components are halves below 2^-14, which the job's F16 store writes as 0 (as on the PS3).
+  - A Python transcription of the SPU source (float64 arithmetic; single precision rounded towards zero where a lattice cell index depends on it) agrees with the port to at most 1 F16 unit in the last place: 22 of 1,327,032 output halves undamaged, 257 of 1,327,032 with a random lattice and control points.
+- *Unknown*: the SPU `Normalised()` and estimate-based results bit for bit. The byte the SPU read when a buffer has no colour element (`addr[UINT_MAX]`, the byte before the vertex in local store; here 0). Control-point indices past the 18 fetched (here entry 0). None of these three cases occurs in the vehicle data checked.
+
+#### PS3 effects
+
+The PS3 exporter (`fx/source/targets/ps3fx.cpp`, `NglPs3Fx::IsBigEndian`) writes the same `FX::Effect` graph as PC and 360 (version 9), big-endian, in a `PS3FX` block; all 820 retail PS3 effects parse to their last byte with the 360 converter's graph reader. Against the retail PC effects of the same name: names, structs and pass annotations are identical (820); parameters and parameter data identical in 516 (the PS3 sets the sampler sRGB bit as PC does, `SamplerStates.cpp:25`); vertex input semantics identical in 507 and already in the PC numbering (no usage shift); technique lists identical in 312 (PS3 adds `MaterialAlphaLuminance`, `...Lights`, `...LOD`; it has no `*NoDamage` or, in 304 effects, `MaterialPrepass`); render states identical in every one of the 3,359 techniques present on both sides once word 14, `ColorWriteEnable`, is mapped from the GCM colour mask (A bit 24, R bit 16, G bit 8, B bit 0; `ngl/ps3/ngl_ps3_gpu_types.h:629-634`) to D3D. No PS3 vertex program samples a texture (PC has 864 passes with a vertex sampler: vehicle damage).
+- *Programs* are CGB blobs (`sce-cgc -mcgb`, `ps3fx.cpp:300-343`); the SDK header is not in the tree. Layout (measured; all 7,574 program instances parse to their last byte): `"CGB\0"`, U32 0, U16 ucode size, U8 kind (0 vertex, 1 fragment), U8 3, 16-byte configuration (VP: U16 attribute input mask, U8 temp count?, U32 attribute output mask; FP: U32 attribute input mask, U16 texCoordsInputMask, U16 texCoords2D, U16 centroid, U32 fragmentControl), U32 (FP: register count in the top byte?), ucode at 0x20, a constant table (U16 block size, U16 n, U16 registers, float4 values; VP literals uploaded per draw, `GCMFunctions.inl:1004-1016`; empty in every FP), and a parameter map (entries {type, name, parent, resource}; FP uniforms point into a U16 table of {register, n, byte offsets of the n embedded copies}). RSX fragment programs have no constant registers: uniforms are float4 literals embedded after the instruction that reads them, patched per draw by name (`fx/source/System.cpp:233-278`, `FxContext.cpp:542-640`); all 39,988 listed offsets land on such literal slots. Full field tables: `Blur1Multi/code/mercury/library/util/x360convert/source/RsxTranslate.h`.
+- *Converter* (`x360convert/source/Ps3EffectConvert.cpp`, `RsxTranslate.cpp`, written from the NV40/RSX layouts; RPCS3 and Mesa nouveau used as references only): each program is translated to HLSL and compiled with `D3DCompile` for vs_3_0 / ps_3_0; bindings are rebuilt: vertex parameters that sce-cgc placed at c256-c467 (unregistered parameters are allocated downward from c467) move to the lowest free registers (333 bindings), CGB constant-table literals become HLSL literals; fragment bindings (per struct member on the PS3, `Offset` in floats, 2,370 without a listed register) become one binding per parameter with `Offset` 0 (the PC loader asserts it, `System.cpp:210`), at the listed register when it fits c0-c223, else allocated (2,370); every embedded copy the map lists for a bound member reads `C[register]` (40,726 of 67,414 fragment literals), the rest stay literals as they did on the PS3.
+- *Sampler dimension.* A fetch names only a texture unit and the effect records no sampler type. From the programs alone, of 3,613 effect/sampler pairs 246 are proven to read at most 2 coordinates, 808 read 2 by swizzle pattern and 2,369 are undetermined. Rule chosen by the user (2026-09-25): a sampler is a cube when its packed AddressW (bits 6-8 of the sampler-state word, `Fx_export.cpp:512-527`) is non-zero, 2D otherwise. It rests on how the retail effects were authored: in the source snapshot AddressW is set in exactly three sampler declarations, all cube (`amax/game/Shaders/Common/Lighting.h:66-78` `g_tEnvironment`; `graphics/vehicle/include/vehicle/shaders/vehicle_common.h:594-617` `g_sVehicleEnvironmentTexture`, `g_sLightEnvironmentTexture`), and in the 820 PS3 effects AddressW is non-zero for exactly those three names (780, 960 and 560 bindings) and zero for all other sampler bindings. No PS3 fragment program samples a volume texture.
+- *Semantics taken* (sources in `RsxTranslate.cpp`): DIVSQ = a / sqrt(|b|) and 0 where a is 0; RSQ uses |x|; COL0/COL1 inputs clamped to [0, 1]; texCoords2D-flagged coordinates read z = 0, w = position w; src2 bit 31 ("disable perspective-correct interpolation", Mesa; RPCS3 multiplies by 1/w) reads the input divided by w (4,228 reads, all under NRM/DIV/DP4/DIVSQ); for these every translated vertex program also writes its position w to TEXCOORD9. Condition codes (2 registers, per-component conditional writes, KIL = discard if any), source precision clamps, destination scale, saturate, VP dual issue (both halves read before either writes), VP relative constant addressing (skinning) and VP BRI (forward, 2 programs: `cs_eye_skin_ln`, `_nv`) are translated. Half-precision (H) registers are translated as float. H(2n) and H(2n+1) alias R(n).xy / R(n).zw; the translator keeps them as separate variables and proves per component read that no read crosses views (none does once `MOV Rn.m, Rn.m` self-copies are dropped: they copy the same bits). FP output: R0 (fragment control 0x40, every program) to COLOR0; R2-R4 to COLOR1-3 only as a contiguous prefix and only when the register's final content came through the R view (GCM render-target sets are contiguous, D3D9 requires contiguous outputs).
+- *Verification* (`code/tools/ps3shader-verify`, `_work/tools/build_ps3shader_verify.bat`): all 820 effects convert, 7,574 programs translate and compile (112,802 vertex and 157,846 fragment instructions; 9,553 2D and 2,300 cube sampler bindings; 410 KIL, 16 vertex branches). `code/tools/xmem-verify/fxbcmp.py <converted> <pc> --by-technique`: of the 3,359 techniques on both sides, pass names and render states match in all; bound parameter sets match PC in 2,223 (vertex) and 2,415 (fragment) — the differences are PC-only `g_vHalfPixelOffset` (666 fragment programs), PC-only vehicle damage bindings (vertex textures, `g_vCodeDamageScale`, `g_vControlPoints`), PS3-only `g_vNearFar`/`g_tAlbedo` in some passes; registers and counts differ where fxc and sce-cgc allocated differently. Math read against the retail PC bytecode (D3DDisassemble) for `advert_ln` Material (VS and PS), `advert_ln` MaterialPrepass PS (KIL) and `cs_default_skin_ln` Material VS (skinning): same operations and constants, except where the PS3 source differs by design (below).
+- *Differences the engine will meet* (not converter faults): (1) the PS3 prepass writes one target, normal.xy * 0.5 + 0.5 and view depth packed into z/w as two 8-bit fractions (`advert_ln` MaterialPrepass: `floor(z * 255) / 255`, `frac(z * 255)`), where the PC prepass writes normal.xyz to oC0 and z/w to oC1: PC deferred consumers will misread a PS3-effect G-buffer; (2) no PS3 program uses `g_vHalfPixelOffset`, so screen-space fetches are not half-pixel corrected for D3D9; (3) the translated vertex programs read the PS3 vertex encodings (for example `advert_ln` normals are used as stored, where the PC program decodes `v * 2 - 1`). Of the PS3 element types only SHHD_3N fetches differently on D3D9 (RSX CMP: signed 11:11:10 normalised, w = 1; `display2/source/context/GCMContextSPU.cpp:1035-1048` against `display/include/display/device/d3d9/D3D9DeviceTypes.h:731-790`); for a PS3 source the model and level converter therefore writes every SHHD_3N element as F16_4 (x/1023, y/1023, z/511, 1), so D3D9 fetches what the RSX fetched and the translated programs need no decode. SHHD_3N could not be decoded per semantic in the programs: over every vertex declaration of the 1,540 PS3 models and of the scene and levelstream chunks of the 21 PS3 levels (12,576 vertex buffers) it occurs on NORMAL 0 (11,182, the only type there) and TEXCOORD 2 (449, the only type there), but also on TEXCOORD 1 (1, beside F16_4 1,386, U8_4N 532, F16_2 180) and TEXCOORD 3 (448 on vehicles and perks, beside U8_4 598 bone indices on characters, F16_4 1,084, F16_2 826, F32_4 1). Other types fetch alike on both (F32 F/FLOAT, U8_4 UB256/UBYTE4, U8_4N UB/UBYTE4N, F16 SF/FLOAT16, S16 S32K/SHORT); S16_2N (S1/SHORT2N) and Colour (UB/D3DCOLOR) differ but do not occur. Vertex attribute semantics: the PS3 engine binds a declaration element to RSX attribute slot usage + index (`display2/include/display2/context/GCMFunctions.inl:911-959`, GCM usages `GCMContextSPU.h:480-493`: 0 POSITION, 1 BLENDWEIGHT, 2 NORMAL, 3 COLOR, 5 FOG, 6 PSIZE, 7 BLENDINDICES, 8 TEXCOORD, 14 TANGENT, 15 BINORMAL); the translator inverts it (slot 8 + n = TEXCOORDn). Every one of the 16,071 attribute reads of the translated vertex programs maps back to an entry of its effect's vertex input declaration (POSITION 0, NORMAL 0, TEXCOORD 0-5, TANGENT 0, BINORMAL 0, COLOR 0; the 288 vehicle effects read their position and normal as TANGENT/BINORMAL from stream 3); (4) PS3 vehicles have no vertex-texture damage and no `*NoDamage` techniques.
+- *Fixed 2026-09-25, trees missing in the PS3 showroom:* the translated programs declared the whole constant file (`float4 C[256]` / `C[224]`). For a program with relative addressing fxc keeps the whole array and places the program's literals (`def`) after it, at c256 and up, past the 256 vertex constants of shader model 3, so the device could not create the shader: all 591 such vertex program instances (124 effects: every skinned `cs_*_skin`, `default_skin*` and SpeedTree/foliage program using `g_mWind`) were unusable, which removed the SpeedTree trunks and canopies. The array now ends at the highest register the program reads (the whole binding for a relatively addressed one), so fxc's literals follow it inside the constant file, and the converter rejects any compiled program with a `def` past c255 / c223 (none after the fix). Checked: the SpeedTree/foliage programs' math, bindings (`g_mWind` c44-c59, `g_mLeaf` c60-c75) and input semantics against the retail PC bytecode match; the attribute map round-trips for every declaration (above). Effects cached before the fix keep the broken programs: the PS3 shader cache must be discarded (converter tag bump in `X360ConvertFs.cpp`).
+- *Unknown*: CGB word 0x04, content byte bits, the VP configuration byte read as a temp count, bit 0x400 of FP map resources, map entry type field, fragmentControl bit 0x400; the hardware result of VP LG2 at 0 (RPCS3's clamp to 1e-10 taken) and of NRM on a zero vector (plain `normalize` taken); whether any effect relies on hardware depth-compare fetches.
+
+#### PS3 textures
+
+Paths below are relative to `Blur1PC/code/mercury/library/` unless given in full. Converter: `Blur1Multi/code/mercury/library/util/x360convert/source/Ps3Texture.{h,cpp}`, reached through `ConvertTexturePayload`, `ConvertTextureLodHeader` and `ConvertTextureLodData` (`TextureConvert.cpp`) and `ConvertBundle` (`BundleConvert.cpp`) when `GetSource() == E_Source_PS3`.
+
+**Serialised form.** `NglPs3Tex::SerialOutTexture` (`graphics/texture_export/source/targets/ps3tex.cpp:859-1022`) writes the `CellGcmTexture` fields one by one, big-endian (`ps3tex.cpp:845-850`; struct at `texture_export/source/targets/ps3/cell/gcm.h:512-528`):
+
+| off | type | field |
+|---|---|---|
+| 0x00 | U16 | width |
+| 0x02 | U16 | height |
+| 0x04 | U8 | mipmap (level count) |
+| 0x05 | U8 | format: `CELL_GCM_TEXTURE_*` (`gcm.h:120-149`), plus `LN` 0x20 for linear |
+| 0x06 | U8 | dimension (2 for 2D and cube) |
+| 0x07 | U8 | cubemap |
+| 0x08 | U32 | remap (`CELL_GCM_REMAP_MODE`, `gcm.h:548`) |
+| 0x0C | U16 | depth (6 for a cube; the runtime forces 1, `GCMTextureLoad.cpp:101-102`) |
+| 0x0E | U32 | pitch (0 when swizzled) |
+| 0x12 | U32 | offset (0) |
+| 0x16 | U32 | image size |
+
+The image follows immediately. The 26 bytes replace the 360's 64-byte Xenon header. `.texture` "Data" blocks and font pages are header + image; `LodWriter<Texture>` writes the 26 bytes (JUST_HEADER) and the image (JUST_DATA) separately. The image is ZLIB-compressed (`renderingdata/source/noninterface/build/archive.cpp:446-481`, `lods.cpp:47-78`): lod 0 holds the header's whole chain and a later lod holds one level. `.texture`, `.font` and `.bpr` files carry no platform FourCC.
+
+**Formats.** A texture's identity is (pixel format, remap), from `Ps3TexelFormats` (`ps3tex.cpp:44-108`) and the remaps in `ngl_ps3_gpu_types.h:161-274`:
+
+| GCM format | remap | PC D3DFORMAT |
+|---|---|---|
+| 0x86 | 0xAAE4 or 0xA9E4 | DXT1 |
+| 0x87 | 0xAAE4 | DXT3 |
+| 0x88 | 0xAAE4 | DXT5 |
+| 0x81 | 0xAAE4 | L8 |
+| 0x81 | 0x56FF | A8 |
+| 0x8B | 0xAAFE | A8L8 |
+| 0x85 | 0xAAE4 / 0xA9E4 / 0xAA6C / 0xA96C | A8R8G8B8 / X8R8G8B8 / A8B8G8R8 / X8B8G8R8 |
+| 0x82 / 0x9D / 0x84 / 0x83 | 0xAAE4 | A1R5G5B5 / X1R5G5B5 / R5G6B5 / A4R4G4B4 |
+| 0x9A / 0x9B | 0xAAE4 | A16B16G16R16F / A32B32G32R32F |
+
+The A1B5G5R5 entries are not converted: the table gives them D3DFMT_A1R5G5B5 although the remap exchanges red and blue.
+
+**Image layout** (`ps3tex.cpp:955-1008`):
+- **DXT:** never swizzled and never byte-swapped. The blocks are the PC bytes. Power-of-two DXT is packed tightly with pitch 0. NPOT DXT is marked LN (0xA6 in the data) and uses the pitch of its top level.
+- **Other formats without LN:** swizzled with `GCMSwizzleSurface` (`ps3tex.cpp:387-431`). The order is Morton: offset bit 2b is x bit b, bit 2b+1 is y bit b. It applies inside a min(w,h) square; a non-square level is a run of squares along its longer side, and texels over 32 bits are swizzled as 32-bit units.
+- **LN formats:** rows at the top level's pitch at every level (`ps3tex.cpp:996-999`).
+- **Texel byte order:** after layout, texels are stored big-endian per `GCMEndianSwapSurface` (`ps3tex.cpp:298-385`): 16-bit formats per U16, A8R8G8B8 per U32, float formats per component, B8 and DXT untouched.
+- **Mip dimensions:** `max(1,(n+1)/2)`, counted in 4x4 blocks for DXT.
+- **Cube maps:** face-major, each face ending on a 128-byte boundary (`ps3tex.cpp:1005-1007`).
+- **Volume textures:** the exporter does not write them (`ps3tex.cpp:874-878`).
+
+**PC side.** The PC side is `TextureDesc` plus levels (`D3D9TextureLoad.cpp:83-122`). Each level is read at `D3D9Texture2DSize` (`display/include/display/device/d3d9/D3D9DeviceTypes.h:590-667`), which rounds it up to 4 bytes; the PC exporter writes the same size (`texture_export/source/targets/pctex.cpp:105-116`). The pad bytes and `TextureDesc.Usage` in retail PC files are uninitialised writer output; the converter writes zeros.
+
+**Bundles (`.bpr`).** Platform byte 4 (`E_Platform_PS3_LibGCM`). The PS3 bundler options (`tools/ResourceBundler/source/Bundler.cpp:276-282`) are: texels not swapped, not tiled, and resources aligned to 128. Level sizes are `floor(w/blockW)*floor(h/blockW)*bytesPerBlock` (`ProcessedMipmapChain.cpp:139-143`), so DXT levels under 4 texels take 0 bytes on PS3 and PC alike. L8 and A8R8G8B8 rows use the top level's pitch (`ExportArrayOfTextures2DGeneric.cpp:44-53, 183-208`; runtime `ResourceBundleSingle.cpp:201-212`). PC keeps the same levels without the row padding, back to back. Trailing zero bytes after the data (PC 16 to 1870, PS3 640 to 1920) are not read by `ResourceBundleReaderImpl3`.
+
+**Verification** (`_work/tools/x360convert_verify.exe _work/extract/ps3 _work/extract/pc --ps3`, 2026-09-25):
+- **`.texture`:** 386 converted; 385 identical to PC with Usage masked; 1 with no PC file (`graphics/textures/particles/1flare.texture`).
+- **`.font`:** 2 converted, 2 identical.
+- **`.bpr`:** 11 converted, 1 identical (`ui_game`), 4 with no PC file (`ui_ps3_install`, `ui_font_ea`). 6 differ:
+  - `ui_frontend` and `ui_font_eur` (root and boot_rampak copies) equal PC up to PC's trailing zero bytes, with resource flags masked.
+  - In `ui_common`, PS3 adds `ps3_pad` and has different `xbox360_buttons` texels (32 of 16384 DXT5 blocks equal); its other 62 resources are identical.
+
+LOD textures, compared in Python against retail PC after zlib inflation, then with the C++ entry points on the 4735 blocks of `showroom` and `usa_amboy`:
+- **Vehicle models:** 3932 of 3932 blocks are identical.
+- **Level streams:** 152028 of 154823 blocks are identical, across the 19 levels that have a retail PC version. The differing blocks are platform-specific content with the same names and sizes, not layout: `lightmap_main_*`, `lightmap_route_*`, `crowdatlas*`, and lod>0 blocks that could not be paired by name.
+
+The swizzled 1024x4 A8 chain with 11 levels in `usa_amboy` matches in every texel; only the PC pad bytes of its 2x1 and 1x1 levels differ.
+
+**Formats present in the data:**
+- **`.texture`:** DXT1 213, DXT5 67, DXT1-LN 15, A8R8G8B8 swizzled 4, DXT3 2, A8 swizzled 1.
+- **Font page:** A8 swizzled 512x512.
+- **Models and levels:** DXT1 and DXT5 power of two, plus the one A8 chain.
+- **Bundles:** DXT1, DXT5, A8R8G8B8 and L8.
+
+**Unverified by data.** No retail file exercises cube maps, LN chains with more than one level, A8L8, the 16-bit and float formats, or non-square swizzles of more than one byte per texel. The converter follows the exporter source for these. The exporter's mip sizes `(n+1)/2` and the PC loader's `n>>1` differ for NPOT chains; the converter refuses such a level (the PC exporter does not mip NPOT textures, `pctex.cpp:285-290`).
+
+#### Console audio: banks and audio objects
+
+Retail Blur 1, PS3 and Xbox 360 against retail PC (extracts under `Blur1Multi/_work/extract/`). Audio source paths are relative to `Blur1PC/code/mercury/library/audio/source/`.
+
+**Audio banks (`.baf`, tag `BANK`).** All three platforms use the same container, `BANK` version 4 (`common/WaveBank.h`, read by `common/WaveBankReader.cpp`):
+
+- Layout: a 0x34-byte bank header, then one `WAVE` chunk per wave, then one `DATA` chunk per wave in the same order. Each `WAVE` chunk is a 60-byte base header plus a format-specific extra header.
+- Byte order: PS3 and 360 write it big-endian (`chEndian` = 1). The game reader never swaps; `NON_NATIVE_BANK_READING_SUPPORT` is defined only in the BankInfo tools, and its extra-header swaps do not match the retail files.
+- Data placement: in-memory banks pack the `DATA` chunks back to back. Streaming banks start every payload on a 2 KB boundary; each `DATA` header sits at `uDataStart - 8` behind zero padding.
+- Formats (`common/SampleTypes.h`): PC and PS3 use 7 (4-bit ADPCM, 16-byte extra header) plus four PCM S16 waves (format 3, 20 bytes). The 360 uses 8 (XMA, 32 bytes) and 9 (XMA2, 32 bytes plus a big-endian seek table) plus the same PCM S16 waves.
+- ADPCM codec (`core/decoderadpcm4bit.cpp` `DecodeBlock`): VAG-style, 33-byte blocks of 64 samples, stereo as an L block then an R block. It is read byte by byte, so the payload has no byte order. PS3 (SPU) runs the same scalar decode as PC; `DecodeBlock3` returns before its SPU vector body.
+- Header swaps: in the PS3 ADPCM extra header only `uSize`, `uSampleRate` and `uNrSamples` are big-endian; the four U8 fields are untouched. PCM S16 samples are big-endian on PS3. PS3 and 360 never read them (`m_bTempAmaxNullFileReadHack`, `WaveBankManager.cpp` ~568); PC does.
+- Mounting: PS3 `root_streaming.pak` stores `audio/<bank>` and is mounted at `/` (`amax/game/GameSystems.cpp`, `PLATFORM_PS3`). PC stores the banks at the pak root and mounts at `/audio/`. PS3 `boot_rampak.pak` audio is a byte copy of the same files in `root.pak`.
+
+PS3 against PC, 192 shared banks and 2,690 waves:
+
+- All 265 `root_streaming` waves and the 19 waves of the four `root` music banks are byte-identical.
+- Every wave in the other 121 `root` banks was re-encoded at a lower rate with the same duration: 1,592 at 48→36 kHz, 680 at 36→24 kHz, 134 at 48→24 kHz.
+- All other header fields match on every wave.
+- `menumusic.baf` and `menumusic_ns.baf` store their waves in a different order. Waves are looked up by name (`WaveBankManager.cpp` 253/449/823), so the order has no effect.
+- PS3 flags 35 more `root_streaming` banks as streaming (54 against PC's 19). Their payload is identical; PC keeps them in memory.
+
+`BafConvert.cpp` (PS3 only) swaps the headers and the PCM samples and keeps the PS3 layout. 34 of 192 banks come out byte-identical to PC. Repacking the 35 streaming banks into PC's in-memory layout would give 69; the converter does not repack. The remaining banks differ only by the PS3 re-encode and wave order. Two points are untested: how the 24 kHz ADPCM sounds on the PC mixer (retail PC only plays 36 and 48 kHz), and the stream count with 54 streaming banks.
+
+**Audio objects (`audio/dat/*.dat`, tag `AOBJ`).**
+
+- Reader: `Definition.cpp:73-128`, and the component walk `Object.cpp:449-1120` (`CalculateComponentFootprint`).
+- Writer: `Blur1PC/code/mercury/tools/Audio/XMLtoDat/audioDatafile.cpp:720-800`.
+- Header: six U32s. The tag is read as the U32 0x414f424a, so PC files begin with "JBOA". Then version 2.11 (`include/Audio.h:61`), string-table offset, name offset, component count and frame skip.
+- Components: each is a U32 type (`components/Component.h` enum `Types`) followed by its `Data` struct. The walk advances by `<Class>::DataSize`: `sizeof(Data)`, plus trailing arrays for 33 classes. Those arrays are effect lists (U32), mixer `InputGain` rows, `Array`/`Selector`/`Sequence` elements, function points, state items, sound-table waves and script words. Their counts are U16 `ArraySize` members, and effects come before inputs or waves (`MonoToMonoMixer.cpp:25`, `MonoOneShotSoundTable.cpp:33`).
+- Field types (`Component.h:62-68`): `StrOffset`, `AudioFloat` and `AudioInt` are 32-bit; `ArraySize`, `Com`, `Out` and `Msg` are 16-bit; `Control`/`Event` = two 16-bit fields; `Option` = `Control` + F32.
+- Exporter byte order: header, type words, effect lists and script bodies are written as swapped U32s (`CommandLineApp.h` `WriteBytes`). Data members go through per-width convertors (`XMLtoDat/DataTypeConversion.cpp`). So each field is swapped at its own width. A flat 4-byte swap matches none of the 365 files, and a script body is a plain stream of U32 words.
+- Mixer flags: `MixerComponent::Flags` (`Component.h:728`, a U32 bitfield) holds `10 00 00 00` in every console mixer (225) and every PC mixer (337). The reader uses only `nSurroundMode`, which is 0 from those bytes under both bitfield layouts. How any other value maps is unknown.
+- Padding: struct padding holds leftover exporter memory, often string fragments. It differs between builds and nothing reads it.
+- Types in use: 85 component types on the consoles, 87 on PC (PC adds `StereoSend` and `StereoReturn`).
+- Files: PS3 and 360 ship 371 files each, byte-identical except `finalperksubmix.dat`. PC ships 365; the six extra console files are `collisioncar3dmixer`, `collisionscrape3dmixer`, `collisionworld3dmixer`, `do_concrete_fence_chain`, `do_vehicle_alarm` and `po_metalalloyrim`.
+
+`AobjConvert.cpp` swaps every field at its reader width, from a table generated from the headers:
+
+- The table has 111 component classes, each line citing its `Data` struct and `DataSize`. Its layouts walk every retail PC, PS3 and 360 file exactly to its string table.
+- The mixer flags word is copied, and any value other than `10 00 00 00` fails the file.
+- Struct padding and the string table are copied.
+- An unknown type fails the whole file, as does `eSurroundDelay`, which has no data size in `Object.cpp:1015`. So does any component that runs past the string table, or a walk that does not end exactly on it.
+
+Converted against PC:
+
+| Group | PS3 | 360 |
+|---|---|---|
+| Byte-identical | 123 | 124 |
+| Every field equal, only struct padding differs | 60 | 60 |
+| Same component list, some values differ | 6 | 5 |
+| Different graph (component count differs) | 176 | 176 |
+| No PC file | 6 | 6 |
+
+The 360-only extra identical file is `finalperksubmix.dat`. The value differences are content:
+
+- `ai_wheel_dry`, `ai_wheel_offroad`, `wheel_dry`, `wheel_offroad`: a script whose words are the same multiset with a five-word block moved.
+- `system.dat`: four `Array` values, 0.5 on the consoles and 0.7 on PC.
+- PS3 `finalperksubmix.dat`: two function points, 8.0 on PS3 and 3.0 on PC and 360.
+
+The 176 different graphs are the vehicle engine, exhaust and controller objects (per make, player and AI) and `race_*`. PC has more components in 118 and fewer in 58, consistent with PC's own vehicle audio (XT `AudioEntities.bin` differs the same way). In the 189 (PS3) / 189 (360) files with PC's component list, no field is byte-reversed or half-swapped relative to PC. The verifier (`x360convert_verify --ext .dat`) lists 4 "failed": these are `ui/data/ui_font_ea.dat` and `ui_font_eur.dat` (root and boot_rampak), which are not `AOBJ` and pass through as NotHandled.
+
+**Other audio files.**
+
+- `datbanklists.wbl` is identical on all three platforms.
+- PS3 `audio/env_crowd_party - copy.bin` is an unreferenced byte copy of its `root_streaming` bank.
+- `gamedata/xt/Audio.bin` and `AudioEntities.bin` are byte-identical between PS3 and 360, so the XT flask converter covers both.
 
 ### Resources and chunk files
 - `Resource::C_Manager` keyed by normalised filename; `C_LoadingThread`; states Constructed → InLoadQueue → Loading → PostLoading → Ready → Evicting → Deleted; eviction delay.

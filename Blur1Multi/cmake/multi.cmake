@@ -58,8 +58,13 @@ add_library(x360convert STATIC
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/FlaskConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/BundleConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/LocConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/BafConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/AobjConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XenosTexture.cpp
-    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/EffectConvert.cpp)
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/Ps3Texture.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/EffectConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/Ps3EffectConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/RsxTranslate.cpp)
 target_include_directories(x360convert PUBLIC ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/include)
 
 # Xenos shader microcode -> Direct3D 9 shader model 3 HLSL (T074, D03): the
@@ -96,4 +101,14 @@ target_link_libraries(Amax PRIVATE x360convert)
 target_sources(RenderingData PRIVATE
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/SceneTranscode.cpp)
 target_include_directories(RenderingData PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine)
+# PS3 scene archives: ZLIB_COMPRESSION blocks are inflated with the engine's zlib (T076)
+target_include_directories(RenderingData PRIVATE ${BLUR_TOP}/code/vendor/zlib/current_mercury)
 target_link_libraries(RenderingData PRIVATE x360convert)
+
+# PS3 sources: the vehicle body's stream 3 (T076). The PS3 vehicle effects read the
+# body's position and normal from a stream the PS3 build filled with an SPU job;
+# Ps3DamageStream.cpp is its CPU port, used by the overlay copies of VehicleModel.cpp
+# and damage/DamageLayer.cpp when the game source is a PS3 disc.
+target_sources(vehicle PRIVATE
+    ${BLUR_OVERLAY}/code/mercury/library/graphics/vehicle/source/damage/Ps3DamageStream.cpp)
+target_link_libraries(vehicle PRIVATE gamesource)

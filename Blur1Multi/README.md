@@ -1,8 +1,8 @@
 # Blur1Multi — phase 2: Blur 1 from any platform's data
 
 This project builds the Blur 1 engine and game from `../Blur1PC/code` and adds
-support for data written by other platforms: Xbox 360 retail Blur first, PS3
-later. It holds no copy of the engine. Deleting this folder leaves Blur1PC
+support for data written by other platforms: Xbox 360 and PS3 retail Blur
+(`--source=<dir>`). It holds no copy of the engine. Deleting this folder leaves Blur1PC
 untouched; improvements made in Blur1PC reach this build at the next generate.
 
 ## How the layering works
@@ -62,11 +62,13 @@ The user's exe for this phase is `_work/run/Amax.exe` here (`play.bat`).
 `code/mercury/library/util/gamesource/` (new library `gamesource`) detects
 what a data directory is: PC (little-endian `cache/root.pak`), Xbox 360
 (big-endian pak beside an `.xex`), PS3 (`PS3_GAME/USRDIR`). The overlay
-copy of `amax/game/GameSystems.cpp` calls `GameSource::Select` at the start
-of `CreateFsLayers`: `--source=<dir>` or `BLUR_SOURCE`, default the working
-directory (retail behaviour). PC data becomes the working directory; any other
-platform is reported and the game exits with code 3 until its data layer
-exists (board tasks T070+). An Xbox 360 source now mounts (below).
+copy of `amax/game/GameSystems.cpp` calls `GameSource::Select` in
+`Initialise`, before `CreateGameFs` makes the working directory layer 0:
+`--source=<dir>` or `BLUR_SOURCE`, default the working directory (retail
+behaviour). The source becomes the working directory (a PS3 disc root moves
+into `PS3_GAME/USRDIR`). PC data is served as retail; Xbox 360 and PS3 sources
+get the console mounts and the converting layer (below). An unknown source is
+reported and the game exits with code 3.
 
 ## Xbox 360 paks (T071)
 
@@ -100,13 +102,44 @@ dependencies) and are checked against retail PC with
 (`xmem_verify --extract`, `paklist_pc.py --extract-all`):
 
 ```
-x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>]
+x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>] [--ps3]
 ```
 
 Done: `.texture`, `.font`, `.particlemesh`, XT flasks (`.bin`/`.xt`), resource bundles (`.bpr`), localisation (`.loc`), animation cycles and skeletons (`.cycle`, `.skeleton`, through the engine's own readers in `engine/EngineConverters.cpp`). By
 default a 360 source still stops after mounting; `BLUR1MULTI_X360_CONTINUE=1`
 boots on (`_work/run/run_x360.ps1`). Details and results: docs/analysis.md
 "Xbox 360 -> PC conversion".
+
+## PS3 (T076)
+
+A PS3 source (`PS3_GAME/USRDIR` with a big-endian `cache/root.pak`; point
+`--source` at the disc root) gets the same console mounts as the 360 (both
+console builds compiled `USE_NEW_PAK_LAYOUT`): its paks are v1 big-endian with
+PacketZLib payloads, which the engine's pak code reads as it is. The same
+converting layer serves it, told the source with `X360Convert::SetSource`:
+
+- shared with the 360 byte for byte, converted by the same code: XT flasks,
+  `.loc`, `.cycle`, `.skeleton`, `.particlemesh`, `.dat` audio objects
+  (`source/AobjConvert.cpp`, both consoles);
+- models and levels: the 360 scene transcoder, with PlatformType PS3, zlib
+  Serialiser blocks and U8_4 elements already in PC order (`engine/SceneTranscode.cpp`);
+- GCM textures in `.texture`, fonts, bundles, models and levels
+  (`source/Ps3Texture.cpp`);
+- audio banks (`source/BafConvert.cpp`): the PS3 uses PC's ADPCM, so only
+  headers and PCM samples are swapped; streaming banks are patched as they are
+  read, never held whole;
+- effects: RSX vertex and fragment programs (CGB) translated to HLSL and
+  compiled for shader model 3 (`source/Ps3EffectConvert.cpp`,
+  `source/RsxTranslate.cpp`), cached in `_work/run/shadercache/ps3/`.
+
+Checks: `x360convert_verify <ps3 extract> <pc extract> --ps3`,
+`ps3shader_verify`, and engine dumps (`run_dump.ps1`, `modelcmp.py`,
+`levelcmp.py`) over `_work/extract/ps3` (made with
+`code/tools/xmem-verify/paklist_pc.py <pak> --extract-all <dir>`, which reads
+big-endian paks too). A PS3 source stops after mounting unless
+`BLUR1MULTI_PS3_CONTINUE=1` (`_work/run/run_ps3.ps1`, source
+`_work/sources/ps3_retail`, junctions to the disc). Details and results:
+docs/analysis.md "PS3 -> PC conversion".
 
 ## Automated runs
 

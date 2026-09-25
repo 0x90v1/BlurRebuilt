@@ -100,9 +100,9 @@ namespace X360Convert
 		{
 			out.clear();
 			out.reserve(inSize + inSize / 2);
-			if (inSize < 4 || memcmp(in, "360 ", 4) != 0)
+			if (inSize < 4 || memcmp(in, SourceFourCC(), 4) != 0)
 			{
-				error = std::string("not a 360 ") + rootId + " file";
+				error = std::string("no ") + SourceFourCC() + "FourCC: not a console " + rootId + " file";
 				return false;
 			}
 			out.insert(out.end(), (const unsigned char*)"  CP", (const unsigned char*)"  CP" + 4);

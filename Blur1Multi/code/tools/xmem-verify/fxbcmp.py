@@ -3,7 +3,12 @@
 fxbcmp.py - compare converted PCFX effects (x360shader_verify --write) with the
 retail PC .fxb of the same name, field by field (fx/effect.h, version 9).
 
-  python fxbcmp.py <converted dir> <pc shaders-speed dir>
+  python fxbcmp.py <converted dir> <pc shaders-speed dir> [--by-technique]
+
+--by-technique (for converted PS3 effects, T076, whose technique lists differ from
+PC's in 508 of 820 effects): also compares the techniques present on both sides by
+name: pass names, render states, and each program's bindings by parameter name
+(the parameter set, then name + type + register + count).
 """
 import collections
 import os
@@ -51,7 +56,7 @@ def effect(d):
         n = r.u32()
         b = r.vec(binding)
         code = r.raw(n)
-        return {'bindings': b, 'size': n}
+        return {'bindings': b, 'size': n, 'code': code}
 
     def pass_():
         return {'name': r.string(), 'states': [r.u32() for _ in range(35)], 'vs': function(), 'ps': function(),
@@ -77,7 +82,35 @@ def effect(d):
     return e
 
 
-def main(conv, pcdir):
+def bindings(e, fn, exact):
+    names = [p[0] for p in e['parameters']]
+    if exact:
+        return sorted((names[b[0]], b[2], b[1], b[5]) for b in fn['bindings'])
+    return sorted(set((names[b[0]], b[2]) for b in fn['bindings']))
+
+
+def by_technique(a, b, c, shown, f):
+    tb = {t['name']: t for t in b['techniques']}
+    for t in a['techniques']:
+        if t['name'] not in tb:
+            c['tech: only in converted'] += 1
+            continue
+        u = tb[t['name']]
+        c['tech: in both'] += 1
+        checks = {'tech: pass names': [p['name'] for p in t['passes']] == [p['name'] for p in u['passes']]}
+        if checks['tech: pass names']:
+            checks['tech: render states'] = [p['states'] for p in t['passes']] == [p['states'] for p in u['passes']]
+            for k in ('vs', 'ps'):
+                checks[f'tech: {k} bound parameters'] = all(bindings(a, p[k], False) == bindings(b, q[k], False) for p, q in zip(t['passes'], u['passes']))
+                checks[f'tech: {k} bindings exact'] = all(bindings(a, p[k], True) == bindings(b, q[k], True) for p, q in zip(t['passes'], u['passes']))
+        for k, v in checks.items():
+            c[k] += v
+            if not v and shown[k] < 2:
+                shown[k] += 1
+                print(f'DIFFERS {k}: {f} {t["name"]}')
+
+
+def main(conv, pcdir, technique_mode=False):
     pc = {f.lower(): os.path.join(pcdir, f) for f in os.listdir(pcdir)}
     c = collections.Counter()
     shown = collections.Counter()
@@ -105,9 +138,11 @@ def main(conv, pcdir):
             if not v and shown[k] < 2:
                 shown[k] += 1
                 print(f'DIFFERS {k}: {f}')
+        if technique_mode:
+            by_technique(a, b, c, shown, f)
     for k in c:
         print(f'{k:<24} {c[k]}')
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], '--by-technique' in sys.argv[3:])

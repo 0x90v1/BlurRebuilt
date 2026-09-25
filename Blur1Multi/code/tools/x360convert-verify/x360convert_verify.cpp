@@ -2,7 +2,9 @@
 // (code/mercury/library/util/x360convert) over an extracted retail 360 data set
 // and compares every result with the retail PC file of the same asset.
 //
-//   x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>]
+//   x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>] [--ps3]
+//
+// --ps3: the extract root holds PS3 data (X360Convert::SetSource(E_Source_PS3)).
 //
 // Extract roots hold <pak>/<pak path> trees (xmem_verify --extract,
 // paklist_pc.py --extract-all); a 360 file's PC counterpart is the same pak path
@@ -98,7 +100,7 @@ int main(int argc, char** argv)
 {
 	if (argc < 3)
 	{
-		printf("usage: x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>]\n");
+		printf("usage: x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>] [--ps3]\n");
 		return 2;
 	}
 	const std::string xroot = argv[1], proot = argv[2];
@@ -109,6 +111,8 @@ int main(int argc, char** argv)
 			onlyExt = argv[++i];
 		else if (strcmp(argv[i], "--write") == 0 && i + 1 < argc)
 			writeDir = argv[++i];
+		else if (strcmp(argv[i], "--ps3") == 0)
+			X360Convert::SetSource(X360Convert::E_Source_PS3);
 	}
 
 	std::vector<std::string> pcPaks;
@@ -174,6 +178,11 @@ int main(int argc, char** argv)
 		bool havePc = false;
 		for (size_t p = 0; p < pcPaks.size() && !havePc; ++p)
 			havePc = ReadFile(proot + "\\" + pcPaks[p] + "\\" + inPak, pc);
+		// PS3 root_streaming.pak keeps its banks under audio\ (mounted at /); PC's has them
+		// at its root (mounted at /audio/)
+		if (!havePc && _strnicmp(inPak.c_str(), "audio\\", 6) == 0)
+			for (size_t p = 0; p < pcPaks.size() && !havePc; ++p)
+				havePc = ReadFile(proot + "\\" + pcPaks[p] + "\\" + inPak.substr(6), pc);
 		if (!havePc)
 		{
 			++st.noPc;

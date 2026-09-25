@@ -7,6 +7,9 @@
 //              (U16 unicode, U16 texture page, F32 offset, height, width, UMin, VMax, UMax, VMin)
 //   "Texture": U16 page count, then each page as Display::LoadTexture2D reads it
 // Scalars are byte-swapped; pages go through ConvertTexturePayload.
+// PS3 fonts have the same blocks; ConvertTexturePayload reads their pages as GCM
+// textures when the source is PS3 (Ps3Texture.h). The retail debug font's page is
+// a swizzled 512x512 A8 and converts to the retail PC file byte for byte.
 
 #include <x360convert/X360Convert.h>
 

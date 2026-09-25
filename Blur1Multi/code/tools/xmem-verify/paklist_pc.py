@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-paklist_pc.py - list a retail PC pak (version 2, little-endian): one line per
+paklist_pc.py - list a retail PC pak (version 2, little-endian) or a PS3 pak
+(version 1, big-endian, same layout in its own byte order): one line per
 file with its logical size, first 16 bytes and path, the same format as
 `xmem_verify <pak> --list` prints for Xbox 360 paks, so the two can be joined.
 
@@ -17,6 +18,7 @@ import struct
 import sys
 import zlib
 
+E = '<'  # byte order of the pak being read: '>' for PS3 (and Xbox 360)
 CIPHER = b"xVXo40j3@$%\\%`"
 
 
@@ -32,9 +34,11 @@ def decrypt(b):
 def read_pak(path):
     f = open(path, 'rb')
     head = f.read(12 + 4 + 32)
-    magic, version, sector = struct.unpack('<4sII', head[:12])
-    if magic != b'2KAP' or version not in (1, 2):
-        raise SystemExit(f'{path}: not a little-endian v1/v2 pak ({magic}, v{version})')
+    global E
+    E = '>' if head[:4] == b'PAK2' else '<'
+    magic, version, sector = struct.unpack(E + '4sII', head[:12])
+    if magic not in (b'2KAP', b'PAK2') or version not in (1, 2):
+        raise SystemExit(f'{path}: not a v1/v2 pak ({magic}, v{version})')
     if version == 2:
         codec, fat_type = head[16], head[17]
         strpos = sector
@@ -43,22 +47,22 @@ def read_pak(path):
         codec, fat_type = head[16 + 20], head[16 + 21]
         strpos = 16 + 40
     f.seek(strpos)
-    ssz = struct.unpack('<I', f.read(4))[0]
+    ssz = struct.unpack(E + 'I', f.read(4))[0]
     strings = decrypt(f.read(ssz))
     pos = strpos + 4 + ssz
     pos += sector - (pos % sector)
     f.seek(pos)
-    count, fat_size = struct.unpack('<II', f.read(8))
+    count, fat_size = struct.unpack(E + 'II', f.read(8))
     es = (40 + (24 if fat_type == 1 else 0)) if version == 2 else (56 if fat_type == 1 else 32)
     fat = f.read(fat_size)
     entries = []
     for i in range(count):
         e = fat[i * es:(i + 1) * es]
         if version == 2:
-            crc, soff, parent, logical, ftime, start, unk, physical = struct.unpack('<IIIIQQII', e[:40])
+            crc, soff, parent, logical, ftime, start, unk, physical = struct.unpack(E + 'IIIIQQII', e[:40])
             prefix = 0
         else:
-            crc, soff, parent, logical, ftime, start = struct.unpack('<IIIIQQ', e[:32])
+            crc, soff, parent, logical, ftime, start = struct.unpack(E + 'IIIIQQ', e[:32])
             physical, prefix = None, 4
         if start == 0xFFFFFFFFFFFFFFFF:
             continue
@@ -66,7 +70,7 @@ def read_pak(path):
         at = start * sector
         if physical is None:          # v1: [U32 stored size][payload]
             f.seek(at)
-            physical = struct.unpack('<I', f.read(4))[0]
+            physical = struct.unpack(E + 'I', f.read(4))[0]
         entries.append((name, logical, at + prefix, physical))
     return f, codec, entries
 
@@ -80,10 +84,10 @@ def payload(f, codec, logical, at, physical, limit=None):
     if codec == 2:
         return zlib.decompressobj().decompress(raw, want)[:want]      # inflateInit: zlib header
     if codec == 4:
-        packet = struct.unpack('<I', raw[:4])[0]
+        packet = struct.unpack(E + 'I', raw[:4])[0]
         q, out = 4, bytearray()
         while len(out) < want and q + 4 <= len(raw):
-            c = struct.unpack('<I', raw[q:q + 4])[0]
+            c = struct.unpack(E + 'I', raw[q:q + 4])[0]
             q += 4
             n = min(packet, logical - len(out))
             if c == 0xFFFFFFFF:

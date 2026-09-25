@@ -347,14 +347,14 @@ namespace X360Convert
 			out.clear();
 			out.reserve(inSize * 2);
 			size_t skip = 0;
-			if (inSize >= 4 && memcmp(in, "360 ", 4) == 0)
+			if (inSize >= 4 && memcmp(in, SourceFourCC(), 4) == 0)
 			{
 				out.insert(out.end(), (const unsigned char*)"  CP", (const unsigned char*)"  CP" + 4);
 				skip = 4;
 			}
 			else if (inSize < 8 || memcmp(in, "Model\0\0\0", 8) != 0)
 			{
-				error = "not a 360 model";
+				error = "not a console model";
 				return E_Result_Failed;
 			}
 

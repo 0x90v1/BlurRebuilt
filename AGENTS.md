@@ -22,7 +22,7 @@ Three phase folders (see "Project stages/layers"), one shared docs folder, one s
 | `Blur1PC/code/tools/` | Build farm, bizpak (pak tool), jam sources, exporters; ours: `jam2cmake/` (build generators, used by every phase) and `ghidra_retail/` (retail Blur.exe decompilation scripts). |
 | `Blur1PC/code/vendor/` | demonware, lua, zlib, libtom*, cxxtest, tclap; our shims (dxerr, bink-stub, efx-util, crt-compat, crash-handler). |
 | `Blur1PC/cmake/` | `blur_common.cmake` (the build description every phase includes), `overrides.cmake` (hand tweaks), `targets.cmake` (generated, never edited). |
-| `Blur1Multi/` | **Phase 2**: Blur 1 from any platform's data (PC now, Xbox 360 next, PS3 later). Holds no engine copy: it builds `Blur1PC/code` with `Blur1Multi/code` laid over it. Read `Blur1Multi/README.md` before touching it. |
+| `Blur1Multi/` | **Phase 2**: Blur 1 from any platform's data: retail PC, Xbox 360 and PS3. Holds no engine copy: it builds `Blur1PC/code` with `Blur1Multi/code` laid over it. Read `Blur1Multi/README.md` before touching it. |
 | `Blur2/` | **Phase 3**: the Blur 2 prototypes. Placeholder until phase 2 serves 360 data. |
 | `docs/` | Project docs for all phases: analysis, decisions, plan, board, ledger. |
 | `_work/` | Shared scratch (gitignored): `vendor/` (third-party SDKs), `ghidra/`, `ghidra_proj/`, `retail_lua*/`, `tools/`. Each phase has its own `<Phase>/_work/`: `build/` (targets JSON, generated units, VS tree), `run/` (the user's exe, automation harness, `shadercache/<source>/` recompiled shaders). No other converted data is stored (D11). |
@@ -31,6 +31,7 @@ External inputs (never modified, never copied into the repo):
 
 - Prototype discs: `C:\AIProjects\Blur\GameData\Blur 2 X360 prototypes\` (Aug 31, Nov 4, Nov 9, Nov 10, Nov 25 DAMAGED).
 - Retail Blur 1 X360: `C:\AIProjects\Blur\GameData\Xbox 360\`.
+- Retail Blur 1 PS3: `C:\AIProjects\Blur\GameData\PlayStation 3\` (disc root; data under `PS3_GAME\USRDIR`). Phase 2 plays it; formats in `docs/analysis.md` "PS3 -> PC conversion".
 - Retail Blur 1 PC: `C:\Program Files (x86)\Activision\Blur(TM)` (native little-endian reference for every format the source reads).
 - X360/Blur 2 extraction tooling and format knowledge: `C:\AIProjects\Blur2Test` (Python 3.12 + QuickBMS; pak, texture, model, level, KSLF/XT and audio decoders; XenosRecomp for shaders; per-disc catalogues in `_work\archive_index\`). Read its `AGENTS.md` and `_notes\disc_resource_map.md` before writing any decoder.
 
@@ -38,7 +39,7 @@ External inputs (never modified, never copied into the repo):
 
 We're dividing the project's lifetime into stages/layers.
 1. **PC Blur 1**: Get a 100% faithful reproduction of the retail Blur. During this stage, it is of the utmost importance that any corrections we make will 100% be made based on decompiling Blur 1 PC retail code, especially if it's for issues that are known not to exist in the retail game. This decompile will mainly be performed using Ghidra. For any code extracted using this method, for which we have no symbols, try your best to give code entities proper names to try to keep the code human-readable, adding a tag to each of them indicating this fact.
-2. **Multiplatform Blur 1**: Get the project to run on Xbox 360 retail data (PlayStation 3 support to be added later). See game source abstraction below.
+2. **Multiplatform Blur 1**: Get the project to run on Xbox 360 and PlayStation 3 retail data (PS3 support added 2026-09-25, board task T076). See game source abstraction below. For this stage #1 priority is not to reinvent the wheel as most if not all the asset loading from X360 data is already resolved by Blur2Test.
 3. **Blur 2 support**: Get the project to run on Blur 2 prototype data (see asset catalog section below)
 Each of them will be organized and implemented in such a way that they're independent layers, and at any given time the upper ones can be removed with no interference to the lower ones.
 For example, we should have a 100% faithful Blur 1 PC source, then a standalone version that's able to run just Blur 1 from PC and Xbox with no sign of Blur 2 support.
@@ -123,7 +124,7 @@ Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` database
 
 From the "multi-platform Blur 1" layer and upwards, we'll want to have a component that creates an abstraction layer for a game's disc source, independent of platform, and allows the game to play off of it.
 
-Started 2026-09-24 in `Blur1Multi/code/mercury/library/util/gamesource/` (`GameSource::Select`: `--source=<dir>` or `BLUR_SOURCE`, platform detection from `cache/root.pak` byte order plus `default.xex` / `PS3_GAME`). The platform data layers behind it are board tasks T071-T076; design in D11.
+Started 2026-09-24 in `Blur1Multi/code/mercury/library/util/gamesource/` (`GameSource::Select`: `--source=<dir>` or `BLUR_SOURCE`, platform detection from `cache/root.pak` byte order plus `default.xex` / `PS3_GAME`). The platform data layers behind it are board tasks T071-T076; design in D11. Xbox 360 and PS3 sources share one converting layer (`X360Convert::C_ConvertFs`, told the source with `X360Convert::SetSource`): the formats both consoles write alike (chunk trees, XT flasks, loc, animation, audio objects, the scene grammar) go through the same code; textures, audio banks and effects have per-console converters (D14).
 
 ## Asset catalog
 

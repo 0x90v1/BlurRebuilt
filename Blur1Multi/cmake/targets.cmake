@@ -1894,7 +1894,7 @@ target_precompile_headers(textureresource PRIVATE ${BLUR_TOP}/Code/Mercury/Libra
 set_target_properties(textureresource PROPERTIES FOLDER "Code/Mercury/Library/Graphics")
 
 add_library(vehicle STATIC
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/VehicleModel.cpp
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Graphics/Vehicle/source/VehicleModel.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/VehicleModelManager.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/Layer.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/RenderLayer.cpp
@@ -1904,7 +1904,7 @@ add_library(vehicle STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/Input.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/CodeProcessor.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/Component.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/Damage/DamageLayer.cpp
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Graphics/Vehicle/source/Damage/DamageLayer.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/Damage/CollisionInfo.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/Damage/DamageBehaviours.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/Damage/Node.cpp
@@ -1924,6 +1924,7 @@ add_library(vehicle STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/source/effects/DirtLayer.cpp
 )
 target_include_directories(vehicle PRIVATE
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Graphics/Vehicle
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Vehicle/include
     ${BLUR_TOP}/code/mercury/library/common/btl/include

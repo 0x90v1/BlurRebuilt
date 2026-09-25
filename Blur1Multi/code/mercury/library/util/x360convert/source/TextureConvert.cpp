@@ -12,10 +12,13 @@
 // The texel blocks themselves are the same bytes once the fetch constant's
 // endian mode is undone and the allocation untiled (verified against the retail
 // PC files, docs/analysis.md "Xbox 360 -> PC conversion").
+// PS3 files have the same blocks; their Data payload is the GCM texture of
+// Ps3Texture.h (docs/analysis.md "PS3 textures").
 
 #include <x360convert/X360Convert.h>
 
 #include "ChunkFile.h"
+#include "Ps3Texture.h"
 #include "XenosTexture.h"
 
 #include <stdio.h>
@@ -55,6 +58,8 @@ namespace X360Convert
 	E_Result ConvertTexturePayload(const unsigned char* p, size_t avail, size_t& consumed,
 		std::vector<unsigned char>& out, std::string& error)
 	{
+		if (GetSource() == E_Source_PS3)
+			return Ps3ConvertTexturePayload(p, avail, consumed, out, error);
 		if (avail < 64)
 			return Fail(error, "texture payload shorter than the Xenon texture header");
 		XenosFetch f;
@@ -112,6 +117,8 @@ namespace X360Convert
 
 	E_Result ConvertTextureLodHeader(const unsigned char* header, size_t size, std::vector<unsigned char>& out, std::string& error)
 	{
+		if (GetSource() == E_Source_PS3)
+			return Ps3ConvertTextureLodHeader(header, size, out, error);
 		if (size != 64)
 			return Fail(error, "Xenon texture header of unexpected size");
 		XenosFetch f;
@@ -138,6 +145,8 @@ namespace X360Convert
 	E_Result ConvertTextureLodData(const unsigned char* header, int lod, const unsigned char* data, size_t dataSize,
 		std::vector<unsigned char>& out, std::string& error)
 	{
+		if (GetSource() == E_Source_PS3)
+			return Ps3ConvertTextureLodData(header, lod, data, dataSize, out, error);
 		XenosFetch h;
 		ParseFetch(header + 0x1c, h);
 		XenosFormat fmt;
