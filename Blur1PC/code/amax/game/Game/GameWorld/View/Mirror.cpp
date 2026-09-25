@@ -35,6 +35,10 @@
 // TEMPORARY
 #include <Game/GameWorld/GameWorld.h>
 
+#if PLATFORM_PC
+#include <GameApp.h>	// [Blur2PC] display window size for the mirror target
+#endif
+
 namespace Game
 {
 
@@ -76,7 +80,12 @@ void C_MirrorView::Create()
 #endif
 	
 	m_pMirror = new GameView::C_OffscreenView();
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC sizes the mirror from the display window (Blur.exe 1.2 0x00429480 -> 0x00427660).
+	SizeFromDisplayWindow();
+#else
 	m_pMirror->SetFormat(512, 64, multisample);
+#endif
 	
 	
 	m_renderStates.renderFlagsFX.setAlphaToMask = false;
@@ -109,7 +118,9 @@ void C_MirrorView::Create()
 
 
 	m_RenderGroupSettings.SetNumWorkers(1);
-	m_RenderGroupSettings.SetMultisample(multisample);
+#if !PLATFORM_PC
+	m_RenderGroupSettings.SetMultisample(multisample);	// [Blur2PC] PC: set by SizeFromDisplayWindow (retail 0x00427660)
+#endif
 
 	m_pMirror->Create();
 
@@ -261,8 +272,8 @@ void C_MirrorView::SetDynamicDetail(F32 detail)
 }
 
 #if PLATFORM_PC
-// [Blur2PC] Retail PC graphical detail for the mirror, from Blur.exe 1.2 0x004295f0. Retail then resizes
-// the mirror render target from the back buffer (0x00427660); not ported (docs/analysis.md).
+// [Blur2PC] Retail PC graphical detail for the mirror, from Blur.exe 1.2 0x004295f0. It ends by resizing the
+// mirror render target to the display window (0x00427660).
 void C_MirrorView::SetGraphicalDetail(const U32 graphicalDetail)
 {
 	static const F32 s_Max[4] = { 0.15f, 0.2f, 0.3f, 0.5f };
@@ -272,6 +283,42 @@ void C_MirrorView::SetGraphicalDetail(const U32 graphicalDetail)
 	{
 		g_MirrorInstanceDrawDistanceScale = s_Max[graphicalDetail - 1];
 		g_MirrorInstanceDrawDistanceScaleLOD = s_Min[graphicalDetail - 1];
+	}
+
+	SizeFromDisplayWindow();
+}
+
+// [Blur2PC] Retail PC mirror render target size, from Blur.exe 1.2 0x00427660 (called when the mirror is
+// created and from the graphical detail hook, which the settings code runs before a device reset): 0.45 x
+// 0.125 of display window 0, each truncated and rounded up to a multiple of 32, with the window's multisample.
+// Retail hands the size to the offscreen view (0x00b1fd20) only when it differs from the last one.
+//
+// Stopgap: retail gives the render target and the mirror's render group the window's multisample. This
+// device's CreateRenderTexture2D has no multisampled path (retail 0x01f01680 creates a multisampled render
+// target beside the texture and resolves it on unbind, 0x005adff0), so the target stays single-sampled here.
+// docs/analysis.md "Graphics options (PC)".
+void C_MirrorView::SizeFromDisplayWindow()
+{
+	const C_GameApp* pApp = C_GameApp::GetInstance();
+	const U32 windowWidth = pApp->GetDisplayWindowWidth();
+	const U32 windowHeight = pApp->GetDisplayWindowHeight();
+	const Display::E_Multisample windowMultisample = pApp->GetDisplayWindowMultisample();
+
+	// retail: (0x1f - (S32)(width * -0.45f)) & ~0x1f, the float-to-int conversion truncating
+	const U32 width = (U32)(0x1f - (S32)((F32)windowWidth * -0.45f)) & ~0x1fu;
+	const U32 height = (U32)(0x1f - (S32)((F32)windowHeight * -0.125f)) & ~0x1fu;
+
+	if(m_TargetWidth != width || m_TargetHeight != height || m_TargetMultisample != windowMultisample)
+	{
+		m_TargetWidth = width;
+		m_TargetHeight = height;
+		m_TargetMultisample = windowMultisample;
+
+		const Display::E_Multisample multisample = Display::E_Multisample_None;	// retail: windowMultisample (see above)
+		m_RenderGroupSettings.SetMultisample(multisample);
+		m_pMirror->SetFormat(width, height, multisample);
+
+		LOGINFO(g_Log, "Mirror target %ux%u for display window %ux%u\n", width, height, windowWidth, windowHeight);	// not in retail
 	}
 }
 #endif

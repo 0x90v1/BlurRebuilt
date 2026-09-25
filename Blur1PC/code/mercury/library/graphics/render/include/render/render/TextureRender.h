@@ -18,6 +18,12 @@ public:
 	bool	OnCreateVolatile();
 	void	OnDestroyVolatile();
 
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC (Blur.exe 1.2, inlined in 0x00b1fd20 and 0x00b20450): a new size and multisample for
+	// the render target, one mip; used the next time the volatile resources are created (device reset).
+	void	SetFormat(const U32 width, const U32 height, const Display::E_Multisample multisample);
+#endif
+
 	void	Bind() const;
 	void	Unbind() const;
 

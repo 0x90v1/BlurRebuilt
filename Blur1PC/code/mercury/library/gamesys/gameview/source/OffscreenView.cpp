@@ -28,6 +28,12 @@ void C_OffscreenView::SetFormat(const U32 width, const U32 height, const Display
 	m_Width = width;
 	m_Height = height;
 	m_Multisample = multiSample;
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC (Blur.exe 1.2 0x00b1fd20) also hands the new format to an existing render target;
+	// it takes effect when the device next recreates its volatile resources.
+	if(m_pRenderTexture)
+		m_pRenderTexture->SetFormat(width, height, multiSample);
+#endif
 }
 
 void C_OffscreenView::Create()

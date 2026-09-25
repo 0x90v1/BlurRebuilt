@@ -29,6 +29,12 @@ void C_ReflectionView::SetFormat(const U32 width, const U32 height, const Displa
 	m_Height = height;
 	m_Multisample = multiSample;
 	m_NumMips = numMips;
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC (Blur.exe 1.2 0x00b20450) also hands the new format to an existing render target
+	// (with one mip whatever numMips says); it takes effect when the device next recreates its volatile resources.
+	if(m_pRenderTexture)
+		m_pRenderTexture->SetFormat(width, height, multiSample);
+#endif
 }
 
 void C_ReflectionView::Create()

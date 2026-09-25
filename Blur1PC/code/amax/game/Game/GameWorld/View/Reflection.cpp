@@ -20,6 +20,9 @@
 
 #include <Game/Game.h>
 #include <GameLogic/GameData/GameData.h>
+#if PLATFORM_PC
+#include <GameApp.h>	// [Blur2PC] display window size for the reflection target
+#endif
 
 // for raytracing
 #include <game/AmaxCam/CameraSystem.h>
@@ -62,6 +65,10 @@ C_ReflectionView::C_ReflectionView(C_ViewManager* pViewManager) : I_Renderer("Re
 	m_DetailFactor = 1.f;
 #if PLATFORM_PC
 	m_GraphicalDetailEnabled = true;	// [Blur2PC] retail ctor 0x00426d00
+	m_ReflectionResolution = ReflectionResolution_Medium_512x256;	// retail leaves it unset when the city is not found
+	m_TargetWidth = 0;
+	m_TargetHeight = 0;
+	m_TargetMultisample = Display::E_Multisample_None;
 #endif
 }
 
@@ -107,12 +114,41 @@ bool C_ReflectionView::OnCreate()
 	m_pView->ReserveGroups(1);
 	m_pView->GetGroup(0)->SetName("ReflectionView");
 
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC creates the reflection target here, once, sized from the display window (Blur.exe 1.2
+	// 0x004296a0); the device recreates it at each reset with the size last handed to it.
+	if (AmaxCity* pCity = C_GameData::Instance().mCities[(GAMEDATA_ID)C_Game::GetInstance()->GetLevelState().mCity])
+		m_ReflectionResolution = pCity->reflectionResolution;
+
+	m_pReflection = new GameView::C_ReflectionView();
+	SizeFromDisplayWindow();
+	m_pReflection->Create();
+
+	m_RenderGroupSettings.SetNumWorkers(1);
+#endif
+
 	return true;
 }
 
 bool C_ReflectionView::OnCreateVolatile()
 {
 	RESOURCE_MEMORY_ID("Reflection");
+
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC (Blur.exe 1.2 0x00426500): the blur textures at half the reflection target, then the
+	// black frame; the target itself belongs to OnCreate.
+	Display::Device()->CreateRenderTexture2D(m_TargetWidth >> 1, m_TargetHeight >> 1, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, 0, &m_BlurAuxReflectionTexture);
+	Display::Device()->CreateRenderTexture2D(m_TargetWidth >> 1, m_TargetHeight >> 1, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, 0, &m_BlurReflectionTexture);
+
+	#if TRACK_DISPLAY2_RESOURCES
+	Display2::Device()->SetRenderTexture2DName(&m_BlurAuxReflectionTexture, "_ReflectionViewBlurAuxRT");
+	Display2::Device()->SetRenderTexture2DName(&m_BlurReflectionTexture, "_ReflectionViewBlurRT");
+	#endif
+
+	CreateBlackFrame();
+
+	return true;
+#else
 
 	U32 reflectionResolutionX = 512;
 	U32 reflectionResolutionY = 256;
@@ -169,6 +205,7 @@ bool C_ReflectionView::OnCreateVolatile()
 	CreateBlackFrame();
 
 	return true;
+#endif
 }
 
 void C_ReflectionView::OnDestroyVolatile()
@@ -178,12 +215,20 @@ void C_ReflectionView::OnDestroyVolatile()
 
 	DestroyBlackFrame();
 
+#if !PLATFORM_PC
 	delete m_pReflection;
+#endif
 }
 
 void C_ReflectionView::OnDestroy()
 {
 	m_pViewManager->GetSceneGraph()->RemoveView(m_pView);
+
+#if PLATFORM_PC
+	// [Blur2PC] retail 0x00426520: the reflection target goes with the view
+	delete m_pReflection;
+	m_pReflection = NULL;
+#endif
 }
 
 Debug::Bool g_ReflectionEnable("Amax.Views.ReflectionEnable", true);
@@ -415,11 +460,61 @@ void C_ReflectionView::SetDynamicDetail(F32 detail)
 }
 
 #if PLATFORM_PC
-// [Blur2PC] Retail PC graphical detail for the reflection (Blur.exe 1.2 0x020bffa8). Retail first resizes
-// the reflection render target from the back buffer (0x00427750); not ported (docs/analysis.md).
+// [Blur2PC] Retail PC graphical detail for the reflection (Blur.exe 1.2 0x020bffa8): resizes the reflection
+// render target to the display window (0x00427750), then renders the reflection only at detail 4.
 void C_ReflectionView::SetGraphicalDetail(const U32 graphicalDetail)
 {
+	SizeFromDisplayWindow();
 	m_GraphicalDetailEnabled = graphicalDetail >= 4;
+}
+
+// [Blur2PC] Retail PC reflection target size, from Blur.exe 1.2 0x00427750 (called from OnCreate and the
+// graphical detail hook, which the settings code runs before a device reset): half of display window 0
+// (truncated), then /4 (VeryLow), /2 (Low), unchanged (Medium) or x2 (High) by the city's reflection
+// resolution, each rounded up to a multiple of 32, with the window's multisample. Retail hands it to the
+// reflection view (0x00b20450) only when it differs from the last one and returns whether it did; the blur
+// textures follow at the next volatile create.
+//
+// Stopgap: retail gives the render target the window's multisample; this device's CreateRenderTexture2D has
+// no multisampled path (see C_MirrorView::SizeFromDisplayWindow), so the target stays single-sampled here.
+bool C_ReflectionView::SizeFromDisplayWindow()
+{
+	const C_GameApp* pApp = C_GameApp::GetInstance();
+	const Display::E_Multisample windowMultisample = pApp->GetDisplayWindowMultisample();
+
+	U32 width = (U32)((F32)pApp->GetDisplayWindowWidth() * 0.5f);
+	U32 height = (U32)((F32)pApp->GetDisplayWindowHeight() * 0.5f);
+
+	switch (m_ReflectionResolution)
+	{
+	case ReflectionResolution_VeryLow_128x64:
+		width >>= 2;
+		height >>= 2;
+		break;
+	case ReflectionResolution_Low_256x128:
+		width >>= 1;
+		height >>= 1;
+		break;
+	case ReflectionResolution_High_1024x512:
+		width *= 2;
+		height *= 2;
+		break;
+	}
+
+	width = (width + 0x1f) & ~0x1fu;
+	height = (height + 0x1f) & ~0x1fu;
+
+	if (m_TargetWidth == width && m_TargetHeight == height && m_TargetMultisample == windowMultisample)
+		return false;
+
+	m_TargetWidth = width;
+	m_TargetHeight = height;
+	m_TargetMultisample = windowMultisample;
+
+	m_pReflection->SetFormat(width, height, Display::E_Multisample_None, 1);	// retail: windowMultisample (see above)
+
+	LOGINFO(g_Log, "Reflection target %ux%u (city reflection resolution %i)\n", width, height, m_ReflectionResolution);	// not in retail
+	return true;
 }
 #endif
 

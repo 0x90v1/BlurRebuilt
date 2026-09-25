@@ -56,6 +56,7 @@ public:
 	void	SetDynamicDetail(F32 detail);
 #if PLATFORM_PC
 	void	SetGraphicalDetail(const U32 graphicalDetail);	// [Blur2PC] retail 0x020bffa8
+	bool	SizeFromDisplayWindow();						// [Blur2PC] retail 0x00427750
 	bool	IsGraphicalDetailEnabled() const { return m_GraphicalDetailEnabled; }
 #endif
 
@@ -102,6 +103,10 @@ private:
 	F32									m_DetailFactor;
 #if PLATFORM_PC
 	bool								m_GraphicalDetailEnabled;	// [Blur2PC] retail +0x15d: only detail 4 renders the reflection
+	S32									m_ReflectionResolution;		// [Blur2PC] retail +0x164: the city's ReflectionResolution
+	U32									m_TargetWidth;				// [Blur2PC] retail +0x168/+0x16c/+0x170: the reflection target's
+	U32									m_TargetHeight;				// size and the display window multisample it was sized for
+	Display::E_Multisample				m_TargetMultisample;
 #endif
 };
 

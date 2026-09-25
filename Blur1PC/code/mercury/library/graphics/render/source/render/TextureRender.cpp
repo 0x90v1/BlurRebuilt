@@ -18,6 +18,16 @@ C_TextureRender::~C_TextureRender()
 	DestroyRenderer();
 }
 
+#if PLATFORM_PC
+void C_TextureRender::SetFormat(const U32 width, const U32 height, const Display::E_Multisample multisample)
+{
+	m_Width = width;
+	m_Height = height;
+	m_MultiSample = multisample;
+	m_NumMips = 1;
+}
+#endif
+
 bool C_TextureRender::OnCreateVolatile()
 {
 	MEMORY_TRACKER_PUSH("graphics.renderers.texturerender");
