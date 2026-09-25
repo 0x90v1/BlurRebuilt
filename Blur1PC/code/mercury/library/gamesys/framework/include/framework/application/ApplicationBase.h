@@ -387,9 +387,16 @@ protected:
 
 	virtual HRESULT SendMessageToLayers(const U32 message);
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x0084e6a0, 0x0084ebf0) sizes the windows from the device parameters it is given
+	virtual void AddDisplayWindows(const Display::C_DeviceParams& deviceParams);
+
+	virtual void AddDisplayWindow(const Display::C_DeviceParams& deviceParams, const Maths::C_Rect& windowCoords);
+#else
 	virtual void AddDisplayWindows();
 
 	virtual void AddDisplayWindow(const Maths::C_Rect& windowCoords);
+#endif
 
 	virtual void ResizeDisplayWindows();
 
@@ -460,6 +467,11 @@ private:
 	
 	static C_ApplicationBase*				s_pInstance;
 };
+
+#ifdef PLATFORM_PC
+// [Blur2PC] retail Blur PC: set a view's three window viewports (ApplicationBase.cpp)
+void SetWindowViewports(C_View& view, const Display::C_Window* pWindow, const U32 screenWidth, const U32 screenHeight);
+#endif
 
 // Specific CaptureService with callback for changing FPS in MercuryGame / Amax
 class C_CaptureService;

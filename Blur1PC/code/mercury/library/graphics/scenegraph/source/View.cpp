@@ -19,6 +19,9 @@ namespace Render
 {
 	const Display::C_Texture2D* GetGlobalColourBuffer(const bool useAAIfAvailable = false);
 	const Display::C_Texture2D* GetGlobalDepthStencilBuffer(const bool useAAIfAvailable = false);
+#if PLATFORM_PC
+	const Display::C_Texture2D* GetGlobalStencilBuffer();	// [Blur2PC]
+#endif
 }
 
 namespace SceneGraph
@@ -348,6 +351,9 @@ void C_View::RenderPass(const S32 renderPass, const RenderStates* pRenderStates,
 			pContext->SetView(this);
 
 			pDisplay->SetColourDepthStencilTexture(Render::GetGlobalColourBuffer(), Render::GetGlobalDepthStencilBuffer());
+			#if PLATFORM_PC
+			pDisplay->SetStencilTexture(Render::GetGlobalStencilBuffer());	// [Blur2PC] retail 0x007a66e5
+			#endif
 
 			RenderSubtask subtask;
 			{

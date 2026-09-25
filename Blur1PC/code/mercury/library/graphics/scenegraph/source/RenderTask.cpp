@@ -94,6 +94,9 @@ void C_RenderGroup::Schedule(const Display::C_View* pDisplayView, const C_Render
 			pDisplay->SetWindowIndex(pSettings->GetWindowIndex());
 			pDisplay->SetColourDepthStencilSurface(pSettings->GetColourSurface(), pSettings->GetDepthStencilSurface());
 			pDisplay->SetColourDepthStencilTexture(pSettings->GetColourTexture(), pSettings->GetDepthStencilTexture());
+			#if PLATFORM_PC
+			pDisplay->SetStencilTexture(pSettings->GetStencilTexture());	// [Blur2PC] retail 0x007a18cc, 0x007a1e63
+			#endif
 			pDisplay->SetMultisample(pSettings->GetMultisample());
 
 			S32 workers = pSettings->GetNumWorkers() == -1 ? Scheduler::GetNumWorkers() + 1 : pSettings->GetNumWorkers();
@@ -420,6 +423,9 @@ void C_RenderGroup::Schedule(const Display::C_View* pDisplayView, const C_Render
 			pDisplay->SetWindowIndex(pSettings->GetWindowIndex());
 			pDisplay->SetColourDepthStencilSurface(pSettings->GetColourSurface(), pSettings->GetDepthStencilSurface());
 			pDisplay->SetColourDepthStencilTexture(pSettings->GetColourTexture(), pSettings->GetDepthStencilTexture());
+			#if PLATFORM_PC
+			pDisplay->SetStencilTexture(pSettings->GetStencilTexture());	// [Blur2PC] retail 0x007a18cc, 0x007a1e63
+			#endif
 			pDisplay->SetMultisample(pSettings->GetMultisample());
 
 			if(pTask->m_MultiThreaded)

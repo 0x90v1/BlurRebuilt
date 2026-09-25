@@ -504,6 +504,12 @@ private:
 
 	::Actors::C_VisibilityDetector				*m_pVisibilityDetector;
 
+#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 game world +0x1ec8): a 1x1 R32F texture holding 0, the display
+	// windows' depth texture while Amax.Views.Main.PrepassEnable is off (BeginFrame)
+	Display::C_Texture2D						m_WindowDepthTexture;
+#endif
+
 	//Shock effect
 	Display::C_Texture2D						m_ShockTexture;
 	Display::C_Float4							m_ShockIntensity;

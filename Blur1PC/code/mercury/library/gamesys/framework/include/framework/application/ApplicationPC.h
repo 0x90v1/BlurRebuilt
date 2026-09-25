@@ -103,13 +103,15 @@ public:
 	//! Graphical detail level 1-4 (retail 0x00849830).
 	U32 GetGraphicalDetail() const { return m_GraphicalDetail; }
 
-	//! Size and multisample of display window 0. Retail PC keeps a full-screen display window whose size and
-	//! multisample follow these device parameters (0x0084a390 on a settings change, before the detail hook;
-	//! 0x005acf50 when the device is created); the snapshot's PC device has no windows, so the parameters
-	//! stand in for it. Read by the mirror and reflection sizing (retail 0x00427660, 0x00427750).
-	U32 GetDisplayWindowWidth() const { return m_DisplayDeviceParams.m_Width; }
-	U32 GetDisplayWindowHeight() const { return m_DisplayDeviceParams.m_Height; }
-	Display::E_Multisample GetDisplayWindowMultisample() const { return m_DisplayDeviceParams.m_Multisample; }
+	//! Size and multisample of display window 0, which follow the device parameters (0x0084a390 on a settings
+	//! change, before the detail hook; 0x005acf50 when the device is created). Read by the mirror and
+	//! reflection sizing (retail 0x00427660, 0x00427750).
+	U32 GetDisplayWindowWidth() const;
+	U32 GetDisplayWindowHeight() const;
+	Display::E_Multisample GetDisplayWindowMultisample() const;
+
+	//! [Blur2PC] retail 0x0084a390: resize the display windows from the application's device parameters.
+	void ResizeDisplayWindows();
 
 	//! Writes %APPDATA%\Bizarre Creations\<name>\settings.xml (retail 0x0084a050).
 	void SaveSettings();

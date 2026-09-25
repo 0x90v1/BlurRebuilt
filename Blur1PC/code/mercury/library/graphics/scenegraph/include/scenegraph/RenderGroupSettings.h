@@ -26,6 +26,9 @@ public:
 								m_pDepthStencilSurface(NULL),
 								m_pColourTexture(NULL),
 								m_pDepthStencilTexture(0),
+								#if PLATFORM_PC
+								m_pStencilTexture(NULL),
+								#endif
 								m_Workers(-1),
 								m_Subtechnique(0),
 								m_DistanceSubtechnique(0),
@@ -37,6 +40,11 @@ public:
 
 	void	SetColourDepthStencilSurface(const Display::C_Surface* pColourSurface, const Display::C_Surface* pDepthStencilSurface);
 	void	SetColourDepthStencilTexture(const Display::C_Texture2D* pColourTexture, const Display::C_Texture2D* pDepthStencilTexture);
+	#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2, settings +0x14): the display window's stencil mask texture
+	void	SetStencilTexture(const Display::C_Texture2D* pStencilTexture) { m_pStencilTexture = pStencilTexture; }
+	const Display::C_Texture2D*		GetStencilTexture() const { return m_pStencilTexture; }
+	#endif
 	void	SetNumWorkers(const S32 workers) { m_Workers = workers; }
 	void	SetSubtechnique(const U32 subtechnique) { m_Subtechnique = subtechnique; }
 	void	SetDistanceSubtechnique(const U32 distanceSubtechnique) { m_DistanceSubtechnique = distanceSubtechnique; }
@@ -60,6 +68,9 @@ private:
 	const Display::C_Surface*	m_pDepthStencilSurface;
 	const Display::C_Texture2D*	m_pColourTexture;
 	const Display::C_Texture2D*	m_pDepthStencilTexture;
+	#if PLATFORM_PC
+	const Display::C_Texture2D*	m_pStencilTexture;
+	#endif
 	S32							m_Workers;
 	U32							m_Subtechnique;
 	U32							m_DistanceSubtechnique;

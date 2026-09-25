@@ -38,6 +38,7 @@ void C_Context::CloneState(const I_Context* pContextInterface)
 		m_Multisample = pContext->m_Multisample;
 		m_pColourTexture = pContext->m_pColourTexture;
 		m_pDepthStencilTexture = pContext->m_pDepthStencilTexture;
+		m_pStencilTexture = pContext->m_pStencilTexture;	// [Blur2PC] T089
 		m_Context = pContext->m_Context;
 	}
 }

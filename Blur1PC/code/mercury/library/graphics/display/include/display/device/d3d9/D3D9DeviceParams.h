@@ -70,6 +70,15 @@ public:
 	U32					m_BeginVerticesSize;
 	U32					m_FreeBeginVerticesSize;
 	E_PresentInterval	m_PresentInterval;
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2, constructor 0x005b69f0) adds the console window-buffer block
+	// after the PC fields (+0x44..+0x5c): the size, formats and multisample of the display windows
+	U32					m_WindowBufferWidth;
+	U32					m_WindowBufferHeight;
+	E_Format			m_WindowBufferColourFormat;
+	E_Format			m_WindowBufferDepthStencilFormat;
+	E_Multisample		m_WindowBufferMultisample;
+	U32					m_ScreenWidth;					// Width/Height of the actual display setting
+	U32					m_ScreenHeight;
 	#endif
 };
 

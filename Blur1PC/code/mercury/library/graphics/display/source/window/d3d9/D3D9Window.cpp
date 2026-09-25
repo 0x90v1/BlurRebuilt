@@ -10,6 +10,38 @@ namespace Display
 namespace D3D9
 {
 
+#ifdef PLATFORM_PC
+// [Blur2PC] retail Blur PC's window (Blur.exe 1.2 constructor 0x005ac0f0, resize 0x005ac150)
+C_Window::C_Window(const Maths::C_Rect& coords) :
+	m_Coords(coords),
+	m_Width(0),
+	m_Height(0),
+	m_Multisample(E_Multisample_None),
+	m_ScreenWidth(0),
+	m_ScreenHeight(0),
+	m_ColourFormat(E_Format_A8R8G8B8),
+	m_DepthStencilFormat(E_Format_D24FS8),
+	m_pDepthTexture(NULL),
+	m_ClearDepthStencil(false),
+	m_MaskEnable(false)
+{
+}
+
+C_Window::~C_Window()
+{
+}
+
+void C_Window::Resize(const U32 width, const U32 height, const E_Multisample multisample, const U32 screenWidth, const U32 screenHeight, const E_Format colourFormat, const E_Format depthStencilFormat)
+{
+	m_Width					= (U32)(((F32)width)*m_Coords.Max().X() - ((F32)width)*m_Coords.Min().X());
+	m_Height				= (U32)(((F32)height)*m_Coords.Max().Y() - ((F32)height)*m_Coords.Min().Y());
+	m_Multisample			= multisample;
+	m_ScreenWidth			= (U32)(((F32)screenWidth)*m_Coords.Max().X() - ((F32)screenWidth)*m_Coords.Min().X());
+	m_ScreenHeight			= (U32)(((F32)screenHeight)*m_Coords.Max().Y() - ((F32)screenHeight)*m_Coords.Min().Y());
+	m_ColourFormat			= colourFormat;
+	m_DepthStencilFormat	= depthStencilFormat;
+}
+#else
 C_Window::C_Window(const Maths::C_Rect& coords) :
 	m_Coords(coords),
 	m_Width(0),
@@ -37,6 +69,7 @@ void C_Window::Resize(const U32 width, const U32 height, const E_Multisample mul
 	m_ColourFormat			= colourFormat;
 	m_DepthStencilFormat	= depthStencilFormat;
 }
+#endif // PLATFORM_PC
 
 }; // namespace D3D9
 }; // namespace Display

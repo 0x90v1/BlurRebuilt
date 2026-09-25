@@ -1378,6 +1378,19 @@ bool C_GameWorld::Create( Actor::C_ActorFactory* pActorFactory, const S32 numVie
 		}
 	}
 
+#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x00423054, in C_GameWorld::Create)
+	{
+		if (!Display::Device()->CreateTexture2D(1, 1, 1, Display::E_Usage_Managed, Display::E_Format_R32F, &m_WindowDepthTexture))
+			return false;
+
+		Display::C_LockedRect rect = m_WindowDepthTexture.Lock(0);
+		if(rect.pBits)
+			*reinterpret_cast<F32*>(rect.pBits) = 0.0f;
+		m_WindowDepthTexture.Unlock(0);
+	}
+#endif
+
 	m_pWind = new C_Wind(m_pParticleManager);
 
 	{
@@ -1575,6 +1588,9 @@ bool C_GameWorld::Destroy()
 	#endif
 
 	Display::Device()->Destroy( &m_ShockTexture );
+#if PLATFORM_PC
+	Display::Device()->Destroy( &m_WindowDepthTexture );	// [Blur2PC] retail 0x0041a363
+#endif
 
 	AIAmax::AmaxAIR::Instance().ShutDown();
 
@@ -1934,6 +1950,20 @@ void C_GameWorld::BeginFrame()
 {	
 	PERF_EVENT("C_GameWorld.BeginFrame");
 
+#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x00420590) gives each display window its depth texture: the
+	// view's prepass depth, or a 1x1 texture holding 0 while the prepass is off
+	{
+		Framework::C_ApplicationBase* pApp = Framework::C_ApplicationBase::GetInstance();
+		const S32 viewCount = pApp->GetSplitscreenViewCount();
+		for(S32 viewIndex = 0; viewIndex < viewCount; ++viewIndex)
+		{
+			const Display::C_Texture2D* pPrepassDepth = m_pViewManager->m_pLightingPrepass->GetDepthTexture(pApp->GetSplitscreenView(viewIndex).m_ViewIndex);
+			Display::Device()->GetWindow(viewIndex)->m_pDepthTexture = g_MainPrepassEnable ? pPrepassDepth : &m_WindowDepthTexture;
+		}
+	}
+#endif
+
 	// [Stove] HACK ALERT!!!!!!! [12022010]
 	// Stop the garage framing out, this is done in a really sucky way.
 	static U32 notFirstFrame = 0;
@@ -2073,8 +2103,8 @@ void C_GameWorld::ViewDependentFXUpdate(S32 viewIndex)
 		m_pViewManager->GetView(viewIndex)->GetEnvironmentSettings()->Set();
 	
 	//Set Colour and Depth buffers for refraction
-	// [Blur2PC] On PC the global colour/depth buffers are only set under USE_DISPLAY_WINDOWS
-	// (Xenon/PS3), so they are NULL here; pass NULL textures until PC gets a scene copy.
+	// [Blur2PC] the null checks are ours: the globals are the display window's targets (T089), unset
+	// before the first splitscreen view is scheduled
 	{
 		const Display::C_Texture2D* pColour = Render::GetGlobalColourBuffer(true);
 		const void* pTexture = pColour ? pColour->GetGPUTexture() : NULL;
@@ -3507,8 +3537,9 @@ void C_GameWorld::SetGraphicalDetail(const U32 graphicalDetail)
 			pRefract->SetSubtechniqueHandle(0);
 	}
 
-	// Retail also sets a flag on every display window here (+0xed = detail > 1) that switches a
-	// per-frame depth copy retail's PC device does; this device has no such copy (docs/analysis.md).
+	// [Blur2PC] retail (0x0041bb29) enables every display window's stencil mask above detail 1 (T089)
+	for(S32 windowIndex = 0; windowIndex < Display::Device()->GetWindowCount(); ++windowIndex)
+		Display::Device()->GetWindow(windowIndex)->m_MaskEnable = graphicalDetail > 1;
 
 	m_GraphicalDetail = graphicalDetail;
 	m_pViewManager->SetGraphicalDetail(graphicalDetail, C_Game::GetInstance()->GetLevelState().mInUI);

@@ -967,10 +967,12 @@ void C_BlobShadows::RenderScreenShadow( const C_ProcessShadow& processShadow, Di
 	pContext->SetTexture(0, pContext->GetDepthStencilTexture()->GetGPUTexture());
 	pContext->SetTexture(1, pBlobTexture->GetGPUTexture());
 #if PLATFORM_PC
-	// [Blur2PC] Retail's Render (Blur.exe 1.2 0x00732d20) binds the context's stencil texture here, the
-	// window stencil copy (board T062), which this port does not make yet. An empty stage reads 0, so
-	// the channel shaders apply no car mask until it exists.
-	pContext->SetTexture(2, 0);
+	// [Blur2PC] Retail's Render (Blur.exe 1.2 0x00732d20) binds the context's stencil texture at s2 (linear,
+	// clamp): the display window's car mask (C_PCD3D9Device::RenderWindowMask, T089)
+	{
+		const Display::C_Texture2D* pStencilTexture = pContext->GetStencilTexture();
+		pContext->SetTexture(2, pStencilTexture ? pStencilTexture->GetGPUTexture() : 0);
+	}
 #endif
 
 	Display::C_SamplerUsageFlags flags;
@@ -991,6 +993,9 @@ void C_BlobShadows::RenderScreenShadow( const C_ProcessShadow& processShadow, Di
 	blobSampleState.SetTextureFilter(Display2::E_TextureFilter_Linear);
 	//blobSampleState.SetTextureGamma(Display2::E_Bool_False);
 	pContext->SetSamplerState(1, &blobSampleState);
+#if PLATFORM_PC
+	pContext->SetSamplerState(2, &blobSampleState);	// [Blur2PC] retail 0x00732d20: s2 as s1
+#endif
 
 #if PLATFORM_PS3
 #if defined(BLOBSHADOW_PER_CHANNEL)
@@ -1198,6 +1203,14 @@ void C_BlobShadows::Render(Display::C_Context* pContext, U32 visibilityFlags) co
 		if (visibilityFlags & m_ProcessShadows[i].m_pInstance->m_VisibilityFlags)
 			RenderScreenShadow(m_ProcessShadows[i], pContext);
 	}
+
+#if PLATFORM_PC
+	// [Blur2PC] retail 0x00732d20 unbinds the three stages after the shadows; the window mask texture is a
+	// render target again next frame
+	pContext->SetTexture(0, 0);
+	pContext->SetTexture(1, 0);
+	pContext->SetTexture(2, 0);
+#endif
 
 	pContext->SetBlendMode(Display::E_BlendMode_Solid);
 	pContext->SetCullMode(Display::E_CullMode_Default);

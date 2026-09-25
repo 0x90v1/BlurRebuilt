@@ -469,7 +469,13 @@ const Display::C_Texture2D* C_LightingPrepass::GetNormalTexture(const S32 iView)
  	
 const Display::C_Texture2D* C_LightingPrepass::GetDepthTexture(const S32 iView) const
 {
+#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x020c185b): the PC prepass writes view depth into its second
+	// colour target (R32F)
+	return m_pDeferredManager->GetColourTexture(iView, 1);
+#else
 	return m_pDeferredManager->GetDepthStencilTexture(iView);
+#endif
 }
 
 const Display::C_Texture2D* C_LightingPrepass::GetLightingTexture(const S32 iView) const

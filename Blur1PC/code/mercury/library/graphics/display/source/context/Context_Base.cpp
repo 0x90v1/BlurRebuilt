@@ -15,6 +15,9 @@ C_ContextBase::C_ContextBase()
 	m_Multisample			= E_Multisample_None;
 	m_pVertexDeclaration	= NULL;
 	m_pIndexBuffer			= NULL;
+#if PLATFORM_PC
+	m_pStencilTexture		= NULL;	// [Blur2PC]
+#endif
 
 #ifndef PLATFORM_SPU
 	m_pView = new Display::C_View;

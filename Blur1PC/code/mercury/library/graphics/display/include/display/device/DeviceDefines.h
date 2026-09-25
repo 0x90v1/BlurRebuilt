@@ -97,7 +97,7 @@
 #define USE_CGB_SHADERS
 #endif
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3) || defined(PLATFORM_PC)	// [Blur2PC] retail Blur PC renders into display windows too (T089)
 #define USE_DISPLAY_WINDOWS
 #endif
 

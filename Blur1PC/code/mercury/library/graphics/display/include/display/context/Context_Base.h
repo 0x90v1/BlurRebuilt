@@ -26,6 +26,11 @@ public:
 	const C_View*	GetView() const { return m_pView; }
 	const Display::C_Texture2D*	GetColourTexture() const { return m_pColourTexture; }
 	const Display::C_Texture2D*	GetDepthStencilTexture() const { return m_pDepthStencilTexture; }
+	#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2, context +0x48): the display window's stencil mask texture
+	void SetStencilTexture(const Display::C_Texture2D* pStencilTexture) { m_pStencilTexture = pStencilTexture; }
+	const Display::C_Texture2D*	GetStencilTexture() const { return m_pStencilTexture; }
+	#endif
 #endif
 
 	void SetVertexDeclaration(const Display2::C_VertexDeclaration* pVertexDeclaration);
@@ -83,6 +88,9 @@ public:
 
 	const Display::C_Texture2D*										m_pColourTexture;
 	const Display::C_Texture2D*										m_pDepthStencilTexture;
+	#if PLATFORM_PC
+	const Display::C_Texture2D*										m_pStencilTexture;	// [Blur2PC] retail +0x48
+	#endif
 	const Display2::C_VertexDeclaration*							m_pVertexDeclaration;
 	const Display2::C_IndexBuffer*									m_pIndexBuffer;
 

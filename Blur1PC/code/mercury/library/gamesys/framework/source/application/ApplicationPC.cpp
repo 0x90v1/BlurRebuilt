@@ -1251,14 +1251,16 @@ bool C_Application::LoadSettings()
 	m_ResolutionIndex = resolutionIndex;
 
 	const Display::C_MultisampleOption* pMultisample = Display::g_Resolutions.GetMultisample(m_MultisampleIndex);
+	// [Blur2PC] retail LoadSettings writes the choice to the display windows' multisample (+0x134, T089);
+	// the back buffer is never multisampled
 	if(pMultisample)
 	{
-		m_DisplayDeviceParams.m_Multisample = pMultisample->m_Multisample;
+		m_DisplayDeviceParams.m_WindowBufferMultisample = pMultisample->m_Multisample;
 	}
 	else
 	{
 		m_MultisampleIndex = 0;
-		m_DisplayDeviceParams.m_Multisample = Display::E_Multisample_None;
+		m_DisplayDeviceParams.m_WindowBufferMultisample = Display::E_Multisample_None;
 	}
 
 	g_debugFrameworkResolution.SetValue((E_GraphicsOption)m_ResolutionIndex);
@@ -1314,14 +1316,53 @@ void C_Application::ClampToMinimumSize(S32* pWidth, S32* pHeight) const
 		*pHeight = m_MinHeight;
 }
 
-// retail 0x0084a450: the resolution becomes the window's client size and the device's back buffer size
+// retail 0x0084a450: the resolution becomes the window's client size, the device's back buffer size and the
+// display windows' buffer and screen size
 void C_Application::SetDisplaySize(const U32 width, const U32 height, const U32 refreshRate)
 {
 	m_Window.m_W = width;
 	m_Window.m_H = height;
 	m_DisplayDeviceParams.m_Width = width;
 	m_DisplayDeviceParams.m_Height = height;
+	m_DisplayDeviceParams.m_WindowBufferWidth = width;		// [Blur2PC] T089
+	m_DisplayDeviceParams.m_WindowBufferHeight = height;
+	m_DisplayDeviceParams.m_ScreenWidth = width;
+	m_DisplayDeviceParams.m_ScreenHeight = height;
 	m_DisplayDeviceParams.m_RefreshRate = refreshRate;
+	ResizeDisplayWindows();
+}
+
+// [Blur2PC] display window 0 (retail 0x00427660 and 0x00427750 read the device's first window)
+U32 C_Application::GetDisplayWindowWidth() const
+{
+	return m_pDisplayDevice->GetWindow(0)->m_Width;
+}
+
+U32 C_Application::GetDisplayWindowHeight() const
+{
+	return m_pDisplayDevice->GetWindow(0)->m_Height;
+}
+
+Display::E_Multisample C_Application::GetDisplayWindowMultisample() const
+{
+	return m_pDisplayDevice->GetWindow(0)->m_Multisample;
+}
+
+// [Blur2PC] retail 0x0084a390: resize the display windows from the application's device parameters; their
+// targets follow at the next device reset (T089)
+void C_Application::ResizeDisplayWindows()
+{
+	for(S32 viewIndex = 0; viewIndex < m_SplitscreenViews.Size(); ++viewIndex)
+	{
+		m_pDisplayDevice->GetWindow(viewIndex)->Resize(
+			m_DisplayDeviceParams.m_WindowBufferWidth,
+			m_DisplayDeviceParams.m_WindowBufferHeight,
+			m_DisplayDeviceParams.m_WindowBufferMultisample,
+			m_DisplayDeviceParams.m_ScreenWidth,
+			m_DisplayDeviceParams.m_ScreenHeight,
+			m_DisplayDeviceParams.m_WindowBufferColourFormat,
+			m_DisplayDeviceParams.m_WindowBufferDepthStencilFormat);
+	}
 }
 
 // retail 0x008496b0: window rectangle for the saved client position and size, kept on screen
@@ -1401,10 +1442,6 @@ bool C_Application::ResetDevice()
 		m_pDisplayDevice->DestroyRenderersVolatile();
 		m_pDisplayDevice->DestroyVolatile();
 
-		// [Blur2PC] kept from the original PC path: on PC the render globals are owned here
-		Render::DestroyGlobalColourBuffer();
-		Render::DestroyGlobalDepthStencilBuffer();
-
 		#if !CFG_SPEED
 		BIZ_ASSERT(g_d3dOcclusionQueryCount == 0);
 		#endif
@@ -1415,15 +1452,14 @@ bool C_Application::ResetDevice()
 			return false;
 		}
 
+		// [Blur2PC] retail also sets the views' window viewports from the recreated windows (T089)
 		const Display::C_BackBuffer& backBuffer = m_pDisplayDevice->GetBackBuffer();
 		for(S32 viewIndex = 0; viewIndex < m_SplitscreenViews.Size(); ++viewIndex)
 		{
 			C_View& splitscreenView = m_SplitscreenViews[viewIndex];
 			splitscreenView.m_View.Setup(splitscreenView.m_ViewSetup, backBuffer.GetWidth(), backBuffer.GetHeight());
+			SetWindowViewports(splitscreenView, m_pDisplayDevice->GetWindow(viewIndex), m_pDisplayDevice->m_DeviceParams.m_ScreenWidth, m_pDisplayDevice->m_DeviceParams.m_ScreenHeight);
 		}
-
-		Render::CreateGlobalColourBuffer();
-		Render::CreateGlobalDepthStencilBuffer();
 
 		m_LayerManager.SendMessageToLayers(E_LayerMessage_Resize);
 
@@ -1447,11 +1483,13 @@ void C_Application::ApplyGraphicsOptions(const S32 resolutionIndex, const S32 mu
 		m_MultisampleIndex = multisampleIndex;
 		g_debugFrameworkMultisample.SetValue((E_GraphicsOption)multisampleIndex);
 
+		// [Blur2PC] retail: the display windows' multisample (+0x134), then 0x0084a390 (T089)
 		const Display::C_MultisampleOption* pMultisample = Display::g_Resolutions.GetMultisample(multisampleIndex);
-		m_DisplayDeviceParams.m_Multisample = pMultisample ? pMultisample->m_Multisample : Display::E_Multisample_None;
+		m_DisplayDeviceParams.m_WindowBufferMultisample = pMultisample ? pMultisample->m_Multisample : Display::E_Multisample_None;
 
 		reset = true;
 		multisampleChanged = true;
+		ResizeDisplayWindows();
 	}
 
 	if(windowed != m_Windowed)

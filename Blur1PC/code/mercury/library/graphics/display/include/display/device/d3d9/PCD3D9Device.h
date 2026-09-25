@@ -63,6 +63,17 @@ public:
 
 	bool SupportForRenderTarget(const E_ResourceType resourceType, const E_Format format);
 
+	// [Blur2PC] Window management: retail Blur PC renders each splitscreen view into a display window
+	// (Blur.exe 1.2; the snapshot has these only for Xenon and PS3)
+	void ClearWindows();									// retail 0x01f0dab0
+	void ResizeWindows();									// retail 0x005acf50
+	bool CreateWindows();									// retail 0x005ac640
+	void DestroyWindows();									// retail 0x0063ebb0
+	void SetWindow(const S32 windowIndex, const bool aa);	// retail 0x020c927d
+	void EndWindow();										// retail 0x005acab0
+	void RestoreWindow(const S32 windowIndex, const U32 colourWrite = E_ColourWriteEnable_All);	// retail 0x005acac0
+	void RenderWindowMask();								// retail 0x005ac830 (name ours)
+
 protected:
 
 	/**************************************************************************************************

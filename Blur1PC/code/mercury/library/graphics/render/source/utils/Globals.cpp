@@ -60,6 +60,21 @@ void SetGlobalColourBuffer(const Display::C_Texture2D*pTexture)
 	g_pColourBuffer = pTexture;
 }
 
+#if defined(PLATFORM_PC)
+// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x006a1940/0x006a1970)
+const Display::C_Texture2D* g_pStencilBuffer = NULL;
+
+const Display::C_Texture2D* GetGlobalStencilBuffer()
+{
+	return g_pStencilBuffer;
+}
+
+void SetGlobalStencilBuffer(const Display::C_Texture2D* pTexture)
+{
+	g_pStencilBuffer = pTexture;
+}
+#endif
+
 void SetGlobalDepthStencilBuffer(const Display::C_Texture2D* pTexture)
 {
 #if PLATFORM_PS3
@@ -121,7 +136,7 @@ void DestroyGlobalGraphicsBuffers()
 
 #endif // PLATFORM_PS3
 
-#if defined(PLATFORM_PC)
+#if defined(PLATFORM_PC) && !defined(USE_DISPLAY_WINDOWS)	// [Blur2PC] retail Blur PC uses display windows (T089)
 
 Display::C_RenderTexture2D g_ColourBuffer;
 Display::C_RenderTexture2D g_DepthStencilBuffer;

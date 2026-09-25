@@ -237,9 +237,76 @@ C_ApplicationBase::~C_ApplicationBase()
 	s_pInstance = NULL;
 }
 
+#ifdef PLATFORM_PC
+// [Blur2PC] retail 0x005ae320: the viewport a view setup's window covers on a device of the given size
+// (the arithmetic of Display::C_View::SetViewport)
+static void SetViewportFromViewSetup(Display::C_Viewport& viewport, const Display::C_ViewSetup& viewSetup, const U32 deviceWidth, const U32 deviceHeight)
+{
+	Maths::C_Transform2d deviceTransformInv(viewSetup.GetDeviceCoords());
+	deviceTransformInv.Invert();
+
+	Maths::C_Transform2d windowTransform(viewSetup.m_WindowCoords);
+	
+	Maths::C_Transform2d viewportTransform(deviceTransformInv * windowTransform);
+
+	viewport.m_X	= U32(0.5f + F32(deviceWidth) * viewportTransform.Offset().X());
+	viewport.m_W	= U32(0.5f + F32(deviceWidth) * viewportTransform.Scale().X());
+	viewport.m_Y	= U32(0.5f + F32(deviceHeight) * viewportTransform.Offset().Y());
+	viewport.m_H	= U32(0.5f + F32(deviceHeight) * viewportTransform.Scale().Y());
+	viewport.m_MinZ	= 0.0f;
+	viewport.m_MaxZ	= 1.0f;
+}
+
+// [Blur2PC] retail 0x005ae090
+static void SetViewportSize(Display::C_Viewport& viewport, const U32 width, const U32 height)
+{
+	viewport.m_X	= 0;
+	viewport.m_Y	= 0;
+	viewport.m_W	= width;
+	viewport.m_H	= height;
+	viewport.m_MinZ	= 0.0f;
+	viewport.m_MaxZ	= 1.0f;
+}
+
+// [Blur2PC] retail Blur PC's window viewports of a view, set wherever the windows change (0x0084ebf0,
+// 0x0084d9f0, 0x0084a240)
+void SetWindowViewports(C_View& view, const Display::C_Window* pWindow, const U32 screenWidth, const U32 screenHeight)
+{
+	SetViewportFromViewSetup(view.m_ScreenViewport, view.m_ViewSetup, screenWidth, screenHeight);
+	SetViewportSize(view.m_WindowViewport, pWindow->m_Width, pWindow->m_Height);
+	SetViewportSize(view.m_WindowScreenViewport, pWindow->m_ScreenWidth, pWindow->m_ScreenHeight);
+}
+#endif // PLATFORM_PC
+
 void C_ApplicationBase::SetViewSetup(const E_ViewSetup viewSetup)
 {
-#ifndef PLATFORM_PC
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x0084d9f0)
+	if(viewSetup != m_ViewSetup)
+	{
+		m_ViewSetup = viewSetup;
+		g_debugViewSetup = viewSetup;
+
+		m_pDisplayDevice->AcquireThreadOwnership();
+
+		m_pDisplayDevice->DestroyWindows();
+		AddDisplayWindows(m_pDisplayDevice->m_DeviceParams);
+		m_pDisplayDevice->CreateWindows();
+
+		const Display::C_BackBuffer& backBuffer = m_pDisplayDevice->GetBackBuffer();
+		for(S32 viewIndex = 0; viewIndex < m_SplitscreenViews.Size(); ++viewIndex)
+		{
+			C_View& splitscreenView = m_SplitscreenViews[viewIndex];
+			Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
+			splitscreenView.m_View.Setup(splitscreenView.m_ViewSetup, backBuffer.GetWidth(), backBuffer.GetHeight());
+			SetWindowViewports(splitscreenView, pWindow, m_pDisplayDevice->m_DeviceParams.m_ScreenWidth, m_pDisplayDevice->m_DeviceParams.m_ScreenHeight);
+		}
+		
+		SendMessageToLayers(E_LayerMessage_Resize);
+
+		m_pDisplayDevice->ReleaseThreadOwnership();
+	}
+#else
 	if(viewSetup != m_ViewSetup)
 	{
 		m_ViewSetup = viewSetup;
@@ -398,7 +465,7 @@ HRESULT C_ApplicationBase::Initialise(const C_ApplicationParams& params)
 	
 	// Create global graphics buffers
 
-	#ifdef PLATFORM_PC
+	#if defined(PLATFORM_PC) && !defined(USE_DISPLAY_WINDOWS)	// [Blur2PC] retail Blur PC publishes its display windows' targets instead (T089)
 	Render::CreateGlobalColourBuffer();
 	Render::CreateGlobalDepthStencilBuffer();
 	#endif
@@ -427,7 +494,7 @@ void C_ApplicationBase::Shutdown(bool force)
 
 	m_LayerManager.ShutDown();
 
-	#ifdef PLATFORM_PC
+	#if defined(PLATFORM_PC) && !defined(USE_DISPLAY_WINDOWS)	// [Blur2PC] T089
 	Render::DestroyGlobalColourBuffer();
 	Render::DestroyGlobalDepthStencilBuffer();
 	#endif
@@ -714,10 +781,8 @@ void C_ApplicationBase::CommonRender()
 			RenderOnce();
 		}
 
-		#if PLATFORM_PC
-		m_pDisplayDevice->SetColourDepthStencilSurface();
-		m_pDisplayDevice->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth | Display::E_Clear_Stencil);
-		#endif
+		// [Blur2PC] the snapshot's PC path cleared the back buffer here; retail Blur PC (0x0084cff0) does not,
+		// its views are drawn into display windows
 
 		#if PLATFORM_PS3
 		if(m_pDisplayDevice->AADisabled() || g_debugAppBaseForceSplitscreenWithAndWithoutAA)
@@ -1016,7 +1081,11 @@ HRESULT C_ApplicationBase::CreateDevice()
 
 	SetupDeviceParams();
 
+	#ifdef PLATFORM_PC
+	AddDisplayWindows(m_DisplayDeviceParams);	// [Blur2PC] retail Blur PC
+	#else
 	AddDisplayWindows();
+	#endif
 
 	#ifndef PLATFORM_PC
 	SetupDisplayResolutions(
@@ -1281,11 +1350,13 @@ void C_ApplicationBase::SetupViews()
 		feed.ToViewSetup(splitscreenView.m_ViewSetup.m_ViewSetup3D, false);
 
 		#if defined(USE_DISPLAY_WINDOWS)
-		Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
 		const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
 
+		#ifndef PLATFORM_PC	// [Blur2PC] retail Blur PC (0x0084dd40) sets the window coordinates only when adding the window
+		Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
 		Maths::HVec2 hack(1024.0f, 768.0f);
 		splitscreenView.m_ViewSetup.m_WindowCoords = Maths::C_Rect(pWindow->m_Coords.Min() * hack, pWindow->m_Coords.Max() * hack);
+		#endif
 		splitscreenView.m_View.Setup(splitscreenView.m_ViewSetup, backBuffer.GetWidth(), backBuffer.GetHeight());
 		#else
 		m_pDisplayDevice->SetupView(&splitscreenView.m_View, splitscreenView.m_ViewSetup);
@@ -1339,6 +1410,9 @@ void C_ApplicationBase::ScheduleSplitscreen()
 		Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
 		Render::SetGlobalColourBuffer(pWindow->GetColourTexture());
 		Render::SetGlobalDepthStencilBuffer(pWindow->GetDepthStencilTexture());
+		#ifdef PLATFORM_PC
+		Render::SetGlobalStencilBuffer(pWindow->GetMaskTexture());	// [Blur2PC] retail Blur PC (0x0084de00, 0x006a1970)
+		#endif
 		#endif // USE_DISPLAY_WINDOWS
 		
 		SendMessageToLayers(E_LayerMessage_ScheduleSplitscreen);
@@ -1421,11 +1495,48 @@ void C_ApplicationBase::PreRenderSplitscreenView(const S32 viewIndex)
 	Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
 	Render::SetGlobalColourBuffer(pWindow->GetColourTexture());
 	Render::SetGlobalDepthStencilBuffer(pWindow->GetDepthStencilTexture());
+	#ifdef PLATFORM_PC
+	Render::SetGlobalStencilBuffer(pWindow->GetMaskTexture());	// [Blur2PC] retail Blur PC (0x0084e070, 0x006a1970)
+	#endif
 	#endif // USE_DISPLAY_WINDOWS
 
 	SendMessageToLayers(E_LayerMessage_PreRenderSplitscreen);
 }
 
+#ifdef PLATFORM_PC
+// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x0084df00): the view is drawn into its display window, whose colour
+// the device resolves and whose stencil it turns into the mask texture between the two layer passes
+void C_ApplicationBase::RenderSplitscreenViewWithAA(const S32 viewIndex)
+{
+	C_View& splitscreenView = m_SplitscreenViews[viewIndex];
+	m_iSplitscreenView = viewIndex;
+
+	m_pDisplayDevice->SetWindow(viewIndex, true);
+
+	Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
+	Render::SetGlobalColourBuffer(pWindow->GetColourTexture());
+	Render::SetGlobalDepthStencilBuffer(pWindow->GetDepthStencilTexture());
+	Render::SetGlobalStencilBuffer(pWindow->GetMaskTexture());
+
+	m_pDisplayDevice->SetView(&splitscreenView.m_View);
+	m_pDisplayDevice->SetViewport(splitscreenView.m_WindowViewport);
+
+	if(!g_debugClearBufferColour)
+		m_pDisplayDevice->Clear(Display::E_Clear_Depth | Display::E_Clear_Stencil);
+	else
+		m_pDisplayDevice->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth | Display::E_Clear_Stencil, Maths::C_RGBA_U8(g_debugClearColour.Value().r, g_debugClearColour.Value().g, g_debugClearColour.Value().b, g_debugClearColour.Value().a));
+
+	SendMessageToLayers(E_LayerMessage_RenderSplitscreenWithAA);
+
+	m_pDisplayDevice->RenderWindowMask();
+
+	SendMessageToLayers(E_LayerMessage_RenderSplitscreenWithoutAA);
+
+	m_pDisplayDevice->EndWindow();
+
+	m_pDisplayDevice->SetView(NULL);
+}
+#else
 void C_ApplicationBase::RenderSplitscreenViewWithAA(const S32 viewIndex)
 {
 	C_View& splitscreenView = m_SplitscreenViews[viewIndex];
@@ -1528,6 +1639,7 @@ void C_ApplicationBase::RenderSplitscreenViewWithAA(const S32 viewIndex)
 	
 	m_pDisplayDevice->SetView(NULL);
 }
+#endif // PLATFORM_PC
 
 void C_ApplicationBase::PreRenderSplitscreen()
 {
@@ -1568,6 +1680,31 @@ void C_ApplicationBase::RenderSplitscreenWithAA()
 	#endif // TAKE_SCREENSHOTS
 }
 
+#ifdef PLATFORM_PC
+// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x0084e180): copy the display window to its place on the bound
+// colour surface (the back buffer)
+void C_ApplicationBase::RenderSplitscreenViewWithoutAA(const S32 viewIndex)
+{
+	C_View& splitscreenView = m_SplitscreenViews[viewIndex];
+	m_iSplitscreenView = viewIndex;
+
+	m_pDisplayDevice->SetView(&splitscreenView.m_View);
+	m_pDisplayDevice->SetViewport(splitscreenView.m_ScreenViewport);
+
+	Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
+	Render::SetGlobalColourBuffer(pWindow->GetColourTexture());
+	Render::SetGlobalDepthStencilBuffer(pWindow->GetDepthStencilTexture());
+	Render::SetGlobalStencilBuffer(pWindow->GetMaskTexture());
+
+	BeginRenderSplitscreenWithoutAA();
+
+	m_pDisplayDevice->RestoreWindow(viewIndex, Display::E_ColourWriteEnable_All);
+
+	EndRenderSplitscreenWithoutAA();
+
+	m_pDisplayDevice->SetView(NULL);
+}
+#else
 void C_ApplicationBase::RenderSplitscreenViewWithoutAA(const S32 viewIndex)
 {
 	C_View& splitscreenView = m_SplitscreenViews[viewIndex];
@@ -1622,6 +1759,7 @@ void C_ApplicationBase::RenderSplitscreenViewWithoutAA(const S32 viewIndex)
 
 	m_pDisplayDevice->SetView(NULL);
 }
+#endif // PLATFORM_PC
 
 void C_ApplicationBase::RenderSplitscreenWithoutAA()
 {
@@ -1633,6 +1771,12 @@ void C_ApplicationBase::RenderSplitscreenWithoutAA()
 		m_pDisplayDevice->Clear(Display::E_Clear_Colour);
 	}
 	#endif
+
+	#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (0x0084e250) restores the windows onto the back buffer (or onto an application
+	// render texture at +0xac4 that nothing creates)
+	m_pDisplayDevice->SetColourDepthStencilSurface();
+	#endif
 	
 	for(S32 viewIndex=m_SplitscreenViews.Size()-1; viewIndex>=0; --viewIndex)
 	{
@@ -1641,11 +1785,11 @@ void C_ApplicationBase::RenderSplitscreenWithoutAA()
 		RenderSplitscreenViewWithoutAA(viewIndex);
 	}
 
-	ResetDebugRender();
+	ResetDebugRender();	// [Blur2PC] retail Blur PC's 0x0084e250 does not send this; kept for the snapshot's debug layer
 
 	m_iSplitscreenView = -1;
 
-	#if defined(USE_DISPLAY_WINDOWS)
+	#if defined(USE_DISPLAY_WINDOWS) && !defined(PLATFORM_PC)
 	m_pDisplayDevice->SetColourDepthStencilSurface();
 	#endif // USE_DISPLAY_WINDOWS
 }
@@ -1759,64 +1903,105 @@ HRESULT C_ApplicationBase::SendMessageToLayers(const U32 message)
 	return m_LayerManager.SendMessageToLayers( message );
 }
 
+#ifdef PLATFORM_PC
+// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x0084e6a0): the windows are sized from the device parameters given
+#define DISPLAY_WINDOW_PARAMS deviceParams,
+void C_ApplicationBase::AddDisplayWindows(const Display::C_DeviceParams& deviceParams)
+#else
+#define DISPLAY_WINDOW_PARAMS
 void C_ApplicationBase::AddDisplayWindows()
+#endif
 {
-	#ifndef PLATFORM_PC
 	m_pDisplayDevice->ClearWindows();
-	#endif // PLATFORM_PC
 
 	m_SplitscreenViews.Resize(0);
 
 	switch(m_ViewSetup)
 	{
 	case E_ViewSetup_1:
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(1.0f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(1.0f, 1.0f)));
 		break;
 	case E_ViewSetup_2h:
 		if(g_debugShrink2PlayerSplitscreenEnable)
 		{
 			F32 border = (F32)g_debugShrink2PlayerSplitscreenBorder;
 			F32 offset = (F32)g_debugShrink2PlayerSplitscreenOffset;			
-			AddDisplayWindow(Maths::C_Rect(Maths::HVec2(offset, 0.0f), Maths::HVec2(1.0f-(border*2.0f)+offset, 0.5f)));
-			AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f+(border*2.0f-offset), 0.5f), Maths::HVec2(1.0f-offset, 1.0f)));
+			AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(offset, 0.0f), Maths::HVec2(1.0f-(border*2.0f)+offset, 0.5f)));
+			AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f+(border*2.0f-offset), 0.5f), Maths::HVec2(1.0f-offset, 1.0f)));
 		}
 		else
 		{
-			AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
-			AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
+			AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
+			AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
 		}
 		break;
 	case E_ViewSetup_2v:
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(0.5f, 1.0f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.5f, 0.0f), Maths::HVec2(1.0f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(0.5f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.5f, 0.0f), Maths::HVec2(1.0f, 1.0f)));
 		break;
 	case E_ViewSetup_3:
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.25f, 0.0f), Maths::HVec2(0.75f, 0.5f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(0.5f, 1.0f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.25f, 0.0f), Maths::HVec2(0.75f, 0.5f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(0.5f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
 		break;
 	case E_ViewSetup_3h:
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(0.5f, 1.0f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(0.5f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
 		break;
 	case E_ViewSetup_3v:
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(0.5f, 1.0f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.5f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(0.5f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.5f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
 		break;
 	case E_ViewSetup_4:
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(0.5f, 0.5f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.5f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(0.5f, 1.0f)));
-		AddDisplayWindow(Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.0f), Maths::HVec2(0.5f, 0.5f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.5f, 0.0f), Maths::HVec2(1.0f, 0.5f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.0f, 0.5f), Maths::HVec2(0.5f, 1.0f)));
+		AddDisplayWindow(DISPLAY_WINDOW_PARAMS Maths::C_Rect(Maths::HVec2(0.5f, 0.5f), Maths::HVec2(1.0f, 1.0f)));
 		break;
 	default:
 		BIZ_ASSERT(0 && "Unsupported view setup");
 		break;
 	}
 }
+#undef DISPLAY_WINDOW_PARAMS
 
+#ifdef PLATFORM_PC
+// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x0084ebf0)
+void C_ApplicationBase::AddDisplayWindow(const Display::C_DeviceParams& deviceParams, const Maths::C_Rect& windowCoords)
+{
+	S32 viewNo = m_SplitscreenViews.Size();
+	BIZ_ASSERT(viewNo < 4);
+
+	const S32 windowIndex = m_pDisplayDevice->AddWindow(windowCoords);
+	Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(windowIndex);
+	pWindow->Resize(
+		deviceParams.m_WindowBufferWidth,
+		deviceParams.m_WindowBufferHeight,
+		deviceParams.m_WindowBufferMultisample,
+		deviceParams.m_ScreenWidth,
+		deviceParams.m_ScreenHeight,
+		deviceParams.m_WindowBufferColourFormat,
+		deviceParams.m_WindowBufferDepthStencilFormat);
+
+	m_SplitscreenViews.Resize(viewNo + 1);
+
+	C_View& view = m_SplitscreenViews[viewNo];
+
+	Maths::HVec2 hack(1024.0f, 768.0f);
+	view.m_ViewSetup.m_WindowCoords = Maths::C_Rect(pWindow->m_Coords.Min() * hack, pWindow->m_Coords.Max() * hack);
+	SetWindowViewports(view, pWindow, deviceParams.m_ScreenWidth, deviceParams.m_ScreenHeight);
+
+	view.m_ViewFlags |= Render::E_ViewFlag_3d;
+	view.m_ViewFlags |= Render::E_ViewFlag_EnablePostProcess;
+	view.m_ViewFlags |= Render::E_ViewFlag_EnableDeferred;
+	view.m_View.SetUserIndex(viewNo);
+
+	view.m_ViewSetup.m_ViewSetup3D.m_WindowProportion = (windowCoords.Max().X() - windowCoords.Min().X()) / (windowCoords.Max().Y() - windowCoords.Min().Y());
+	view.m_ViewSetup.m_ViewSetup3D.m_AspectRatio = Display::Device()->GetAspectRatio();
+}
+#else
 void C_ApplicationBase::AddDisplayWindow(const Maths::C_Rect& windowCoords)
 {
 	S32 viewNo = m_SplitscreenViews.Size();
@@ -1845,6 +2030,7 @@ void C_ApplicationBase::AddDisplayWindow(const Maths::C_Rect& windowCoords)
 	view.m_ViewSetup.m_ViewSetup3D.m_WindowProportion = (windowCoords.Max().X() - windowCoords.Min().X()) / (windowCoords.Max().Y() - windowCoords.Min().Y());
 	view.m_ViewSetup.m_ViewSetup3D.m_AspectRatio = Display::Device()->GetAspectRatio();
 }
+#endif // PLATFORM_PC
 
 void C_ApplicationBase::ResizeDisplayWindows()
 {

@@ -39,7 +39,7 @@ C_DeviceParams::C_DeviceParams()
 	#ifdef PLATFORM_PC
 	m_Width								= 640;
 	m_Height							= 480;
-	m_Multisample						= E_Multisample_2;
+	m_Multisample						= E_Multisample_None;	// [Blur2PC] retail 0x005b69f0 (snapshot: E_Multisample_2)
 	m_ColourFormat						= E_Format_A8R8G8B8;
 	m_DepthStencilFormat				= E_Format_D24S8;
 	m_RefreshRate						= 0;	// [Blur2PC]
@@ -59,6 +59,14 @@ C_DeviceParams::C_DeviceParams()
 #endif
 	m_FreeBeginVerticesSize				= (1024*256);
 	m_PresentInterval					= E_PresentInterval_One;
+	// [Blur2PC] retail 0x005b69f0
+	m_WindowBufferWidth					= 640;
+	m_WindowBufferHeight				= 480;
+	m_WindowBufferColourFormat			= E_Format_A8R8G8B8;
+	m_WindowBufferDepthStencilFormat	= E_Format_D24S8;
+	m_WindowBufferMultisample			= E_Multisample_2;
+	m_ScreenWidth						= 640;
+	m_ScreenHeight						= 480;
 	#endif
 }
 

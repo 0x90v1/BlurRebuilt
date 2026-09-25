@@ -3,6 +3,7 @@
 #include <d3dx9.h>	// [Blur2PC] D3DXSaveSurfaceToFile
 #include "Display/Device/D3D9/PCD3D9Device.h"
 #include "Display/Timing/GPUTiming.h"	// [Blur2PC] C_GPUTimingStats::ReleaseQueries
+#include "Display/Render/Render.h"	// [Blur2PC] Display::Quad, for the display windows (T089)
 
 //#define D3D_BUILD_OBJECT_CAPS
 //#define D3D_BUILD_DEVICE_CAPS
@@ -95,7 +96,190 @@ bool C_PCD3D9Device::CreateDevice()
 	InvalidateState();
 	DefaultStates();
 
+	// [Blur2PC] retail Blur PC creates the display windows' targets from the device parameters here
+	// (ResizeWindows, 0x005acf50, has no direct caller: it runs from the obfuscated device creation)
+	ResizeWindows();
+
 	return true;
+}
+
+// [Blur2PC] Retail Blur PC's display windows (Blur.exe 1.2). Each window has a colour render texture and a
+// depth-stencil surface at the window-buffer multisample, and an A8R8G8B8 render texture that
+// RenderWindowMask fills from the stencil (the car mask the screen blob shadows sample).
+
+// retail 0x01f0dab0: from DestroyDevice (0x005aced0) and before a view setup adds its windows
+void C_PCD3D9Device::ClearWindows()
+{
+	// [Blur2PC] retail only runs the members' destructors, which release nothing; release the targets
+	// first so a window deleted with live targets does not leak them
+	DestroyWindows();
+
+	for(S32 i=0; i<m_Windows.Size(); i++)
+	{
+		SAFE_DELETE_PTR(m_Windows[i]);
+	}
+
+	m_Windows.Clear();
+}
+
+// retail 0x005acf50: size every window from the device parameters and create its targets
+void C_PCD3D9Device::ResizeWindows()
+{
+	DestroyWindows();
+
+	const S32 windowCount = m_Windows.Size();
+	for(S32 windowIndex=0; windowIndex<windowCount; windowIndex++)
+	{
+		m_Windows[windowIndex]->Resize(
+			m_DeviceParams.m_WindowBufferWidth,
+			m_DeviceParams.m_WindowBufferHeight,
+			m_DeviceParams.m_WindowBufferMultisample,
+			m_DeviceParams.m_ScreenWidth,
+			m_DeviceParams.m_ScreenHeight,
+			m_DeviceParams.m_WindowBufferColourFormat,
+			m_DeviceParams.m_WindowBufferDepthStencilFormat);
+	}
+
+	CreateWindows();
+}
+
+// retail 0x005ac640
+bool C_PCD3D9Device::CreateWindows()
+{
+	const S32 windowCount = m_Windows.Size();
+	for(S32 windowIndex=0; windowIndex<windowCount; windowIndex++)
+	{
+		C_Window* pWindow = m_Windows[windowIndex];
+
+		pWindow->m_Multisample = m_DeviceParams.m_WindowBufferMultisample;
+
+		if(!CreateRenderTexture2D(pWindow->m_Width, pWindow->m_Height, 1, E_Usage_Colour, m_DeviceParams.m_WindowBufferColourFormat, m_DeviceParams.m_WindowBufferMultisample, NULL, &pWindow->m_ColourRenderTexture))
+			return false;
+
+		if(!CreateDepthStencilSurface(pWindow->m_Width, pWindow->m_Height, E_Usage_DepthStencil, D3D9Format(m_DeviceParams.m_WindowBufferDepthStencilFormat), D3D9Multisample(m_DeviceParams.m_WindowBufferMultisample), NULL, &pWindow->m_DepthStencilSurface))
+			return false;
+
+		if(!CreateRenderTexture2D(pWindow->m_Width, pWindow->m_Height, 1, E_Usage_Colour, E_Format_A8R8G8B8, m_DeviceParams.m_WindowBufferMultisample, NULL, &pWindow->m_MaskRenderTexture))
+			return false;
+
+		pWindow->m_ClearDepthStencil = true;
+		pWindow->m_MaskEnable = true;
+	}
+
+	return true;
+}
+
+// retail 0x0063ebb0: from DestroyDeviceVolatile (0x005ace70) and ResizeWindows
+void C_PCD3D9Device::DestroyWindows()
+{
+	const S32 windowCount = m_Windows.Size();
+	for(S32 windowIndex=0; windowIndex<windowCount; windowIndex++)
+	{
+		C_Window* pWindow = m_Windows[windowIndex];
+
+		// [Blur2PC] retail destroys unconditionally; the snapshot's resource tracker (non-Speed builds)
+		// does not allow removing a render texture twice
+		if(pWindow->m_ColourRenderTexture.IsCreated())
+			DestroyRenderTexture2D(&pWindow->m_ColourRenderTexture);
+		DestroyDepthStencilSurface(&pWindow->m_DepthStencilSurface);
+		if(pWindow->m_MaskRenderTexture.IsCreated())
+			DestroyRenderTexture2D(&pWindow->m_MaskRenderTexture);
+	}
+}
+
+// retail 0x020c927d
+Debug::Bool g_debugDisplayWindowForceClearDepth("Graphics.Display.Window.ForceClearDepth", false);	// retail 0x01143968
+
+void C_PCD3D9Device::SetWindow(const S32 windowIndex, const bool aa)
+{
+	if(windowIndex != -1)
+	{
+		C_Window* pWindow = m_Windows[windowIndex];
+
+		SetColourSurface(0, &pWindow->m_ColourRenderTexture.GetSurface());
+		SetDepthStencilSurface(&pWindow->m_DepthStencilSurface);
+
+		const U32 flags = (pWindow->m_ClearDepthStencil || g_debugDisplayWindowForceClearDepth) ? (E_Clear_Colour | E_Clear_Depth | E_Clear_Stencil) : E_Clear_Colour;
+		Clear(flags, Maths::RGBA(0, 0, 0, 255));
+	}
+
+	m_CurrentWindow = windowIndex;
+}
+
+// retail 0x005acab0
+void C_PCD3D9Device::EndWindow()
+{
+	m_CurrentWindow = -1;
+}
+
+// retail 0x005acac0: copy the window to the bound colour surface; onto the back buffer as a textured quad
+// (in the current viewport), onto any other surface with StretchRect. colourWrite is unused on PC.
+void C_PCD3D9Device::RestoreWindow(const S32 windowIndex, const U32 colourWrite)
+{
+	m_CurrentWindow = windowIndex;
+
+	C_Window* pWindow = m_Windows[windowIndex];
+
+	if(m_RenderTarget.m_pColourSurface == &GetBackBuffer().m_ColourSurface)
+	{
+		pWindow->m_ColourRenderTexture.Resolve();
+		SetBlendMode(E_BlendMode_Solid);
+		SetTextureGamma(0, E_Bool_False);
+		Quad::DrawFullScreen(&pWindow->m_ColourRenderTexture.GetTexture());
+		return;
+	}
+
+	IDirect3DSurface9* pd3dSrcSurface = pWindow->m_ColourRenderTexture.GetSurface().m_pd3dSurface;
+	IDirect3DSurface9* pd3dDstSurface = m_RenderTarget.m_pColourSurface->m_pd3dSurface;
+	if(pd3dSrcSurface != pd3dDstSurface)
+		m_pd3dDevice->StretchRect(pd3dSrcSurface, NULL, pd3dDstSurface, NULL, D3DTEXF_LINEAR);
+}
+
+// retail 0x005ac830, between the view's with-AA and without-AA layer passes: resolve the window's colour,
+// and when the mask is enabled draw white into the mask texture wherever the stencil is 0xff
+void C_PCD3D9Device::RenderWindowMask()
+{
+	C_Window* pWindow = m_Windows[m_CurrentWindow];
+
+	pWindow->m_ColourRenderTexture.Resolve();
+
+	if(pWindow->m_MaskEnable)
+	{
+		SetColourSurface(0, &pWindow->m_MaskRenderTexture.GetSurface());
+		Clear(E_Clear_Colour, Maths::RGBA(0, 0, 0, 0));
+		SetBlendMode(E_BlendMode_Solid);
+
+		C_StencilState stencilState;
+		stencilState.m_StencilEnable		= E_Bool_True;
+		stencilState.m_StencilFunc			= E_CmpFunc_Equal;
+		stencilState.m_StencilRef			= 0xff;
+		stencilState.m_StencilMask			= 0xff;
+		stencilState.m_StencilWriteMask		= 0;
+		stencilState.m_StencilFail			= E_StencilOp_Keep;
+		stencilState.m_StencilDepthFail		= E_StencilOp_Keep;
+		stencilState.m_StencilDepthPass		= E_StencilOp_Keep;
+		SetStencilState(stencilState);
+
+		SetDepthEnable(E_Bool_False);
+		SetDepthWriteEnable(E_Bool_False);
+		SetCullMode(E_CullMode_None);
+
+		Quad::DrawVertexColour(Maths::RGBA(255, 255, 255, 255));
+
+		stencilState.m_StencilEnable		= E_Bool_False;
+		stencilState.m_StencilFunc			= E_CmpFunc_Always;
+		stencilState.m_StencilRef			= 0;
+		stencilState.m_StencilMask			= 0;
+		stencilState.m_StencilWriteMask		= 0;
+		SetStencilState(stencilState);
+
+		SetCullMode(E_CullMode_Default);
+		SetDepthWriteEnable(E_Bool_True);
+		SetDepthEnable(E_Bool_True);
+
+		pWindow->m_MaskRenderTexture.Resolve();
+		SetColourSurface(0, &pWindow->m_ColourRenderTexture.GetSurface());
+	}
 }
 
 bool C_PCD3D9Device::CreateDeviceVolatile()
@@ -130,6 +314,10 @@ bool C_PCD3D9Device::CreateDeviceVolatile()
 	InvalidateState();
 	DefaultStates();
 
+	// [Blur2PC] retail Blur PC creates the display windows' targets from the device parameters here
+	// (ResizeWindows, 0x005acf50, has no direct caller: it runs from the obfuscated device creation)
+	ResizeWindows();
+
 	return true;
 }
 
@@ -145,6 +333,8 @@ void C_PCD3D9Device::DestroyDeviceVolatile()
 
 	DestroyColourSurface();
 	DestroyDepthStencilSurface();
+
+	DestroyWindows();	// [Blur2PC] retail DestroyDeviceVolatile (0x005ace70) ends with the windows' targets
 	
 	C_D3D9Device::DestroyDeviceVolatile();
 }
@@ -155,6 +345,8 @@ void C_PCD3D9Device::DestroyDevice()
 
 	DestroyColourSurface();
 	DestroyDepthStencilSurface();
+
+	ClearWindows();	// [Blur2PC] retail DestroyDevice (0x005aced0)
 
 	for (S32 i = 0; i < m_BackBuffers.Size(); i++)
 		delete m_BackBuffers[i];
