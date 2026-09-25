@@ -37,6 +37,7 @@ namespace X360Convert
 	E_Result ConvertTexture(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error);
 	E_Result ConvertFont(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error);
 	E_Result ConvertBundle(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error);
+	E_Result ConvertLoc(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error);
 	E_Result ConvertFlask(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error);
 	E_Result ConvertParticleMesh(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error);
 

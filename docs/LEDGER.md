@@ -263,3 +263,9 @@ Not verified: text on screen (none drawn yet).
 Blocked: none.
 Next: menu text (`.loc` XTLO/OLTX and `.pf` fonts: check whether they are already byte-identical), then `.cycle`/`.skeleton`, then the shader cache (T074), models, levels.
 Files touched: Blur1Multi/code/mercury/library/util/x360convert/{source/BundleConvert.cpp (new),source/XenosTexture.{h,cpp},source/X360Convert.cpp,include/x360convert/X360Convert.h}, Blur1Multi/code/tools/{x360convert-verify/x360convert_verify.cpp,xmem-verify/bprlist.py,xmem-verify/bprcmp.py}, Blur1Multi/{cmake/multi.cmake,README.md}, docs/{analysis.md,BOARD.md}, this ledger.
+
+## 2026-09-25 01:00 — session 6 (Claude) — T072 (in progress): localisation; the 360 front end shows text
+Did: `.loc` converter (`x360convert/source/LocConvert.cpp`) from `XtLocExport.cpp`; `code/tools/xmem-verify/loclist.py`.
+Verified: all 44 retail 360 `.loc` files convert; every string shared with the PC files is identical in en/fr/de/it/es (360 adds ja/pl/ru; PC adds PC-only strings). Engine 0 errors; the retail 360 disc shows "single player", "multiplayer" and the A/B button prompts (`_work/verify/x360_frontend_text.png`).
+Next: the front-end city backdrop: find which level/model/shader files it loads first, then those converters; the Xenos shader cache (T074) is needed before anything 3D draws.
+Files touched: Blur1Multi/code/mercury/library/util/x360convert/{source/LocConvert.cpp (new),source/X360Convert.cpp,include/x360convert/X360Convert.h}, Blur1Multi/code/tools/xmem-verify/loclist.py, Blur1Multi/{cmake/multi.cmake,README.md}, docs/{analysis.md,BOARD.md}, this ledger.
