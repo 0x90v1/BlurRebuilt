@@ -23,6 +23,7 @@
 // in place of the PC's Deferred::C_DynamicLights / C_Light. Their objects are kept here,
 // keyed by the prepass, so Prepass.h keeps its PC member types.
 #include <gamesource/GameSource.h>
+#include "Game/GameWorld/View/ConsoleDepth.h"	// [Blur1Multi] console depth target (T089)
 #include <map>
 
 namespace
@@ -610,7 +611,20 @@ const Display::C_Texture2D* C_LightingPrepass::GetNormalTexture(const S32 iView)
  	
 const Display::C_Texture2D* C_LightingPrepass::GetDepthTexture(const S32 iView) const
 {
+#if PLATFORM_PC
+	// [Blur1Multi] a console source's prepass has no target 1: its depth is rebuilt into a ConsoleDepth
+	// target (Game/GameWorld/View/Main.cpp overlay)
+	if (GameSource::IsConsole())
+	{
+		const Display::C_Texture2D* pGBuffer = m_pDeferredManager->GetColourTexture(iView, 0);
+		return pGBuffer ? ConsoleDepth::GetTexture(iView, pGBuffer->GetWidth(), pGBuffer->GetHeight()) : NULL;
+	}
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x020c185b): the PC prepass writes view depth into its second
+	// colour target (R32F)
+	return m_pDeferredManager->GetColourTexture(iView, 1);
+#else
 	return m_pDeferredManager->GetDepthStencilTexture(iView);
+#endif
 }
 
 const Display::C_Texture2D* C_LightingPrepass::GetLightingTexture(const S32 iView) const

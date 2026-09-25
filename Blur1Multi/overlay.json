@@ -1,7 +1,7 @@
 {
  "code/amax/game/Game/GameWorld/View/Main.cpp": {
-  "base_blob": "f025c31bc30bb37fae59a0c3ff60b4f7c5f821b9",
-  "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
+  "base_blob": "bc6cbec0867e43c5af58a6b2747e423f81236735",
+  "base_commit": "2833b96ab4b13e02ec43962a4c38219e1c0feddc",
   "history": [
    {
     "action": "take",
@@ -9,9 +9,16 @@
     "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
     "date": "2026-09-25T11:40:46-03:00",
     "note": "Console sources: the console prepass render-pass list (no vehicles or ghosts in the lighting prepass), as the console builds scheduled it"
+   },
+   {
+    "action": "sync",
+    "base_blob": "bc6cbec0867e43c5af58a6b2747e423f81236735",
+    "base_commit": "2833b96ab4b13e02ec43962a4c38219e1c0feddc",
+    "date": "2026-09-25T18:09:18-03:00",
+    "note": "T089: PC depth copy into Render::g_DepthStencilBuffer removed (the display window's depth is the prepass target 1); console sources resolve into a ConsoleDepth target; main view passes the window mask (SetStencilTexture)"
    }
   ],
-  "synced": "2026-09-25T11:40:46-03:00",
+  "synced": "2026-09-25T18:09:18-03:00",
   "why": "Console sources: the console prepass render-pass list (no vehicles or ghosts in the lighting prepass), as the console builds scheduled it; clip z / w for the blob and drop shadow passes from the console prepass target (ConsoleDepth)"
  },
  "code/amax/game/GameLogic/Layers/BootLayer.cpp": {
@@ -45,8 +52,8 @@
   "why": "CreateFsLayers selects the game source (GameSource::Select) before the retail pak mounts"
  },
  "code/amax/game/Graphics/Lighting/Prepass.cpp": {
-  "base_blob": "0c626eb0c1c92d1d11d36f16d1522b0cb3e30110",
-  "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
+  "base_blob": "f9e150300d115c8250f95ea8dd23ec0d9b96e058",
+  "base_commit": "2833b96ab4b13e02ec43962a4c38219e1c0feddc",
   "history": [
    {
     "action": "take",
@@ -54,9 +61,16 @@
     "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
     "date": "2026-09-25T11:40:46-03:00",
     "note": "Console sources: the console deferred lighting path (single packed normal/view-depth target, C_PointLights/C_SpotLights), which the console effects' prepass programs write for"
+   },
+   {
+    "action": "sync",
+    "base_blob": "f9e150300d115c8250f95ea8dd23ec0d9b96e058",
+    "base_commit": "2833b96ab4b13e02ec43962a4c38219e1c0feddc",
+    "date": "2026-09-25T18:09:19-03:00",
+    "note": "T089: GetDepthTexture on PC returns deferred colour target 1 (retail 0x020c185b); console sources get the ConsoleDepth target"
    }
   ],
-  "synced": "2026-09-25T11:40:46-03:00",
+  "synced": "2026-09-25T18:09:19-03:00",
   "why": "Console sources: the console deferred lighting path (single packed normal/view-depth target, C_PointLights/C_SpotLights), which the console effects' prepass programs write for"
  },
  "code/mercury/library/graphics/renderingdata/source/noninterface/target/archive.cpp": {

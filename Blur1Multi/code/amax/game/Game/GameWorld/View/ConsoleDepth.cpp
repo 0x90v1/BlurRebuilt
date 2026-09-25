@@ -1,11 +1,11 @@
 // [Blur1Multi] Scene depth for console sources (T076).
 //
-// Blob shadows, drop shadows and the other readers of Render::g_DepthStencilBuffer sample
+// Blob shadows, drop shadows and the other readers of the global depth buffer sample
 // post-projection depth. The consoles bound the hardware depth buffer itself for them
 // (render/source/utils/Globals.cpp: the 360 resolved depth; the PS3 read its D24 depth as
 // RGBA8 bytes, render/shaders/psCommon.h SampleDepthBuffer). The PC build cannot sample a
-// D3D9 depth buffer; its prepass writes clip z / clip w into an R32F target 1, and
-// View/Main.cpp copies that into the global buffer. A console source runs the console
+// D3D9 depth buffer; its prepass writes clip z / clip w into an R32F target 1, which retail PC
+// hands to the display window as its depth texture (Blur1PC T089). A console source runs the console
 // lighting prepass (Graphics/Lighting/Prepass.cpp overlay), which has no target 1 but packs
 // clip w / g_vNearFar.w into the z and w bytes of target 0 (Shaders/Common/Pixel.h,
 // ENABLE_PREPASS_VIEWDEPTH). This pass turns that back into clip z / clip w with the view's
@@ -200,5 +200,58 @@ namespace ConsoleDepth
 		}
 		pDstSurface->Release();
 		return drawn;
+	}
+}
+
+// [Blur1Multi] The console depth targets (T089): one R32F render texture per view, sized to the
+// prepass; a display renderer releases them before a device reset, and they are made again on use.
+#include <Display/Device/Device.h>
+#include <Display/Utils/Renderer.h>
+
+namespace ConsoleDepth
+{
+	namespace
+	{
+		const int kMaxViews = 4;
+		Display::C_RenderTexture2D s_Targets[kMaxViews];
+
+		class C_TargetRenderer : public Display::I_Renderer
+		{
+		public:
+			C_TargetRenderer() : Display::I_Renderer("ConsoleDepth") {}
+		protected:
+			virtual void OnDestroyVolatile()
+			{
+				for (int i = 0; i < kMaxViews; ++i)
+					if (s_Targets[i].IsCreated())
+						Display::Device()->Destroy(&s_Targets[i]);
+			}
+		};
+		C_TargetRenderer* s_pRenderer = NULL;
+	}
+
+	const Display2::C_Texture* GetTexture(const int viewIndex, const unsigned int width, const unsigned int height)
+	{
+		if (viewIndex < 0 || viewIndex >= kMaxViews || width == 0 || height == 0)
+			return NULL;
+
+		if (!s_pRenderer)
+		{
+			s_pRenderer = new C_TargetRenderer();
+			Display::Device()->InsertRenderer(s_pRenderer);
+			s_pRenderer->Create();
+			s_pRenderer->CreateVolatile();
+		}
+
+		Display::C_RenderTexture2D& target = s_Targets[viewIndex];
+		if (target.IsCreated() && (target.GetTexture().GetWidth() != width || target.GetTexture().GetHeight() != height))
+			Display::Device()->Destroy(&target);
+		if (!target.IsCreated())
+		{
+			if (!Display::Device()->CreateRenderTexture2D(width, height, 1, Display::E_Usage_Colour, Display::E_Format_R32F, Display::E_Multisample_None, NULL, &target))
+				return NULL;
+			s_pRenderer->CreateVolatile();	// a reset released the targets and cleared the renderer's volatile state
+		}
+		return &target.GetTexture();
 	}
 }

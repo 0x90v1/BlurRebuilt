@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <Render/Utils/Globals.h>	// [Blur2PC] g_DepthStencilBuffer
+#include <Render/Utils/Globals.h>	// [Blur2PC] GetGlobalStencilBuffer
 #include "Deferred/Manager.h"	// [Blur2PC] prepass depth copy
 
 #include <AuxFlares/AuxFlares.h>
@@ -835,6 +835,9 @@ void C_MainView::Schedule(const C_View& gameView)
 			m_MainWithoutAASettings.SetColourDepthStencilSurface(pColourSurface, pDepthStencilSurface);
 		}
 		m_MainWithoutAASettings.SetColourDepthStencilTexture(Render::GetGlobalColourBuffer(), Render::GetGlobalDepthStencilBuffer());
+#if PLATFORM_PC
+		m_MainWithoutAASettings.SetStencilTexture(Render::GetGlobalStencilBuffer());	// [Blur2PC] retail 0x0042aeb0 (T089)
+#endif
 		
 		//Prepare Blob shadows
 		m_pViewManager->m_pBlobShadows->SetDepthTexture(Render::GetGlobalDepthStencilBuffer());
@@ -1155,37 +1158,23 @@ void C_MainView::RenderPrepass1(C_View& gameView)
 
 	 Display::Device()->SetTexture(13, NULL); 			 
 
-	// [Blur2PC] The PC prepass writes view depth into its own R32F target (deferred colour target 1),
-	// which the lights sample. Drop shadows, blob shadows and other depth readers sample the context's
-	// depth texture instead: the global R32F buffer from Render::CreateGlobalDepthStencilBuffer, which
-	// nothing on PC ever wrote, so cars had no shadows. Copy the prepass depth into it (same size/format).
+	// [Blur1Multi] A console source's prepass has no target 1; its depth is packed into target 0.
+	// ConsoleDepth rebuilds clip z / clip w from it with this view's projection (ConsoleDepth.cpp) into the
+	// target C_LightingPrepass::GetDepthTexture gives the display window (T089). A PC source's window
+	// depth is the prepass's own target 1 (Blur1PC, retail).
+	if (GameSource::IsConsole())
 	{
 		const Framework::C_View& fwView = Framework::C_ApplicationBase::GetInstance()->GetSplitscreenView();
-		const Display::C_Texture2D* pPrepassDepth = m_pViewManager->m_pLightingPrepass->GetDeferredManager()->GetColourTexture(fwView.m_ViewIndex, 1);
-		IDirect3DTexture9* pDst = Render::g_DepthStencilBuffer.IsCreated() ? (IDirect3DTexture9*)Render::g_DepthStencilBuffer.GetTexture().GetGPUTexture() : NULL;
-		IDirect3DTexture9* pSrc = pPrepassDepth ? (IDirect3DTexture9*)pPrepassDepth->GetGPUTexture() : NULL;
-		// [Blur1Multi] A console source's prepass has no target 1; its depth is packed into target 0.
-		// ConsoleDepth rebuilds clip z / clip w from it with this view's projection (ConsoleDepth.cpp).
-		if (GameSource::IsConsole() && pDst)
+		const Display::C_Texture2D* pDepth = m_pViewManager->m_pLightingPrepass->GetDepthTexture(fwView.m_ViewIndex);
+		const Display::C_Texture2D* pGBuffer = m_pViewManager->m_pLightingPrepass->GetDeferredManager()->GetColourTexture(fwView.m_ViewIndex, 0);
+		if (pDepth && pGBuffer)
 		{
-			const Display::C_Texture2D* pGBuffer = m_pViewManager->m_pLightingPrepass->GetDeferredManager()->GetColourTexture(fwView.m_ViewIndex, 0);
 			const Display::C_Matrix& proj = gameView.GetMainView().GetViewSettings3D().GetProjMatrix();
 			float m[4][4];
 			memcpy(m, proj.v, sizeof m);
 			float a, b;
 			ConsoleDepth::ProjectionTerms(m, a, b);
-			if (pGBuffer)
-				ConsoleDepth::Resolve(Display::Device()->GetD3DDevice(), (IDirect3DTexture9*)pGBuffer->GetGPUTexture(), pDst, a, b, g_MainPrepassDrawDistance);
-			pSrc = NULL;
-		}
-		if (pSrc && pDst)
-		{
-			IDirect3DSurface9* pSrcSurface = NULL;
-			IDirect3DSurface9* pDstSurface = NULL;
-			if (SUCCEEDED(pSrc->GetSurfaceLevel(0, &pSrcSurface)) && SUCCEEDED(pDst->GetSurfaceLevel(0, &pDstSurface)))
-				Display::Device()->GetD3DDevice()->StretchRect(pSrcSurface, NULL, pDstSurface, NULL, D3DTEXF_NONE);
-			if (pSrcSurface) pSrcSurface->Release();
-			if (pDstSurface) pDstSurface->Release();
+			ConsoleDepth::Resolve(Display::Device()->GetD3DDevice(), (IDirect3DTexture9*)pGBuffer->GetGPUTexture(), (IDirect3DTexture9*)pDepth->GetGPUTexture(), a, b, g_MainPrepassDrawDistance);
 		}
 	}
 

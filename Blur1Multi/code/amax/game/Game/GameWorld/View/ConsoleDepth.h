@@ -3,6 +3,7 @@
 
 struct IDirect3DDevice9;
 struct IDirect3DTexture9;
+namespace Display2 { struct C_Texture; }
 
 namespace ConsoleDepth
 {
@@ -21,4 +22,9 @@ namespace ConsoleDepth
 	// display ViewSettings.cpp TransformWorldToWindow): clip w and clip z are both linear in
 	// the camera-space depth coordinate, whichever axis and sign the camera looks along.
 	void ProjectionTerms(const float m[4][4], float& a, float& b);
+
+	// The R32F target Resolve writes for a view: a console source's display window depth texture
+	// (C_LightingPrepass::GetDepthTexture, Graphics/Lighting/Prepass.cpp overlay). Made at the prepass
+	// size on first use, released before a device reset through the display renderer list. T089.
+	const Display2::C_Texture* GetTexture(const int viewIndex, const unsigned int width, const unsigned int height);
 }
