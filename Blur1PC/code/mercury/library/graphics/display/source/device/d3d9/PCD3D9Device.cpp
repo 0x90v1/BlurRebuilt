@@ -2,6 +2,7 @@
 #include <system/debug/Blur2PCAutomation.h>	// [Blur2PC]
 #include <d3dx9.h>	// [Blur2PC] D3DXSaveSurfaceToFile
 #include "Display/Device/D3D9/PCD3D9Device.h"
+#include "Display/Timing/GPUTiming.h"	// [Blur2PC] C_GPUTimingStats::ReleaseQueries
 
 //#define D3D_BUILD_OBJECT_CAPS
 //#define D3D_BUILD_DEVICE_CAPS
@@ -134,6 +135,10 @@ bool C_PCD3D9Device::CreateDeviceVolatile()
 
 void C_PCD3D9Device::DestroyDeviceVolatile()
 {
+	// [Blur2PC] the PC GPU timing queries (not in retail) must be gone before IDirect3DDevice9::Reset, which
+	// fails with D3DERR_INVALIDCALL while they exist; they are created again on the next timed frame
+	C_GPUTimingStats::ReleaseQueries();
+
 	m_Display2.DestroyVolatile();
 
 	m_DynamicVertexBuffer.Destroy();

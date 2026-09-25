@@ -1223,8 +1223,9 @@ bool C_Application::LoadSettings()
 		m_GraphicalDetail = 2;
 	}
 
-	// [Blur2PC] scripted runs never take over the screen; not in retail
-	if(Blur2PCAutomation::IsActive())
+	// [Blur2PC] scripted runs never take over the screen (BLUR2PC_FULLSCREEN=1 keeps the saved full screen
+	// setting, for tests of the full screen start); not in retail
+	if(Blur2PCAutomation::IsActive() && getenv("BLUR2PC_FULLSCREEN") == NULL)
 		m_Windowed = true;
 
 	S32 resolutionIndex = Display::g_Resolutions.FindResolution(m_Window.m_W, m_Window.m_H);
