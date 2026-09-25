@@ -1,0 +1,6 @@
+{
+ "code/amax/game/GameSystems.cpp": {
+  "base_blob": "4d4fad26371d55f53249d3c82e20e99b82e0f589",
+  "why": "CreateFsLayers selects the game source (GameSource::Select) before the retail pak mounts"
+ }
+}

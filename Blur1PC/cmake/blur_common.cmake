@@ -1,12 +1,13 @@
-cmake_minimum_required(VERSION 3.25)
-project(Blur2PC LANGUAGES C CXX)
-
-# Build description is generated from the original jamfiles. See AGENTS.md "Building".
-#   python code/tools/jam2cmake/jamextract.py --top . --root code/amax/game/jamfile.jam --target WIN32 --platform PC --build Speed --out _work/build/targets_pc_speed.json
-#   python code/tools/jam2cmake/cpgen.py <all .cp/.cv/.sp>
-#   python code/tools/jam2cmake/shadergen.py --json _work/build/targets_pc_speed.json --out _work/build/gen/shaders
-#   python code/tools/jam2cmake/gen_cmake.py --json _work/build/targets_pc_speed.json --out cmake/targets.cmake
-# Configure: cmake -S . -B _work/build/vs -G "Visual Studio 18 2026" -A Win32
+# Shared build description for every phase project (Blur1PC, Blur1Multi, ...).
+# [Blur2PC] Split out of Blur1PC/CMakeLists.txt on 2026-09-24 so the phase 2+
+# projects inherit it without copying. The including CMakeLists.txt sets:
+#   BLUR_TOP        root of the Blur 1 source tree (contains code/); Blur1PC/
+#   BLUR_PROJECT    the phase project that owns _work/ (generated files, build)
+#                   and cmake/targets.cmake; equals BLUR_TOP for Blur1PC
+#   BLUR_WORKSPACE  parent of the phase folders; holds the shared _work/vendor
+#   BLUR_OVERLAY    (phase 2+) directory whose code/ mirrors and overrides
+#                   files of BLUR_TOP/code; unset for Blur1PC
+# Everything below is the build as it was in Blur1PC/CMakeLists.txt.
 
 if(NOT MSVC)
     message(FATAL_ERROR "MSVC only (the source is Win32/D3D9 MSVC code)")
@@ -15,8 +16,7 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "Configure for 32-bit: -A Win32 (the engine and its vendor libs are x86)")
 endif()
 
-set(BLUR_TOP ${CMAKE_SOURCE_DIR})
-set(BLUR_VENDOR ${BLUR_TOP}/_work/vendor CACHE PATH "Downloaded third-party SDKs")
+set(BLUR_VENDOR ${BLUR_WORKSPACE}/_work/vendor CACHE PATH "Downloaded third-party SDKs (shared by every phase)")
 
 set(BLUR_DXSDK_INCLUDE ${BLUR_VENDOR}/d3dx/build/native/include CACHE PATH "d3dx9.h location")
 set(BLUR_D3DX9_LIB ${BLUR_VENDOR}/d3dx/build/native/release/lib/x86/d3dx9.lib CACHE FILEPATH "d3dx9.lib")
@@ -99,9 +99,3 @@ foreach(lib bdConnection bdCore bdLobby bdSocket bdPlatform bdNet bdExampleCommo
     list(APPEND BLUR_SYSTEM_LIBS
         $<IF:$<CONFIG:Debug>,${BLUR_DEMONWARE_LIBDIR}/debug-mt/${lib}.lib,${BLUR_DEMONWARE_LIBDIR}/release-mt/${lib}.lib>)
 endforeach()
-
-include(${BLUR_TOP}/cmake/targets.cmake)
-include(${BLUR_TOP}/cmake/overrides.cmake)
-
-# crash reporter for the bring-up phase (writes crash.txt / crash.dmp next to the exe)
-target_sources(Amax PRIVATE ${BLUR_TOP}/code/vendor/crash-handler/crash_handler.cpp)

@@ -22,3 +22,8 @@ blur_source_options(libtomcryptv "rng_get_bytes\\.c$" /FIwindows.h)
 # libjpeg 6b's jmorecfg.h typedefs INT32 unless XMD_H is defined; the Windows
 # SDK (basetsd.h) already has INT32, and JpegHelper includes both.
 target_compile_definitions(JpegHelper PRIVATE XMD_H)
+
+# crash reporter for the bring-up phase (writes crash.txt / crash.dmp next to
+# the exe). Lived in CMakeLists.txt until the 2026-09-24 split; it is a
+# per-target addition, so it belongs here.
+target_sources(Amax PRIVATE ${BLUR_TOP}/code/vendor/crash-handler/crash_handler.cpp)

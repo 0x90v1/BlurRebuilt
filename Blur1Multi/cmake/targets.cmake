@@ -7,22 +7,23 @@ add_executable(Amax WIN32
     ${BLUR_TOP}/Code/Amax/Game/Automation/GameDataLogging.cpp
     ${BLUR_TOP}/Code/Amax/Game/Game/GameActors/Effects/EffectTestActor.cpp
     ${BLUR_TOP}/Code/Amax/Game/Game/GameActors/Crowds/CrowdGameActor.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch1.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch2.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch3.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch4.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch6.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch7.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch8.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch9.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch10.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch11.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/Amax_batch12.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/Amax_shaders.cpp
-    ${BLUR_TOP}/_work/build/gen/blobs/buildstamp.cpp
-    ${BLUR_TOP}/_work/build/gen/blobs/amax_lua_bundle.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch1.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch2.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch3.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch4.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch6.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch7.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch8.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch9.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch10.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch11.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/Amax_batch12.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/Amax_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/blobs/buildstamp.cpp
+    ${BLUR_PROJECT}/_work/build/gen/blobs/amax_lua_bundle.cpp
 )
 target_include_directories(Amax PRIVATE
+    ${BLUR_OVERLAY}/Code/Amax/Game
     ${BLUR_TOP}/Code/Amax/Game
     ${BLUR_TOP}/Code/Mercury/Library/ai/air/include
     ${BLUR_TOP}/Code/Mercury/Library/animation/include
@@ -171,7 +172,7 @@ target_link_libraries(Amax PRIVATE
 target_link_options(Amax PRIVATE /SUBSYSTEM:WINDOWS /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBCMT)
 
 add_library(amax_network STATIC
-    ${BLUR_TOP}/_work/build/gen/unity/amax_network_batch1.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_network_batch1.cpp
 )
 target_include_directories(amax_network PRIVATE
     ${BLUR_TOP}/Code/Amax/Library/Network
@@ -217,6 +218,7 @@ target_include_directories(amax_network PRIVATE
     ${BLUR_TOP}/code/vendor/demonware/2.0/external/libtomcrypt/src/headers
     ${BLUR_TOP}/code/vendor/demonware/2.0/external/curl-7.19.2/include
     ${BLUR_TOP}/code/vendor/demonware/2.0/external/openssl-0.9.8i/include
+    ${BLUR_OVERLAY}/Code/Amax/Game
     ${BLUR_TOP}/Code/Amax/Game
     ${BLUR_TOP}/Code/Amax/Game/AI
     ${BLUR_TOP}/code/Amax/Library
@@ -237,11 +239,11 @@ add_library(amax_gamelogic STATIC
     ${BLUR_TOP}/Code/Amax/Game/GameLogic/GameData/AchievementData.cpp
     ${BLUR_TOP}/Code/Amax/Game/GameLogic/GameData/GameXtLoader.cpp
     ${BLUR_TOP}/Code/Amax/Game/GameLogic/Layers/BootLayer.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/amax_gamelogic_batch1.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/amax_gamelogic_batch2.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/amax_gamelogic_batch3.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/amax_gamelogic_batch4.cpp
-    ${BLUR_TOP}/_work/build/gen/unity/amax_gamelogic_batch5.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch1.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch2.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch3.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch4.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch5.cpp
 )
 target_include_directories(amax_gamelogic PRIVATE
     ${BLUR_TOP}/Code/Amax/Game/GameLogic
@@ -299,6 +301,7 @@ target_include_directories(amax_gamelogic PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/Lod/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/SpecialFX/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/SplashCamera/include
+    ${BLUR_OVERLAY}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game/AI
     ${BLUR_TOP}/Code/Vendor/demonware/2.0
@@ -313,7 +316,7 @@ target_precompile_headers(amax_gamelogic PRIVATE ${BLUR_TOP}/Code/Amax/Game/Game
 set_target_properties(amax_gamelogic PROPERTIES FOLDER "Code/Amax/Game")
 
 add_library(amax_racebook STATIC
-    ${BLUR_TOP}/_work/build/gen/unity/amax_racebook_batch1.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_racebook_batch1.cpp
 )
 target_include_directories(amax_racebook PRIVATE
     ${BLUR_TOP}/Code/Amax/Library/Racebook
@@ -361,6 +364,7 @@ target_include_directories(amax_racebook PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/GameView/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/Lod/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/SpecialFX/include
+    ${BLUR_OVERLAY}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game/AI
     ${BLUR_TOP}/Code/Vendor/demonware/2.0
@@ -374,7 +378,7 @@ target_precompile_headers(amax_racebook PRIVATE ${BLUR_TOP}/Code/Amax/Library/Ra
 set_target_properties(amax_racebook PROPERTIES FOLDER "Code/Amax/Library")
 
 add_library(amax_ui STATIC
-    ${BLUR_TOP}/_work/build/gen/unity/amax_ui_batch1.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_ui_batch1.cpp
 )
 target_include_directories(amax_ui PRIVATE
     ${BLUR_TOP}/Code/Amax/Library/Ui
@@ -423,6 +427,7 @@ target_include_directories(amax_ui PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/GameView/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/Lod/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/SpecialFX/include
+    ${BLUR_OVERLAY}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game/AI
     ${BLUR_TOP}/Code/Vendor/demonware/2.0
@@ -437,10 +442,11 @@ target_precompile_headers(amax_ui PRIVATE ${BLUR_TOP}/Code/Amax/Library/Ui/StdAf
 set_target_properties(amax_ui PROPERTIES FOLDER "Code/Amax/Library")
 
 add_library(amax_kanzen STATIC
-    ${BLUR_TOP}/_work/build/gen/unity/amax_kanzen_batch1.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_kanzen_batch1.cpp
 )
 target_include_directories(amax_kanzen PRIVATE
     ${BLUR_TOP}/Code/Amax/Library/Kanzen
+    ${BLUR_OVERLAY}/code/amax/game
     ${BLUR_TOP}/code/amax/game
     ${BLUR_TOP}/Code/Mercury/Library/common/core/include
     ${BLUR_TOP}/Code/Mercury/Library/common/system/include
@@ -487,7 +493,7 @@ target_precompile_headers(amax_kanzen PRIVATE ${BLUR_TOP}/Code/Amax/Library/Kanz
 set_target_properties(amax_kanzen PROPERTIES FOLDER "Code/Amax/Library")
 
 add_library(amax_audio STATIC
-    ${BLUR_TOP}/_work/build/gen/unity/amax_audio_batch1.cpp
+    ${BLUR_PROJECT}/_work/build/gen/unity/amax_audio_batch1.cpp
 )
 target_include_directories(amax_audio PRIVATE
     ${BLUR_TOP}/Code/Amax/Game/GameAudio
@@ -535,6 +541,7 @@ target_include_directories(amax_audio PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/GameView/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/Lod/include
     ${BLUR_TOP}/Code/Mercury/Library/gamesys/SpecialFX/include
+    ${BLUR_OVERLAY}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game
     ${BLUR_TOP}/code/Amax/Game/AI
     ${BLUR_TOP}/Code/Vendor/demonware/2.0
@@ -1190,7 +1197,7 @@ add_library(deferred STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Deferred/source/prepass/TiledVolumeSpotlights.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Deferred/source/prepass/spu/Lighting.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Deferred/source/Manager.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/deferred_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/deferred_shaders.cpp
 )
 target_include_directories(deferred PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Deferred
@@ -1313,7 +1320,7 @@ add_library(display STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/bundler/ResourceBundleReaderImpl2.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/bundler/ResourceBundleReaderImpl3.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/bundler/ResourceBundleSingle.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/display_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/display_shaders.cpp
 )
 target_include_directories(display PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display
@@ -1417,7 +1424,7 @@ add_library(render STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Render/source/view/ViewManager.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Render/source/view/ViewRender.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Render/source/postprocess/PostProcessEnvSettings.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/render_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/render_shaders.cpp
 )
 target_include_directories(render PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Render
@@ -1563,7 +1570,7 @@ add_library(dynamic STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Dynamic/source/track/Track.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Dynamic/source/track/XtInterface.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Dynamic/source/track/Emitter.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/dynamic_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/dynamic_shaders.cpp
 )
 target_include_directories(dynamic PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Dynamic
@@ -1628,7 +1635,7 @@ add_library(effect STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Effect/source/sky/SkyDomeBase.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Effect/source/sky/TexturedSkyDome.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Effect/source/sky/SkyDomeEnvSettings.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/effect_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/effect_shaders.cpp
 )
 target_include_directories(effect PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Effect
@@ -1689,7 +1696,7 @@ add_library(movie STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie/source/MovieBase.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie/source/w32/W32Movie.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie/source/w32/bink/binktextures.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/movie_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/movie_shaders.cpp
 )
 target_include_directories(movie PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie
@@ -2288,7 +2295,7 @@ add_library(crowd_system STATIC
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/Crowd_System/source/XtCrowdTextureListListener.cpp
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/Crowd_System/source/effects/CrowdCameraFlashes.cpp
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/Crowd_System/source/effects/CrowdFlags.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/crowd_system_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/crowd_system_shaders.cpp
 )
 target_include_directories(crowd_system PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/Crowd_System
@@ -2327,7 +2334,7 @@ add_library(debugsystems STATIC
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/DebugSystems/source/FileMonitor.cpp
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/DebugSystems/source/InputView.cpp
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/DebugSystems/source/ProfilerView.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/debugsystems_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/debugsystems_shaders.cpp
 )
 target_include_directories(debugsystems PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/DebugSystems
@@ -2790,7 +2797,7 @@ set_target_properties(blobshadows PROPERTIES FOLDER "Code/Mercury/Library/GameSy
 
 add_library(dropshadows STATIC
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/DropShadows/source/DropShadows.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/dropshadows_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/dropshadows_shaders.cpp
 )
 target_include_directories(dropshadows PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/DropShadows
@@ -2817,7 +2824,7 @@ set_target_properties(dropshadows PROPERTIES FOLDER "Code/Mercury/Library/GameSy
 
 add_library(auxFlares STATIC
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/AuxFlares/source/AuxFlares.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/auxFlares_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/auxFlares_shaders.cpp
 )
 target_include_directories(auxFlares PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/AuxFlares
@@ -2837,7 +2844,7 @@ set_target_properties(auxFlares PROPERTIES FOLDER "Code/Mercury/Library/GameSys"
 
 add_library(lightTrails STATIC
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/LightTrails/source/LightTrails.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/lightTrails_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/lightTrails_shaders.cpp
 )
 target_include_directories(lightTrails PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/LightTrails
@@ -2857,7 +2864,7 @@ set_target_properties(lightTrails PROPERTIES FOLDER "Code/Mercury/Library/GameSy
 
 add_library(splashCamera STATIC
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/SplashCamera/source/SplashCamera.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/splashCamera_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/splashCamera_shaders.cpp
 )
 target_include_directories(splashCamera PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/GameSys/SplashCamera
@@ -2907,6 +2914,7 @@ add_library(network STATIC
 target_include_directories(network PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Network
     ${BLUR_TOP}/Code/Mercury/Library/Network/include
+    ${BLUR_OVERLAY}/code/amax/game
     ${BLUR_TOP}/code/amax/game
     ${BLUR_TOP}/code/mercury/library/common/core/include
     ${BLUR_TOP}/code/mercury/library/common/btl/include
@@ -3167,7 +3175,7 @@ add_library(ui STATIC
     ${BLUR_TOP}/Code/Mercury/Library/UI/source/ui/Graphics/Polygons/UIHoleResolver.cpp
     ${BLUR_TOP}/Code/Mercury/Library/UI/source/ui/Graphics/Polygons/UIPolygonClasses.cpp
     ${BLUR_TOP}/Code/Mercury/Library/UI/source/ui/Graphics/Polygons/UITriangulator.cpp
-    ${BLUR_TOP}/_work/build/gen/shaders/ui_shaders.cpp
+    ${BLUR_PROJECT}/_work/build/gen/shaders/ui_shaders.cpp
 )
 target_include_directories(ui PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/UI
@@ -3194,6 +3202,7 @@ target_include_directories(ui PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/util/input/include
     ${BLUR_TOP}/Code/Mercury/Library/util/lua_shared/include
     ${BLUR_TOP}/Code/Mercury/Library/util/resource/include
+    ${BLUR_OVERLAY}/code/amax/game
     ${BLUR_TOP}/code/amax/game
     ${BLUR_TOP}/Code/Vendor/demonware/2.0
     ${BLUR_TOP}/code/vendor/demonware/2.0/external/libtomcrypt/src/headers

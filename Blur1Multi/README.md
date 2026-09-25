@@ -1,0 +1,68 @@
+# Blur1Multi — phase 2: Blur 1 from any platform's data
+
+This project builds the Blur 1 engine and game from `../Blur1PC/code` and adds
+support for data written by other platforms: Xbox 360 retail Blur first, PS3
+later. It holds no copy of the engine. Deleting this folder leaves Blur1PC
+untouched; improvements made in Blur1PC reach this build at the next generate.
+
+## How the layering works
+
+- **Base tree**: `../Blur1PC/code`, read-only from here. `BLUR_TOP` in CMake.
+- **Overlay**: `./code` mirrors the base layout. A file at the same relative
+  path *replaces* the base file in the build (sources, headers through the
+  include path, PCH headers, built-in shaders, Lua scripts). A file at a new
+  path is a *new* file and must be declared in `cmake/multi.cmake`.
+- **Manifest**: `overlay.json` records, for every replaced base file, the git
+  blob hash of the base at copy time and why the copy exists. A replaced file
+  no longer inherits Blur1PC changes by itself, so keep overrides few and
+  small, and run the check before every build:
+
+```
+python tools/overlay.py check                       # lists base files that changed since their copy
+python tools/overlay.py take <relpath> "<why>"      # start overriding a base file
+python tools/overlay.py diff <relpath>              # what the override changes
+python tools/overlay.py sync <relpath>              # after merging a base change into the copy
+```
+
+- **Define**: every translation unit is compiled with `BLUR1MULTI=1`.
+- **Shared build description**: `../Blur1PC/cmake/blur_common.cmake` (flags,
+  vendor SDKs, shims, system libs) and `../Blur1PC/cmake/overrides.cmake`
+  are included as they are; `cmake/multi.cmake` adds this project's targets.
+
+## Building
+
+From this directory (the generators live in Blur1PC; `--overlay .` makes them
+honour the overlay, `--project-dir .` puts generated files under `_work/` here):
+
+```
+python ../Blur1PC/code/tools/jam2cmake/jamextract.py --top ../Blur1PC --root code/amax/game/jamfile.jam --target WIN32 --platform PC --build Speed --out _work/build/targets_pc_speed.json
+python ../Blur1PC/code/tools/jam2cmake/shadergen.py --json _work/build/targets_pc_speed.json --out _work/build/gen/shaders --overlay .
+python ../Blur1PC/code/tools/jam2cmake/luabundle.py --json _work/build/targets_pc_speed.json --out _work/build/gen/blobs/amax_lua_bundle.cpp --overlay .
+python ../Blur1PC/code/tools/jam2cmake/gen_cmake.py --json _work/build/targets_pc_speed.json --out cmake/targets.cmake --project-dir . --overlay .
+cmake -S . -B _work/build/vs -G "Visual Studio 18 2026" -A Win32
+cmake --build _work/build/vs --config Release --target Amax -- -m -v:m -nologo > _work/build/amax.log 2>&1
+python ../Blur1PC/code/tools/jam2cmake/errsum.py _work/build/amax.log
+```
+
+`cpgen.py` is run in Blur1PC (its headers are generated beside the `.cp`
+files there). Re-run `gen_cmake.py` after taking or removing an overlay file:
+it decides per file which tree to compile from.
+
+The user's exe for this phase is `_work/run/Amax.exe` here (`play.bat`).
+
+## Game source
+
+`code/mercury/library/util/gamesource/` (new library `gamesource`) detects
+what a data directory is: PC (little-endian `cache/root.pak`), Xbox 360
+(big-endian pak beside `default.xex`), PS3 (`PS3_GAME/USRDIR`). The overlay
+copy of `amax/game/GameSystems.cpp` calls `GameSource::Select` at the start
+of `CreateFsLayers`: `--source=<dir>` or `BLUR_SOURCE`, default the working
+directory (retail behaviour). PC data becomes the working directory; any other
+platform is reported and the game exits with code 3 until its data layer
+exists (board tasks T070+).
+
+## Automated runs
+
+`_work/run/run_script.ps1 -Script scripts/escape.txt [-Source <dir>]` starts
+the exe minimised with `BLUR2PC_AUTOMATION` (AGENTS.md rule 7) and
+`--source=<dir>`.

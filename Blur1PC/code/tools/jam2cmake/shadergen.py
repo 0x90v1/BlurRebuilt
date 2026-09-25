@@ -93,6 +93,7 @@ def main():
     ap.add_argument('--fxc', default=None)
     ap.add_argument('--jobs', type=int, default=os.cpu_count() or 4)
     ap.add_argument('--only', default=None, help='only this target')
+    ap.add_argument('--overlay', default=None, help='[Blur2PC] overlay dir: a shader or include dir found there replaces the base one')
     a = ap.parse_args()
 
     fxc = a.fxc or find_fxc()
@@ -101,18 +102,35 @@ def main():
         return 2
     d = json.load(open(a.json, encoding='utf-8'))
     top = d['config']['top']
+    overlay = os.path.abspath(a.overlay) if a.overlay else None
+
+    def ov(rel):
+        if overlay is not None and os.path.isfile(os.path.join(overlay, rel)):
+            return os.path.join(overlay, rel)
+        return os.path.join(top, rel)
+
     os.makedirs(a.out, exist_ok=True)
 
     jobs = []
     for t in d['targets']:
         if not t['shaders'] or (a.only and t['name'] != a.only):
             continue
-        incs = [os.path.join(top, i['path']) for i in t['includes'] if i['exists']]
+        incs = []
+        for i in t['includes']:
+            if not i['exists']:
+                continue
+            if overlay is not None and os.path.isdir(os.path.join(overlay, i['path'])):
+                incs.append(os.path.join(overlay, i['path']))
+            incs.append(os.path.join(top, i['path']))
         for sh in t['shaders']:
-            src = os.path.join(top, sh['file'])
+            src = ov(sh['file'])
             stage = 'ps' if os.path.basename(src).lower().startswith('ps') else 'vs'
             sdir = os.path.dirname(src)
-            incdirs = [sdir, os.path.dirname(sdir)] + incs
+            bdir = os.path.dirname(os.path.join(top, sh['file']))
+            incdirs = [sdir, os.path.dirname(sdir)]
+            if bdir != sdir:
+                incdirs += [bdir, os.path.dirname(bdir)]
+            incdirs += incs
             jobs.append((t['name'], sh, src, stage, incdirs))
 
     results = {}
