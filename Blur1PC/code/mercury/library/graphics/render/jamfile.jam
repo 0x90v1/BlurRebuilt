@@ -325,6 +325,12 @@ SHADERSRC += [ Shader include/render/shaders/deferred/psProjectBlobShadows.psh ]
 SHADERSRC += [ Shader include/render/shaders/deferred/psScreenBlobShadows.psh :
 						" "
 						"<HDR>-DHDR" ] ;
+# [Blur2PC] retail PC per-channel screen blob shaders (psScreenBlobShadowR/G/B/A in Blur.exe 1.2)
+SHADERSRC += [ Shader include/render/shaders/deferred/psScreenBlobShadows.psh :
+						"<R>-DBLOB_CHANNEL_R"
+						"<G>-DBLOB_CHANNEL_G"
+						"<B>-DBLOB_CHANNEL_B"
+						"<A>-DBLOB_CHANNEL_A" ] ;
 SHADERSRC += [ Shader include/render/shaders/deferred/psCollisionMeshBlobShadows.psh :
 						" "
 						"<HDR>-DHDR" ] ;

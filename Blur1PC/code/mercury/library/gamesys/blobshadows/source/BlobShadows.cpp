@@ -27,6 +27,12 @@ EXTERN_SHADER(psProjectBlobShadows);
 EXTERN_SHADER(vsScreenBlobShadows);
 EXTERN_SHADER(psScreenBlobShadows);
 EXTERN_SHADER(psScreenBlobShadowsHDR);
+#if PLATFORM_PC
+EXTERN_SHADER(psScreenBlobShadowsR);	// [Blur2PC] retail PC channel shaders
+EXTERN_SHADER(psScreenBlobShadowsG);
+EXTERN_SHADER(psScreenBlobShadowsB);
+EXTERN_SHADER(psScreenBlobShadowsA);
+#endif
 
 EXTERN_SHADER(vsCollisionMeshBlobShadows);
 EXTERN_SHADER(psCollisionMeshBlobShadows);
@@ -93,6 +99,19 @@ bool C_BlobShadows::OnCreate()
 	if (!Display::CreateVertexShaderFromFunc("Shader/vsCollisionMeshBlobShadows", 0, &m_CollisionMeshBlobVertexShader, REF_SHADER(vsCollisionMeshBlobShadows)))
 		return false;
 
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC creates the four channel shaders and no HDR variants (Blur.exe 1.2 0x00730160).
+	if (!Display::CreatePixelShaderFromFunc("Shader/psScreenBlobShadowR", 0, &m_ScreenBlobChannelPixelShader[0], REF_SHADER(psScreenBlobShadowsR)))
+		return false;
+	if (!Display::CreatePixelShaderFromFunc("Shader/psScreenBlobShadowG", 0, &m_ScreenBlobChannelPixelShader[1], REF_SHADER(psScreenBlobShadowsG)))
+		return false;
+	if (!Display::CreatePixelShaderFromFunc("Shader/psScreenBlobShadowB", 0, &m_ScreenBlobChannelPixelShader[2], REF_SHADER(psScreenBlobShadowsB)))
+		return false;
+	if (!Display::CreatePixelShaderFromFunc("Shader/psScreenBlobShadowA", 0, &m_ScreenBlobChannelPixelShader[3], REF_SHADER(psScreenBlobShadowsA)))
+		return false;
+	if (!Display::CreatePixelShaderFromFunc("Shader/psCollisionBlobShadows", 0, &m_CollisionMeshBlobPixelShader, REF_SHADER(psCollisionMeshBlobShadows)))
+		return false;
+#else
 	if (Render::C_RenderState::Instance().ShaderHDR())
 	{
 		if (!Display::CreatePixelShaderFromFunc("Shader/psScreenBlobShadowsHDR", 0, &m_ScreenBlobPixelShader, REF_SHADER(psScreenBlobShadowsHDR)))
@@ -109,6 +128,7 @@ bool C_BlobShadows::OnCreate()
 		if (!Display::CreatePixelShaderFromFunc("Shader/psCollisionMeshBlobShadows", 0, &m_CollisionMeshBlobPixelShader, REF_SHADER(psCollisionMeshBlobShadows)))
 			return false;
 	}
+#endif
 
 	//Get Parameters for project blob
 	m_ProjectShadowPlaneSpaceParameter = m_ProjectBlobVertexShader.GetParameter(CV_RENDER_SETTINGS, "g_ShadowPlaneSpaceMatrix");
@@ -118,10 +138,16 @@ bool C_BlobShadows::OnCreate()
 
 
 	//Get Parameter for screen blob
-	m_ScreenShadowPlaneSpaceParameter = m_ScreenBlobPixelShader.GetParameterArray(CP_RENDER_SETTINGS, "g_ShadowPlaneSpaceMatrix", 4);
-	m_ScreenDepthParameter		= m_ScreenBlobPixelShader.GetParameter(CP_RENDER_SETTINGS_4, "g_vDepth");
-	m_PixelOffsetParameter = m_ScreenBlobPixelShader.GetParameter(CP_RENDER_SETTINGS_5, "g_PixelOffset");
-	m_ShadowMultParameter = m_ScreenBlobPixelShader.GetParameter(CP_RENDER_SETTINGS_6, "g_ShadowMult");
+#if PLATFORM_PC
+	// [Blur2PC] the four channel shaders share one register layout
+	const Display::C_PixelShader& screenBlobPixelShader = m_ScreenBlobChannelPixelShader[0];
+#else
+	const Display::C_PixelShader& screenBlobPixelShader = m_ScreenBlobPixelShader;
+#endif
+	m_ScreenShadowPlaneSpaceParameter = screenBlobPixelShader.GetParameterArray(CP_RENDER_SETTINGS, "g_ShadowPlaneSpaceMatrix", 4);
+	m_ScreenDepthParameter		= screenBlobPixelShader.GetParameter(CP_RENDER_SETTINGS_4, "g_vDepth");
+	m_PixelOffsetParameter = screenBlobPixelShader.GetParameter(CP_RENDER_SETTINGS_5, "g_PixelOffset");
+	m_ShadowMultParameter = screenBlobPixelShader.GetParameter(CP_RENDER_SETTINGS_6, "g_ShadowMult");
 
 	//Get Parameter for collision mesh blob
 	m_CollisionMeshShadowSpaceParameter = m_CollisionMeshBlobVertexShader.GetParameter(CV_RENDER_SETTINGS, "g_ShadowPlaneSpaceMatrix");
@@ -321,6 +347,10 @@ void C_BlobShadows::OnDestroy()
 	Display::Device()->Destroy(&m_ProjectBlobPixelShader);
 	Display::Device()->Destroy(&m_ScreenBlobVertexShader);
 	Display::Device()->Destroy(&m_ScreenBlobPixelShader);
+#if PLATFORM_PC
+	for (U32 i = 0; i < 4; i++)
+		Display::Device()->Destroy(&m_ScreenBlobChannelPixelShader[i]);	// [Blur2PC]
+#endif
 	Display::Device()->Destroy(&m_CollisionMeshBlobVertexShader);
 	Display::Device()->Destroy(&m_CollisionMeshBlobPixelShader);
 	Display::Device()->Destroy(&m_VertexBuffer);
@@ -936,6 +966,12 @@ void C_BlobShadows::RenderScreenShadow( const C_ProcessShadow& processShadow, Di
 
 	pContext->SetTexture(0, pContext->GetDepthStencilTexture()->GetGPUTexture());
 	pContext->SetTexture(1, pBlobTexture->GetGPUTexture());
+#if PLATFORM_PC
+	// [Blur2PC] Retail's Render (Blur.exe 1.2 0x00732d20) binds the context's stencil texture here, the
+	// window stencil copy (board T062), which this port does not make yet. An empty stage reads 0, so
+	// the channel shaders apply no car mask until it exists.
+	pContext->SetTexture(2, 0);
+#endif
 
 	Display::C_SamplerUsageFlags flags;
 	flags.SetEnabled(0, 0);
@@ -1088,10 +1124,18 @@ void C_BlobShadows::RenderScreenShadow( const C_ProcessShadow& processShadow, Di
 
 	pContext->SetPixelShaderParameterF(m_ShadowMultParameter, (F32*)&shadowMult); 
 
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC reads the blob from its channel: R, G, B, and A also for the imposter and
+	// texture blobs (sub-texture index 4) (Blur.exe 1.2 0x00731560).
+	const Display::C_PixelShader* pScreenBlobPixelShader = &m_ScreenBlobChannelPixelShader[(subTextureIndex < 3) ? subTextureIndex : 3];
+	pContext->SetPixelShader(pScreenBlobPixelShader);
+	pContext->SetPixelShaderParameters(pScreenBlobPixelShader);
+#else
 #ifndef PLATFORM_PS3
 	pContext->SetPixelShader(&m_ScreenBlobPixelShader);
 #endif
 	pContext->SetPixelShaderParameters(&m_ScreenBlobPixelShader);
+#endif
 
 	pContext->SetVertexDeclaration(Display::Vertex_XYZ::m_pDeclaration);
 	pContext->SetVertexBuffer(0, &m_VertexBuffer, 0, sizeof(Display::Vertex_XYZ));

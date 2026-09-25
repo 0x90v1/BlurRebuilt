@@ -157,7 +157,12 @@ private:
 	Maths::HVec3				m_ShadowSize;
 };
 
-#if defined(PLATFORM_PS3) || defined(PLATFORM_XENON)
+// [Blur2PC] Retail PC is built per channel as well (Blur.exe 1.2): the blob texture render picks a
+// R/G/B/A write mask from the sub-texture index (0x00733730), the pre-render blurs the textures that
+// need it (0x00734e80), and the screen pass selects psScreenBlobShadowR/G/B/A (0x00731560). The
+// snapshot's single-texture PC path never set a write mask, so the blob alpha the screen shader reads
+// stayed 0 whenever the device mask was the default RGB, and cars had no shadow.
+#if defined(PLATFORM_PS3) || defined(PLATFORM_XENON) || defined(PLATFORM_PC)
 #define BLOBSHADOW_PER_CHANNEL 1
 #endif
 
@@ -303,6 +308,10 @@ private:
 
 	Display::C_VertexShader				m_ScreenBlobVertexShader;
 	Display::C_PixelShader				m_ScreenBlobPixelShader;
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC: one screen shader per blob texture channel, R, G, B, A (Blur.exe 1.2 0x00730160)
+	Display::C_PixelShader				m_ScreenBlobChannelPixelShader[4];
+#endif
 
 	Display::C_VertexShader				m_CollisionMeshBlobVertexShader;
 	Display::C_PixelShader				m_CollisionMeshBlobPixelShader;
