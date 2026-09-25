@@ -374,3 +374,10 @@ Verified: Blur1PC Release build 0 errors; `Blur1PC/_work/run/Amax.exe` + `.pdb` 
 Blocked: none.
 Next: use `quick_race.txt` as the template for race tests (copy it and change the tail). Open point: the launcher starts the race while `Intro\PreviouslyOnBlur.lua` is coming up in context 6; the race plays and the screen closes during the load, but a player would dismiss it first. Blur1Multi/BlurX inherit the change at their next generate; `quickrace.lua` has not been run on 360/PS3/Kanzen data yet.
 Files touched: Blur1PC/code/mercury/library/common/system/include/system/debug/Blur2PCAutomation.h, Blur1PC/code/amax/library/Ui/UiManager.cpp, Blur1PC/code/tools/blur2pc_automation/{README.md,quickrace.lua,quick_race.txt} (new), docs/{BOARD.md,analysis.md}, this ledger; untracked: Blur1PC/_work/run/{run_script.ps1,scripts/quick_race.txt}, Blur1Multi/_work/run/run_script.ps1.
+
+## 2026-09-25 18:50 — session 11 (Claude) — T092 done
+Did: the user accepted T092; board row set to done. The tool files were moved to `Blur1PC/code/tools/blur2pc_automation/` before commit 8446363e (they had landed in the original tree's `code/tools/Automation/`).
+Verified: `Blur1PC/_work/run/scripts/quick_race.txt` on the delivered exe after the move: exit 0, `Racing` and throttle at 57.0 s, quit at 77.0 s.
+Blocked: none.
+Next: open points stay as in the 17:10 entry (PreviouslyOnBlur during the quick launch; the launcher is untested on 360/PS3/Kanzen data).
+Files touched: docs/BOARD.md, this ledger.
