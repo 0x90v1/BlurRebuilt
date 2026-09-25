@@ -193,6 +193,9 @@
 #include "Game/Gadgets/Vinyl/UIColourPicker.h"
 
 #include "SoundEffects.h"
+#include <GameLogic/Layers/RaceLogicLayer.h>	// [Blur2PC] automation race state
+#include <GameLogic/Layers/RaceBookLayer.h>	// [Blur2PC]
+#include <system/debug/Blur2PCAutomation.h>	// [Blur2PC]
 #include "Ui/UiLayer.h"
 
 #include "Game/AmaxCam/CameraSwitcher.h"
@@ -2210,6 +2213,161 @@ void C_UiManager::SetSchedulerGroup( int iGroup)
 	m_SchedulerGroup = iGroup;
 }
 
+#if defined(PLATFORM_PC)
+// [Blur2PC] Automation scripts (system/debug/Blur2PCAutomation.h): Lua helpers, `lua` lines, `wait`
+// conditions and screen-change logging. Runs only while BLUR2PC_AUTOMATION names a script.
+namespace
+{
+	int Blur2PCLua_RaceState( lua_State* pState )
+	{
+		static const char* const s_names[] = { "None", "Loading", "Intro", "Starting", "Racing", "Finished", "Outro", "Quitting", "Restarting", "GoingToNextEvent" };
+		const char* name = "None";
+		Game::C_RaceBookLayer* pRaceBookLayer = GetRaceBookLayer();
+		Game::C_RaceLogicLayer* pRaceLogic = pRaceBookLayer ? pRaceBookLayer->GetRaceLogicLayer() : NULL;
+		if ( pRaceLogic )
+		{
+			const int state = (int)pRaceLogic->GetRaceState();
+			if ( state >= 0 && state < (int)( sizeof( s_names ) / sizeof( s_names[0] ) ) )
+				name = s_names[state];
+		}
+		lua_pushstring( pState, name );
+		return 1;
+	}
+
+	int Blur2PCLua_Log( lua_State* pState )
+	{
+		const char* text = lua_tostring( pState, 1 );
+		Blur2PCAutomation::LogF( "lua: %s", text ? text : "(nil)" );
+		return 0;
+	}
+
+	int Blur2PCLua_Run( lua_State* pState )
+	{
+		const char* name = lua_tostring( pState, 1 );
+		if ( !name )
+			return luaL_error( pState, "Blur2PC.Run(file): file name expected" );
+		char path[MAX_PATH];
+		const bool absolute = ( name[0] && name[1] == ':' ) || name[0] == '\\' || name[0] == '/';
+		_snprintf_s( path, MAX_PATH, _TRUNCATE, "%s%s", absolute ? "" : Blur2PCAutomation::ScriptDir(), name );
+		FILE* f = fopen( path, "rb" );
+		if ( !f )
+			return luaL_error( pState, "Blur2PC.Run: cannot open %s", path );
+		fseek( f, 0, SEEK_END );
+		const long size = ftell( f );
+		fseek( f, 0, SEEK_SET );
+		char* buffer = (char*)malloc( size > 0 ? size : 1 );
+		const size_t got = fread( buffer, 1, size > 0 ? size : 0, f );
+		fclose( f );
+		char chunkName[MAX_PATH + 1];
+		_snprintf_s( chunkName, sizeof( chunkName ), _TRUNCATE, "@%s", name );
+		const int status = luaL_loadbuffer( pState, buffer, got, chunkName );
+		free( buffer );
+		if ( status != 0 )
+			return lua_error( pState );
+		const int base = lua_gettop( pState ) - 1;
+		lua_call( pState, 0, LUA_MULTRET );
+		return lua_gettop( pState ) - base;
+	}
+
+	// Runs automation Lua the way C_ScreenControl runs a main-context screen's callbacks: context 0
+	// selected, and the screen's globals (GUI, SCUI) bound by GUIBank's SetContextTable.
+	class C_Blur2PCMainContextScope
+	{
+	public:
+		C_Blur2PCMainContextScope( lua_State* pState ) : m_pState( pState ), m_Saved( C_ScreenControlManager::Instance().Context() ), m_Bound( false )
+		{
+			C_ScreenControlManager::Instance().Context( 0 );
+			lua_getglobal( m_pState, "SetContextTable" );
+			if ( lua_isfunction( m_pState, -1 ) )
+			{
+				lua_pushnumber( m_pState, 0 );
+				if ( lua_pcall( m_pState, 1, 1, 0 ) == 0 )
+					m_Bound = lua_istable( m_pState, -1 ) ? true : false;
+			}
+			lua_pop( m_pState, 1 );
+		}
+		~C_Blur2PCMainContextScope()
+		{
+			if ( m_Bound )
+			{
+				lua_getglobal( m_pState, "ResetContextTable" );
+				if ( lua_pcall( m_pState, 0, 0, 0 ) != 0 )
+					lua_pop( m_pState, 1 );
+			}
+			C_ScreenControlManager::Instance().Context( m_Saved );
+		}
+	private:
+		lua_State*	m_pState;
+		S32			m_Saved;
+		bool		m_Bound;
+	};
+
+	void Blur2PCAutomationUiUpdate()
+	{
+		if ( !Blur2PCAutomation::IsActive() || !g_pUILua || !g_pUILua->GetState() )
+			return;
+		lua_State* pState = g_pUILua->GetState();
+
+		lua_getglobal( pState, "Blur2PC" );
+		const bool registered = !lua_isnil( pState, -1 );
+		lua_pop( pState, 1 );
+		if ( !registered )
+		{
+			static const luaL_Reg s_lib[] = { { "RaceState", Blur2PCLua_RaceState }, { "Log", Blur2PCLua_Log }, { "Run", Blur2PCLua_Run }, { NULL, NULL } };
+			luaL_register( pState, "Blur2PC", s_lib );
+			lua_pop( pState, 1 );
+		}
+
+		// screen changes in every context
+		static char s_screens[8][128];
+		const S32 contexts = C_ScreenControlManager::Instance().Count() < 8 ? C_ScreenControlManager::Instance().Count() : 8;
+		for ( S32 i = 0; i < contexts; ++i )
+		{
+			const char* screen = C_ScreenControlManager::Instance().Get( i ).GetCurrentScreen();
+			if ( !screen ) screen = "";
+			if ( strcmp( screen, s_screens[i] ) != 0 )
+			{
+				strncpy_s( s_screens[i], screen, _TRUNCATE );
+				Blur2PCAutomation::LogF( "screen %d: %s", i, screen[0] ? screen : "(none)" );
+			}
+		}
+
+		if ( const char* code = Blur2PCAutomation::TakeLuaRequest() )
+		{
+			C_Blur2PCMainContextScope scope( pState );
+			Blur2PCAutomation::LogF( "lua %s", code );
+			if ( luaL_loadbuffer( pState, code, strlen( code ), "=automation lua" ) != 0 || lua_pcall( pState, 0, 0, 0 ) != 0 )
+			{
+				Blur2PCAutomation::LogF( "lua error: %s", lua_tostring( pState, -1 ) );
+				lua_pop( pState, 1 );
+			}
+		}
+
+		if ( const char* condition = Blur2PCAutomation::WaitCondition() )
+		{
+			C_Blur2PCMainContextScope scope( pState );
+			static char s_lastError[512];
+			char chunk[Blur2PCAutomation::k_MaxText + 16];
+			_snprintf_s( chunk, sizeof( chunk ), _TRUNCATE, "return (%s)", condition );
+			if ( luaL_loadbuffer( pState, chunk, strlen( chunk ), "=automation wait" ) != 0 || lua_pcall( pState, 0, 1, 0 ) != 0 )
+			{
+				const char* error = lua_tostring( pState, -1 );
+				if ( error && strcmp( error, s_lastError ) != 0 )
+				{
+					strncpy_s( s_lastError, error, _TRUNCATE );
+					Blur2PCAutomation::LogF( "wait error: %s", error );
+				}
+			}
+			else if ( lua_toboolean( pState, -1 ) )
+			{
+				Blur2PCAutomation::WaitMet();
+			}
+			lua_pop( pState, 1 );
+		}
+	}
+}
+#endif
+
 void C_UiManager::Process( const Maths::C_TimeS& time )
 {
 	gUITextureManager.Update();
@@ -2329,6 +2487,10 @@ void C_UiManager::Process( const Maths::C_TimeS& time )
 #ifndef GFG_GOLD
 	// update the LUA console
 	g_pUILua->DoConsole();
+#endif
+
+#if defined(PLATFORM_PC)
+	Blur2PCAutomationUiUpdate();	// [Blur2PC]
 #endif
 
 	// update profile stuff

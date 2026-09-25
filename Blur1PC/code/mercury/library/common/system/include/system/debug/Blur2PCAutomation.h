@@ -1,20 +1,39 @@
 // [Blur2PC] Scripted automation for unattended test runs.
 //
 // Active only when the environment variable BLUR2PC_AUTOMATION names a script file. The script
-// injects keyboard input into the game's own keyboard device and requests back-buffer screenshots,
-// so test runs need neither window focus nor desktop capture and do not disturb whoever is using
-// the machine. While a script is active the game also ignores focus loss (no auto-pause).
+// injects keyboard input into the game's own keyboard device, runs Lua in the UI's Lua state,
+// waits on game state and requests back-buffer screenshots, so test runs need neither window focus
+// nor desktop capture and do not disturb whoever is using the machine. While a script is active the
+// game also ignores focus loss (no auto-pause).
 //
-// Script format: one command per line, '#' starts a comment. Times are seconds since the first
-// keyboard update (roughly: since the window opened).
+// Script format: one command per line. Times are seconds since the start of the line's segment:
+// the first segment starts at the first keyboard update (roughly: when the window opens), and each
+// `wait` line starts a new segment for the lines below it, at the moment its condition came true.
+// Lines are sorted by time within their segment; a `wait` starts after every line above it in its
+// segment has run.
 //     <time> tap  <KEY> [hold_ms]     press and release (default hold 150 ms)
 //     <time> down <KEY>               press and keep held
 //     <time> up   <KEY>               release
 //     <time> shot <file.png>          save the next presented frame (path relative to the script)
-//     <time> quit                     exit the process
+//     <time> quit                     exit the process (exit code 0)
+//     <time> lua  <code>              run <code> in the UI Lua state (rest of the line, '#' is Lua)
+//     <time> wait <timeout> <expr>    block until the Lua expression <expr> is true (tested once per
+//                                     UI frame; rest of the line, '#' is Lua). On timeout: log it,
+//                                     save timeout.png beside the script and exit with code 3.
+// On other lines '#' starts a comment. A line that starts with '#' is a comment.
 // KEY: RETURN ESCAPE SPACE TAB UP DOWN LEFT RIGHT RSHIFT LSHIFT RCONTROL LCONTROL PGUP PGDN INSERT DELETE, A-Z, 0-9, F1-F12.
 //
-// Header-only on purpose: the input, display and framework libraries all include it, and inline
+// Lua helpers the UI manager adds while a script is active (amax/library/Ui/UiManager.cpp):
+//     Blur2PC.RaceState()   "None" "Loading" "Intro" "Starting" "Racing" "Finished" "Outro" ...
+//                           (race logic layer state; "None" when there is no race)
+//     Blur2PC.Log(text)     write a line to automation.log
+//     Blur2PC.Run(file)     run a Lua file (absolute, or relative to the script); returns what the file returns
+// plus everything the game's UI scripts see (UIScreen.GetCurrentScreen(), UIGlobals, Amax.*, ...).
+// `lua` and `wait` code runs as the main UI context's screen code does: context 0 selected and that
+// screen's GUI and SCUI bound. Write strings with backslashes as [[intro\startscreen.lua]].
+// Screen changes in every UI context are logged to automation.log.
+//
+// Header-only on purpose: the input, display, UI and framework libraries all include it, and inline
 // functions with function-local statics share one instance across translation units.
 #ifndef SYSTEM_DEBUG_BLUR2PC_AUTOMATION_H
 #define SYSTEM_DEBUG_BLUR2PC_AUTOMATION_H
@@ -25,34 +44,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 namespace Blur2PCAutomation
 {
-	enum E_Kind { E_Down, E_Up, E_Shot, E_Quit };
+	enum E_Kind { E_Down, E_Up, E_Shot, E_Quit, E_Lua, E_Wait };
+
+	enum { k_MaxEvents = 512, k_MaxText = 768 };
 
 	struct Event
 	{
+		int segment;
 		double time;
+		double timeout;
 		E_Kind kind;
 		int dik;
-		char file[MAX_PATH];
+		char text[k_MaxText];	// screenshot path, Lua code or wait expression
 	};
 
 	struct State
 	{
 		bool loaded;
 		bool active;
-		Event events[512];
+		Event events[k_MaxEvents];
 		int count;
 		int next;
 		bool keys[256];
 		char pendingShot[MAX_PATH];
-		double shotTime;
 		char baseDir[MAX_PATH];
 		LARGE_INTEGER start;
 		LARGE_INTEGER freq;
 		bool started;
 		FILE* log;
+		CRITICAL_SECTION lock;	// Update() runs in the input update, the Lua side in the UI update
+		double segmentStart;
+		// wait in progress
+		bool waiting;
+		volatile bool waitMet;
+		double waitStart;
+		const Event* waitEvent;
+		// Lua code handed to the UI update
+		const Event* pendingLua;
+		// exit after a failed wait, once its screenshot had a chance to be written
+		double failQuitAt;
+		// parsing: latest time used so far in the current segment
+		double parseSegmentLast;
 	};
 
 	inline State& Get()
@@ -80,26 +116,67 @@ namespace Blur2PCAutomation
 		return -1;
 	}
 
-	inline void Log(const char* fmt, const char* a = "", double t = 0.0)
+	//! Seconds since the script clock started (0 before the first keyboard update).
+	inline double Now()
 	{
 		State& s = Get();
-		if (s.log) { fprintf(s.log, fmt, t, a); fflush(s.log); }
+		if (!s.started)
+			return 0.0;
+		LARGE_INTEGER now;
+		QueryPerformanceCounter(&now);
+		return (double)(now.QuadPart - s.start.QuadPart) / (double)s.freq.QuadPart;
 	}
 
-	inline void AddEvent(double time, E_Kind kind, int dik, const char* file)
+	//! Writes "<time> <message>" to automation.log.
+	inline void LogF(const char* fmt, ...)
 	{
 		State& s = Get();
-		if (s.count >= (int)(sizeof(s.events) / sizeof(s.events[0])))
+		if (!s.log)
 			return;
+		char line[1024];
+		va_list args;
+		va_start(args, fmt);
+		_vsnprintf_s(line, sizeof(line), _TRUNCATE, fmt, args);
+		va_end(args);
+		fprintf(s.log, "%8.2f %s\n", Now(), line);
+		fflush(s.log);
+	}
+
+	inline Event* AddEvent(int segment, double time, E_Kind kind, int dik)
+	{
+		State& s = Get();
+		if (time > s.parseSegmentLast)
+			s.parseSegmentLast = time;
+		if (s.count >= k_MaxEvents)
+			return NULL;
 		Event& e = s.events[s.count++];
-		e.time = time; e.kind = kind; e.dik = dik; e.file[0] = 0;
-		if (file)
-			_snprintf_s(e.file, MAX_PATH, _TRUNCATE, "%s%s", s.baseDir, file);
-		// keep sorted by time (insertion sort, scripts are short)
-		for (int i = s.count - 1; i > 0 && s.events[i - 1].time > s.events[i].time; --i)
-		{
-			Event tmp = s.events[i]; s.events[i] = s.events[i - 1]; s.events[i - 1] = tmp;
-		}
+		e.segment = segment; e.time = time; e.timeout = 0.0; e.kind = kind; e.dik = dik; e.text[0] = 0;
+		return &e;
+	}
+
+	inline bool EventBefore(const Event& a, const Event& b)
+	{
+		return a.segment < b.segment || (a.segment == b.segment && a.time < b.time);
+	}
+
+	inline void SortEvents()
+	{
+		// stable insertion sort by (segment, time); scripts are short
+		State& s = Get();
+		for (int j = 1; j < s.count; ++j)
+			for (int i = j; i > 0 && EventBefore(s.events[i], s.events[i - 1]); --i)
+			{
+				Event tmp = s.events[i]; s.events[i] = s.events[i - 1]; s.events[i - 1] = tmp;
+			}
+	}
+
+	inline char* SkipSpaces(char* p) { while (*p == ' ' || *p == '\t') ++p; return p; }
+
+	inline void TrimEnd(char* p)
+	{
+		size_t n = strlen(p);
+		while (n > 0 && (p[n - 1] == '\n' || p[n - 1] == '\r' || p[n - 1] == ' ' || p[n - 1] == '\t'))
+			p[--n] = 0;
 	}
 
 	inline void Load()
@@ -114,6 +191,7 @@ namespace Blur2PCAutomation
 		FILE* f = fopen(path, "r");
 		if (!f)
 			return;
+		InitializeCriticalSection(&s.lock);
 		strncpy_s(s.baseDir, path, _TRUNCATE);
 		char* slash = strrchr(s.baseDir, '\\');
 		if (!slash) slash = strrchr(s.baseDir, '/');
@@ -122,28 +200,70 @@ namespace Blur2PCAutomation
 		_snprintf_s(logPath, MAX_PATH, _TRUNCATE, "%sautomation.log", s.baseDir);
 		s.log = fopen(logPath, "w");
 
-		char line[512];
+		int segment = 0;
+		char line[2048];
 		while (fgets(line, sizeof(line), f))
 		{
-			char* hash = strchr(line, '#');
+			TrimEnd(line);
+			char* p = SkipSpaces(line);
+			if (*p == '#' || *p == 0)
+				continue;
+			char* end = NULL;
+			const double t = strtod(p, &end);
+			if (end == p)
+				continue;
+			p = SkipSpaces(end);
+			char cmd[32] = {0};
+			int n = 0;
+			while (*p && *p != ' ' && *p != '\t' && n < 31) cmd[n++] = *p++;
+			p = SkipSpaces(p);
+
+			// lua and wait take the rest of the line verbatim
+			if (_stricmp(cmd, "lua") == 0)
+			{
+				if (Event* e = AddEvent(segment, t, E_Lua, 0))
+					strncpy_s(e->text, p, _TRUNCATE);
+				continue;
+			}
+			if (_stricmp(cmd, "wait") == 0)
+			{
+				const double timeout = strtod(p, &end);
+				if (end == p || timeout <= 0.0) { LogF("wait without a timeout: %s", line); continue; }
+				// a wait starts after every line above it in its segment
+				if (Event* e = AddEvent(segment, t > s.parseSegmentLast ? t : s.parseSegmentLast, E_Wait, 0))
+				{
+					e->timeout = timeout;
+					strncpy_s(e->text, SkipSpaces(end), _TRUNCATE);
+				}
+				++segment;
+				s.parseSegmentLast = 0.0;
+				continue;
+			}
+
+			char* hash = strchr(p, '#');
 			if (hash) *hash = 0;
-			double t = 0; char cmd[32] = {0}; char arg[400] = {0}; int hold = 150;
-			const int n = sscanf_s(line, "%lf %31s %399s %d", &t, cmd, (unsigned)sizeof(cmd), arg, (unsigned)sizeof(arg), &hold);
-			if (n < 2)
+			char arg[400] = {0}; int hold = 150;
+			const int args = sscanf_s(p, "%399s %d", arg, (unsigned)sizeof(arg), &hold);
+			if (_stricmp(cmd, "quit") == 0) { AddEvent(segment, t, E_Quit, 0); continue; }
+			if (args < 1)
 				continue;
-			if (_stricmp(cmd, "quit") == 0) { AddEvent(t, E_Quit, 0, NULL); continue; }
-			if (n < 3)
+			if (_stricmp(cmd, "shot") == 0)
+			{
+				if (Event* e = AddEvent(segment, t, E_Shot, 0))
+					_snprintf_s(e->text, k_MaxText, _TRUNCATE, "%s%s", s.baseDir, arg);
 				continue;
-			if (_stricmp(cmd, "shot") == 0) { AddEvent(t, E_Shot, 0, arg); continue; }
+			}
 			const int dik = KeyFromName(arg);
-			if (dik < 0) { Log("%8.2f unknown key %s\n", arg, t); continue; }
-			if (_stricmp(cmd, "tap") == 0) { AddEvent(t, E_Down, dik, NULL); AddEvent(t + (n >= 4 ? hold : 150) / 1000.0, E_Up, dik, NULL); }
-			else if (_stricmp(cmd, "down") == 0) AddEvent(t, E_Down, dik, NULL);
-			else if (_stricmp(cmd, "up") == 0) AddEvent(t, E_Up, dik, NULL);
+			if (dik < 0) { LogF("unknown key %s", arg); continue; }
+			if (_stricmp(cmd, "tap") == 0) { AddEvent(segment, t, E_Down, dik); AddEvent(segment, t + (args >= 2 ? hold : 150) / 1000.0, E_Up, dik); }
+			else if (_stricmp(cmd, "down") == 0) AddEvent(segment, t, E_Down, dik);
+			else if (_stricmp(cmd, "up") == 0) AddEvent(segment, t, E_Up, dik);
+			else LogF("unknown command %s", cmd);
 		}
 		fclose(f);
+		SortEvents();
 		s.active = true;
-		Log("%8.2f script loaded: %s\n", path, 0.0);
+		LogF("script loaded: %s", path);
 	}
 
 	inline bool IsActive()
@@ -152,39 +272,84 @@ namespace Blur2PCAutomation
 		return Get().active;
 	}
 
+	inline const char* KeyName(int dik)
+	{
+		static char name[8];
+		_snprintf_s(name, sizeof(name), _TRUNCATE, "0x%02X", dik & 0xFF);
+		return name;
+	}
+
 	//! Called once per keyboard update; applies due events. Returns false when inactive.
 	inline bool Update()
 	{
 		if (!IsActive())
 			return false;
 		State& s = Get();
-		LARGE_INTEGER now;
-		QueryPerformanceCounter(&now);
 		if (!s.started)
 		{
 			QueryPerformanceFrequency(&s.freq);
-			s.start = now;
+			QueryPerformanceCounter(&s.start);
 			s.started = true;
 		}
-		const double t = (double)(now.QuadPart - s.start.QuadPart) / (double)s.freq.QuadPart;
-		bool pressedNow[256] = { false };
-		while (s.next < s.count && s.events[s.next].time <= t)
+		const double t = Now();
+		EnterCriticalSection(&s.lock);
+		if (s.failQuitAt > 0.0)
 		{
-			// a release in the same update as its press would be invisible to the game (seen on
-			// frame hitches); leave it and everything after it for the next update
-			if (s.events[s.next].kind == E_Up && pressedNow[s.events[s.next].dik & 0xFF])
-				break;
-			if (s.events[s.next].kind == E_Down)
-				pressedNow[s.events[s.next].dik & 0xFF] = true;
-			const Event& e = s.events[s.next++];
-			switch (e.kind)
+			if (t >= s.failQuitAt)
 			{
-			case E_Down: s.keys[e.dik & 0xFF] = true;  Log("%8.2f key down %s\n", "", t); break;
-			case E_Up:   s.keys[e.dik & 0xFF] = false; Log("%8.2f key up %s\n", "", t); break;
-			case E_Shot: strncpy_s(s.pendingShot, e.file, _TRUNCATE); s.shotTime = t; break;
-			case E_Quit: Log("%8.2f quit%s\n", "", t); if (s.log) fclose(s.log); ExitProcess(0);
+				LogF("quit (exit code 3)");
+				if (s.log) fclose(s.log);
+				ExitProcess(3);
+			}
+			LeaveCriticalSection(&s.lock);
+			return true;
+		}
+		if (s.waiting)
+		{
+			if (s.waitMet)
+			{
+				s.waiting = false;
+				s.segmentStart = t;
+				LogF("wait done after %.2f s: %s", t - s.waitStart, s.waitEvent->text);
+			}
+			else if (t - s.waitStart > s.waitEvent->timeout)
+			{
+				s.waiting = false;
+				LogF("wait TIMED OUT after %.0f s: %s", s.waitEvent->timeout, s.waitEvent->text);
+				_snprintf_s(s.pendingShot, MAX_PATH, _TRUNCATE, "%stimeout.png", s.baseDir);
+				s.failQuitAt = t + 2.0;
+				LeaveCriticalSection(&s.lock);
+				return true;
 			}
 		}
+		bool pressedNow[256] = { false };
+		while (!s.waiting && s.next < s.count && s.events[s.next].time <= t - s.segmentStart)
+		{
+			const Event& e = s.events[s.next];
+			// a release in the same update as its press would be invisible to the game (seen on
+			// frame hitches); leave it and everything after it for the next update
+			if (e.kind == E_Up && pressedNow[e.dik & 0xFF])
+				break;
+			// one Lua chunk per UI frame, in script order
+			if (e.kind == E_Lua && s.pendingLua)
+				break;
+			if (e.kind == E_Down)
+				pressedNow[e.dik & 0xFF] = true;
+			++s.next;
+			switch (e.kind)
+			{
+			case E_Down: s.keys[e.dik & 0xFF] = true;  LogF("key down %s", KeyName(e.dik)); break;
+			case E_Up:   s.keys[e.dik & 0xFF] = false; LogF("key up %s", KeyName(e.dik)); break;
+			case E_Shot: strncpy_s(s.pendingShot, e.text, _TRUNCATE); break;
+			case E_Lua:  s.pendingLua = &e; break;
+			case E_Wait:
+				s.waiting = true; s.waitMet = false; s.waitStart = t; s.waitEvent = &e;
+				LogF("wait (up to %.0f s): %s", e.timeout, e.text);
+				break;
+			case E_Quit: LogF("quit"); if (s.log) fclose(s.log); ExitProcess(0);
+			}
+		}
+		LeaveCriticalSection(&s.lock);
 		return true;
 	}
 
@@ -201,10 +366,43 @@ namespace Blur2PCAutomation
 		if (!s.active || !s.pendingShot[0])
 			return NULL;
 		static char path[MAX_PATH];
+		EnterCriticalSection(&s.lock);
 		strncpy_s(path, s.pendingShot, _TRUNCATE);
 		s.pendingShot[0] = 0;
-		Log("%8.2f shot %s\n", path, 0.0);
+		LeaveCriticalSection(&s.lock);
+		LogF("shot %s", path);
 		return path;
+	}
+
+	//! UI side: returns the Lua code of a due `lua` line once, or NULL.
+	inline const char* TakeLuaRequest()
+	{
+		State& s = Get();
+		if (!s.active || !s.pendingLua)
+			return NULL;
+		EnterCriticalSection(&s.lock);
+		const char* code = s.pendingLua ? s.pendingLua->text : NULL;
+		s.pendingLua = NULL;
+		LeaveCriticalSection(&s.lock);
+		return code;
+	}
+
+	//! UI side: the expression of the wait in progress, or NULL. Call WaitMet() when it is true.
+	inline const char* WaitCondition()
+	{
+		State& s = Get();
+		return (s.active && s.waiting && !s.waitMet) ? s.waitEvent->text : NULL;
+	}
+
+	//! Directory of the script, with a trailing separator.
+	inline const char* ScriptDir()
+	{
+		return Get().baseDir;
+	}
+
+	inline void WaitMet()
+	{
+		Get().waitMet = true;
 	}
 }
 
