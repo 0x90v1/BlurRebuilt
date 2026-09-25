@@ -16,6 +16,8 @@ set_target_properties(gamesource PROPERTIES FOLDER "code/mercury/library/util")
 # The overlay copy of amax/game/GameSystems.cpp selects the source in CreateFsLayers.
 # GameSourceDump.cpp: BLUR1MULTI_PAKDUMP verification hook (reads through the engine's file system).
 target_sources(Amax PRIVATE ${BLUR_OVERLAY}/code/amax/game/GameSourceDump.cpp)
+# Console sources: clip z / w for the blob and drop shadow passes from the console prepass target (T076).
+target_sources(Amax PRIVATE ${BLUR_OVERLAY}/code/amax/game/Game/GameWorld/View/ConsoleDepth.cpp)
 target_link_libraries(Amax PRIVATE gamesource)
 # The overlay copy of amax/game/GameLogic/Layers/BootLayer.cpp mounts the Xenon boot paks for 360 sources.
 target_link_libraries(amax_gamelogic PRIVATE gamesource)

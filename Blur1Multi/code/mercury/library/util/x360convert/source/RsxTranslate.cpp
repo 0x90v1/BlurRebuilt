@@ -628,7 +628,10 @@ namespace RsxTranslate
 				case FP_MUL: v = s[0] + " * " + s[1]; break;
 				case FP_ADD: v = s[0] + " + " + s[1]; break;
 				case FP_MAD: v = s[0] + " * " + s[1] + " + " + s[2]; break;
-				case FP_DP2: v = "dot(" + s[0] + ".xy, " + s[1] + ".xy).xxxx"; break;
+				// [Blur1Multi] DP2 goes through Dot2 (a multiply and an add): d3dcompiler_47 turns "c - dot(a.xy, b.xy)"
+				// into dp2add with a negated source and drops that source's abs modifier (softlightflare_ln: 1 - dot(|h|, |h|)
+				// compiled to dp2add r0_abs, -r0, 1, whiting out half of every light flare). See Dot2 below.
+				case FP_DP2: v = "Dot2(" + s[0] + ", " + s[1] + ").xxxx"; m_needDot2 = true; break;
 				case FP_DP3: v = "dot(" + s[0] + ".xyz, " + s[1] + ".xyz).xxxx"; break;
 				case FP_DP4: v = "dot(" + s[0] + ", " + s[1] + ").xxxx"; break;
 				case FP_DST: v = "float4(1.0, " + s[0] + ".y * " + s[1] + ".y, " + s[0] + ".z, " + s[1] + ".w)"; break;
@@ -835,6 +838,8 @@ namespace RsxTranslate
 					if (m_samplerUsed[u])
 						hlsl += std::string(m_samplers.dim[u] == E_SamplerDim_Cube ? "samplerCUBE" : "sampler2D") + " S" + Num(u) + " : register(s" + Num(u) + ");\n";
 				hlsl += "\n";
+				if (m_needDot2)
+					hlsl += "float Dot2(float4 a, float4 b)\n{\n\tfloat2 p = a.xy * b.xy;\n\treturn p.x + p.y;\n}\n\n";
 				if (m_needDivSq)
 					hlsl += "float4 DivSq(float4 a, float b)\n{\n\tfloat4 q = a / sqrt(abs(b));\n\treturn (abs(a) > 0.0) ? q : a;\n}\n\n";
 				hlsl += in;
@@ -870,6 +875,7 @@ namespace RsxTranslate
 			unsigned m_storage[64][4];
 			bool m_needW;
 			bool m_needDivSq = false;
+			bool m_needDot2 = false; // [Blur1Multi]
 			int m_maxConstant;
 		};
 	}

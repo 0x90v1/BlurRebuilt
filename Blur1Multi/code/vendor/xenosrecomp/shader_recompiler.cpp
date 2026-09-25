@@ -200,14 +200,13 @@ void ShaderRecompiler::recompile(const VertexFetchInstruction& instr, uint32_t a
     assert(findResult != vertexElements.end());
 
 #ifdef XENOS_RECOMP_D3D9
-    // [Blur1Multi] The PC vertex formats the Blur1Multi converter writes: the
-    // Xenos 10_11_11 signed normal (RenderingData SHHD_3N) becomes U8_4N, i.e.
-    // D3DDECLTYPE_UBYTE4N in [0, 1], packed from (v + 1) / 2 as Scene::Finish(PC)
-    // does; every other format reaches the shader as the value itself.
-    if (instr.format == 16 || instr.format == 17)
-        print("(i{}{} * 2.0 - 1.0)", USAGE_VARIABLES[uint32_t(findResult->second.usage)], uint32_t(findResult->second.usageIndex));
-    else
-        print("i{}{}", USAGE_VARIABLES[uint32_t(findResult->second.usage)], uint32_t(findResult->second.usageIndex));
+    // [Blur1Multi] Every element reaches the shader as the value the Xenos fetch
+    // produced: the Blur1Multi converter writes SHHD_3N (Xenos 10_11_11, signed
+    // normalised) as F16_4 (x, y, z, 1) (x360convert SceneTranscode.cpp ExpandsShhd).
+    // The fetch's own format field cannot drive a decode: Direct3D on the 360 patched
+    // vfetch formats from the bound vertex declaration at draw time, so the compiled
+    // microcode carries format 0 (every fetch in the 820 retail effects).
+    print("i{}{}", USAGE_VARIABLES[uint32_t(findResult->second.usage)], uint32_t(findResult->second.usageIndex));
 #else
     switch (findResult->second.usage)
     {
@@ -848,7 +847,12 @@ void ShaderRecompiler::recompile(const AluInstruction& instr)
             break;
 
         case AluVectorOpcode::Dp2Add:
+#ifdef XENOS_RECOMP_D3D9
+            // [Blur1Multi] through a helper: see dp2add_xenos in shader_common_d3d9.h
+            print("dp2add_xenos({}, {}, {})", op(VECTOR_0), op(VECTOR_1), op(VECTOR_2));
+#else
             print("dot({}, {}) + {}", op(VECTOR_0), op(VECTOR_1), op(VECTOR_2));
+#endif
             break;
 
         case AluVectorOpcode::Cube:

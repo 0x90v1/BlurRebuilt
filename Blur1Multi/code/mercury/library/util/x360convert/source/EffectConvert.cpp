@@ -198,6 +198,20 @@ namespace X360Convert
 					return;
 				}
 				++m_stats.programs;
+				// [Blur1Multi] Debugging aid: BLUR1MULTI_XENOS_HLSL=<dir> writes every recompiled
+				// program as <dir>/xenos_<n>_<vs|ps>.hlsl (n counts programs in this process).
+				if (const char* dumpDir = getenv("BLUR1MULTI_XENOS_HLSL"))
+				{
+					static unsigned s_dumped = 0;
+					char path[1024];
+					sprintf_s(path, "%s/xenos_%05u_%s.hlsl", dumpDir, s_dumped++, isPixelShader ? "ps" : "vs");
+					FILE* f = NULL;
+					if (fopen_s(&f, path, "wb") == 0 && f)
+					{
+						fwrite(hlsl.data(), 1, hlsl.size(), f);
+						fclose(f);
+					}
+				}
 				if (!unsupported.empty())
 				{
 					++m_stats.unsupported;

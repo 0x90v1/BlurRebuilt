@@ -60,4 +60,14 @@ float4 max4(float4 src0)
 {
     return max(max(src0.x, src0.y), max(src0.z, src0.w));
 }
+
+// [Blur1Multi] DP2ADD as a multiply and two adds: d3dcompiler_47 folds "c - dot(abs(a), abs(a))"
+// written as dot() into dp2add with one source negated and drops that source's abs modifier
+// (softlightflare_ln: dp2add r0.x, r0_abs, -r0, c0.z, which whites out half of every light
+// flare; found with apitrace, 2026-09-25). Same helper as RsxTranslate's Dot2 for PS3 programs.
+float dp2add_xenos(float2 a, float2 b, float c)
+{
+    float2 p = a * b;
+    return p.x + p.y + c;
+}
 )HLSL";

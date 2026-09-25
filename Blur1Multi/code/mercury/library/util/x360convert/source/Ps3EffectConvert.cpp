@@ -17,14 +17,15 @@
 //    and left, in the CGB constant table, only literals the program needs
 //    (StripDefaultValuesFromCGB); those become HLSL literals. Parameters placed at or
 //    above c256 (sce-cgc allocates unregistered parameters downward from c467) move to
-//    the lowest free D3D9 registers; everything else keeps its register.
+//    the highest free D3D9 registers (Allocate: top-down, clear of the engine's
+//    per-view constants); everything else keeps its register.
 //  - Fragment: RSX fragment programs have no constant registers; uniforms are float4
 //    literals embedded in the ucode, patched per draw by name (fx/source/System.cpp
 //    EvaluatePixelShaderBindings, FxContext.cpp PatchPixelShaderConstants). The PS3
 //    bindings are per struct member (Offset in floats) and carry the register sce-cgc
 //    listed (c[n]) or GPU_INVALID_PARAM. Each parameter becomes one binding with Offset
 //    0 (the PC loader asserts it, fx/source/System.cpp:210) at its listed register when
-//    it fits c0-c223, else at the lowest free run; every embedded copy the CGB map lists
+//    it fits c0-c223, else at the highest free run; every embedded copy the CGB map lists
 //    for a bound member reads C[register]. Unbound copies stay literals, as they did on
 //    the PS3 (nothing patched them).
 //  - Samplers keep their texture unit. Dimension: the programs do not record it (a fetch
@@ -323,11 +324,24 @@ namespace RsxTranslate
 			return d3d;
 		}
 
-		// First run of 'count' free registers below 'limit'; -1 when there is none.
+		// Highest run of 'count' free registers below 'limit'; -1 when there is none.
+		// Top-down, as sce-cgc placed parameters that have no register() (c467 down):
+		// the low registers belong to the engine's per-view constants (g_mView c8-c11,
+		// projection c12, fog c32-c33, ...), which it uploads once per view and no
+		// effect binding re-sets. Allocating bottom-up put LightFlare_LN's
+		// g_fLightFlareDepthBias on c8 and broke every later draw that reads the view
+		// matrix (the white showroom ground, 2026-09-25, apitrace). ps3shader-verify
+		// checks every allocation against the registers explicit bindings use across
+		// all effects.
+		// The top kLiteralHeadroom registers stay free: fxc places a program's literals
+		// (def) after the constant array, and an array that reaches the top of the file
+		// leaves them nowhere (cs_eye_skin_ln and three other skinned programs).
+		const unsigned kLiteralHeadroom = 8;
 		int Allocate(std::vector<bool>& used, unsigned count, unsigned limit)
 		{
-			for (unsigned base = 0; base + count <= limit; ++base)
+			for (int b = (int)limit - (int)kLiteralHeadroom - (int)count; b >= 0; --b)
 			{
+				const unsigned base = (unsigned)b;
 				bool free = true;
 				for (unsigned k = 0; k < count && free; ++k)
 					free = !used[base + k];

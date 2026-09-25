@@ -1,4 +1,19 @@
 {
+ "code/amax/game/Game/GameWorld/View/Main.cpp": {
+  "base_blob": "f025c31bc30bb37fae59a0c3ff60b4f7c5f821b9",
+  "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
+  "history": [
+   {
+    "action": "take",
+    "base_blob": "f025c31bc30bb37fae59a0c3ff60b4f7c5f821b9",
+    "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
+    "date": "2026-09-25T11:40:46-03:00",
+    "note": "Console sources: the console prepass render-pass list (no vehicles or ghosts in the lighting prepass), as the console builds scheduled it"
+   }
+  ],
+  "synced": "2026-09-25T11:40:46-03:00",
+  "why": "Console sources: the console prepass render-pass list (no vehicles or ghosts in the lighting prepass), as the console builds scheduled it; clip z / w for the blob and drop shadow passes from the console prepass target (ConsoleDepth)"
+ },
  "code/amax/game/GameLogic/Layers/BootLayer.cpp": {
   "base_blob": "027d619637d850b7e314f13649983bb1478431b7",
   "base_commit": "91c7d4ec613f547e5b58f1f2d18473066b4a7ef3",
@@ -28,6 +43,21 @@
   ],
   "synced": "2026-09-24T21:20:19-03:00",
   "why": "CreateFsLayers selects the game source (GameSource::Select) before the retail pak mounts"
+ },
+ "code/amax/game/Graphics/Lighting/Prepass.cpp": {
+  "base_blob": "0c626eb0c1c92d1d11d36f16d1522b0cb3e30110",
+  "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
+  "history": [
+   {
+    "action": "take",
+    "base_blob": "0c626eb0c1c92d1d11d36f16d1522b0cb3e30110",
+    "base_commit": "decf710f942d48286ac82bb47397029a70c25f9d",
+    "date": "2026-09-25T11:40:46-03:00",
+    "note": "Console sources: the console deferred lighting path (single packed normal/view-depth target, C_PointLights/C_SpotLights), which the console effects' prepass programs write for"
+   }
+  ],
+  "synced": "2026-09-25T11:40:46-03:00",
+  "why": "Console sources: the console deferred lighting path (single packed normal/view-depth target, C_PointLights/C_SpotLights), which the console effects' prepass programs write for"
  },
  "code/mercury/library/graphics/renderingdata/source/noninterface/target/archive.cpp": {
   "base_blob": "d3ef74b1eb49d62987f1aa9ba9c76dabf8ca8d36",

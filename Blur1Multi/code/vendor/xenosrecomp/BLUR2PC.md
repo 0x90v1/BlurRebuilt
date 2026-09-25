@@ -12,11 +12,17 @@ Local changes, all marked `[Blur1Multi]`:
 
 - `pch.h` keeps only what the recompiler uses; `fmt/core.h` maps the {fmt}
   calls onto C++20 `std::format`.
+- DP2ADD goes through `dp2add_xenos` (`shader_common_d3d9.h`) in D3D9 mode:
+  d3dcompiler_47 folds `dot(abs(a), abs(a))` written with `dot()` into a
+  `dp2add` that drops one source's abs modifier (softlightflare_ln, found with
+  apitrace on 2026-09-25).
 - `XENOS_RECOMP_D3D9`: HLSL for Direct3D 9 shader model 3 (`vs_3_0` /
   `ps_3_0`), the target of the Blur1Multi shader cache (decisions D03, D11,
   board T074): constants and samplers on the registers the Xenos constant
   table assigns, `bool` constants on `b` registers, only the interpolators the
-  program declares, `VPOS`/`VFACE`, literal constants as float literals, the
-  vertex fetch decoded from the instruction's own format against the PC vertex
-  formats the converter writes, and no D3D12 half-pixel or alpha-test
+  program declares, `VPOS`/`VFACE`, literal constants as float literals, every
+  vertex element read as the value the Xenos fetch produced (the converter
+  writes SHHD_3N as F16_4; the microcode's fetch format field is 0 because the
+  360's Direct3D patched it from the vertex declaration at draw time, so no
+  per-fetch decode is possible), and no D3D12 half-pixel or alpha-test
   specialisation (Direct3D 9 has both in fixed function).

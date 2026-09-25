@@ -259,14 +259,20 @@ namespace X360Convert
 
 		SceneTranscodeStats g_stats = {};
 
-		// [Blur1Multi] PS3 sources (T076). The translated RSX vertex programs use
-		// SHHD_3N as the RSX fetches it: CELL_GCM_VERTEX_CMP (GCMDevice.cpp:2966-2977;
-		// fx/include/fx/targets/cell/gcm.h:109,118 CELL_GCM_VERTEX_CMP ==
-		// CELL_GCM_VERTEX_S11_11_10_NR), signed normalised 11:11:10 with w = 1. D3D9
-		// has no such type, so the element becomes F16_4 (x, y, z, 1).
+		// [Blur1Multi] Both consoles (T076, then the 360 in the same session). The
+		// translated programs use SHHD_3N as the console fetched it: signed normalised
+		// 11:11:10 with w = 1. PS3: CELL_GCM_VERTEX_CMP (GCMDevice.cpp:2966-2977;
+		// fx/include/fx/targets/cell/gcm.h:109,118 == CELL_GCM_VERTEX_S11_11_10_NR).
+		// Xbox 360: the Xenos 10_11_11 fetch, signed and normalised. Direct3D on the 360
+		// patches each vfetch's format from the bound vertex declaration at draw time,
+		// so the compiled microcode carries format 0 and XenosRecomp cannot decode it
+		// per fetch (its D3D9-mode "x * 2 - 1" rule for format 16/17 never fired: every
+		// 360 program read the U8_4N the converter wrote as a [0, 1] value, and vehicle
+		// bodies, whose morph offsets are SHHD_3N, were thrown out of view). D3D9 has no
+		// such type, so the element becomes F16_4 (x, y, z, 1) for both.
 		bool ExpandsShhd()
 		{
-			return X360Convert::GetSource() == X360Convert::E_Source_PS3;
+			return true;
 		}
 
 		// Bytes per element type (renderingdata/source/noninterface/vertexbuffer.cpp:9-24).

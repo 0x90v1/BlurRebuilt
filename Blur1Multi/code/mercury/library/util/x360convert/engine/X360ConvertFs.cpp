@@ -84,7 +84,7 @@ namespace X360Convert
 		// effect of the same name, or a converter change, gets its own entry.
 		const char* ShaderConverterTag()
 		{
-			return GetSource() == E_Source_PS3 ? "rsx-hlsl-d3d9 2" : "xenosrecomp-d3d9 1";
+			return GetSource() == E_Source_PS3 ? "rsx-hlsl-d3d9 3" : "xenosrecomp-d3d9 3";
 		}
 
 		unsigned long long Fnv1a64(const unsigned char* p, size_t n, unsigned long long h = 0xcbf29ce484222325ull)

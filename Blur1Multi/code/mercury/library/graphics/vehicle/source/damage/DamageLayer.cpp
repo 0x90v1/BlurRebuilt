@@ -29,6 +29,7 @@
 #undef RENDERINGDATA_ALLOW_INCLUDE
 
 #include "Ps3DamageStream.h"	// [Blur1Multi] PS3 sources: the stream-3 damage job on the CPU
+#include <gamesource/GameSource.h>	// [Blur1Multi] DamageVolumeF32
 
 Debug::Logger& g_DamageLog = Debug::GetLogger("mercury.vehicle.damage");
 
@@ -48,6 +49,15 @@ Debug::Logger& g_DamageLog = Debug::GetLogger("mercury.vehicle.damage");
 #if defined(PLATFORM_PC)
 #define BLUR2PC_DAMAGE_VOLUME_F32
 #endif
+// [Blur1Multi] The damage volume format follows the source's vehicle shaders: retail PC's were
+// built with _DAMAGE_USE_F32 (above); the Xbox 360's decode the source's 8-bit encoding
+// (127 = no damage; the recompiled vertex programs compute v * 4 - 1.99216, i.e. 4 * 127/255),
+// so a 360 source gets A8R8G8B8 as the Xenon build created it. A zero-filled F32 volume read
+// that way moved every 360 car body about 2 m off its wheels. PS3 programs do not sample it.
+static bool DamageVolumeF32()
+{
+	return GameSource::Current().m_Platform != GameSource::E_Platform_Xbox360;
+}
 
 //#pragma optimize("", off)
 
@@ -3070,90 +3080,78 @@ void C_DamageLayer::UpdateVolumeTexture(bool reset)
 	Display::C_LockedRect locked = pTexture->LockRect2D(0);
 #endif
 	
-#if defined(_DAMAGE_USE_F32) || defined(BLUR2PC_DAMAGE_VOLUME_F32)
-	F32* pData	= (F32*)locked.pBits;
-#else
-	DWORD* pData	= (DWORD*)locked.pBits;
-#endif
+	// [Blur1Multi] F32 or 8-bit by source (DamageVolumeF32); the per-texel code is the base
+	// file's two #if branches, chosen at run time.
+	const bool f32 = DamageVolumeF32();
+	U8* pBytes = (U8*)locked.pBits;
 
 	U32 height		= pTexture->GetHeight();
 	U32 width		= pTexture->GetWidth();
 #ifdef _DAMAGE_USE_3D_TEX
 	U32 depth		= pTexture->GetDepth();
+	const U32 rowPitch = locked.rowPitch;
 #else
 	U32 depth		= 1;
+	const U32 rowPitch = locked.pitch;
 #endif
 
 	BIZ_ASSERT(reset || (depth == (*m_pDamageVolume).Size()));
 
 	for (unsigned int iLayer = 0; iLayer < depth; iLayer++)
 	{
+		U8* pSlice = pBytes;
 		for (U32 v = 0; v < height; v++)
-		{	
+		{
+			F32* pF = (F32*)(pSlice + v * rowPitch);
+			DWORD* pD = (DWORD*)(pSlice + v * rowPitch);
 			for (U32 u = 0; u < width; u++)
 			{
 				if (reset)
-				{					
-				#if defined(_DAMAGE_USE_F32) || defined(BLUR2PC_DAMAGE_VOLUME_F32)
-					*(pData + 0) = 0.0f;
-					*(pData + 1) = 0.0f;
-					*(pData + 2) = 0.0f;
-					*(pData + 3) = 0.0f;
-					pData += 4;
-				#else
-					U8 a = 0;
-					U8 r = 127;
-					U8 g = 127;
-					U8 b = 127;
-					(*pData++) = (a << 24) + (r << 16) + (g << 8) + (b << 0);
-				#endif				
+				{
+					if (f32)
+					{
+						*(pF + 0) = 0.0f;
+						*(pF + 1) = 0.0f;
+						*(pF + 2) = 0.0f;
+						*(pF + 3) = 0.0f;
+						pF += 4;
+					}
+					else
+					{
+						U8 a = 0;
+						U8 r = 127;
+						U8 g = 127;
+						U8 b = 127;
+						(*pD++) = (a << 24) + (r << 16) + (g << 8) + (b << 0);
+					}
 					continue;
 				}
 
 				int index = (v * width) + u;
 
 				C_Node* pNode = &(*m_pDamageVolume)[iLayer].m_Nodes[index];
-				
-#if defined(_DAMAGE_USE_F32) || defined(BLUR2PC_DAMAGE_VOLUME_F32)
-				Maths::HVec3 vector = pNode->m_Position - pNode->m_OriginalPosition;
-				pData[0] = vector.X();
-				pData[1] = vector.Y();
-				pData[2] = vector.Z();
-				pData[3] = pNode->m_DeformLevel;
-				pData += 4;
-#else
-				Maths::HVec3 vector = pNode->m_Position - pNode->m_OriginalPosition;
-				U8 r = (U8)(Maths::Clamp((2.0f + (float)vector.X()) / 4.0f, 0.0f, 1.0f) * 254.0f);
-				U8 g = (U8)(Maths::Clamp((2.0f + (float)vector.Y()) / 4.0f, 0.0f, 1.0f) * 254.0f);
-				U8 b = (U8)(Maths::Clamp((2.0f + (float)vector.Z()) / 4.0f, 0.0f, 1.0f) * 254.0f);
-				U8 a = (U8)(pNode->m_ScratchLevel * 255.0f);
-				(*pData++) = (a << 24) + (r << 16) + (g << 8) + (b << 0);
-#endif		
-			}
-#ifdef _DAMAGE_USE_3D_TEX			
-		#if defined(_DAMAGE_USE_F32) || defined(BLUR2PC_DAMAGE_VOLUME_F32)
-			pData += (locked.rowPitch - (width * sizeof(F32) * 4)) / 4;
-		#else
-			pData += (locked.rowPitch - (width * sizeof(DWORD))) / 4;
-		#endif
-#else
-		#if defined(_DAMAGE_USE_F32) || defined(BLUR2PC_DAMAGE_VOLUME_F32)
-			pData += (locked.pitch - (width * sizeof(F32) * 4)) / 4;
-		#else
-			pData += (locked.pitch - (width * sizeof(DWORD))) / 4;
-		#endif			
-#endif
-		}
 
-#ifdef _DAMAGE_USE_3D_TEX	
-	#if defined(_DAMAGE_USE_F32) || defined(BLUR2PC_DAMAGE_VOLUME_F32)
-		// [Blur2PC] was a TODO; same byte arithmetic as the 8-bit case (pData steps 4 bytes)
-		DWORD sliceSizeUsedInBytes = height * locked.rowPitch;
-		pData += (locked.slicePitch - sliceSizeUsedInBytes) / 4;
-	#else
-		DWORD sliceSizeUsedInBytes = height * locked.rowPitch;
-		pData += (locked.slicePitch - sliceSizeUsedInBytes) / 4;
-	#endif
+				Maths::HVec3 vector = pNode->m_Position - pNode->m_OriginalPosition;
+				if (f32)
+				{
+					pF[0] = vector.X();
+					pF[1] = vector.Y();
+					pF[2] = vector.Z();
+					pF[3] = pNode->m_DeformLevel;
+					pF += 4;
+				}
+				else
+				{
+					U8 r = (U8)(Maths::Clamp((2.0f + (float)vector.X()) / 4.0f, 0.0f, 1.0f) * 254.0f);
+					U8 g = (U8)(Maths::Clamp((2.0f + (float)vector.Y()) / 4.0f, 0.0f, 1.0f) * 254.0f);
+					U8 b = (U8)(Maths::Clamp((2.0f + (float)vector.Z()) / 4.0f, 0.0f, 1.0f) * 254.0f);
+					U8 a = (U8)(pNode->m_ScratchLevel * 255.0f);
+					(*pD++) = (a << 24) + (r << 16) + (g << 8) + (b << 0);
+				}
+			}
+		}
+#ifdef _DAMAGE_USE_3D_TEX
+		pBytes += locked.slicePitch;
 #endif
 	}
 
@@ -3814,11 +3812,9 @@ bool C_DamageLayer::CreateTextureResources( U32 numVehicles )
 	{
 		for (int iTex = 0; iTex < NUM_DAMAGE_TEXTURES; iTex++)
 		{
-#ifdef BLUR2PC_DAMAGE_VOLUME_F32
-			if (!Display::Device()->CreateTexture3D(g_debugDamageTextureWidth, g_debugDamageTextureHeight, g_debugDamageTextureDepth, 1, Display::E_Format_Linear, Display::E_Format_A32B32G32R32F, &ms_TextureVolumeResources[iTex][j]))
-#else
-			if (!Display::Device()->CreateTexture3D(g_debugDamageTextureWidth, g_debugDamageTextureHeight, g_debugDamageTextureDepth, 1, Display::E_Format_Linear, Display::E_Format_A8R8G8B8, &ms_TextureVolumeResources[iTex][j]))
-#endif
+			// [Blur1Multi] F32 for PC and PS3 sources, the Xenon build's A8R8G8B8 for a 360 source (DamageVolumeF32)
+			if (!Display::Device()->CreateTexture3D(g_debugDamageTextureWidth, g_debugDamageTextureHeight, g_debugDamageTextureDepth, 1, Display::E_Format_Linear,
+				DamageVolumeF32() ? Display::E_Format_A32B32G32R32F : Display::E_Format_A8R8G8B8, &ms_TextureVolumeResources[iTex][j]))
 			{
 				MEMORY_TRACKER_POP("graphics.vehicle.damage");
 				return false;
