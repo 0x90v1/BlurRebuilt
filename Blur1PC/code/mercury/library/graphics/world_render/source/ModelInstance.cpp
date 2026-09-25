@@ -51,13 +51,21 @@ namespace
 	T_InterpMap*		g_pInterpMap = NULL;
 	struct S_RenderHook { T_Blur2PCRenderHook fn; void* ctx; };
 	std::vector<S_RenderHook>*	g_pRenderHooks = NULL;
+	// [Blur2PC] Hooks are added from C_VehicleActor::DeferredUpdate, which runs on scheduler
+	// worker threads, one job per car, while the render thread calls them: without this lock
+	// two cars' first updates reallocated the vector at once (crash in memmove at the start of
+	// a 20-car race, 2026-09-25). Static init: no first-use race.
+	SRWLOCK						g_RenderHooksLock = SRWLOCK_INIT;
 
 	void CallRenderHooks(bool begin)
 	{
-		if (!g_pRenderHooks)
-			return;
-		for (size_t i = 0; i < g_pRenderHooks->size(); ++i)
-			(*g_pRenderHooks)[i].fn((*g_pRenderHooks)[i].ctx, begin);
+		std::vector<S_RenderHook> hooks;
+		AcquireSRWLockShared(&g_RenderHooksLock);
+		if (g_pRenderHooks)
+			hooks = *g_pRenderHooks;
+		ReleaseSRWLockShared(&g_RenderHooksLock);
+		for (size_t i = 0; i < hooks.size(); ++i)
+			hooks[i].fn(hooks[i].ctx, begin);
 	}
 	CRITICAL_SECTION	g_InterpLock;
 
@@ -175,22 +183,25 @@ void Blur2PCInterpRecordTickStore43(const void* owner, MathsStorage::MatrixRow43
 
 void Blur2PCInterpAddRenderHook(T_Blur2PCRenderHook fn, void* ctx)
 {
+	AcquireSRWLockExclusive(&g_RenderHooksLock);
 	if (!g_pRenderHooks)
 		g_pRenderHooks = new std::vector<S_RenderHook>;
 	S_RenderHook h = { fn, ctx };
 	g_pRenderHooks->push_back(h);
+	ReleaseSRWLockExclusive(&g_RenderHooksLock);
 }
 
 void Blur2PCInterpRemoveRenderHook(T_Blur2PCRenderHook fn, void* ctx)
 {
-	if (!g_pRenderHooks)
-		return;
-	for (size_t i = 0; i < g_pRenderHooks->size(); ++i)
-		if ((*g_pRenderHooks)[i].fn == fn && (*g_pRenderHooks)[i].ctx == ctx)
-		{
-			g_pRenderHooks->erase(g_pRenderHooks->begin() + i);
-			return;
-		}
+	AcquireSRWLockExclusive(&g_RenderHooksLock);
+	if (g_pRenderHooks)
+		for (size_t i = 0; i < g_pRenderHooks->size(); ++i)
+			if ((*g_pRenderHooks)[i].fn == fn && (*g_pRenderHooks)[i].ctx == ctx)
+			{
+				g_pRenderHooks->erase(g_pRenderHooks->begin() + i);
+				break;
+			}
+	ReleaseSRWLockExclusive(&g_RenderHooksLock);
 }
 
 void Blur2PCInterpForget(const void* owner)

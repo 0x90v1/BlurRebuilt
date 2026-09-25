@@ -234,7 +234,7 @@ StreamManager::StreamManager()
 	MEMORY_TRACKER_PUSH("application.streamer");
 
 	if (g_chunkAllocator.BufferBegin() == 0)
-		g_chunkAllocator.Initialise(1024 * 1024 * 2, 16);
+		g_chunkAllocator.Initialise(1024 * 1024 * 4, 16);	// [Blur2PC] retail PC: 4 MB (Blur.exe StreamManager ctor FUN_006cc5c0, Initialise(0x400000, 0x10); _work/ghidra/streammanager_ctor.c). The snapshot's 2 MB leaves retail PC chunks up to 2,623,488 bytes uncacheable, and a chunk that needs one as a prerequisite never loads, so the race load never finishes (usa_amboy, usa_la_longbeachdocks, uk_brighton).
 	
 	MEMORY_TRACKER_POP("application.streamer");
 }
