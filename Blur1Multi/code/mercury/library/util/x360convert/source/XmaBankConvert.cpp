@@ -612,6 +612,15 @@ namespace X360Convert
 			if (!dst.WriteAt(rowAt[i] + 0x2C, patch, 8))
 				{ Fail(error, "write failed"); return E_Result_Failed; }
 		}
+		// a streaming bank ends on a 2 KB boundary (all 19 retail PC streaming banks do; the
+		// streamer reads them in 2 KB-aligned chunks), an in-memory bank where its data ends
+		if (streaming)
+		{
+			static const unsigned char zeros[kStreamAlign] = { 0 };
+			const unsigned long long pad = Align(dst.Position(), kStreamAlign) - dst.Position();
+			if (pad && !dst.Write(zeros, (size_t)pad))
+				{ Fail(error, "write failed"); return E_Result_Failed; }
+		}
 		return E_Result_Converted;
 	}
 

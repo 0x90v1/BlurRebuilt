@@ -133,8 +133,14 @@ namespace X360Convert
 		m_Dir = dir + "\\";
 	}
 
-	std::string C_AudioCacheFs::CachedBank(const Sys::C_FilePath& path, const Sys::C_OpenParams& params)
+	std::string C_AudioCacheFs::CachedBank(const Sys::C_FilePath& path, const Sys::C_OpenParams& callerParams)
 	{
+		// The 360 bank is read here with a default buffer: the audio streamer opens banks
+		// with a buffer size hint of 0 (FileStreamFileWrapper::Open), an unbuffered native
+		// file that cannot serve the small reads below (a loose bank on disc returns no bytes).
+		// The caller's hint applies to the cached file only.
+		Sys::C_OpenParams params = callerParams;
+		params.m_BufferSizeHint = Sys::C_OpenParams::kBufferSizeHintDefault;
 		Sys::I_File* pFile = m_pInner->Open(path, Sys::E_FileAccess_Read, params);
 		if (!pFile)
 			return std::string();
@@ -148,7 +154,7 @@ namespace X360Convert
 
 		// key: the converter's output version, the size and the header region (rows and
 		// CUE chunks up to the first data). Raise the version when the output changes.
-		static const char kVersion[] = "xma->adpcm 2";
+		static const char kVersion[] = "xma->adpcm 3";
 		U64 key = Fnv(14695981039346656037ull, kVersion, sizeof(kVersion));
 		key = Fnv(key, &size, sizeof(size));
 		key = Fnv(key, head, sizeof(head));
