@@ -50,6 +50,17 @@ namespace X360Convert
 		S32 block;									// resource block being read (ReadScene order)
 		S32 indexBufferCount, vertexBufferCount;	// buffers read so far in that block
 
+		// A levelstream chunk as the scene's StreamData describes it (ChunkInfo),
+		// and where its offset and sizes were written.
+		struct ChunkRecord
+		{
+			size_t outPos;				// ChunkInfo::m_offset in the output
+			bool hasOriginalSize;		// ChunkInfo version > 0
+			U64 offset, compressedSize, originalSize;
+			std::vector<std::pair<S32, S32> > items;	// (block, lod)
+		};
+		std::vector<ChunkRecord> chunks;
+
 		std::map<BufferId, std::vector<Range> > segments;			// pass 1 result: draw ranges per index buffer
 		std::map<BufferId, std::map<Range, Range> > remap;			// pass 2: old range -> new range
 		std::map<BufferId, std::map<S32, S32> > boundaries;			// pass 2: old segment boundary -> new
@@ -268,9 +279,11 @@ namespace RenderingData
 	void Deserialise(Arch::X360SceneTranscoder& ar, VertexElementType& t);
 	void Deserialise(Arch::X360SceneTranscoder& ar, RenderListNode::Primitive& t);
 	void Deserialise(Arch::X360SceneTranscoder& ar, RenderListNode::Primitive::Lod& t);
+	void Deserialise(Arch::X360SceneTranscoder& ar, ChunkInfo& t);
 
 	namespace Target
 	{
+		void Deserialise(Arch::X360SceneTranscoder& ar, LodReader<ResourceBlock::Resources>& t);
 		void Deserialise(Arch::X360SceneTranscoder& ar, IndexBuffer& t);
 		void Deserialise(Arch::X360SceneTranscoder& ar, VertexBuffer& t);
 		void Deserialise(Arch::X360SceneTranscoder& ar, VertexDeclaration& t);

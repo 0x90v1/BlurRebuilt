@@ -18,14 +18,17 @@
 #include "stdafx.h"
 
 #include "SceneTranscode.h"
+#include "LevelTranscode.h"
 
 #include "renderingdata/noninterface/archive.inl"
 
 #include <misc_shared/compression/xmemcompress.h>
 #include <x360convert/X360Convert.h>
 #include <world_render/WorldRender.h>
+#include <world_render/pvs.h>
 
 #include <algorithm>
+#include <list>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -363,6 +366,22 @@ namespace RenderingData
 			ar.Fail("draw range outside a RenderListNode");
 		state.nodes.back().push_back(state.lods.size());
 		state.lods.push_back(r);
+	}
+
+	// The generic ChunkInfo reader, then a record of the chunk: its items and
+	// where its offset and sizes went, so a level conversion can move them.
+	void Deserialise(Arch::X360SceneTranscoder& ar, ChunkInfo& t)
+	{
+		Serialise(ar, t);
+		X360Convert::SceneState::ChunkRecord c;
+		c.hasOriginalSize = ar.GetVersion() > 0;
+		c.outPos = ar.OutPos() - (c.hasOriginalSize ? 24 : 16);
+		c.offset = t.GetOffset();
+		c.compressedSize = t.GetCompressedSize();
+		c.originalSize = t.GetOriginalSize();
+		for (S32 i = 0; i < t.GetNumItems(); ++i)
+			c.items.push_back(std::make_pair(t.GetItem(i).block, t.GetItem(i).lod));
+		ar.State().chunks.push_back(c);
 	}
 
 	namespace Target
@@ -706,6 +725,66 @@ namespace RenderingData
 				X360Convert::WriteSerialiserBlock(ar, pc, alignment);
 		}
 
+		// Target::Deserialise(Archive&, LodReader<ResourceBlock::Resources>&) without
+		// the resource allocator (not thread-safe; the engine serialises its users):
+		// buffers are read into temporaries, nodes into a local vector.
+		void Deserialise(Arch::X360SceneTranscoder& ar, LodReader<ResourceBlock::Resources>& t)
+		{
+			PlatformType platformType;
+			ar & platformType;
+
+			S32 lod;
+			ar & lod;
+			if (lod != t.m_lod)
+				ar.Fail("resource block lod %d where %d was expected", lod, t.m_lod);
+
+			if (lod == 0)
+			{
+				// ResourceBlock::Resources::VectorType<T>::Result: a tagged Btl::Vector of
+				// AutoPointers (no tag, a SerialisationType byte, then the object).
+				ar.TagFor<ResourceBlock::Resources::VectorType<VertexBuffer>::Result>();
+				S32 n;
+				ar >> n;
+				for (S32 i = 0; i < n && !ar.GetFailed(); ++i)
+				{
+					Arch::SerialisationType type;
+					ar >> type;
+					if (type == Arch::SERIALISATION_TYPE_UNKNOWN)
+						continue;
+					if (type == Arch::SERIALISATION_TYPE_POLYMORPHIC)
+						ar.Fail("polymorphic vertex buffer");
+					VertexBuffer buffer;
+					ar >> buffer;
+				}
+
+				ar.TagFor<ResourceBlock::Resources::VectorType<IndexBuffer>::Result>();
+				ar >> n;
+				for (S32 i = 0; i < n && !ar.GetFailed(); ++i)
+				{
+					Arch::SerialisationType type;
+					ar >> type;
+					if (type == Arch::SERIALISATION_TYPE_UNKNOWN)
+						continue;
+					if (type == Arch::SERIALISATION_TYPE_POLYMORPHIC)
+						ar.Fail("polymorphic index buffer");
+					IndexBuffer buffer;
+					ar >> buffer;
+				}
+
+				Btl::Vector<Btl::AutoPointer<Node> > nodes;
+				ar & nodes;
+			}
+
+			S32 nTextures;
+			ar & nTextures;
+			for (S32 i = 0; i < nTextures && !ar.GetFailed(); ++i)
+			{
+				Texture texture;
+				LodReader<Texture> textureLod(0, 0, texture, lod);
+				ar & textureLod;
+			}
+		}
+
 		// Target::Deserialise(Archive&, SharedTextureList&) without the shared
 		// texture manager.
 		void Deserialise(Arch::X360SceneTranscoder& ar, SharedTextureList& t)
@@ -732,15 +811,10 @@ namespace X360Convert
 {
 	namespace
 	{
-		// One pass of WorldRender::ReadScene over the 360 bytes. Returns false with
-		// 'error' set on failure.
-		bool ReadScenePass(const U8* in, size_t size, std::vector<U8>& out, SceneState& state, std::string& error)
+		// "ARCH", U32 1 in the writer's byte order, U32 swap flag
+		// (Arch::BinaryInputArchive). The 360 exporter ran on PC with swapping on.
+		bool CheckArchiveHeader(const U8* in, size_t size, std::string& error)
 		{
-			out.clear();
-			out.reserve(size * 2);
-
-			// Arch::BinaryInputArchive: "ARCH", U32 1 in the writer's byte order, U32
-			// swap flag. The 360 exporter ran on PC with endian swapping on.
 			if (size < 20 || memcmp(in, "ARCH", 4) != 0)
 			{
 				error = "not an ARCH stream";
@@ -749,14 +823,29 @@ namespace X360Convert
 			U32 one, swap;
 			memcpy(&one, in + 4, 4);
 			memcpy(&swap, in + 8, 4);
-			const bool endianSwap = (one != 1) != (swap != 0);
-			if (!endianSwap)
+			if ((one != 1) == (swap != 0))
 			{
 				error = "archive is not endian-swapped (already PC data?)";
 				return false;
 			}
+			return true;
+		}
+
+		void PutArchiveHeader(std::vector<U8>& out)
+		{
 			const U32 header[3] = { 0x48435241 /* "ARCH" */, 1, 0 };
 			out.insert(out.end(), (const U8*)header, (const U8*)header + 12);
+		}
+
+		// One pass of WorldRender::ReadScene over the 360 bytes. Returns false with
+		// 'error' set on failure.
+		bool ReadScenePass(const U8* in, size_t size, std::vector<U8>& out, SceneState& state, std::string& error)
+		{
+			out.clear();
+			out.reserve(size * 2);
+			if (!CheckArchiveHeader(in, size, error))
+				return false;
+			PutArchiveHeader(out);
 
 			Arch::X360SceneTranscoder ar((const U8*)in, (U32)size, 12, out, state);
 
@@ -796,18 +885,47 @@ namespace X360Convert
 			error = ar.Error();
 			return !ar.GetFailed() && !ar.GetUnconverted();
 		}
-	}
 
-	bool TranscodeSceneArchive(const unsigned char* in, size_t size, std::vector<unsigned char>& out, std::string& error)
-	{
-		RegisterSceneTranscodeStreamers();
-
-		SceneState state;
+		// One levelstream chunk (StreamData::UpdateAsynch, STATE_ASYNCH_LOAD): an
+		// archive holding S32 nItems and then one LodReader<Resources> per item.
+		bool ReadChunkPass(const U8* in, size_t size, const std::vector<std::pair<S32, S32> >& items,
+			std::vector<U8>& out, SceneState& state, std::string& error)
 		{
-			state.pass = 1;
-			if (!ReadScenePass(in, size, out, state, error))
+			out.clear();
+			out.reserve(size + size / 2);
+			if (!CheckArchiveHeader(in, size, error))
 				return false;
+			PutArchiveHeader(out);
 
+			Arch::X360SceneTranscoder ar((const U8*)in, (U32)size, 12, out, state);
+			ar.Read(0, 4);
+			S32 archiveVersion;
+			ar >> archiveVersion;
+			S32 nItems;
+			ar >> nItems;
+			if (nItems != (S32)items.size())
+				ar.Fail("chunk holds %d items where the scene lists %u", nItems, (unsigned)items.size());
+
+			for (S32 i = 0; i < nItems && !ar.GetFailed(); ++i)
+			{
+				state.block = items[i].first;
+				state.indexBufferCount = 0;
+				state.vertexBufferCount = 0;
+				RenderingData::Target::ResourceBlock::Resources resources;
+				RenderingData::Target::LodReader<RenderingData::Target::ResourceBlock::Resources> reader(0, 0, resources, items[i].second);
+				ar >> reader;
+			}
+
+			// The rest of the chunk is never read (the engine reads nItems items).
+			if (!ar.GetFailed() && ar.InPos() < size)
+				ar.Read(0, (U32)(size - ar.InPos()));
+			error = ar.Error();
+			return !ar.GetFailed() && !ar.GetUnconverted();
+		}
+
+		// After pass 1: every draw range, grouped per index buffer.
+		bool CollectSegments(SceneState& state, std::string& error)
+		{
 			for (size_t i = 0; i < state.lods.size(); ++i)
 			{
 				const SceneState::LodRecord& r = state.lods[i];
@@ -826,46 +944,289 @@ namespace X360Convert
 				std::sort(it->second.begin(), it->second.end());
 				it->second.erase(std::unique(it->second.begin(), it->second.end()), it->second.end());
 			}
-
-			std::vector<std::vector<size_t> >().swap(state.nodes);
-			state.lods.clear();
-			state.pass = 2;
-			if (!ReadScenePass(in, size, out, state, error))
-				return false;
+			return true;
 		}
 
-		// Move every draw range to its re-stitched lod.
-		for (size_t i = 0; i < state.lods.size(); ++i)
+		// After pass 2: move every draw range read in this pass to its re-stitched lod.
+		bool PatchLods(SceneState& state, std::vector<U8>& out, std::string& error)
 		{
-			const SceneState::LodRecord& r = state.lods[i];
-			S32 offset = r.offset, count = r.nIndices;
-			if (count > 0)
+			for (size_t i = 0; i < state.lods.size(); ++i)
 			{
-				std::map<SceneState::Range, SceneState::Range>& m = state.remap[r.buffer];
-				std::map<SceneState::Range, SceneState::Range>::const_iterator it = m.find(SceneState::Range(r.offset, r.nIndices));
-				if (it == m.end())
+				const SceneState::LodRecord& r = state.lods[i];
+				S32 offset = r.offset, count = r.nIndices;
+				if (count > 0)
 				{
-					char text[160];
-					sprintf_s(text, "draw range (%d,%d) of index buffer (%d,%d) was not re-stitched", r.offset, r.nIndices, r.buffer.first, r.buffer.second);
-					error = text;
-					return false;
+					std::map<SceneState::Range, SceneState::Range>& m = state.remap[r.buffer];
+					std::map<SceneState::Range, SceneState::Range>::const_iterator it = m.find(SceneState::Range(r.offset, r.nIndices));
+					if (it == m.end())
+					{
+						char text[160];
+						sprintf_s(text, "draw range (%d,%d) of index buffer (%d,%d) was not re-stitched", r.offset, r.nIndices, r.buffer.first, r.buffer.second);
+						error = text;
+						return false;
+					}
+					offset = it->second.first;
+					count = it->second.second;
 				}
-				offset = it->second.first;
-				count = it->second.second;
+				else
+				{
+					std::map<S32, S32>& b = state.boundaries[r.buffer];
+					std::map<S32, S32>::const_iterator it = b.find(r.offset);
+					if (it != b.end())
+						offset = it->second;
+				}
+				memcpy(&out[r.outPos], &offset, 4);
+				memcpy(&out[r.outPos + 4], &count, 4);
 			}
-			else
-			{
-				std::map<S32, S32>& b = state.boundaries[r.buffer];
-				std::map<S32, S32>::const_iterator it = b.find(r.offset);
-				if (it != b.end())
-					offset = it->second;
-			}
-			memcpy(&out[r.outPos], &offset, 4);
-			memcpy(&out[r.outPos + 4], &count, 4);
+			return true;
 		}
+
+		void StartPass(SceneState& state, int pass)
+		{
+			state.pass = pass;
+			state.lods.clear();
+			std::vector<std::vector<size_t> >().swap(state.nodes);
+			state.chunks.clear();
+		}
+	}
+
+	bool TranscodeSceneArchive(const unsigned char* in, size_t size, std::vector<unsigned char>& out, std::string& error)
+	{
+		RegisterSceneTranscodeStreamers();
+
+		SceneState state;
+		StartPass(state, 1);
+		if (!ReadScenePass(in, size, out, state, error) || !CollectSegments(state, error))
+			return false;
+		StartPass(state, 2);
+		if (!ReadScenePass(in, size, out, state, error) || !PatchLods(state, out, error))
+			return false;
 
 		LOGDEBUG(g_sceneLog, "X360Convert: scene %u -> %u bytes, %u draw ranges, %u strips (%u odd-length), %u normals repacked",
 			(unsigned)size, (unsigned)out.size(), (unsigned)state.lods.size(), state.strips, state.reversedAmbiguous, state.normalsRepacked);
 		return true;
+	}
+
+	struct C_LevelConversion::Impl
+	{
+		struct Chunk
+		{
+			U64 inOffset;
+			U32 inSize;
+			std::vector<std::pair<S32, S32> > items;
+			U64 outOffset;
+			U32 outSize;
+		};
+
+		CRITICAL_SECTION lock;
+		I_ChunkSource* pSource;
+		SceneState state;
+		std::vector<Chunk> chunks;
+		std::vector<U8> scene;
+		U64 streamLength;
+
+		// the chunks converted most recently (a chunk read spans one chunk)
+		std::list<std::pair<size_t, std::vector<U8> > > recent;
+
+		Impl() : pSource(0), streamLength(0) { InitializeCriticalSection(&lock); }
+		~Impl() { delete pSource; DeleteCriticalSection(&lock); }
+
+		// Pass 2 with 'patch' moves the chunk's draw ranges; that needs every index
+		// buffer's re-stitched ranges, so the layout pass converts without it (the
+		// patch changes no size).
+		bool ConvertChunk(size_t i, int pass, bool patch, std::vector<U8>& out, std::string& error)
+		{
+			const Chunk& c = chunks[i];
+			std::vector<U8> in;
+			if (!pSource->Read(c.inOffset, c.inSize, in) || in.size() != c.inSize)
+			{
+				char text[96];
+				sprintf_s(text, "cannot read chunk %u (%u bytes)", (unsigned)i, c.inSize);
+				error = text;
+				return false;
+			}
+			StartPass(state, pass);
+			if (!ReadChunkPass(&in[0], in.size(), c.items, out, state, error))
+			{
+				char text[48];
+				sprintf_s(text, "chunk %u: ", (unsigned)i);
+				error = text + error;
+				return false;
+			}
+			if (patch && !PatchLods(state, out, error))
+			{
+				char text[48];
+				sprintf_s(text, "chunk %u: ", (unsigned)i);
+				error = text + error;
+				return false;
+			}
+			return true;
+		}
+	};
+
+	C_LevelConversion::C_LevelConversion() : m_pImpl(new Impl) {}
+	C_LevelConversion::~C_LevelConversion() { delete m_pImpl; }
+
+	const std::vector<unsigned char>& C_LevelConversion::Scene() const { return m_pImpl->scene; }
+	unsigned long long C_LevelConversion::StreamLength() const { return m_pImpl->streamLength; }
+
+	bool C_LevelConversion::Prepare(const unsigned char* sceneIn, size_t sceneSize, I_ChunkSource* source, std::string& error)
+	{
+		RegisterSceneTranscodeStreamers();
+		Impl& m = *m_pImpl;
+		m.pSource = source;
+		SceneState& state = m.state;
+
+		// Pass 1: the scene (its chunk table and any draw ranges), then every chunk.
+		StartPass(state, 1);
+		std::vector<U8> scratch;
+		if (!ReadScenePass(sceneIn, sceneSize, scratch, state, error))
+		{
+			error = "scene: " + error;
+			return false;
+		}
+		std::vector<SceneState::LodRecord> lods = state.lods;
+		const std::vector<SceneState::ChunkRecord> chunkRecords = state.chunks;
+		for (size_t i = 0; i < chunkRecords.size(); ++i)
+		{
+			Impl::Chunk c;
+			c.inOffset = chunkRecords[i].offset;
+			c.inSize = (U32)chunkRecords[i].compressedSize;
+			c.items = chunkRecords[i].items;
+			c.outOffset = 0;
+			c.outSize = 0;
+			m.chunks.push_back(c);
+		}
+		for (size_t i = 0; i < m.chunks.size(); ++i)
+		{
+			if (!m.ConvertChunk(i, 1, false, scratch, error))
+				return false;
+			lods.insert(lods.end(), state.lods.begin(), state.lods.end());
+		}
+		state.lods.swap(lods);
+		if (!CollectSegments(state, error))
+			return false;
+
+		// Pass 2 over every chunk: the PC stream layout (and every index buffer's
+		// re-stitched ranges, which nodes in other chunks and the scene refer to).
+		U64 at = 0;
+		for (size_t i = 0; i < m.chunks.size(); ++i)
+		{
+			if (!m.ConvertChunk(i, 2, false, scratch, error))
+				return false;
+			at = (at + 15) & ~(U64)15;
+			m.chunks[i].outOffset = at;
+			m.chunks[i].outSize = (U32)scratch.size();
+			at += scratch.size();
+		}
+		m.streamLength = at;
+
+		// Pass 2 over the scene, with the chunk table moved to the PC layout.
+		StartPass(state, 2);
+		if (!ReadScenePass(sceneIn, sceneSize, m.scene, state, error) || !PatchLods(state, m.scene, error))
+		{
+			error = "scene: " + error;
+			return false;
+		}
+		if (state.chunks.size() != m.chunks.size())
+		{
+			error = "scene chunk table changed between passes";
+			return false;
+		}
+		for (size_t i = 0; i < state.chunks.size(); ++i)
+		{
+			const SceneState::ChunkRecord& r = state.chunks[i];
+			const U64 offset = m.chunks[i].outOffset, size = m.chunks[i].outSize;
+			memcpy(&m.scene[r.outPos], &offset, 8);
+			memcpy(&m.scene[r.outPos + 8], &size, 8);
+			if (r.hasOriginalSize)
+				memcpy(&m.scene[r.outPos + 16], &size, 8);
+		}
+
+		LOGINFO(g_sceneLog, "X360Convert: level scene %u -> %u bytes, %u chunks, stream %u -> %u bytes, %u strips (%u odd-length), %u normals repacked, %u triangles checked",
+			(unsigned)sceneSize, (unsigned)m.scene.size(), (unsigned)m.chunks.size(),
+			m.chunks.empty() ? 0u : (unsigned)(m.chunks.back().inOffset + m.chunks.back().inSize), (unsigned)m.streamLength,
+			state.strips, state.reversedAmbiguous, state.normalsRepacked, state.trianglesChecked);
+		return true;
+	}
+
+	bool C_LevelConversion::ReadStream(unsigned long long offset, void* dst, unsigned size, std::string& error)
+	{
+		Impl& m = *m_pImpl;
+		U8* p = (U8*)dst;
+		memset(p, 0, size);
+		EnterCriticalSection(&m.lock);
+		bool ok = true;
+		for (size_t i = 0; ok && i < m.chunks.size(); ++i)
+		{
+			const Impl::Chunk& c = m.chunks[i];
+			const U64 begin = c.outOffset, end = c.outOffset + c.outSize;
+			if (end <= offset || begin >= offset + size)
+				continue;
+			const std::vector<U8>* pBytes = 0;
+			for (std::list<std::pair<size_t, std::vector<U8> > >::iterator it = m.recent.begin(); it != m.recent.end(); ++it)
+				if (it->first == i)
+				{
+					pBytes = &it->second;
+					break;
+				}
+			if (!pBytes)
+			{
+				m.recent.push_front(std::make_pair(i, std::vector<U8>()));
+				if (!m.ConvertChunk(i, 2, true, m.recent.front().second, error) || m.recent.front().second.size() != c.outSize)
+				{
+					if (error.empty())
+						error = "chunk converted to a different size than when the stream was laid out";
+					m.recent.pop_front();
+					ok = false;
+					break;
+				}
+				pBytes = &m.recent.front().second;
+				while (m.recent.size() > 4)
+					m.recent.pop_back();
+			}
+			const U64 from = begin > offset ? begin : offset;
+			const U64 to = end < offset + size ? end : offset + size;
+			memcpy(p + (from - offset), &(*pBytes)[(size_t)(from - begin)], (size_t)(to - from));
+		}
+		LeaveCriticalSection(&m.lock);
+		return ok;
+	}
+
+	// C_RenderLevel::Read's PVSData block: an Arch archive holding one
+	// Pvs::Target::PvsData (world_render/pvs.h), through the same archive.
+	bool TranscodePvsArchive(const unsigned char* in, size_t size, std::vector<unsigned char>& out, std::string& error)
+	{
+		out.clear();
+		if (size < 20 || memcmp(in, "ARCH", 4) != 0)
+		{
+			error = "not an ARCH stream";
+			return false;
+		}
+		U32 one, swap;
+		memcpy(&one, in + 4, 4);
+		memcpy(&swap, in + 8, 4);
+		if ((one != 1) == (swap != 0))
+		{
+			// The retail 360 levels' PVS archives were written without swapping (the
+			// header says so and BinaryInputArchive swaps on the 360 while reading):
+			// they already are the PC bytes.
+			out.assign(in, in + size);
+			return true;
+		}
+		const U32 header[3] = { 0x48435241 /* "ARCH" */, 1, 0 };
+		out.insert(out.end(), (const U8*)header, (const U8*)header + 12);
+		SceneState state;
+		state.pass = 2;
+		Arch::X360SceneTranscoder ar(in, (U32)size, 12, out, state);
+		ar.Read(0, 4);
+		S32 archiveVersion;
+		ar >> archiveVersion;
+		Pvs::Target::PvsData pvs;
+		ar >> pvs;
+		if (!ar.GetFailed() && ar.InPos() != size)
+			ar.Fail("%u bytes left after the PVS data", (unsigned)(size - ar.InPos()));
+		error = ar.Error();
+		return !ar.GetFailed() && !ar.GetUnconverted();
 	}
 }

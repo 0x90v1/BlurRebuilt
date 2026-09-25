@@ -19,6 +19,8 @@
 #include <gravity/sdk/PhysicsSDK.h>
 #include <gravity/importer/Importer.h>
 
+#include "ScalarSwapFile.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -184,7 +186,9 @@ namespace X360Convert
 		// read with BinaryDeserialiser. Header, Models, Element and Constr hold only
 		// 32-bit fields (S32, F32 matrices and bounds); StrTab is Util::C_StringTable,
 		// Ut::Vector<U32> offsets then Ut::Vector<char> (U32 count before each).
-		bool ConvertMdlDatBlock(const Block& mdl, std::vector<unsigned char>& out, std::string& error)
+	}
+
+	bool ConvertMdlDat(const Block& mdl, std::vector<unsigned char>& out, std::string& error)
 		{
 			std::vector<Block> kids;
 			if (!ChildrenBE(mdl, kids))
@@ -235,113 +239,14 @@ namespace X360Convert
 			return true;
 		}
 
-		// A read-only stream whose buffer is always empty, so every read reaches
-		// Underflow with its exact target and size (I_BinaryStream::Read). A reader
-		// that pulls only scalars through BinaryDeserialiser therefore hands this
-		// stream one scalar per Underflow: 2-, 4- and 8-byte reads are taken
-		// big-endian and returned (and recorded) little-endian, bytes as they are.
-		class C_ScalarSwapStream : public Sys::I_BinaryStream
-		{
-		public:
-			// The first 'rawPrefix' bytes (a character tag read as a U32) are passed through.
-			C_ScalarSwapStream(const unsigned char* p, size_t n, size_t rawPrefix, const Btl::String& name, std::vector<unsigned char>& out)
-				: m_p(p), m_n(n), m_at(0), m_raw(rawPrefix), m_name(name), m_out(out), m_version(0), m_failed(false) {}
-
-			const bool IsWriting() const { return false; }
-			Btl::String Name() const { return m_name; }
-			const bool GetEndianSwapFlag() const { return false; }
-			void SetEndianSwapFlag(const bool) {}
-			U32 GetVersionNumber() const { return m_version; }
-			void SetVersionNumber(U32 v) { m_version = v; }
-			const Sys::C_StreamPos GetPosition() const { return (U64)m_at; }
-			bool Overflow() { return false; }
-
-			bool Underflow(UnderflowContext& uc)
-			{
-				const U32 n = uc.readSize;
-				if (m_failed || m_at + n > m_n || !uc.readTarget)
-				{
-					Fail(!uc.readTarget ? "skip read" : "read past the end");
-					return false;
-				}
-				const unsigned char* src = m_p + m_at;
-				if (m_at + n <= m_raw)
-					memcpy(uc.readTarget, src, n);
-				else if (n == 2 || n == 4 || n == 8)
-				{
-					for (U32 i = 0; i < n; ++i)
-						uc.readTarget[i] = src[n - 1 - i];
-				}
-				else if (n == 1)
-					uc.readTarget[0] = src[0];
-				else
-				{
-					char text[64];
-					sprintf_s(text, "%u-byte raw read", n);
-					Fail(text);
-					return false;
-				}
-				m_out.insert(m_out.end(), uc.readTarget, uc.readTarget + n);
-				m_at += n;
-				uc.bytesRead = n;
-				return true;
-			}
-
-			bool Failed() const { return m_failed; }
-			const std::string& Error() const { return m_error; }
-			size_t Consumed() const { return m_at; }
-
-		private:
-			void Fail(const char* what)
-			{
-				if (!m_failed)
-				{
-					char text[128];
-					sprintf_s(text, "%s at byte %u of %u", what, (unsigned)m_at, (unsigned)m_n);
-					m_error = text;
-				}
-				m_failed = true;
-			}
-
-			const unsigned char* m_p;
-			size_t m_n, m_at, m_raw;
-			Btl::String m_name;
-			std::vector<unsigned char>& m_out;
-			U32 m_version;
-			bool m_failed;
-			std::string m_error;
-		};
-
-		// C_ImportScene::Import (physics/gravity/source/importer/Importer.cpp) reads
-		// the Coll block through BinaryDeserialiser<NoEndianSwap>, scalars only (the
-		// triangle stream too: C_TriangleHeader/AABBTreeTriangle::DeSerialise), so it
-		// runs over a C_ScalarSwapStream and the recorded bytes are the PC block.
+	namespace
+	{
 		bool ConvertCollBlock(const Block& coll, std::vector<unsigned char>& out, std::string& error)
 		{
-			// The importer reads a U32 and compares its bytes with "Head"; both exporters
-			// wrote the four characters as they are.
-			const size_t tag = (coll.PayloadSize() >= 4 && memcmp(coll.payload, "Head", 4) == 0) ? 4 : 0;
-			if (!tag)
-			{
-				error = "Coll block without the 'Head' tag (unversioned Gravity data)";
-				return false;
-			}
 			std::vector<unsigned char> payload;
-			C_ScalarSwapStream stream(coll.payload, coll.PayloadSize(), tag, Btl::String("x360:Coll"), payload);
-			Gravity::C_ImportScene* pScene = Gravity::C_PhysicsSDK::PhysicsSDK()->CreateImportScene();
-			const bool imported = pScene->Import(&stream);
-			Gravity::C_PhysicsSDK::PhysicsSDK()->ReleaseImportScene(pScene);
-			if (stream.Failed())
+			if (!ConvertGravityPayload(coll.payload, coll.PayloadSize(), payload, error))
 			{
-				error = "Coll: " + stream.Error();
-				return false;
-			}
-			if (!imported || stream.Consumed() != coll.PayloadSize())
-			{
-				char text[128];
-				sprintf_s(text, "Coll: importer %s after %u of %u bytes", imported ? "stopped" : "failed",
-					(unsigned)stream.Consumed(), (unsigned)coll.PayloadSize());
-				error = text;
+				error = "Coll: " + error;
 				return false;
 			}
 			const size_t at = BeginBlockLE(out, coll, coll.count);
@@ -481,7 +386,7 @@ namespace X360Convert
 						else if (k.id == "Render")
 							ok = ConvertModelRenderBlock(k, out, error);
 						else if (k.id == "MdlDat")
-							ok = ConvertMdlDatBlock(k, out, error);
+							ok = ConvertMdlDat(k, out, error);
 						else if (k.id == "Coll")
 							ok = ConvertCollBlock(k, out, error);
 						else
@@ -508,9 +413,44 @@ namespace X360Convert
 		}
 	}
 
+	// C_ImportScene::Import (physics/gravity/source/importer/Importer.cpp) reads a
+	// Gravity payload (model Coll, level Main and Route blocks) through
+	// BinaryDeserialiser<NoEndianSwap>, scalars only (the triangle stream too:
+	// C_TriangleHeader/AABBTreeTriangle::DeSerialise), so the importer itself runs
+	// over a C_ScalarSwapFile and the recorded bytes are the PC payload. The
+	// leading "Head" tag is read as a U32 whose four characters both exporters
+	// wrote as they are.
+	bool ConvertGravityPayload(const unsigned char* p, size_t n, std::vector<unsigned char>& out, std::string& error)
+	{
+		const size_t tag = (n >= 4 && memcmp(p, "Head", 4) == 0) ? 4 : 0;
+		if (!tag)
+		{
+			error = "Gravity data without the 'Head' tag (unversioned)";
+			return false;
+		}
+		C_ScalarSwapFile file(p, n, "x360:Gravity", out, tag);
+		Gravity::C_ImportScene* pScene = Gravity::C_PhysicsSDK::PhysicsSDK()->CreateImportScene();
+		const bool imported = pScene->Import(&file);
+		Gravity::C_PhysicsSDK::PhysicsSDK()->ReleaseImportScene(pScene);
+		char text[160];
+		if (file.Failed())
+		{
+			error = file.Error();
+			return false;
+		}
+		if (!imported || file.Consumed() != n || file.Skipped() || file.WideReads())
+		{
+			sprintf_s(text, "importer %s after %u of %u bytes (%u skipped, %u wide reads)", imported ? "stopped" : "failed",
+				(unsigned)file.Consumed(), (unsigned)n, (unsigned)file.Skipped(), file.WideReads());
+			error = text;
+			return false;
+		}
+		return true;
+	}
+
 	bool EngineHandlesPath(const char* path)
 	{
-		return path && (EndsWith(path, ".cycle") || EndsWith(path, ".skeleton") || EndsWith(path, ".model"));
+		return path && (EndsWith(path, ".cycle") || EndsWith(path, ".skeleton") || EndsWith(path, ".model") || LevelHandlesPath(path));
 	}
 
 	E_Result EngineConvertFile(const char* path, const unsigned char* in, size_t inSize,
@@ -522,6 +462,8 @@ namespace X360Convert
 			return ConvertSkeleton(in, inSize, out, error);
 		if (path && EndsWith(path, ".model"))
 			return ConvertModel(in, inSize, out, error);
+		if (LevelHandlesPath(path))
+			return LevelConvertFile(path, in, inSize, out, error);
 		return E_Result_NotHandled;
 	}
 }

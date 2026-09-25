@@ -63,8 +63,15 @@ target_include_directories(x360convert PUBLIC ${BLUR_OVERLAY}/code/mercury/libra
 set_target_properties(x360convert PROPERTIES FOLDER "code/mercury/library/util")
 target_sources(Amax PRIVATE
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/X360ConvertFs.cpp
-    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/EngineConverters.cpp)
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/EngineConverters.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/LevelConvert.cpp)
 target_include_directories(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine)
+# LevelConvert.cpp runs the level block readers (as game_resource does, which has these paths).
+target_include_directories(Amax PRIVATE
+    ${BLUR_TOP}/Code/Mercury/Library/graphics/portal/include
+    ${BLUR_TOP}/Code/Mercury/Library/gamesys/crowd_system/include
+    ${BLUR_TOP}/Code/Mercury/Library/gamesys/advertising/include
+    ${BLUR_TOP}/Code/Mercury/Library/ai/navmesh/include)
 target_link_libraries(Amax PRIVATE x360convert)
 
 # Scene archives (.model Render/Scene, later level render files): the engine's

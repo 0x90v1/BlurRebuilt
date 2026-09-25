@@ -4,14 +4,22 @@
 // its loose files) for an Xbox 360 source. Opening a path whose format the
 // X360Convert library handles reads the 360 file through the wrapped file
 // system, converts it and returns the PC bytes from memory; FileInfo reports
-// the converted size. Everything else is forwarded unchanged. Installed by
-// CreateFsLayers (Blur1Multi overlay) through C_CoreSystems::SetFileSystems.
+// the converted size. A level's render file and levelstream are converted
+// together (C_LevelConversion); the levelstream is served as a file that
+// converts chunks as they are read. Everything else is forwarded unchanged.
+// Installed by CreateFsLayers (Blur1Multi overlay) through
+// C_CoreSystems::SetFileSystems.
 #pragma once
 
 #include <system/serialise/I_FileSystem.h>
 
+#include <memory>
+#include <string>
+
 namespace X360Convert
 {
+	class C_LevelConversion;
+
 	class C_ConvertFs : public Sys::I_FileSystem
 	{
 	public:
@@ -35,6 +43,9 @@ namespace X360Convert
 		Sys::I_FileSystem* Inner() const { return m_pInner; }
 
 	private:
+		bool Handles(const Sys::C_FilePath& path, std::string& key, bool& levelRender, bool& levelStream);
+		std::shared_ptr<C_LevelConversion> LevelFor(const std::string& key);
+
 		struct Impl;
 		Sys::I_FileSystem* m_pInner;
 		Impl* m_pImpl;
