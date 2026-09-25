@@ -54,12 +54,33 @@ The user's exe for this phase is `_work/run/Amax.exe` here (`play.bat`).
 
 `code/mercury/library/util/gamesource/` (new library `gamesource`) detects
 what a data directory is: PC (little-endian `cache/root.pak`), Xbox 360
-(big-endian pak beside `default.xex`), PS3 (`PS3_GAME/USRDIR`). The overlay
+(big-endian pak beside an `.xex`), PS3 (`PS3_GAME/USRDIR`). The overlay
 copy of `amax/game/GameSystems.cpp` calls `GameSource::Select` at the start
 of `CreateFsLayers`: `--source=<dir>` or `BLUR_SOURCE`, default the working
 directory (retail behaviour). PC data becomes the working directory; any other
 platform is reported and the game exits with code 3 until its data layer
-exists (board tasks T070+).
+exists (board tasks T070+). An Xbox 360 source now mounts (below).
+
+## Xbox 360 paks (T071)
+
+An Xbox 360 source (big-endian `cache/root.pak` beside an `.xex`) gets the
+Xenon build's mounts in `CreateFsLayers`: `root.pak` and `root_streaming.pak`
+at `/`, `shaders-speed.pak`, secure `gamedata.pak`, and the `gamedata_boot.pak`
+RAM pak. The engine's own pak reader handles the byte order; the XMem codecs
+it needs run on `code/vendor/xmem-pc` (the XDK xcompress API over libmspack's
+LZX decoder in `code/vendor/libmspack`, LGPL 2.1, built with
+`BLUR_XMEM_LZX`). After mounting, the game stops with exit code 3: the chunk
+files inside are still 360 format (T072).
+
+Checks, both against Blur2Test's extractions (`_work/disc_cache/<disc>`):
+
+- `code/tools/xmem-verify/xmem_verify.cpp`: standalone, decodes every entry of
+  one pak and matches it by SHA-1 (build line at the top of the file).
+- `BLUR1MULTI_PAKDUMP=<list>`: the game reads each listed virtual path through
+  its mounted file system and writes it to `<list dir>/dump/`.
+  `code/tools/xmem-verify/pakdump_compare.py list|compare` makes the list and
+  checks the dump; `_work/run/run_dump.ps1 -Source <dir> -List <list>` runs it
+  minimised.
 
 ## Automated runs
 

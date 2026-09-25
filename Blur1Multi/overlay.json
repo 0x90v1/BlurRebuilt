@@ -2,5 +2,13 @@
  "code/amax/game/GameSystems.cpp": {
   "base_blob": "4d4fad26371d55f53249d3c82e20e99b82e0f589",
   "why": "CreateFsLayers selects the game source (GameSource::Select) before the retail pak mounts"
+ },
+ "code/mercury/library/util/logicalFs/source/pakfs/impl/PakEntryFile.cpp": {
+  "base_blob": "e91005a5d5f0ab20085fc99a3b128f749908fce0",
+  "why": "Selects the XMem pak codecs on PC for Xbox 360 sources (base compiles them only for Xenon and converter builds)"
+ },
+ "code/mercury/library/util/logicalFs/source/pakfs/impl/PakRead.cpp": {
+  "base_blob": "8c34aaa423a3103d6232aa2bc015db54b96f0b7f",
+  "why": "Big-endian v1 paks keep the FAT as stored on disk for the RSA check: the Xbox build hashed it in its own byte order"
  }
 }

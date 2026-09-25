@@ -7,11 +7,14 @@
 // levels/, gamedata/... PC retail data is little-endian and is served by the
 // engine's own file system with the source as the working directory (layer 0
 // of the overlay file system, exactly as retail). Xbox 360 and PS3 data is
-// big-endian and needs the platform data layer (D09), which is not written
-// yet: Select() reports such a source and the caller stops.
+// big-endian and needs the platform data layer (D09, D11): the 360 paks mount
+// and read on PC (T071); the conversion of the chunk files inside them is T072,
+// so the caller stops after mounting a 360 source.
 #pragma once
 
 #include <stddef.h>
+
+namespace Sys { class I_FileSystem; }
 
 namespace GameSource
 {
@@ -37,7 +40,7 @@ namespace GameSource
 		E_Endian	m_PakEndian;		// byte order of cache/root.pak (its "PAK2" magic)
 		unsigned	m_PakVersion;		// version word after the magic (retail PC: 2, retail X360: 1)
 		bool		m_HasRootPak;		// cache/root.pak present
-		bool		m_HasXex;			// default.xex present (Xbox 360 disc root)
+		bool		m_HasXex;			// an .xex at the root (Xbox 360 disc root; default.xex on retail)
 		bool		m_HasPs3Game;		// PS3_GAME/USRDIR present (PS3 disc root; m_Root is moved inside it)
 		char		m_Reason[256];		// one line saying how the platform was decided
 	};
@@ -51,9 +54,13 @@ namespace GameSource
 
 	// Pick the source for this run: the first of "--source=<dir>" on the command
 	// line, the BLUR_SOURCE environment variable, or the working directory (the
-	// retail behaviour). A PC source becomes the working directory. Returns the
-	// value of Detect().
+	// retail behaviour). A detected source becomes the working directory, so the
+	// engine's relative "cache/..." paths and its loose-file layer 0 resolve in it.
+	// Returns the value of Detect(); the result is also kept for Current().
 	bool Select(C_SourceInfo& out);
+
+	// The source Select() chose (platform E_Platform_Unknown before Select runs).
+	const C_SourceInfo& Current();
 
 	// One line for the log: platform, byte order, pak version, root, reason.
 	void Describe(const C_SourceInfo& info, char* buf, size_t bufSize);
@@ -61,4 +68,9 @@ namespace GameSource
 	// Stop the process for a source the build cannot serve yet: shows 'text' in a
 	// message box unless BLUR2PC_AUTOMATION is set, then exits with code 3.
 	void FailUnsupported(const C_SourceInfo& info, const char* text);
+
+	// Verification hook (amax/game/GameSourceDump.cpp): with BLUR1MULTI_PAKDUMP=<list
+	// file>, reads each listed virtual path through 'fs' and writes it under
+	// <list dir>\dump\. Returns the number of files written, -1 when the variable is unset.
+	int DumpListedFiles(Sys::I_FileSystem& fs);
 }

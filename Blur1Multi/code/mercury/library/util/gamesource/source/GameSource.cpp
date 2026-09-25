@@ -6,7 +6,7 @@
 //   the byte order of the data: "2KAP" on PC (little-endian), "PAK2" on
 //   Xbox 360 and PS3 (big-endian). The U32 after it is the pak version
 //   (retail PC 2, retail Xbox 360 1).
-// - an Xbox 360 disc root has default.xex beside cache/; a PS3 disc root has
+// - an Xbox 360 disc root has its .xex (default.xex on retail) beside cache/; a PS3 disc root has
 //   PS3_GAME/USRDIR/ with the data inside it.
 
 #include <gamesource/GameSource.h>
@@ -53,6 +53,13 @@ namespace GameSource
 		{
 			strncpy_s(out.m_Reason, sizeof out.m_Reason, text, _TRUNCATE);
 		}
+
+		C_SourceInfo g_current;
+	}
+
+	const C_SourceInfo& Current()
+	{
+		return g_current;
 	}
 
 	const char* PlatformName(E_Platform platform)
@@ -98,8 +105,16 @@ namespace GameSource
 			strncpy_s(out.m_Root, sizeof out.m_Root, path, _TRUNCATE);
 		}
 
-		Join(path, sizeof path, out.m_Root, "default.xex");
-		out.m_HasXex = FileExists(path);
+		// an Xbox 360 disc root holds its title executable: default.xex on retail discs,
+		// <name>.xex on the prototypes (Kanzen_Speed.xex on Aug 31)
+		Join(path, sizeof path, out.m_Root, "*.xex");
+		{
+			WIN32_FIND_DATAA fd;
+			HANDLE h = FindFirstFileA(path, &fd);
+			out.m_HasXex = h != INVALID_HANDLE_VALUE;
+			if (h != INVALID_HANDLE_VALUE)
+				FindClose(h);
+		}
 
 		Join(path, sizeof path, out.m_Root, "cache\\root.pak");
 		unsigned char head[8];
@@ -139,12 +154,12 @@ namespace GameSource
 		else if (out.m_HasXex)
 		{
 			out.m_Platform = E_Platform_Xbox360;
-			SetReason(out, "big-endian root.pak beside default.xex");
+			SetReason(out, "big-endian root.pak beside an .xex");
 		}
 		else
 		{
 			out.m_Platform = E_Platform_Unknown;
-			SetReason(out, "big-endian root.pak with neither default.xex nor PS3_GAME: 360 or PS3 data copied without its disc root");
+			SetReason(out, "big-endian root.pak with neither an .xex nor PS3_GAME: 360 or PS3 data copied without its disc root");
 		}
 		return true;
 	}
@@ -176,8 +191,9 @@ namespace GameSource
 				dir = env;
 		}
 		bool ok = Detect(dir ? dir : ".", out);
-		if (ok && out.m_Platform == E_Platform_PC)
+		if (ok)
 			SetCurrentDirectoryA(out.m_Root);
+		g_current = out;
 		return ok;
 	}
 
@@ -195,7 +211,7 @@ namespace GameSource
 	{
 		char msg[2048];
 		_snprintf_s(msg, sizeof msg, _TRUNCATE,
-			"%s\n\nThis build serves PC data only; the %s data layer is not written yet "
+			"%s\n\nThis build cannot play %s data yet: its data layer is incomplete "
 			"(Blur2PC phase 2, see docs/BOARD.md). Point --source or BLUR_SOURCE at a Blur PC install.",
 			text, PlatformName(info.m_Platform));
 		OutputDebugStringA(msg);

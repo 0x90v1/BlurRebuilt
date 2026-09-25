@@ -14,4 +14,33 @@ target_include_directories(gamesource PUBLIC
 set_target_properties(gamesource PROPERTIES FOLDER "code/mercury/library/util")
 
 # The overlay copy of amax/game/GameSystems.cpp selects the source in CreateFsLayers.
+# GameSourceDump.cpp: BLUR1MULTI_PAKDUMP verification hook (reads through the engine's file system).
+target_sources(Amax PRIVATE ${BLUR_OVERLAY}/code/amax/game/GameSourceDump.cpp)
 target_link_libraries(Amax PRIVATE gamesource)
+
+# XMem (Xbox 360 LZX) decompression on PC: the XDK xcompress API the engine is
+# written against, implemented over libmspack's LZX decoder (LGPL 2.1). It takes
+# the place of the XDK's Win32 Xcompress.lib that Bizarre's PC tool builds
+# linked (misc_shared/jamfile.jam). Decoder verified byte for byte against
+# Blur2Test's extraction of every Aug 31 archive (code/tools/xmem-verify).
+add_library(xmem_pc STATIC
+    ${BLUR_OVERLAY}/code/vendor/xmem-pc/XMemPc.cpp
+    ${BLUR_OVERLAY}/code/vendor/libmspack/lzxd.c)
+target_include_directories(xmem_pc PUBLIC ${BLUR_OVERLAY}/code/vendor/xmem-pc)
+target_include_directories(xmem_pc PRIVATE ${BLUR_OVERLAY}/code/vendor/libmspack)
+target_compile_definitions(xmem_pc PRIVATE BLUR_XMEM_LZX)
+set_target_properties(xmem_pc PROPERTIES FOLDER "vendor")
+
+# misc_shared: Compression::XMemDecompress and the per-worker contexts, as the
+# Xenon and PC tool builds compiled it (jamfile: Define USE_XMEM_COMPRESSION).
+target_compile_definitions(misc_shared PRIVATE USE_XMEM_COMPRESSION)
+target_include_directories(misc_shared PRIVATE ${BLUR_OVERLAY}/code/vendor/xmem-pc)
+
+# logicalFs: the XMem pak codecs, compiled by the base jamfile only for Xenon
+# and converter builds; the overlay PakEntryFile.cpp selects them.
+target_sources(logicalfs PRIVATE
+    ${BLUR_TOP}/code/mercury/library/util/logicalFs/source/pakfs/impl/PakCompressXMem.cpp
+    ${BLUR_TOP}/code/mercury/library/util/logicalFs/source/pakfs/impl/PakCompressPacketXMem.cpp)
+target_include_directories(logicalfs PRIVATE ${BLUR_OVERLAY}/code/vendor/xmem-pc)
+
+target_link_libraries(Amax PRIVATE xmem_pc)

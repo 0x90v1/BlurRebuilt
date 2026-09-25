@@ -771,6 +771,7 @@ target_include_directories(misc_shared PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Common/Core/include
     ${BLUR_TOP}/Code/Mercury/Library/Common/System/include
     ${BLUR_TOP}/Code/Mercury/Library/Physics/Gravity/include
+    ${BLUR_OVERLAY}/Code/Vendor
     ${BLUR_TOP}/Code/Vendor
 )
 target_precompile_headers(misc_shared PRIVATE ${BLUR_TOP}/Code/Mercury/Library/Common/Misc_Shared/MiscSharedPch.h)
@@ -3020,10 +3021,10 @@ add_library(logicalfs STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakCompressPacketZLib.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakCreateFiles.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakDefinitions.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakEntryFile.cpp
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakEntryFile.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakFile.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakIoMediator.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakRead.cpp
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakRead.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakSha1.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakUtil.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/pakfs/impl/PakWrite.cpp
@@ -3035,6 +3036,7 @@ add_library(logicalfs STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/source/LogicalFs.cpp
 )
 target_include_directories(logicalfs PRIVATE
+    ${BLUR_OVERLAY}/Code/Mercury/Library/Util/logicalFs
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs
     ${BLUR_TOP}/Code/Mercury/Library/Util/logicalFs/include
     ${BLUR_TOP}/Code/Mercury/Library/Common/Core/include
