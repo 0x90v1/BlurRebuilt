@@ -255,3 +255,11 @@ Not verified: the pass-through types (`.csv .dds .ipf .aid .pf .raw .wbl .txt`) 
 Blocked: none.
 Next: `.bpr` UI bundles (first missing piece on screen), then `.cycle`/`.skeleton` animations, then the Xenos shader cache (D03, T074), models, levels.
 Files touched: Blur1Multi/code/mercury/library/util/x360convert/* (new), Blur1Multi/code/tools/{x360convert-verify,xmem-verify}/*, Blur1Multi/code/amax/game/{GameSystems.cpp,GameLogic/Layers/BootLayer.cpp (new overlay)}, Blur1Multi/code/mercury/library/util/gamesource/*, Blur1Multi/{cmake/multi.cmake,cmake/targets.cmake,overlay.json,README.md}, docs/{analysis.md,BOARD.md}, this ledger.
+
+## 2026-09-25 00:40 — session 6 (Claude) — T072 (in progress): resource bundles; the 360 front end draws
+Did: `.bpr` converter (`x360convert/source/BundleConvert.cpp`) from the PC reader (`ResourceBundleReaderImpl3.cpp`, `ResourceBundleSingle.cpp`) and the 360 exporter (`tools/ResourceBundler/.../ExportArrayOfTextures2D360.cpp`); `MakeXgFetch2D` rebuilds the XG default layout for texels that carry no fetch constant. Tools: `code/tools/xmem-verify/{bprlist.py,bprcmp.py}`.
+Verified: bundles against retail PC resource by resource: 281/296 identical, 14 length-only (retail PC bundler under-counts sub-block mips; see analysis.md), 1 content (`xbox360_buttons`). Every earlier converter result unchanged (verifier rerun). Engine: 0 build errors; `run_x360.ps1` on the retail disc draws the front-end menu cards over the sky (screenshot `_work/run/scripts/main.png`), no crash.
+Not verified: text on screen (none drawn yet).
+Blocked: none.
+Next: menu text (`.loc` XTLO/OLTX and `.pf` fonts: check whether they are already byte-identical), then `.cycle`/`.skeleton`, then the shader cache (T074), models, levels.
+Files touched: Blur1Multi/code/mercury/library/util/x360convert/{source/BundleConvert.cpp (new),source/XenosTexture.{h,cpp},source/X360Convert.cpp,include/x360convert/X360Convert.h}, Blur1Multi/code/tools/{x360convert-verify/x360convert_verify.cpp,xmem-verify/bprlist.py,xmem-verify/bprcmp.py}, Blur1Multi/{cmake/multi.cmake,README.md}, docs/{analysis.md,BOARD.md}, this ledger.

@@ -96,7 +96,7 @@ dependencies) and are checked against retail PC with
 x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>]
 ```
 
-Done: `.texture`, `.font`, `.particlemesh`, XT flasks (`.bin`/`.xt`). By
+Done: `.texture`, `.font`, `.particlemesh`, XT flasks (`.bin`/`.xt`), resource bundles (`.bpr`). By
 default a 360 source still stops after mounting; `BLUR1MULTI_X360_CONTINUE=1`
 boots on (`_work/run/run_x360.ps1`). Details and results: docs/analysis.md
 "Xbox 360 -> PC conversion".

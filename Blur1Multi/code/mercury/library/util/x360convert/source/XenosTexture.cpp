@@ -192,6 +192,29 @@ namespace X360Convert
 		}
 	}
 
+	void MakeXgFetch2D(unsigned width, unsigned height, unsigned levels, unsigned xenosFormat, const XenosFormat& fmt, XenosFetch& f)
+	{
+		memset(&f, 0, sizeof f);
+		f.type = 2;
+		f.tiled = 1;
+		f.format = xenosFormat;
+		f.width = width;
+		f.height = height;
+		f.dimension = 1;
+		f.mipMaxLevel = levels ? levels - 1 : 0;
+		const unsigned pitchBlocks = Align((width + fmt.blockW - 1) / fmt.blockW, 32);
+		f.pitchDiv32 = pitchBlocks * fmt.blockW / 32;
+		// XG packs the mip tail by default, a lone base level of 16 texels or less included
+		// (bundle resource "null", 16x16, sits at the packed-tail offset)
+		f.packedMips = 1;
+		const unsigned packedLevel = f.packedMips ? PackedMipLevel(width, height) : levels;
+		if (MinU(f.mipMaxLevel, packedLevel) >= 1)
+		{
+			const unsigned baseRows = Align(Align(height, fmt.blockH) / fmt.blockH, 32);
+			f.mipAddress = Align(pitchBlocks * baseRows * fmt.bytesPerBlock, 0x1000) >> 12;
+		}
+	}
+
 	bool DecodeXenos2DChain(const unsigned char* payload, size_t size, const XenosFetch& f,
 		const XenosFormat& fmt, std::vector<std::vector<unsigned char> >& levels, std::string& error)
 	{

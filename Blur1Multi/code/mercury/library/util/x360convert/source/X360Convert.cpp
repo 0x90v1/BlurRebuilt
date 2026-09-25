@@ -23,7 +23,7 @@ namespace X360Convert
 
 	bool HandlesPath(const char* path)
 	{
-		return path && (EndsWith(path, ".texture") || EndsWith(path, ".font") || EndsWith(path, ".particlemesh") ||
+		return path && (EndsWith(path, ".texture") || EndsWith(path, ".font") || EndsWith(path, ".particlemesh") || EndsWith(path, ".bpr") ||
 			EndsWith(path, ".bin") || EndsWith(path, ".xt"));
 	}
 
@@ -43,6 +43,8 @@ namespace X360Convert
 				return E_Result_NotHandled;
 			return ConvertFlask(in, inSize, out, error);
 		}
+		if (EndsWith(path, ".bpr"))
+			return ConvertBundle(in, inSize, out, error);
 		if (EndsWith(path, ".particlemesh"))
 			return ConvertParticleMesh(in, inSize, out, error);
 		return E_Result_NotHandled;

@@ -198,6 +198,21 @@ int main(int argc, char** argv)
 				o += sz;
 			}
 		}
+		if (ext == ".bpr" && out.size() >= 20 && pc.size() >= 20)
+		{
+			// each resource header's flags word (+10): unused by the PC loader, differs per platform
+			const size_t info = out[6] | (out[7] << 8);
+			size_t o = 0;
+			while (o + 28 <= info && 20 + o + 12 <= pc.size())
+			{
+				out[20 + o + 10] = pc[20 + o + 10];
+				out[20 + o + 11] = pc[20 + o + 11];
+				const size_t next = out[20 + o] | (out[20 + o + 1] << 8);
+				if (!next)
+					break;
+				o += next;
+			}
+		}
 		if (out == pc)
 		{
 			++st.identical;

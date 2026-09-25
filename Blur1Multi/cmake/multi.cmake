@@ -56,6 +56,7 @@ add_library(x360convert STATIC
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/FontConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/ParticleMeshConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/FlaskConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/BundleConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XenosTexture.cpp)
 target_include_directories(x360convert PUBLIC ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/include)
 set_target_properties(x360convert PROPERTIES FOLDER "code/mercury/library/util")

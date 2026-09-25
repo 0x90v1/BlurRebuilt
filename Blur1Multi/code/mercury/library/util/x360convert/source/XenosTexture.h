@@ -46,6 +46,13 @@ namespace X360Convert
 	// Undo the fetch constant's endian mode in place.
 	bool EndianNormalize(unsigned char* data, size_t size, unsigned mode);
 
+	// The fetch-constant fields XGSetTextureHeaderEx fills for a 2D texture with its
+	// defaults (no flags, base offset 0, XGHEADER_CONTIGUOUS_MIP_OFFSET), for data
+	// that carries no D3D header (resource bundles, tools/ResourceBundler
+	// export_resource/360): pitch rounded up to 32 blocks, packed mip tail, mips right
+	// after the base slice.
+	void MakeXgFetch2D(unsigned width, unsigned height, unsigned levels, unsigned xenosFormat, const XenosFormat& fmt, XenosFetch& f);
+
 	// Decodes a tiled 2D allocation (already endian-normalised) into its mip
 	// levels, row-major blocks, top level first. See b2_extract_textures.py
 	// decode_xenos_2d_chain for the layout rules; every check there is kept.
