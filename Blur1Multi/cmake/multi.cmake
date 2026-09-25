@@ -58,8 +58,22 @@ add_library(x360convert STATIC
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/FlaskConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/BundleConvert.cpp
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/LocConvert.cpp
-    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XenosTexture.cpp)
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XenosTexture.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/EffectConvert.cpp)
 target_include_directories(x360convert PUBLIC ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/include)
+
+# Xenos shader microcode -> Direct3D 9 shader model 3 HLSL (T074, D03): the
+# recompiler of hedge-dev/XenosRecomp (MIT), vendored with a D3D9 output mode
+# (code/vendor/xenosrecomp/BLUR2PC.md). C++20 (std::format stands in for {fmt}).
+add_library(xenosrecomp STATIC
+    ${BLUR_OVERLAY}/code/vendor/xenosrecomp/xenosrecomp_d3d9.cpp
+    ${BLUR_OVERLAY}/code/vendor/xenosrecomp/shader_recompiler.cpp)
+set_target_properties(xenosrecomp PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON FOLDER "vendor")
+target_compile_definitions(xenosrecomp PRIVATE XENOS_RECOMP_D3D9)
+target_compile_options(xenosrecomp PRIVATE /FIpch.h /wd4200)
+target_include_directories(xenosrecomp PUBLIC ${BLUR_OVERLAY}/code/vendor/xenosrecomp)
+target_link_libraries(x360convert PRIVATE xenosrecomp)
+target_include_directories(x360convert PRIVATE ${BLUR_OVERLAY}/code/vendor/xenosrecomp)
 set_target_properties(x360convert PROPERTIES FOLDER "code/mercury/library/util")
 target_sources(Amax PRIVATE
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/X360ConvertFs.cpp

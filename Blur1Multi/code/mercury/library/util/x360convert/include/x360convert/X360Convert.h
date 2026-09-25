@@ -55,4 +55,16 @@ namespace X360Convert
 	E_Result ConvertTextureLodHeader(const unsigned char* header, size_t size, std::vector<unsigned char>& out, std::string& error);
 	E_Result ConvertTextureLodData(const unsigned char* header, int lod, const unsigned char* data, size_t dataSize,
 		std::vector<unsigned char>& out, std::string& error);
+
+	// .fxb: the XEFX effect becomes a PCFX effect whose programs are the Xenos
+	// programs recompiled to shader model 3 (EffectConvert.cpp). Slow (XenosRecomp
+	// and D3DCompile per program): the runtime caches the results per source.
+	struct EffectStats
+	{
+		unsigned programs, compiled, failed, unsupported;
+		std::string firstFailure, firstFailureHlsl, firstUnsupported;
+		EffectStats() : programs(0), compiled(0), failed(0), unsupported(0) {}
+	};
+	E_Result ConvertEffect(const unsigned char* in, size_t inSize, std::vector<unsigned char>& out, std::string& error,
+		EffectStats* pStats = NULL);
 }

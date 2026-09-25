@@ -78,6 +78,108 @@ namespace X360Convert
 			return read;
 		}
 
+		// Xenos effects (.fxb) are recompiled once and kept beside the executable
+		// (decisions D03, D11): <exe dir>\shadercache\x360\<name>.<hash>.fxb, the
+		// hash taken over the 360 file and the converter tag, so a different disc's
+		// effect of the same name, or a converter change, gets its own entry.
+		const char* const kShaderConverterTag = "xenosrecomp-d3d9 1";
+
+		unsigned long long Fnv1a64(const unsigned char* p, size_t n, unsigned long long h = 0xcbf29ce484222325ull)
+		{
+			for (size_t i = 0; i < n; ++i)
+			{
+				h ^= p[i];
+				h *= 0x100000001b3ull;
+			}
+			return h;
+		}
+
+		std::string ShaderCacheDir()
+		{
+			char exe[MAX_PATH];
+			const DWORD n = GetModuleFileNameA(NULL, exe, MAX_PATH);
+			std::string dir(exe, n);
+			dir = dir.substr(0, dir.find_last_of("\\/") + 1) + "shadercache";
+			CreateDirectoryA(dir.c_str(), NULL);
+			dir += "\\x360";
+			CreateDirectoryA(dir.c_str(), NULL);
+			return dir + "\\";
+		}
+
+		bool ReadDiskFile(const std::string& path, std::vector<unsigned char>& out)
+		{
+			HANDLE h = CreateFileA(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+			if (h == INVALID_HANDLE_VALUE)
+				return false;
+			LARGE_INTEGER size;
+			bool ok = GetFileSizeEx(h, &size) != 0;
+			if (ok)
+			{
+				out.resize((size_t)size.QuadPart);
+				DWORD read = 0;
+				ok = out.empty() || (ReadFile(h, &out[0], (DWORD)out.size(), &read, NULL) && read == out.size());
+			}
+			CloseHandle(h);
+			return ok;
+		}
+
+		void WriteDiskFile(const std::string& path, const std::vector<unsigned char>& data)
+		{
+			const std::string temp = path + ".tmp";
+			HANDLE h = CreateFileA(temp.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
+			if (h == INVALID_HANDLE_VALUE)
+				return;
+			DWORD written = 0;
+			const bool ok = data.empty() || (WriteFile(h, &data[0], (DWORD)data.size(), &written, NULL) && written == data.size());
+			CloseHandle(h);
+			if (ok)
+				MoveFileExA(temp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING);
+			else
+				DeleteFileA(temp.c_str());
+		}
+
+		// Reads the 360 effect through 'fs' and returns the PC effect from the cache,
+		// converting it on a miss. Returns false when the file cannot be opened.
+		bool LoadShader(Sys::I_FileSystem& fs, const Sys::C_FilePath& path, const std::string& key,
+			const Sys::C_OpenParams& params, std::vector<unsigned char>& bytes)
+		{
+			std::vector<unsigned char> in;
+			Sys::I_File* pFile = fs.Open(path, Sys::E_FileAccess_Read, params);
+			if (!pFile)
+				return false;
+			in.resize((size_t)pFile->Length());
+			const bool read = in.empty() || pFile->Read(&in[0], (U32)in.size());
+			delete pFile;
+			if (!read)
+				return false;
+
+			const unsigned long long hash = Fnv1a64(in.empty() ? NULL : &in[0], in.size(),
+				Fnv1a64((const unsigned char*)kShaderConverterTag, strlen(kShaderConverterTag)));
+			std::string name = key.substr(key.find_last_of('\\') + 1);
+			name = name.substr(0, name.size() - 4);
+			char suffix[32];
+			sprintf_s(suffix, ".%016llx.fxb", hash);
+			const std::string cachePath = ShaderCacheDir() + name + suffix;
+			if (ReadDiskFile(cachePath, bytes))
+				return true;
+
+			EffectStats stats;
+			std::string error;
+			const DWORD start = GetTickCount();
+			if (ConvertEffect(in.empty() ? NULL : &in[0], in.size(), bytes, error, &stats) == E_Result_Converted)
+			{
+				WriteDiskFile(cachePath, bytes);
+				LOGINFO(g_convertLog, "X360Convert: shader %s recompiled (%u programs, %u ms) into %s",
+					name.c_str(), stats.compiled, GetTickCount() - start, cachePath.c_str());
+				if (stats.unsupported)
+					LOGWARN(g_convertLog, "X360Convert: shader %s: %s", name.c_str(), stats.firstUnsupported.c_str());
+				return true;
+			}
+			LOGERROR(g_convertLog, "X360Convert: cannot convert %s: %s", path.Chars(), error.c_str());
+			bytes.swap(in);
+			return true;
+		}
+
 		// The 360 levelstream, read chunk by chunk (C_LevelConversion keeps it).
 		class C_LevelStreamSource : public I_ChunkSource
 		{
@@ -279,7 +381,7 @@ namespace X360Convert
 		key = Key(path);
 		levelRender = EndsWith(key, ".levelrender");
 		levelStream = EndsWith(key, ".levelstream");
-		return levelRender || levelStream || HandlesPath(path.Chars()) || EngineHandlesPath(path.Chars());
+		return levelRender || levelStream || EndsWith(key, ".fxb") || HandlesPath(path.Chars()) || EngineHandlesPath(path.Chars());
 	}
 
 	std::shared_ptr<C_LevelConversion> C_ConvertFs::LevelFor(const std::string& key)
@@ -317,7 +419,7 @@ namespace X360Convert
 			std::shared_ptr<C_LevelConversion> level;
 			if (levelRender && !(level = LevelFor(k)))
 				return m_pInner->Open(fileName, fileAccess, params);
-			if (!LoadConverted(*m_pInner, fileName, params, level, bytes))
+			if (EndsWith(k, ".fxb") ? !LoadShader(*m_pInner, fileName, k, params, bytes) : !LoadConverted(*m_pInner, fileName, params, level, bytes))
 				return NULL;
 			EnterCriticalSection(&m_pImpl->lock);
 			m_pImpl->Remember(k, bytes);
@@ -359,7 +461,7 @@ namespace X360Convert
 		if (levelRender && !(level = LevelFor(k)))
 			return true;
 		std::vector<unsigned char> bytes;
-		if (LoadConverted(*m_pInner, p, params, level, bytes))
+		if (EndsWith(k, ".fxb") ? LoadShader(*m_pInner, p, k, params, bytes) : LoadConverted(*m_pInner, p, params, level, bytes))
 		{
 			pInfo->m_FileSize = bytes.size();
 			EnterCriticalSection(&m_pImpl->lock);
