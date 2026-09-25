@@ -2,6 +2,8 @@
 // against a reference extraction of an Xbox 360 pak.
 //
 //   xmem_verify <file.pak> [<reference dir>] [--stream-chunk N]
+//   xmem_verify <file.pak> --list      one line per file: logical size, first 16 bytes, path
+//   xmem_verify <file.pak> --extract <dir>   writes every file under <dir>\<pak path>
 //
 // Reads a big-endian pak v1 (retail Xbox 360 Blur, the Aug 31 prototype):
 // pre-header, C_PakHeader, string table, FAT (docs/analysis.md "File system
@@ -130,9 +132,15 @@ int main(int argc, char** argv)
 	const char* pakPath = argv[1];
 	std::string refDir;
 	size_t streamChunk = 777;
+	bool list = false;
+	std::string extractDir;
 	for (int i = 2; i < argc; ++i)
 	{
-		if (strcmp(argv[i], "--stream-chunk") == 0 && i + 1 < argc)
+		if (strcmp(argv[i], "--list") == 0)
+			list = true;
+		else if (strcmp(argv[i], "--extract") == 0 && i + 1 < argc)
+			extractDir = argv[++i];
+		else if (strcmp(argv[i], "--stream-chunk") == 0 && i + 1 < argc)
 			streamChunk = (size_t)atoi(argv[++i]);
 		else
 			refDir = argv[i];
@@ -164,6 +172,18 @@ int main(int argc, char** argv)
 	unsigned char u4[4];
 	ReadAt(f, pos, u4, 4);
 	unsigned strSize = BE32(u4);
+	std::vector<unsigned char> strTable(strSize + 1, 0);
+	ReadAt(f, pos + 4, &strTable[0], strSize);
+	{
+		// PakCryptDecrypt (PakUtil.cpp): XOR with the cipher, index advanced before use
+		static const char cipher[] = "xVXo40j3@$%\\%`";
+		unsigned idx = 0;
+		for (unsigned i = 0; i < strSize; ++i)
+		{
+			idx = (idx + 1) % 14;
+			strTable[i] ^= (unsigned char)cipher[idx];
+		}
+	}
 	pos += 4 + strSize;
 	pos += sector - (pos % sector);			// sector padding (always at least one byte short of a full sector here)
 	unsigned char fatHead[8];
@@ -177,7 +197,8 @@ int main(int argc, char** argv)
 	}
 	std::vector<unsigned char> fat(fatSize);
 	ReadAt(f, pos + 8, &fat[0], fatSize);
-	printf("%s: v%u sector 0x%x codec %u fatType %u entries %u\n", pakPath, version, sector, codec, fatType, nEntries);
+	if (!list)
+		printf("%s: v%u sector 0x%x codec %u fatType %u entries %u\n", pakPath, version, sector, codec, fatType, nEntries);
 
 	std::map<std::string, std::string> refBySha;
 	size_t refCount = 0;
@@ -287,6 +308,39 @@ int main(int argc, char** argv)
 		}
 		++decoded;
 		logicalTotal += logical;
+		if (!extractDir.empty())
+		{
+			unsigned nameOff = BE32(e + 4);
+			std::string outPath = extractDir + "\\" + (nameOff < strSize ? (const char*)&strTable[nameOff] : "unnamed");
+			for (size_t c = 0; c < outPath.size(); ++c)
+			{
+				if (outPath[c] == '/')
+					outPath[c] = '\\';
+				if (outPath[c] == '\\' && c > 2)
+				{
+					outPath[c] = 0;
+					CreateDirectoryA(outPath.c_str(), NULL);
+					outPath[c] = '\\';
+				}
+			}
+			FILE* o = NULL;
+			if (fopen_s(&o, outPath.c_str(), "wb") == 0 && o)
+			{
+				if (logical)
+					fwrite(&out[0], 1, logical, o);
+				fclose(o);
+			}
+			else
+				printf("cannot write %s\n", outPath.c_str());
+		}
+		if (list)
+		{
+			unsigned nameOff = BE32(e + 4);
+			printf("%u ", logical);
+			for (unsigned b = 0; b < 16; ++b)
+				printf(b < logical ? "%02x" : "--", b < logical ? out[b] : 0);
+			printf(" %s\n", nameOff < strSize ? (const char*)&strTable[nameOff] : "?");
+		}
 		if (!refDir.empty())
 		{
 			std::string sha = Sha1(logical ? &out[0] : NULL, logical);
@@ -304,6 +358,8 @@ int main(int argc, char** argv)
 		}
 	}
 	fclose(f);
+	if (list || !extractDir.empty())
+		return failed ? 1 : 0;
 	printf("files %u: decoded %u (%llu bytes), failed %u", files, decoded, logicalTotal, failed);
 	if (codec == 3)
 		printf("; stream path checked %u, differing %u", streamChecked, streamFailed);

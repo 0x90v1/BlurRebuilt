@@ -17,6 +17,8 @@ set_target_properties(gamesource PROPERTIES FOLDER "code/mercury/library/util")
 # GameSourceDump.cpp: BLUR1MULTI_PAKDUMP verification hook (reads through the engine's file system).
 target_sources(Amax PRIVATE ${BLUR_OVERLAY}/code/amax/game/GameSourceDump.cpp)
 target_link_libraries(Amax PRIVATE gamesource)
+# The overlay copy of amax/game/GameLogic/Layers/BootLayer.cpp mounts the Xenon boot paks for 360 sources.
+target_link_libraries(amax_gamelogic PRIVATE gamesource)
 
 # XMem (Xbox 360 LZX) decompression on PC: the XDK xcompress API the engine is
 # written against, implemented over libmspack's LZX decoder (LGPL 2.1). It takes
@@ -44,3 +46,19 @@ target_sources(logicalfs PRIVATE
 target_include_directories(logicalfs PRIVATE ${BLUR_OVERLAY}/code/vendor/xmem-pc)
 
 target_link_libraries(Amax PRIVATE xmem_pc)
+
+# Xbox 360 -> PC asset conversion (T072, D11): engine-independent converters
+# (also built into code/tools/x360convert-verify) and the file-system layer that
+# serves their output to the engine for a 360 source.
+add_library(x360convert STATIC
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/X360Convert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/TextureConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/FontConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/ParticleMeshConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/FlaskConvert.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XenosTexture.cpp)
+target_include_directories(x360convert PUBLIC ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/include)
+set_target_properties(x360convert PROPERTIES FOLDER "code/mercury/library/util")
+target_sources(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/X360ConvertFs.cpp)
+target_include_directories(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine)
+target_link_libraries(Amax PRIVATE x360convert)

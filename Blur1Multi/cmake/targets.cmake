@@ -238,7 +238,7 @@ add_library(amax_gamelogic STATIC
     ${BLUR_TOP}/Code/Amax/Game/GameLogic/GameData/MultiplayerData.cpp
     ${BLUR_TOP}/Code/Amax/Game/GameLogic/GameData/AchievementData.cpp
     ${BLUR_TOP}/Code/Amax/Game/GameLogic/GameData/GameXtLoader.cpp
-    ${BLUR_TOP}/Code/Amax/Game/GameLogic/Layers/BootLayer.cpp
+    ${BLUR_OVERLAY}/Code/Amax/Game/GameLogic/Layers/BootLayer.cpp
     ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch1.cpp
     ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch2.cpp
     ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch3.cpp
@@ -246,6 +246,7 @@ add_library(amax_gamelogic STATIC
     ${BLUR_PROJECT}/_work/build/gen/unity/amax_gamelogic_batch5.cpp
 )
 target_include_directories(amax_gamelogic PRIVATE
+    ${BLUR_OVERLAY}/Code/Amax/Game/GameLogic
     ${BLUR_TOP}/Code/Amax/Game/GameLogic
     ${BLUR_TOP}/Code/Mercury/Library/common/core/include
     ${BLUR_TOP}/Code/Mercury/Library/common/system/include
@@ -479,6 +480,7 @@ target_include_directories(amax_kanzen PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/ai/air/include
     ${BLUR_TOP}/code/Amax/Game/AI
     ${BLUR_TOP}/code/Amax/Library
+    ${BLUR_OVERLAY}/code/Amax/Game/GameLogic
     ${BLUR_TOP}/code/Amax/Game/GameLogic
     ${BLUR_TOP}/Code/Mercury/Library/Gamesys/Framework/include
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Render/include

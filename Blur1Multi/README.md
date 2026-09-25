@@ -82,6 +82,25 @@ Checks, both against Blur2Test's extractions (`_work/disc_cache/<disc>`):
   checks the dump; `_work/run/run_dump.ps1 -Source <dir> -List <list>` runs it
   minimised.
 
+## Xbox 360 asset conversion (T072)
+
+For a 360 source, `CreateFsLayers` wraps the mounted file system in
+`X360Convert::C_ConvertFs` (`code/mercury/library/util/x360convert/engine`):
+opening a file whose type the converters handle returns the PC bytes.
+Converters live in `code/mercury/library/util/x360convert/source` (no engine
+dependencies) and are checked against retail PC with
+`code/tools/x360convert-verify` over extracted retail paks
+(`xmem_verify --extract`, `paklist_pc.py --extract-all`):
+
+```
+x360convert_verify <x360 extract root> <pc extract root> [--ext .texture] [--write <dir>]
+```
+
+Done: `.texture`, `.font`, `.particlemesh`, XT flasks (`.bin`/`.xt`). By
+default a 360 source still stops after mounting; `BLUR1MULTI_X360_CONTINUE=1`
+boots on (`_work/run/run_x360.ps1`). Details and results: docs/analysis.md
+"Xbox 360 -> PC conversion".
+
 ## Automated runs
 
 `_work/run/run_script.ps1 -Script scripts/escape.txt [-Source <dir>]` starts

@@ -7,6 +7,10 @@
 #include <MemoryFs/MemoryFs.h>
 #include <GameFs/GameHelpers.h>
 #include <gamesource/GameSource.h> // [Blur1Multi] game source selection (see Blur1Multi/README.md)
+#include <X360ConvertFs.h> // [Blur1Multi] Xbox 360 assets served in PC format
+
+// [Blur1Multi] the converting layer over m_pFileSystem for an Xbox 360 source (NULL otherwise)
+static X360Convert::C_ConvertFs* s_pConvertFs = NULL;
 
 #include <GameSystems.h>
 #include <SchedulerConfig.h>
@@ -142,6 +146,7 @@ void C_GameSystems::Shutdown()
 	RenderingData::Target::StreamManager::Instance().Destroy();
 
 	SetFileSystems(&Sys::C_FileSystem::Instance(), NULL);
+	SAFE_DELETE_PTR(s_pConvertFs);	// [Blur1Multi]
 	SAFE_DELETE_PTR(m_pFileSystem);
 	SAFE_DELETE_PTR(m_pMemoryFileSystem);
 	m_pSchedulerConfig->Shutdown();
@@ -358,10 +363,22 @@ void C_GameSystems::CreateFsLayers()
 	// [Blur1Multi] Verification hook (BLUR1MULTI_PAKDUMP), then, for an Xbox 360 source, stop:
 	// its paks are mounted and readable, but every asset in them is still in 360 format
 	// (big-endian chunk files, Xenos textures and shaders) and the conversion layer is T072.
-	const int dumped = GameSource::DumpListedFiles(*m_pFileSystem);
+	// [Blur1Multi] An Xbox 360 source's assets are read through the converting layer:
+	// every reader (resource manager, default file system, Display, FX) gets it.
+	if (xbox360Source && !s_pConvertFs)
+	{
+		s_pConvertFs = new X360Convert::C_ConvertFs(m_pFileSystem);
+		SetFileSystems(s_pConvertFs, m_pMemoryFileSystem);
+		FX::SetFileSystem(s_pConvertFs);
+		LOGINFO(Framework::g_BootLog, "GameSource: Xbox 360 assets are converted to PC format on load");
+	}
+
+	const int dumped = GameSource::DumpListedFiles(s_pConvertFs ? *(Sys::I_FileSystem*)s_pConvertFs : *(Sys::I_FileSystem*)m_pFileSystem);
 	if (dumped >= 0)
 		LOGINFO(Framework::g_BootLog, "GameSource: BLUR1MULTI_PAKDUMP wrote %d files", dumped);
-	if (xbox360Source)
+	// BLUR1MULTI_X360_CONTINUE=1 (exploration only) boots on past this point to see which
+	// asset fails first.
+	if (xbox360Source && !getenv("BLUR1MULTI_X360_CONTINUE"))
 	{
 		char text[1024];
 		GameSource::Describe(GameSource::Current(), text, sizeof text);
