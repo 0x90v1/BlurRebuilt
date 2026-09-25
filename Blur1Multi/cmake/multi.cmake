@@ -61,6 +61,8 @@ add_library(x360convert STATIC
     ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/source/XenosTexture.cpp)
 target_include_directories(x360convert PUBLIC ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/include)
 set_target_properties(x360convert PROPERTIES FOLDER "code/mercury/library/util")
-target_sources(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/X360ConvertFs.cpp)
+target_sources(Amax PRIVATE
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/X360ConvertFs.cpp
+    ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine/EngineConverters.cpp)
 target_include_directories(Amax PRIVATE ${BLUR_OVERLAY}/code/mercury/library/util/x360convert/engine)
 target_link_libraries(Amax PRIVATE x360convert)

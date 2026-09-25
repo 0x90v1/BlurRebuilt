@@ -7,6 +7,7 @@
 #include <system/serialise/I_File.h>
 #include <MemoryFs/Impl/MemoryFile.h>
 #include <x360convert/X360Convert.h>
+#include "EngineConverters.h"
 
 #include <list>
 #include <map>
@@ -112,7 +113,9 @@ namespace X360Convert
 				return false;
 			}
 			std::string error;
-			const E_Result r = ConvertFile(path.Chars(), in.empty() ? NULL : &in[0], in.size(), bytes, error);
+			E_Result r = ConvertFile(path.Chars(), in.empty() ? NULL : &in[0], in.size(), bytes, error);
+			if (r == E_Result_NotHandled)
+				r = EngineConvertFile(path.Chars(), in.empty() ? NULL : &in[0], in.size(), bytes, error);
 			if (r == E_Result_Converted)
 				return true;
 			if (r == E_Result_Failed)
@@ -124,7 +127,7 @@ namespace X360Convert
 
 	Sys::I_File* C_ConvertFs::Open(const Sys::C_FilePath& fileName, const Sys::E_FileAccess fileAccess, const Sys::C_OpenParams& params)
 	{
-		if (fileAccess != Sys::E_FileAccess_Read || !HandlesPath(fileName.Chars()))
+		if (fileAccess != Sys::E_FileAccess_Read || (!HandlesPath(fileName.Chars()) && !EngineHandlesPath(fileName.Chars())))
 			return m_pInner->Open(fileName, fileAccess, params);
 
 		const std::string k = Key(fileName);
@@ -149,7 +152,7 @@ namespace X360Convert
 	{
 		if (!m_pInner->FileInfo(p, pInfo))
 			return false;
-		if (!pInfo || pInfo->m_FileType != Sys::E_FileType_File || !HandlesPath(p.Chars()))
+		if (!pInfo || pInfo->m_FileType != Sys::E_FileType_File || (!HandlesPath(p.Chars()) && !EngineHandlesPath(p.Chars())))
 			return true;
 		const std::string k = Key(p);
 		EnterCriticalSection(&m_pImpl->lock);
