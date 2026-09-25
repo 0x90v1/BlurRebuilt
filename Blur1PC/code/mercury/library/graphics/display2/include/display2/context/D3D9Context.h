@@ -1445,11 +1445,17 @@ struct C_RenderTexture2D
 	mutable U16						m_SurfaceIndex;
 	C_Texture						m_Texture[2];
 	Btl::Vector<C_Surface>			m_Surfaces[2];
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x005c5270): when multisampled, m_Surfaces holds a separate
+	// multisampled render target and this the texture's own level 0 surface, which Resolve copies into
+	Btl::Vector<C_Surface>			m_ResolveSurfaces[2];
 #else
 	C_Texture						m_Texture;
 	Btl::Vector<C_Surface>			m_Surfaces;
 #endif
 	U32								m_Flags;
+#if DEVICE_D3D9_PC
+	U32								m_Multisample;	// [Blur2PC] retail +0x50: D3DMULTISAMPLE_TYPE of the render surface
+#endif
 };
 
 //! C_RenderTextureCube

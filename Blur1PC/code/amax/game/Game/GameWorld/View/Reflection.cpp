@@ -474,9 +474,6 @@ void C_ReflectionView::SetGraphicalDetail(const U32 graphicalDetail)
 // resolution, each rounded up to a multiple of 32, with the window's multisample. Retail hands it to the
 // reflection view (0x00b20450) only when it differs from the last one and returns whether it did; the blur
 // textures follow at the next volatile create.
-//
-// Stopgap: retail gives the render target the window's multisample; this device's CreateRenderTexture2D has
-// no multisampled path (see C_MirrorView::SizeFromDisplayWindow), so the target stays single-sampled here.
 bool C_ReflectionView::SizeFromDisplayWindow()
 {
 	const C_GameApp* pApp = C_GameApp::GetInstance();
@@ -511,9 +508,9 @@ bool C_ReflectionView::SizeFromDisplayWindow()
 	m_TargetHeight = height;
 	m_TargetMultisample = windowMultisample;
 
-	m_pReflection->SetFormat(width, height, Display::E_Multisample_None, 1);	// retail: windowMultisample (see above)
+	m_pReflection->SetFormat(width, height, windowMultisample, 1);
 
-	LOGINFO(g_Log, "Reflection target %ux%u (city reflection resolution %i)\n", width, height, m_ReflectionResolution);	// not in retail
+	LOGINFO(g_Log, "Reflection target %ux%u multisample %i (city reflection resolution %i)\n", width, height, (S32)windowMultisample, m_ReflectionResolution);	// not in retail
 	return true;
 }
 #endif

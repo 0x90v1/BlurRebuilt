@@ -360,3 +360,10 @@ Verified: a copy of that exe (same hash) in `_work/run_t062`, `race_long.txt`, 1
 Blocked: none.
 Next: T088 (retail multisampled render textures), T089 (PC display windows and the stencil mask), T090 (reset artefacts).
 Files touched: docs/BOARD.md, this ledger.
+
+## 2026-09-25 17:30 — session 9 (Claude) — T088: multisampled render textures on PC
+Did: listed retail's 55 calls to `CreateRenderTexture2D` (0x005a67c0) and their multisample; ported retail's PC multisampled render texture (0x01f01680/0x005c5270: separate `CreateRenderTarget` surface, texture level 0 kept for the resolve, multisample at +0x50), `Resolve`'s `StretchRect` (0x005adff0), and the texture render's unbind (0x0068ca20: only the resolve). The mirror and reflection targets and the mirror's render group now take the window multisample (T062's stopgap removed). The target-size log lines print the multisample. Every snapshot PC caller other than the mirror and reflection passes None or never runs (per-caller table: analysis.md "Graphics options (PC)", T088 bullet).
+Verified: Release build, 0 errors. Private runs (`Blur1PC/_work/run_t062`): 8x AA, 1920x1080, detail 4: targets at multisample 8, mirror renders, 338 fps, clean exit (`out_ms8`). Live change 8x -> 4x in a race (`scripts/live_aa.txt`): targets recreated at 4, mirror renders after the reset (`out_liveaa/a2.png`).
+Not delivered: the Blur1PC tree also holds another session's unfinished automation work (`Blur2PCAutomation.h`, `amax/library/Ui/UiManager.cpp`, `code/tools/Automation/`), so a build would carry it. `Blur1PC/_work/run/Amax.exe` has T062 but not T088.
+Next: deliver T088 once the automation work is committed or its owner says the tree can ship; then T089 (PC display windows and the stencil mask) or T090.
+Files touched: Blur1PC/code/mercury/library/graphics/{display2/include/display2/context/D3D9Context.h, display2/source/context/D3D9Context.cpp, display/source/device/d3d9/PCD3D9Device.cpp, display/source/texture/d3d9/D3D9RenderTexture2D.cpp, render/source/render/TextureRender.cpp}; Blur1PC/code/amax/game/Game/GameWorld/View/{Mirror.cpp,Reflection.cpp}; docs/{analysis.md,BOARD.md}, this ledger.

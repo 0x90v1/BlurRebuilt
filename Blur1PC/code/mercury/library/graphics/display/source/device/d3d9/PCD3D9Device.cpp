@@ -782,6 +782,13 @@ bool C_PCD3D9Device::CreateRenderTexture2D(const U32 width, const U32 height, co
 		flags |= Display2::E_Flags_Colour;
 
 	flags |= E_Usage_Video;
+
+	// [Blur2PC] Retail Blur PC (Blur.exe 1.2 0x01f01680 -> 0x005c5270): a multisampled render texture is a
+	// single buffer whose render surface is a separate multisampled render target; the texture's own level 0
+	// surface is kept for Resolve, which copies the render target into it.
+	if(multisample != E_Multisample_None)
+		flags &= ~E_Usage_ReadWrite;
+	pRenderTexture->m_Multisample = D3D9Multisample(multisample);
 	
 	pRenderTexture->m_Flags = flags;
 
@@ -792,6 +799,26 @@ bool C_PCD3D9Device::CreateRenderTexture2D(const U32 width, const U32 height, co
 
 		if(!CreateTexture2D(width, height, levels, flags, format, &texture, pAddress, addressSize))
 			return false;
+
+		if(multisample != E_Multisample_None)
+		{
+			// [Blur2PC] retail: the multisampled render target as the render surface, the texture's level 0 for the resolve
+			BIZ_ASSERT(pRenderTexture->m_Surfaces[buffer].Size() == 0);
+			pRenderTexture->m_Surfaces[buffer].Resize(1);
+			HRESULT hr = m_pd3dDevice->CreateRenderTarget(width, height, D3D9Format(format), D3D9Multisample(multisample), 0, FALSE, &pRenderTexture->m_Surfaces[buffer][0].m_pd3dSurface, NULL);
+			if(FAILED(hr))
+			{
+				LOGERROR(g_Log, "Failed to create a %ix%i multisampled render target (format %i, multisample %i)\n", width, height, format, multisample);
+				pRenderTexture->m_Surfaces[buffer].Clear();
+				DestroyTexture2D(&texture);
+				return false;
+			}
+
+			pRenderTexture->m_ResolveSurfaces[buffer].Resize(1);
+			hr = texture.GetGPUTexture2D()->GetSurfaceLevel(0, &pRenderTexture->m_ResolveSurfaces[buffer][0].m_pd3dSurface);
+			BIZ_ASSERT(SUCCEEDED(hr));
+			continue;
+		}
 
 		BIZ_ASSERT(pRenderTexture->m_Surfaces[buffer].Size() == 0);
 		pRenderTexture->m_Surfaces[buffer].Resize(levels);
@@ -837,8 +864,21 @@ void C_PCD3D9Device::DestroyRenderTexture2D(C_RenderTexture2D* pRenderTexture)
 
 		pRenderTexture->m_Surfaces[buffer].Clear();
 
+		// [Blur2PC] the texture's level 0 surface of a multisampled render texture (see CreateRenderTexture2D)
+		for(S32 level=0; level<pRenderTexture->m_ResolveSurfaces[buffer].Size(); level++)
+		{
+			C_Surface& surface = pRenderTexture->m_ResolveSurfaces[buffer][level];
+			if(surface.m_pd3dSurface)
+			{
+				surface.m_pd3dSurface->Release();
+				surface.m_pd3dSurface = NULL;
+			}
+		}
+		pRenderTexture->m_ResolveSurfaces[buffer].Clear();
+
 		DestroyTexture2D(&pRenderTexture->m_Texture[buffer]);
 	}
+	pRenderTexture->m_Multisample = D3DMULTISAMPLE_NONE;
 
 	pRenderTexture->m_TextureIndex = 0;
 	pRenderTexture->m_SurfaceIndex = 0;

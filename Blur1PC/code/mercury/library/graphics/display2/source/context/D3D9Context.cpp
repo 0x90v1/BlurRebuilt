@@ -1770,6 +1770,7 @@ C_RenderTexture2D::C_RenderTexture2D() : m_Flags(0)
 #if DEVICE_D3D9_PC
 	m_TextureIndex = 0;
 	m_SurfaceIndex = 0;
+	m_Multisample = D3DMULTISAMPLE_NONE;	// [Blur2PC]
 #endif
 }
 

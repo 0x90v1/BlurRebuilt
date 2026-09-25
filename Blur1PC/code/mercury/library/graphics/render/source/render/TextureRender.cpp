@@ -117,6 +117,11 @@ void C_TextureRender::Unbind() const
 	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, (D3DTexture*)m_RenderTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
 	#elif PLATFORM_PS3
 	Display::Device()->SetZcullEnable(true, true);
+	#elif PLATFORM_PC
+	// [Blur2PC] retail Blur PC's unbind (Blur.exe 1.2 0x0068ca20) is only this: copies a multisampled render
+	// target into the texture (0x005adff0); it does not reset the view
+	m_RenderTexture.Resolve();
+	return;
 	#endif
 
 	Display::Device()->SetView(NULL, false);
