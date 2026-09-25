@@ -4,7 +4,7 @@ This file provides guidance to agents when working with code in this repository.
 
 ## What this repository is
 
-Blur2PC turns the leaked Blur (2010, Bizarre Creations, PC) C++ source into a PC build that plays whatever is recoverable from five Xbox 360 prototype discs of the cancelled Blur 2 (codename **Kanzen**). The Blur 1 path is kept working throughout; the long-term goal is one executable that runs any Blur game (Blur 1, the Blur 2 prototypes) from any platform's data (PC, Xbox 360, PS3), see decision D09. Two pieces are new: an **asset inventory manager** that knows every asset on every disc and serves each one from the best source, and a **per-disc shader recompilation cache**. The work is file-based: disc assets are converted offline into PC-format files, and the engine reads those.
+Blur2PC turns the leaked Blur (2010, Bizarre Creations, PC) C++ source into a PC build that plays whatever is recoverable from five Xbox 360 prototype discs of the cancelled Blur 2 (codename **Kanzen**). The Blur 1 path is kept working throughout; the long-term goal is one executable that runs any Blur game (Blur 1, the Blur 2 prototypes) from any platform's data (PC, Xbox 360, PS3), see decision D09. Two pieces are new: an **asset inventory manager** that knows every asset on every disc and serves each one from the best source, and a **per-disc shader recompilation cache**. The engine only ever reads PC-format data: disc assets are converted to PC format on the fly as they are opened (D11), and only shaders, which cannot be recompiled at load time, are cached per source.
 
 This is a multi-session, multi-agent project. **Start every session by reading `docs/BOARD.md` and the last few entries of `docs/LEDGER.md`. End every session by appending a ledger entry.** The protocol is at the bottom of this file.
 
@@ -25,7 +25,7 @@ Three phase folders (see "Project stages/layers"), one shared docs folder, one s
 | `Blur1Multi/` | **Phase 2**: Blur 1 from any platform's data (PC now, Xbox 360 next, PS3 later). Holds no engine copy: it builds `Blur1PC/code` with `Blur1Multi/code` laid over it. Read `Blur1Multi/README.md` before touching it. |
 | `Blur2/` | **Phase 3**: the Blur 2 prototypes. Placeholder until phase 2 serves 360 data. |
 | `docs/` | Project docs for all phases: analysis, decisions, plan, board, ledger. |
-| `_work/` | Shared scratch (gitignored): `vendor/` (third-party SDKs), `ghidra/`, `ghidra_proj/`, `retail_lua*/`, `tools/`. Each phase has its own `<Phase>/_work/`: `build/` (targets JSON, generated units, VS tree), `run/` (the user's exe, automation harness), `data/<disc>/` (converted disc data). |
+| `_work/` | Shared scratch (gitignored): `vendor/` (third-party SDKs), `ghidra/`, `ghidra_proj/`, `retail_lua*/`, `tools/`. Each phase has its own `<Phase>/_work/`: `build/` (targets JSON, generated units, VS tree), `run/` (the user's exe, automation harness, `shadercache/<source>/` recompiled shaders). No other converted data is stored (D11). |
 
 External inputs (never modified, never copied into the repo):
 
@@ -138,7 +138,7 @@ Recompiled shaders will be cached per each game source alongside the executable.
 ## Conventions
 
 - New engine code lives beside what it extends (the inventory layer under `code/mercury/library/util/logicalFs/`, for example), inside the phase folder it belongs to (`Blur1Multi/code/mercury/library/util/gamesource/` is the model). New tools live under `code/tools/<name>/`. Do not restructure the source tree.
-- Converted disc data, caches and build output go under the phase's `_work/` (gitignored). Never write into the disc folders.
+- Build output, the shader cache and scratch output go under the phase's `_work/` (gitignored). Other disc assets are converted in memory when opened and never stored (D11). Never write into the disc folders.
 - The C++ source's own serialisers are the ground truth for PC formats; Blur2Test decoders are the ground truth for 360 formats. When they disagree, record it in `docs/analysis.md`.
 - Blur2Test's rule also applies here: never guess a value to make something load. Record unknowns as unknowns.
 - **Any reported gameplay or engine issue gets fixed by replicating retail's actual code 100% faithfully.** Find the real mechanism (source diff against the pristine snapshot, or Ghidra against the retail binary per `code/tools/ghidra_retail`) and port it exactly. Do not invent a workaround, approximation, or "close enough" substitute. If the real mechanism cannot be recovered (for example, it lives inside DRM-obfuscated code with no source equivalent), say so explicitly, record what part is and isn't verified in `docs/analysis.md`, and treat any substitute as a stopgap, not a fix.
