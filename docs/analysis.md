@@ -638,3 +638,53 @@ From `BlurX/code/tools/blurx_catalog/catalog.py build --scan` over the six discs
 
 `C:\AIProjects\Blur2Test`. Python 3.12 (+Pillow), QuickBMS (`comtype xmemlzx`) for LZX, PowerShell wrappers, Ghidra scripts, XenosRecomp, vgmstream. Key tools in `_tools\`: `b2_list_pak.py`, `b2_generate_pak_bms.py`, `index_xbox_archives.py`, `b2_disc_resources.py` (`list`/`get`/`resolve` with `--disc`/`--prefer`), `extract_disc_pak_cache.ps1`, `b2_extract_textures.py` (complete), `batch_export_xbox_models_lod0.py` (1184/1512 models), `export_xbox_stage_obj.py` + `xbox_stage_format.py` + `b2_chunk_reader.py` (levels, mature), `decode_xbox_levelanim.py`, `parse_xbox_kslf.py` (113+ databases), `extract_xbox_baf_audio.py`, `decode_xbox_fxb_effect.py`, `xenos_dis.py`, `generate_unity_xbox_shaders.py`. No decoders for `.loc`, `.font`, `.pf`, `.bpr`. Catalogues: `_work\archive_index\archive_catalogue.csv` (disc, archive, name, hash, sizes, offsets), `archive_summary.csv`, `cross_disc_names.csv`; Nov 25 framing status in `_audit\nov25_disc\index\archive_framing.json`. Policy in its `AGENTS.md`: weapons come from Aug 31; never import Blur 1 constants into a Blur 2 decode. Note: its summary "Nov discs have no audio" is true only for Nov 10 and Nov 25.
 - **Lens splashes and the reduced motion blur on PC (T107, 2026-09-26, ported from Blur.exe 1.2).** `C_SplashCamera::Render` (0x00b2a5b0) draws through `Device()->BeginVertices(TriangleList, 6 * n, 20, decl, false)`: corners 0,1,2 and 3,0,2, the repeated corners 0 and 2 written with the fade alone (no refraction alphaFactor). `Graphics.Render.PostProcess.MotionBlur.Enable` defaults on (registration 0x00e19cb0, global 0x0114c7fc). `C_MotionBlurReduced::Display` (0x00668d10) runs on PC: InvalidateState, DefaultStates, shader, SetBlendMode(Solid), `I_PostProcess::SetViewport` (0x006a04c0: resolve into the manager render texture, chain texture = that), then the console-order pass; `DownsampleStencilBufferToAlpha` (0x0065d680) samples the chain texture (manager +0x38) and `Render::GetGlobalStencilBuffer` (0x006a1940). The post-process layer end (0x00419340) runs motion blur and DoF only while `Amax.Views.Main.PrepassEnable` is on, else clears the tone map's motion-blur texture. `C_GameWorld` (0x00420740) sets the splash refraction texture to the motion-blur target only with one view and graphical detail > 1, else NULL. Blur 1 PC splash types seen: `graphics/textures/splash/Dirt.texture` (plain path). Aug 31 Storm: `water.texture` + `waterrefract.texture`, RefractionIntensity 0.8 and 1.0 (refraction path). Without SetViewport the chain texture holds the previous frame's last bloom level (the Gaussian chain ends at 480x270 / 30x16), which made refracting drops black and darkened the near road.
+
+## Kanzen AID generation (T100, 2026-09-26)
+
+The PC reader `AmaxAIR::LoadAITrackData` accepts a little-endian float 6.0
+header. `LoadVersionSix` reads top-level routes with names, links, flags, and
+sample arrays. Each sample has a source position, road width and left direction,
+an unused 3D vector, vertical bounds, then eleven 25-byte lateral line records.
+A line holds float curvature, float forward distance, int point flags, float
+road height, float lateral fraction, byte surface flags and float angle. The PC
+reader discards the flags and angle. After the routes comes a Logic adjacency cache:
+one row per Logic sample, each with `(sample index, route name)` entries. The
+reader immediately calls `CTrackDataAI::CalculateTrackData`, which needs a
+route flagged `ROUTE_LOGIC_ZONE` (0x20). The game derives the `.aid` path from the
+City and Route tags in `C_LevelState::Finished`.
+
+The catalog has 34 AID paths on each Nov 4/9/10 disc, 35 on Aug 31 (the extra
+is `uk_brighton_storm_1.aid`), and none for most Kanzen-only routes. Both
+Liverpool files on the November discs are named `route_01_docklands.aid` and
+`route_02_the_strand.aid`. Blur2Test's pinned Nov 10 actor-graph export identifies
+Dubai route 4 (`Route 04 - Marina`) as the one missing-AID route with a decoded
+route-wide `AIDataActor`/`AIRaceLineActor` trace: 132 authored points plus loop
+closure, exported as BRSP v4. Its largest point gap is 160.4 m. Dubai routes
+1–3 have no active AI actor path in any of the four healthy prototypes;
+ski_resort route 3 has multiple link arrays whose route-wide join is still
+unknown. The other new routes therefore require a reviewed route trace from
+their own disc's race setup and road before useful `.aid` data can be generated.
+
+`BlurX/code/tools/kanzen_aid/generate.py` takes an embedded-actor BRSP v4
+file validated against its `race_spline_sources.json` manifest, or a reviewed
+JSON cross-section trace, resamples at about 4 m and writes AID v6
+with Main/MainLoop and Logic routes, eleven derived lanes inset 20% from each
+road edge by default (native Storm's lane offsets occupy about 0.26–0.81 of
+its road width), engine-formula curvature, and a matching Logic graph. Values
+not read by the PC loader are zero; the vertical margin defaults to 3 m and is
+recorded. The file and a provenance sidecar go under
+`BlurX/_work/run/aidcache/<disc>/...` after review,
+which BlurX mounts only for that disc. The output is generated AI guidance,
+not a reconstruction of the unreleased build's missing native AID. The first
+Dubai route 4 candidate was 606,125 bytes (910 samples), and Brul's independent
+AID parser accepted its two routes and 910-node Logic graph. A later comparison
+against the disc's decoded `physics_main_*` and `physics_route_*` collision
+found only 92.3% racing-point support after resampling; at sample 470 the
+spline height is about 68.9 m while the collision beneath it is 35.6 m. This
+stretch includes authored actor points 71–77 whose heights also disagree with
+the decoded collision, so the mismatch is not solely interpolation across the
+160.4 m source gap. The candidate was removed from the active cache. Collision
+is used as a road surface check and to measure lateral edges for an already
+reviewed route; the prototype's short barriers are not used to select the path
+through junctions.
+No generated Kanzen AID is active or in-game verified yet.
