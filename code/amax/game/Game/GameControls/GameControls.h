@@ -9,6 +9,10 @@
 #include <Input/GameInput.h>
 #include <framework/application/UserControls.h>
 
+#if defined(PLATFORM_PC)
+namespace UI { class C_ControlConfig; }	// [Blur2PC]
+#endif
+
 namespace Game
 {
 
@@ -47,6 +51,14 @@ enum E_Button
 	E_Button_FireSlot2,
 	E_Button_FireSlot3,
 
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2) has three more game buttons here, values 58-60, bound by
+	// the keyboard layouts (SetupAmaxUserControls 0x00415a30) and read by the vehicle camera (0x00413b20)
+	// and the pickup logic (0x0047be80). Names are ours (the profile's key fields call them RearView,
+	// PowerUpFwd and PowerUpBwd).
+	E_Button_RearView,
+	E_Button_UsePickupForward,
+	E_Button_UsePickupBackward,
+
 	E_Button_Count,
 };
 
@@ -84,6 +96,14 @@ enum E_Axis
 	E_Axis_PhotoMoveUp,
 	E_Axis_DigitalSteering,
 
+	// [Blur2PC] retail Blur PC's photo camera (C_PhotoCamera2::GetControls, 0x0040ef50) reads four game axes
+	// of its own (retail values 13, 15, 16, 17) in place of the framework fly axes; SetupAmaxUserControls
+	// binds them to A/D, S/W and the arrow keys plus the pad sticks. Names are ours.
+	E_Axis_PhotoMoveX,
+	E_Axis_PhotoMoveZ,
+	E_Axis_PhotoRotateX,
+	E_Axis_PhotoRotateY,
+
 	E_Axis_Count,
 };
 
@@ -99,6 +119,14 @@ enum E_UiAxis
 };	
 
 void SetupAmaxUserControls( Input::C_GameInput* pGameInput, Input::C_Device* pKeyboard, Input::C_Device* pMouse, Input::C_Device* pPad );
+
+#if defined(PLATFORM_PC)
+// [Blur2PC] retail Blur PC's SetupAmaxUserControls (Blur.exe 1.2, 0x00415a30): keyboard layout 0 or 1 (the
+// profile's choice in Options > Keyboard), split-screen key tables, the pad mapping of the profile's controller
+// configuration (NULL: no pad game buttons, as at boot) and the split-screen column of the menu keys.
+void SetupAmaxUserControlsPC( Input::C_GameInput* pGameInput, Input::C_Device* pPad, Input::C_Device* pKeyboard, Input::C_Device* pMouse,
+							  S32 keyboardLayout, bool splitScreen, const UI::C_ControlConfig* pPadConfig, S32 menuKeyColumn );
+#endif
 
 } // namespace Game
 

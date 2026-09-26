@@ -758,6 +758,12 @@ void C_VehicleComponent_Pickups::Update()
 
 			// Note: GetButtonReleasedDebounced needed for charged shots to work properly
 			bool do_pickup=Input::GetGameInput(controller)->GetButtonPressedDebounced(Game::E_Button_UsePickup);
+#ifdef PLATFORM_PC
+			// [Blur2PC] retail Blur PC (0x0047be80): the forward and backward fire buttons fire too
+			bool do_pickup_forward=Input::GetGameInput(controller)->GetButtonPressedDebounced(Game::E_Button_UsePickupForward);
+			bool do_pickup_backward=Input::GetGameInput(controller)->GetButtonPressedDebounced(Game::E_Button_UsePickupBackward);
+			do_pickup = do_pickup || do_pickup_forward || do_pickup_backward;
+#endif
 			bool do_discard=Input::GetGameInput(controller)->GetButtonPressedDebounced(Game::E_Button_DiscardPickup);
 
 			bool do_fireslot1=Input::GetGameInput(controller)->GetButtonPressedDebounced(Game::E_Button_FireSlot1);
@@ -773,8 +779,15 @@ void C_VehicleComponent_Pickups::Update()
 			bool do_convert_to_health=Input::GetGameInput(controller)->GetButtonPressedDebounced( Game::E_Button_Convert_To_Health );
 			bool do_clone_selected=Input::GetGameInput(controller)->GetButtonPressedDebounced( Game::E_Button_Clone_Selected_Perk );
 
+#ifdef PLATFORM_PC
+			// [Blur2PC] retail Blur PC: the fire buttons force the direction; the d-pad reaches the pitch axis instead
+			// of the menu pad buttons (SetupAmaxUserControlsPC)
+			bool force_backwardFire = Input::GetGameInput(controller)->GetAxisValue(Game::E_Axis_Pitch) <= g_debugBackwardFirePitch || do_pickup_backward;
+			bool force_forwardFire	= Input::GetGameInput(controller)->GetAxisValue(Game::E_Axis_Pitch) >= g_debugForwardFirePitch || do_pickup_forward;
+#else
 			bool force_backwardFire = Input::GetGameInput(controller)->GetAxisValue(Game::E_Axis_Pitch) <= g_debugBackwardFirePitch || Input::GetGameInput(controller)->GetButtonPressed(Game::E_UiButton_Pad_Down);
 			bool force_forwardFire	= Input::GetGameInput(controller)->GetAxisValue(Game::E_Axis_Pitch) >= g_debugForwardFirePitch || Input::GetGameInput(controller)->GetButtonPressed(Game::E_UiButton_Pad_Up);
+#endif
 
 			// Note if we are in last gasp mode.. the UI would like to know about do_pickup so it can detonate the car when the user presses use pickup
 			if(pActor->GetIsInLastGaspMode() && do_pickup)

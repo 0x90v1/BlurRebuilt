@@ -23,10 +23,18 @@
 #include "system/serialise/C_MemoryStream.h"
 #include "Game/Game.h"
 
+#ifdef PLATFORM_PC
+#include <Input/KeyboardPC.h>	// [Blur2PC] keyboard options
+#include <stddef.h>
+#endif
+
 Debug::Logger &g_GameProfileLogger( Debug::GetLogger("Amax.GameProfile") );
 extern Debug::Bool g_ForceProfileRebuild;
 
 const int GetSaveGameVersion();
+#ifdef PLATFORM_PC
+const int GetLoadingSaveGameVersion();	// [Blur2PC]
+#endif
 
 namespace Game
 {
@@ -34,7 +42,11 @@ namespace Game
 C_GameProfile::C_GameProfile():
 	m_multiplayerProfileStorage(GetSaveGameVersion())
 {
-
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail's profiles are static objects, so the keyboard layout reads 0 until set; ProfileOptions::Init
+	// (0x00b9e790) does not touch it
+	mOptions.mKeyboardLayout = 0;
+#endif
 }
 
 void C_GameProfile::Init(int controller_index)
@@ -264,7 +276,107 @@ void ProfileOptions::Init()
 	mAudioSpeakerAngleRL	= mDefaultAudioSpeakerAngleRL;
 
 	mMatchingRule = RacerNet::eMatchingRuleAny;
+
+#ifdef PLATFORM_PC
+	InitKeyboard();
+#endif
 }
+
+#ifdef PLATFORM_PC
+// [Blur2PC] Retail Blur PC keyboard options (Blur.exe 1.2). Key names of the custom layout as the UI shows them
+// (retail table 0x00eade48; the misspelt right bracket is retail's).
+struct C_KeyName
+{
+	S32			m_Key;
+	const char*	m_Name;
+};
+
+static const C_KeyName kKeyNames[] =
+{
+	{ 1, "CMN_1" }, { 2, "CMN_2" }, { 3, "CMN_3" }, { 4, "CMN_4" }, { 5, "CMN_5" }, { 6, "CMN_6" }, { 7, "CMN_7" },
+	{ 8, "CMN_8" }, { 9, "CMN_9" }, { 10, "CMN_0" }, { 11, "CMN_KEYS_MINUS" }, { 12, "CMN_KEYS_PLUS" },
+	{ 13, "CMN_KEYS_BACKSPACE" }, { 14, "CMN_KEYS_TAB" }, { 15, "CMN_Q" }, { 16, "CMN_W" }, { 17, "CMN_E" },
+	{ 18, "CMN_R" }, { 19, "CMN_T" }, { 20, "CMN_Y" }, { 21, "CMN_U" }, { 22, "CMN_I" }, { 23, "CMN_O" }, { 24, "CMN_P" },
+	{ 25, "CMN_KEYS_LSQR_BRACKET" }, { 26, "CMN_KEYS_RSQR_BRAQCKET" }, { 27, "CMN_KEYS_RETURN" }, { 28, "CMN_KEYS_LCTRL" },
+	{ 29, "CMN_A" }, { 30, "CMN_S" }, { 31, "CMN_D" }, { 32, "CMN_F" }, { 33, "CMN_G" }, { 34, "CMN_H" }, { 35, "CMN_J" },
+	{ 36, "CMN_K" }, { 37, "CMN_L" }, { 38, "CMN_KEYS_SEMI_COLON" }, { 39, "CMN_KEYS_APOSTROPHE" }, { 40, "CMN_KEYS_GRAVE" },
+	{ 41, "CMN_KEYS_LSHIFT" }, { 42, "CMN_KEYS_BSLASH" }, { 43, "CMN_Z" }, { 44, "CMN_X" }, { 45, "CMN_C" }, { 46, "CMN_V" },
+	{ 47, "CMN_B" }, { 48, "CMN_N" }, { 49, "CMN_M" }, { 50, "CMN_KEYS_COMMA" }, { 51, "CMN_KEYS_FULLSTOP" },
+	{ 52, "CMN_KEYS_FSLASH" }, { 53, "CMN_KEYS_RSHIFT" }, { 54, "CMN_KEYS_NUMPAD_ASTERISK" }, { 55, "CMN_KEYS_LALT" },
+	{ 56, "CMN_KEYS_SPACE" }, { 58, "CMN_KEYS_F1" }, { 59, "CMN_KEYS_F2" }, { 60, "CMN_KEYS_F3" }, { 61, "CMN_KEYS_F4" },
+	{ 62, "CMN_KEYS_F5" }, { 63, "CMN_KEYS_F6" }, { 64, "CMN_KEYS_F7" }, { 65, "CMN_KEYS_F8" }, { 66, "CMN_KEYS_F9" },
+	{ 67, "CMN_KEYS_F10" }, { 70, "CMN_KEYS_NUMPAD_7" }, { 71, "CMN_KEYS_NUMPAD_8" }, { 72, "CMN_KEYS_NUMPAD_9" },
+	{ 73, "CMN_KEYS_NUMPAD_MINUS" }, { 74, "CMN_KEYS_NUMPAD_4" }, { 75, "CMN_KEYS_NUMPAD_5" }, { 76, "CMN_KEYS_NUMPAD_6" },
+	{ 77, "CMN_KEYS_NUMPAD_PLUS" }, { 78, "CMN_KEYS_NUMPAD_1" }, { 79, "CMN_KEYS_NUMPAD_2" }, { 80, "CMN_KEYS_NUMPAD_3" },
+	{ 81, "CMN_KEYS_NUMPAD_0" }, { 82, "CMN_KEYS_NUMPAD_POINT" }, { 84, "CMN_KEYS_F11" }, { 85, "CMN_KEYS_F12" },
+	{ 105, "CMN_KEYS_NUMPAD_RETURN" }, { 106, "CMN_KEYS_RCTRL" }, { 115, "CMN_KEYS_NUMPAD_SLASH" }, { 117, "CMN_KEYS_RALT" },
+	{ 119, "CMN_KEYS_HOME" }, { 120, "CMN_KEYS_UP_ARROW" }, { 121, "CMN_KEYS_PAGE_UP" }, { 122, "CMN_KEYS_LEFT_ARROW" },
+	{ 123, "CMN_KEYS_RIGHT_ARROW" }, { 124, "CMN_KEYS_END" }, { 125, "CMN_KEYS_DOWN_ARROW" }, { 126, "CMN_KEYS_PAGE_DOWN" },
+	{ 127, "CMN_KEYS_INSERT" }, { 128, "CMN_KEYS_DELETE" },
+};
+
+// Retail ProfileOptions::Init (0x00b9e790): not custom, the custom keys start as layout 0
+void ProfileOptions::InitKeyboard()
+{
+	mKeyboardIsCustom	= 0;
+	mKeyThrottle		= Input::C_Keyboard::E_Button_Q;
+	mKeyBrake			= Input::C_Keyboard::E_Button_A;
+	mKeyEBrake			= Input::C_Keyboard::E_Button_Down;
+	mKeyFire			= Input::C_Keyboard::E_Button_RControl;
+	mKeySwitchPerk		= Input::C_Keyboard::E_Button_Up;
+	mKeyDrop			= Input::C_Keyboard::E_Button_D;
+	mKeyChangeView		= Input::C_Keyboard::E_Button_V;
+	mKeyPause			= Input::C_Keyboard::E_Button_P;
+	mKeyRearView		= Input::C_Keyboard::E_Button_Tab;
+	mKeyPowerUpFwd		= Input::C_Keyboard::E_Button_W;
+	mKeyPowerUpBwd		= Input::C_Keyboard::E_Button_S;
+	mKeySteerLeft		= Input::C_Keyboard::E_Button_Left;
+	mKeySteerRight		= Input::C_Keyboard::E_Button_Right;
+}
+
+// Retail 0x00b9ef70: IsCustom and the name of each key; a key with no name is left out
+void ProfileOptions::SendKeyboardToLua( lua_State* pState )
+{
+	Lua::AddDataMember(pState, "IsCustom", (S32)mKeyboardIsCustom );
+
+	for( U32 i = 0; i < lengthof( kKeyNames ); i++ )
+	{
+		const C_KeyName& key = kKeyNames[i];
+		if( mKeyThrottle == key.m_Key )		Lua::AddDataMember(pState, "Throttle", key.m_Name );
+		if( mKeyBrake == key.m_Key )		Lua::AddDataMember(pState, "Brake", key.m_Name );
+		if( mKeyEBrake == key.m_Key )		Lua::AddDataMember(pState, "EBrake", key.m_Name );
+		if( mKeyChangeView == key.m_Key )	Lua::AddDataMember(pState, "ChangeView", key.m_Name );
+		if( mKeyRearView == key.m_Key )		Lua::AddDataMember(pState, "RearView", key.m_Name );
+		if( mKeyPause == key.m_Key )		Lua::AddDataMember(pState, "Pause", key.m_Name );
+		if( mKeySwitchPerk == key.m_Key )	Lua::AddDataMember(pState, "SwitchPerk", key.m_Name );
+		if( mKeyFire == key.m_Key )			Lua::AddDataMember(pState, "Fire", key.m_Name );
+		if( mKeyDrop == key.m_Key )			Lua::AddDataMember(pState, "Drop", key.m_Name );
+		if( mKeyPowerUpFwd == key.m_Key )	Lua::AddDataMember(pState, "PowerUpFwd", key.m_Name );
+		if( mKeyPowerUpBwd == key.m_Key )	Lua::AddDataMember(pState, "PowerUpBwd", key.m_Name );
+		if( mKeySteerLeft == key.m_Key )	Lua::AddDataMember(pState, "SteerLeft", key.m_Name );
+		if( mKeySteerRight == key.m_Key )	Lua::AddDataMember(pState, "SteerRight", key.m_Name );
+	}
+}
+
+// Retail 0x00b9f170: numbers only; a missing or non-numeric field keeps its value
+void ProfileOptions::GetKeyboardFromLua( lua_State* pState )
+{
+	Lua::GetDataMember(pState, "IsCustom", mKeyboardIsCustom, true );
+	Lua::GetDataMember(pState, "Throttle", mKeyThrottle, true );
+	Lua::GetDataMember(pState, "Brake", mKeyBrake, true );
+	Lua::GetDataMember(pState, "EBrake", mKeyEBrake, true );
+	Lua::GetDataMember(pState, "ChangeView", mKeyChangeView, true );
+	Lua::GetDataMember(pState, "RearView", mKeyRearView, true );
+	Lua::GetDataMember(pState, "Pause", mKeyPause, true );
+	Lua::GetDataMember(pState, "SwitchPerk", mKeySwitchPerk, true );
+	Lua::GetDataMember(pState, "Fire", mKeyFire, true );
+	Lua::GetDataMember(pState, "Drop", mKeyDrop, true );
+	Lua::GetDataMember(pState, "PowerUpFwd", mKeyPowerUpFwd, true );
+	Lua::GetDataMember(pState, "PowerUpBwd", mKeyPowerUpBwd, true );
+	Lua::GetDataMember(pState, "SteerLeft", mKeySteerLeft, true );
+	Lua::GetDataMember(pState, "SteerRight", mKeySteerRight, true );
+}
+#endif
 
 void ProfileOptions::SendToLua( lua_State* pState )
 {
@@ -547,6 +659,17 @@ void C_GameProfile::Deserialise( Sys::BinaryDeserialiserAutoEndian& stream )
 		mRoutesWon.Insert(id);
 	}
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] saves before T103 (version 1373) end the options at the multiplayer matching rule; the keyboard
+	// options then start from their defaults
+	if( GetLoadingSaveGameVersion() == 1373 )
+	{
+		in.Read( &mOptions, (offsetof(ProfileOptions, mKeyboardIsCustom) + 3) & ~3 );
+		mOptions.InitKeyboard();
+		mOptions.mKeyboardLayout = 0;
+	}
+	else
+#endif
 	in.Read( &mOptions, sizeof(ProfileOptions) );
 
 	int numHistory;
@@ -767,11 +890,16 @@ void C_GameProfile::SetSystemDefaults()
 	}
 #endif
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (0x00b9f3a0) sets up keyboard and pad from the profile (0x00c2fe70)
+	UI::SetupPlayerControls( mControllerIndex );
+#else
 	UI::C_UiXtConfig* pUiConfig = UI::C_UiXtConfig::Instance();
 	if( pUiConfig )
 	{
 		pUiConfig->m_ControlConfigs[ (S32)mOptions.mControlIndex ].RemapGameControls( Input::GetGameInput(mControllerIndex), C_GameApp::GetInstance()->GetPad(mControllerIndex) );
 	}
+#endif
 }
 
 bool C_GameProfile::ShouldPlayVideo( eSPVideoConfig videoType )

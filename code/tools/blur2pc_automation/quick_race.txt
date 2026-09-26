@@ -18,9 +18,11 @@
 0 wait 60 Blur2PC.RaceState() == "Starting"
 0 shot grid.png
 0 wait 30 Blur2PC.RaceState() == "Racing"
-0 down UP # throttle from the green light
+0 down Q # throttle, keyboard layout 1 (T103); older builds throttle on UP
+0 down UP
 6 shot drive1.png
 12 shot drive2.png
 18 shot drive3.png
+19 up Q
 19 up UP
 20 quit

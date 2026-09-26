@@ -239,8 +239,19 @@ void C_VehicleFeed::Update(F32 period)
 	Input::C_GameInput* input = GameInput();
 	if (input)
 	{		
+#ifdef PLATFORM_PC
+		// [Blur2PC] retail Blur PC (0x00413b20): the rear view button looks straight back
+		if (input->GetButtonPressed( Game::E_Button_RearView ))
+		{
+			m_LookX = 0.f;
+			m_LookY = -1.f;
+		}
+		else
+#endif
+		{
 		m_LookX = input->GetAxisSignedValue( Framework::E_Axis_FlyRotateX );
 		m_LookY = input->GetAxisSignedValue( Framework::E_Axis_FlyRotateY );
+		}
 	}
 
 	// Also calculate look angle:

@@ -49,7 +49,24 @@ UI::C_UILua* g_pGameProfileLua;
 extern Debug::Logger &gLUAMessageLogger;
 const char* saveGameFilename = "debug_save.amax";
 
+#ifdef PLATFORM_PC
+// [Blur2PC] 1374: the profile options carry retail Blur PC's keyboard options (T103). 1373 saves still load.
+const int saveGameVersion = 1374; // Increment if anything saved has changed.
+static const int kPreviousSaveGameVersion = 1373;
+static int s_LoadingSaveGameVersion = saveGameVersion;
+
+static bool IsLoadableSaveGameVersion( const int version )
+{
+	return version == saveGameVersion || version == kPreviousSaveGameVersion;
+}
+
+const int GetLoadingSaveGameVersion()
+{
+	return s_LoadingSaveGameVersion;
+}
+#else
 const int saveGameVersion = 1373; // Increment if anything saved has changed.
+#endif
 
 const int GetSaveGameVersion()
 {
@@ -226,11 +243,18 @@ static bool LoadGameImpl( Sys::BinaryDeserialiserAutoEndian& serial )
 
 	int currentVersion;
 	serial >> currentVersion;
+#ifdef PLATFORM_PC
+	if(!IsLoadableSaveGameVersion(currentVersion) || g_ForceProfileRebuild)
+#else
 	if(currentVersion != saveGameVersion || g_ForceProfileRebuild)
+#endif
 	{
 		LOGDEBUG(gLUAMessageLogger, "Local save game version is %i but your version is %i, so must recreate save.", saveGameVersion, currentVersion);
 		return false;
 	}
+#ifdef PLATFORM_PC
+	s_LoadingSaveGameVersion = currentVersion;
+#endif
 
 	C_GameProfile* gameProf = C_GameProfileManager::Instance().GetPrimaryProfile();
 	serial >> *gameProf;
@@ -569,7 +593,11 @@ static int IsSaveGameValid(lua_State *pState)
 
 	int currentVersion;
 	serial >> currentVersion;
+#ifdef PLATFORM_PC
+	if(IsLoadableSaveGameVersion(currentVersion))
+#else
 	if(currentVersion == saveGameVersion)
+#endif
 	{
 		lua_pushboolean(pState,true);
 	}

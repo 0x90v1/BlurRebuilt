@@ -6,6 +6,10 @@ GUI =
 	CanExit = function( _GUI )
 		-- Save		
 		if UIGlobals.SaveOptions == true then
+			if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+				-- [Blur2PC] retail Blur PC stores the keyboard options before applying the options
+				Amax.UpdateCustomKeyboardControls( UIGlobals.OptionsTable )
+			end
 			Amax.Options( UIGlobals.OptionsTable )
 			
 			StartAsyncSave()
@@ -36,6 +40,24 @@ function Init()
 	
 	if IsTable( UIGlobals.OptionsTable ) == false then
 		UIGlobals.OptionsTable = Amax.Options()
+
+		if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+			-- [Blur2PC] retail Blur PC adds the keyboard options (key names; retail leaves Drop out)
+			local keys = Amax.UpdateCustomKeyboardControls()
+			UIGlobals.OptionsTable.IsCustom		= keys.IsCustom
+			UIGlobals.OptionsTable.Throttle		= keys.Throttle
+			UIGlobals.OptionsTable.Brake		= keys.Brake
+			UIGlobals.OptionsTable.SteerLeft	= keys.SteerLeft
+			UIGlobals.OptionsTable.SteerRight	= keys.SteerRight
+			UIGlobals.OptionsTable.EBrake		= keys.EBrake
+			UIGlobals.OptionsTable.Fire			= keys.Fire
+			UIGlobals.OptionsTable.SwitchPerk	= keys.SwitchPerk
+			UIGlobals.OptionsTable.PowerUpFwd	= keys.PowerUpFwd
+			UIGlobals.OptionsTable.PowerUpBwd	= keys.PowerUpBwd
+			UIGlobals.OptionsTable.ChangeView	= keys.ChangeView
+			UIGlobals.OptionsTable.Pause		= keys.Pause
+			UIGlobals.OptionsTable.RearView		= keys.RearView
+		end
 	end
 	
 	if IsTable( UIGlobals.DefaultOptionsTable ) == false then
@@ -57,8 +79,18 @@ function Init()
 		num = num + 1
 	end
 	
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] retail Blur PC: Keyboard (1) then the controller configuration (2), both left out in a
+		-- split-screen race; audio and graphics move to 3 and 4
+		if UIGlobals.IsIngame == false or IsSplitScreen() == false then
+			Mp_SetupMenuItemHelpText( GUI.MenuId, 1,	UIText.CMN_OPT_CONTROL,			UIText.CMN_HLP_OPT_KEYBOARD,			"Keyboard_Mouse",		"common_icons" )
+			Mp_SetupMenuItemHelpText( GUI.MenuId, 2,	UIText.CMN_OPT_CONTROLS_CONFIG,	UIText.CMN_HLP_OPT_CONTROLS_CONFIG,		controller_icon_string,	"common_icons" )
+		end
+		num = num + 2
+	else
 	Mp_SetupMenuItemHelpText( GUI.MenuId, 1,	UIText.CMN_OPT_CONTROLS_CONFIG,	UIText.CMN_HLP_OPT_CONTROLS_CONFIG,		controller_icon_string,	"common_icons" )
 	num = num + 1
+	end
 	
 	local show_audio_image = true
 	
@@ -68,12 +100,13 @@ function Init()
 	
 	if show_audio_image == true then
 		if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
-			-- [Blur2PC] retail Blur PC offers Graphics here; image adjust (gamma) is reached from the graphics screen
-			Mp_SetupMenuItemHelpText( GUI.MenuId, 2,	UIText.CMN_OPT_GRAPHICS,	UIText.CMN_HLP_OPT_GRAPHICS,			"Graphics",				"common_icons" )
+			-- [Blur2PC] retail Blur PC offers Audio (3) and Graphics (4); image adjust (gamma) is reached from the graphics screen
+			Mp_SetupMenuItemHelpText( GUI.MenuId, 3,	UIText.CMN_OPT_AUDIO,			UIText.CMN_HLP_OPT_AUDIO,				"large_speaker",		"common_icons" )
+			Mp_SetupMenuItemHelpText( GUI.MenuId, 4,	UIText.CMN_OPT_GRAPHICS,		UIText.CMN_HLP_OPT_GRAPHICS,			"Graphics",				"common_icons" )
 		else
 		Mp_SetupMenuItemHelpText( GUI.MenuId, 2,	UIText.CMN_OPT_IMAGE_ADJUST,	UIText.CMN_HLP_OPT_IMAGE_ADJUST,		"brightness",			"common_icons" )
-		end
 		Mp_SetupMenuItemHelpText( GUI.MenuId, 3,	UIText.CMN_OPT_AUDIO,			UIText.CMN_HLP_OPT_AUDIO,				"large_speaker",		"common_icons" )
+		end
 		num = num + 2
 	end
 	
@@ -172,16 +205,23 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 		local selected = UIButtons.GetSelection( GUI.MenuId )
 		if selected == 0 then
 			GoScreen("Shared\\Options_DrivingAssists.lua")
+		elseif UIEnums.CurrentPlatform == UIEnums.Platform.PC and selected >= 1 and selected <= 4 then
+			-- [Blur2PC] retail Blur PC's menu: Keyboard, controller configuration, Audio, Graphics
+			if selected == 1 then
+				GoScreen("Shared\\Options_Control.lua")
+			elseif selected == 2 then
+				GoScreen("Shared\\Options_Controller.lua")
+			elseif selected == 3 then
+				UIGlobals.SaveOptions = true
+				GoScreen("Shared\\Options_Audio.lua")
+			else
+				UIGlobals.SaveGraphicOptions = true
+				GoScreen("Shared\\Options_Graphics.lua")
+			end
 		elseif selected == 1 then
 			GoScreen("Shared\\Options_Controller.lua")
 		elseif selected == 2 then
-			if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
-				-- [Blur2PC] retail Blur PC: the graphics screen backs up the settings it opens with
-				UIGlobals.SaveGraphicOptions = true
-				GoScreen("Shared\\Options_Graphics.lua")
-			else
 			GoScreen("Shared\\Options_ImageAdjust.lua")
-			end
 		elseif selected == 3 then
 			-- Just by looking at the audio options means we're going to save
 			UIGlobals.SaveOptions = true

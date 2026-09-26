@@ -3023,6 +3023,56 @@ static int GetOptionsDefaults( lua_State* pState )
 	return 0;
 }
 
+#ifdef PLATFORM_PC
+// [Blur2PC] Retail Blur PC keyboard options (Options > Keyboard, Shared\Options_Control.lua).
+// Amax.UpdateCustomKeyboardControls (retail 0x00b83d80). No argument: a table with IsCustom and the key names
+// of the custom layout. (table [, layout]): a numeric layout becomes the profile's keyboard layout, then,
+// outside split screen, IsCustom and the numeric keys are read from the table. The controls are applied by
+// the Amax.Options call that follows (UI::SetupPlayerControls).
+static int UpdateCustomKeyboardControls( lua_State* pState )
+{
+	C_GameProfile* pProfile = C_GameProfileManager::Instance().GetPrimaryProfile();
+	if( !pProfile )
+		return 0;
+
+	if( lua_type( pState, 1 ) == LUA_TNONE )
+	{
+		lua_newtable( pState );
+		pProfile->mOptions.SendKeyboardToLua( pState );
+		return 1;
+	}
+
+	if( lua_type( pState, 1 ) != LUA_TTABLE )
+	{
+		UI::g_pUILua->StackDump( pState, "Set CustomKeyboardControls - incorrect arguments\n");
+		return 0;
+	}
+
+	if( lua_type( pState, 2 ) == LUA_TNUMBER )
+	{
+		pProfile->mOptions.mKeyboardLayout = (S8)(S32)lua_tonumber( pState, 2 );
+		lua_pop( pState, 1 );
+	}
+
+	if( C_GameApp::GetInstance()->GetRaceBookLayer()->GetGameMode() != Game::E_GameMode_SplitScreen )
+		pProfile->mOptions.GetKeyboardFromLua( pState );
+
+	return 0;
+}
+
+// Amax.GetPCKeyboard (retail 0x00b86930): the Windows keyboard layout name ("0000040C" is French AZERTY,
+// for which the keyboard screen swaps the Q/A and Z/W labels)
+static int GetPCKeyboard( lua_State* pState )
+{
+	char layoutName[ KL_NAMELENGTH ];
+	if( GetKeyboardLayoutNameA( layoutName ) )
+		lua_pushstring( pState, layoutName );
+	else
+		lua_pushstring( pState, "" );
+	return 1;
+}
+#endif
+
 static int Options( lua_State* pState )
 {
 	C_GameProfile* pProfile = C_GameProfileManager::Instance().GetPrimaryProfile(); // Do we need to set different profiles here?
@@ -3056,9 +3106,15 @@ static int Options( lua_State* pState )
 
 	// Set
 	S32 controller = SysProfile::C_Manager::Instance().GetPrimaryPadNo();
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (0x00b88b90) sets up keyboard and pad from the profile (0x00c2fe70), except in split screen
+	if( C_GameApp::GetInstance()->GetRaceBookLayer()->GetGameMode() != Game::E_GameMode_SplitScreen )
+		UI::SetupPlayerControls( controller );
+#else
 	UI::C_UiXtConfig* pUiConfig = UI::C_UiXtConfig::Instance();
 	if( pUiConfig )
 		pUiConfig->m_ControlConfigs[ (S32)pProfile->mOptions.mControlIndex ].RemapGameControls( Input::GetGameInput(controller), C_GameApp::GetInstance()->GetPad(controller) );
+#endif
 
 	SetGammaByIndex( pProfile->mOptions.mGammaIndex );
 
@@ -7227,6 +7283,8 @@ static const luaL_reg amax_lib[] =
 #ifdef PLATFORM_PC
 	// [Blur2PC] retail Blur PC graphics options
 	{"UpdateGraphicsOptions",		UpdateGraphicsOptions},
+	{"UpdateCustomKeyboardControls",	UpdateCustomKeyboardControls},	// [Blur2PC] retail Blur PC keyboard options
+	{"GetPCKeyboard",				GetPCKeyboard},
 	{"GraphicResolutionCount",		GraphicResolutionCount},
 	{"GraphicAACount",				GraphicAACount},
 	{"GetScreenResolution",			GetScreenResolution},

@@ -1,7 +1,14 @@
 #include "Stdafx.h"
-#include <Input/GameInputMapping.h>	// [Blur2PC] C_ButtonInputCombiner
 #include "UiXtConfig.h"
 #include "VideoConfig.h"
+
+#if defined(PLATFORM_PC)
+// [Blur2PC] UI::SetupPlayerControls
+#include <GameApp.h>
+#include <Game/GameControls/GameControls.h>
+#include <GameLogic/Profile/GameProfileManager.h>
+#include <ui/Game/Profiles/ProfileInterface.h>
+#endif
 
 #include <input\PadVirtual.h>
 #if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
@@ -224,19 +231,6 @@ XT_END_LIBRARY
 namespace UI
 {
 
-#if defined(PLATFORM_PC)
-// [Blur2PC] On PC the remap replaced every driving binding with an Xbox pad button, which
-// removed the keyboard controls set up by Game::SetupAmaxUserControls. The remap now keeps the
-// keyboard binding and adds the pad button next to it. This subclass marks combiners made here,
-// so a later remap (profiles are reset several times) unwraps them and does not nest.
-namespace
-{
-	class C_RemapCombiner : public Input::C_ButtonInputCombiner
-	{
-	};
-}
-#endif
-
 void C_ControlConfig::RemapGameControls( Input::C_GameInput* pGameInput, Input::C_Device* pPad )
 {
 	if( !pGameInput || !pPad )
@@ -259,26 +253,11 @@ void C_ControlConfig::RemapGameControls( Input::C_GameInput* pGameInput, Input::
 		}
 
 		if (changeControl)
-		{
-#if defined(PLATFORM_PC)
-			Input::C_ButtonInput* pKeyboardInput = pGameInput->GetButtonInput( i );
-			if (C_RemapCombiner* pPrevious = dynamic_cast<C_RemapCombiner*>(pKeyboardInput))
-				pKeyboardInput = pPrevious->GetButtonInputCount() > 0 ? pPrevious->GetButtonInput( 0 ) : NULL;
-			Input::C_ButtonInput* pPadInput = CreateButtonInput( pPad, i );
-			C_RemapCombiner* pBoth = new C_RemapCombiner();
-			if (pKeyboardInput)
-				pBoth->AddButtonInput( pKeyboardInput );	// referenced before SetButtonInput releases the old binding
-			if (pPadInput)
-				pBoth->AddButtonInput( pPadInput );
-			pGameInput->SetButtonInput( i, pBoth );
-#else
 			pGameInput->SetButtonInput( i, CreateButtonInput( pPad, i ) );
-#endif
-		}
 	}
 }
 
-Input::C_ButtonInput* C_ControlConfig::CreateButtonInput( Input::C_Device* pPad, const U32 buttonId )
+Input::C_ButtonInput* C_ControlConfig::CreateButtonInput( Input::C_Device* pPad, const U32 buttonId ) const	// [Blur2PC] const
 {
 #if defined(PLATFORM_PS3)
 	if( m_GameFunctionA == buttonId )
@@ -441,5 +420,23 @@ void C_UiXtConfig::SorceryCallback( XtEventType type, XtRecord* pRecord, C_UiXtC
 			break;
 	}
 }
+
+#if defined(PLATFORM_PC)
+// [Blur2PC] Retail Blur PC applies a player's controls from the profile (Blur.exe 1.2, 0x00c2fe70): the keyboard
+// layout chosen in Options > Keyboard and the pad mapping of the profile's controller configuration, through
+// SetupAmaxUserControls. Nothing is done while every pad drives the menus (AllowAllPadInput). Called where the
+// snapshot remapped the pad (C_GameProfile::SetSystemDefaults, Amax.Options).
+void SetupPlayerControls( const S32 controller )
+{
+	Game::C_GameProfile* pProfile = Game::C_GameProfileManager::Instance().GetProfile( controller );
+	C_UiXtConfig* pUiConfig = C_UiXtConfig::Instance();
+	if( !pProfile || !pUiConfig || C_ProfileInterface::Instance().AllowAllPadInput() )
+		return;
+
+	C_GameApp* pApp = C_GameApp::GetInstance();
+	Game::SetupAmaxUserControlsPC(	Input::GetGameInput( controller ), pApp->GetPad( controller ), pApp->GetKeyboard( controller ), pApp->GetMouse( controller ),
+									pProfile->mOptions.mKeyboardLayout, false, &pUiConfig->m_ControlConfigs[ (S32)pProfile->mOptions.mControlIndex ], 0 );
+}
+#endif
 
 }; // namespace UI

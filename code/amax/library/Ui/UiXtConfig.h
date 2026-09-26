@@ -101,8 +101,12 @@ public:
 	void					SendToLua( lua_State* pState );
 	void					RemapGameControls( Input::C_GameInput* pGameInput, Input::C_Device* pPad );
 
+#if !defined(PLATFORM_PC)
 private:
-	Input::C_ButtonInput*	CreateButtonInput( Input::C_Device* pPad, const U32 buttonId );
+#endif
+	// [Blur2PC] public and const on PC: retail's SetupAmaxUserControls (Game::SetupAmaxUserControlsPC) asks it
+	// for each game button's pad input
+	Input::C_ButtonInput*	CreateButtonInput( Input::C_Device* pPad, const U32 buttonId ) const;
 
 public:
 	XtLocId					m_Name;
@@ -230,6 +234,11 @@ public:
 private:
 	static C_UiXtConfig*				m_pInstance;
 };
+
+#if defined(PLATFORM_PC)
+// [Blur2PC] retail Blur PC 0x00c2fe70: apply the controller's profile (keyboard layout, pad configuration) to its game input
+void SetupPlayerControls( const S32 controller );
+#endif
 
 }; // namespace UI
 

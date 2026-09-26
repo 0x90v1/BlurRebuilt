@@ -243,10 +243,18 @@ void C_PhotoCamera2::GetControls()
 	if (!m_GameInput)
 		return;
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (0x0040ef50) reads the photo axes, which the keyboard reaches too
+	F32 x1 = m_GameInput->GetAxisSignedValue(Game::E_Axis_PhotoMoveX);
+	F32 y1 = m_GameInput->GetAxisSignedValue(Game::E_Axis_PhotoMoveZ);
+	F32 x2 = m_GameInput->GetAxisSignedValue(Game::E_Axis_PhotoRotateX);
+	F32 y2 = m_GameInput->GetAxisSignedValue(Game::E_Axis_PhotoRotateY);
+#else
 	F32 x1 = m_GameInput->GetAxisSignedValue(Framework::E_Axis_FlyMoveX);
 	F32 y1 = m_GameInput->GetAxisSignedValue(Framework::E_Axis_FlyMoveZ);
 	F32 x2 = m_GameInput->GetAxisSignedValue(Framework::E_Axis_FlyRotateX);
 	F32 y2 = m_GameInput->GetAxisSignedValue(Framework::E_Axis_FlyRotateY);
+#endif
 	bool zoom = m_GameInput->GetButtonPressed(Game::E_Button_PhotoZoom);
 	bool roll = m_GameInput->GetButtonPressed(Game::E_Button_PhotoRoll);
 

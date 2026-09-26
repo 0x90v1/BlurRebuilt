@@ -59,6 +59,11 @@ public:
 	void SendToLua( lua_State* pState );
 	void SendDefaultsToLua( lua_State* pState );
 	void GetFromLua( lua_State* pState );
+#ifdef PLATFORM_PC
+	void SendKeyboardToLua( lua_State* pState );
+	void GetKeyboardFromLua( lua_State* pState );
+	void InitKeyboard();
+#endif
 
 	U8 mGameDifficulty;
 	//U8 mSteeringAssist;
@@ -107,6 +112,27 @@ public:
 
 	// Multiplayer options
 	S8 mMatchingRule;
+
+#ifdef PLATFORM_PC
+	// [Blur2PC] Retail Blur PC keyboard options (Blur.exe 1.2 ProfileOptions +0xc4..+0xf8 and +0x16d, defaults
+	// from ProfileOptions::Init 0x00b9e790; saved with the profile). The keys are C_Keyboard enum values of the
+	// custom layout, which retail's UI never offers; mKeyboardLayout is the layout in use (0 or 1).
+	S8 mKeyboardIsCustom;
+	S32 mKeyThrottle;
+	S32 mKeyBrake;
+	S32 mKeyEBrake;
+	S32 mKeyFire;
+	S32 mKeySwitchPerk;
+	S32 mKeyDrop;
+	S32 mKeyChangeView;
+	S32 mKeyPause;
+	S32 mKeyRearView;
+	S32 mKeyPowerUpFwd;
+	S32 mKeyPowerUpBwd;
+	S32 mKeySteerLeft;
+	S32 mKeySteerRight;
+	S8 mKeyboardLayout;
+#endif
 private:
 	enum E_AudioOutputType
 	{

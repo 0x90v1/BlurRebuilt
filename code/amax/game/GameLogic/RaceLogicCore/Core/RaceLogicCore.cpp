@@ -868,9 +868,14 @@ void RaceLogicCore::SendControls()
 			}
 #endif
 
+#ifdef PLATFORM_PC
+			// [Blur2PC] retail Blur PC (0x0049c91c) steers from the steering axis alone; its d-pad is bound there too
+			float steering=Maths::Clamp(Input::GetGameInput(controllerIndex)->GetAxisSignedValue(Game::E_Axis_Steering), -1.f,1.f);
+#else
 			float steering=Maths::Clamp(Input::GetGameInput(controllerIndex)->GetAxisSignedValue(Game::E_Axis_Steering) +
 				Input::GetGameInput(controllerIndex)->GetAxisSignedValue(Game::E_Axis_DigitalSteering),
 				-1.f,1.f);
+#endif
 
 			controllerInput.m_fSteering			= steering;
 
