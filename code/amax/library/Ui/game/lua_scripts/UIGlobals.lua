@@ -68,6 +68,9 @@ UIGlobals =
 		[ 2 ] = UIEnums.Profile.None,
 		[ 3 ] = UIEnums.Profile.None,
 	},
+	-- [Blur2PC] Retail PC remembers the device that joined each split-screen profile.
+	ProfileDevice = { [ 0 ] = -1, [ 1 ] = -1, [ 2 ] = -1, [ 3 ] = -1 },
+	LastInputDevice = -1,
 	-- for Profile\\AsyncLoad.lua - only load in certain profiles
 	LoadProfile =
 	{

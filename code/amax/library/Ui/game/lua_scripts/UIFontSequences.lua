@@ -438,6 +438,25 @@ FontSequences =
 		group_name  = "Y",
 		dropshadow	= true,
 	},
+	-- [Blur2PC] Retail PC font sequences 44 and 45. The split-screen loc text uses these tokens.
+	{
+		name		= "{PCP}",
+		colour		= "!255 255 255 255",
+		texture		= UITexture.Textures.xbox360_buttons,
+		u			= 0,
+		v			= 0.5,
+		usize		= 0.125,
+		vsize		= 0.125,
+	},
+	{
+		name		= "{PCY}",
+		colour		= "!255 255 255 255",
+		texture		= UITexture.Textures.xbox360_buttons,
+		u			= 0.375,
+		v			= 0.375,
+		usize		= 0.125,
+		vsize		= 0.125,
+	},
 }
 
 -- default font style

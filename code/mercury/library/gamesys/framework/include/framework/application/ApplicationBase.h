@@ -31,11 +31,10 @@ namespace Framework
 enum E_UserInputIndex
 {
 	E_UserInputIndex_0 = 0,
-	#ifndef PLATFORM_PC
+	// [Blur2PC] Retail PC's split-screen input loop addresses all four slots.
 	E_UserInputIndex_1,
 	E_UserInputIndex_2,
 	E_UserInputIndex_3,
-	#endif
 	E_UserInputIndex_Count,
 };
 

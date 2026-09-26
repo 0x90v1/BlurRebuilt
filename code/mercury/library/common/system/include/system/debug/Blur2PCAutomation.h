@@ -27,7 +27,7 @@
 //                                     UI frame; rest of the line, '#' is Lua). On timeout: log it,
 //                                     save timeout.png beside the script and exit with code 3.
 // On other lines '#' starts a comment. A line that starts with '#' is a comment.
-// KEY: RETURN ESCAPE SPACE TAB UP DOWN LEFT RIGHT RSHIFT LSHIFT RCONTROL LCONTROL PGUP PGDN INSERT DELETE, A-Z, 0-9, F1-F12.
+// KEY: RETURN ESCAPE SPACE TAB UP DOWN LEFT RIGHT RSHIFT LSHIFT RCONTROL LCONTROL PGUP PGDN INSERT DELETE, NUMPADPLUS NUMPADENTER NUMPAD0, A-Z, 0-9, F1-F12.
 //
 // Lua helpers the UI manager adds while a script is active (amax/library/Ui/UiManager.cpp):
 //     Blur2PC.RaceState()   "None" "Loading" "Intro" "Starting" "Racing" "Finished" "Outro" ...
@@ -119,6 +119,7 @@ namespace Blur2PCAutomation
 		struct Pair { const char* n; int dik; };
 		static const Pair table[] = {
 			{"RETURN",0x1C},{"ENTER",0x1C},{"ESCAPE",0x01},{"ESC",0x01},{"SPACE",0x39},{"TAB",0x0F},
+			{"NUMPADPLUS",0x4E},{"NUMPADENTER",0x9C},{"NUMPAD0",0x52},
 			{"UP",0xC8},{"DOWN",0xD0},{"LEFT",0xCB},{"RIGHT",0xCD},{"RSHIFT",0x36},{"LSHIFT",0x2A},{"RCONTROL",0x9D},{"LCONTROL",0x1D},{"PGUP",0xC9},{"PGDN",0xD1},{"INSERT",0xD2},{"DELETE",0xD3},
 			{"Q",0x10},{"W",0x11},{"E",0x12},{"R",0x13},{"T",0x14},{"Y",0x15},{"U",0x16},{"I",0x17},{"O",0x18},{"P",0x19},
 			{"A",0x1E},{"S",0x1F},{"D",0x20},{"F",0x21},{"G",0x22},{"H",0x23},{"J",0x24},{"K",0x25},{"L",0x26},

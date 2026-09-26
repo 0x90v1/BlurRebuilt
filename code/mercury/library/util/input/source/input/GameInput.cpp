@@ -368,8 +368,7 @@ const S32 C_GameInputManager::GetUserIndexCount()
 
 C_GameInput* C_GameInputManager::GetGameInput( const S32 userIndex )
 {
-	// [Blur2PC] PC allocates one user (Main.cpp m_InputUserCount) while the UI scripts
-	// address pads 0..3; out-of-range users have no game input.
+	// [Blur2PC] Guard callers that ask for a slot outside the configured user count.
 	if (userIndex < 0 || userIndex >= m_GameInputList.Size())
 		return NULL;
 	return &m_GameInputList[userIndex];

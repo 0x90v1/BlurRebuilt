@@ -17,6 +17,8 @@ and exits with code 3, so a broken run fails fast and says where it stopped.
 `automation.log` lists every screen change in every UI context, every key, wait, Lua line and
 screenshot, with seconds since the window opened.
 
+The key names include `NUMPADPLUS`, `NUMPADENTER` and `NUMPAD0` for split-screen menu checks.
+
 Lua helpers available to scripts while automation is active:
 
 | Helper | Returns |
