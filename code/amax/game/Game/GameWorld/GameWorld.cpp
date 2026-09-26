@@ -2122,11 +2122,21 @@ void C_GameWorld::ViewDependentFXUpdate(S32 viewIndex)
 		FX::SetParameter(g_FxParams.depthScale, &tempDSSP);
 	}
 
+#if PLATFORM_PC
+	// [Blur2PC] T107: retail PC (Blur.exe 1.2, 0x00420740) refracts through the motion-blur target only at
+	// graphical detail 2-4, where the prepass (and so that pass) runs, and clears it otherwise; the splash
+	// types that refract fully are then skipped and the rest fade by 1 - RefractionIntensity
+	if ((m_pViewManager->GetNumViews() == 1) && m_GraphicalDetail > 1)
+		m_pSplashCamera->SetRefractionTexture(GetMotionBlur()->GetTexture());
+	else
+		m_pSplashCamera->SetRefractionTexture(NULL);
+#else
 	if ((m_pViewManager->GetNumViews() == 1))
 	{
 		m_pSplashCamera->SetRefractionTexture(GetMotionBlur()->GetTexture());
 	}
-	
+#endif
+
 }
 
 void C_GameWorld::BeginSplitscreen()

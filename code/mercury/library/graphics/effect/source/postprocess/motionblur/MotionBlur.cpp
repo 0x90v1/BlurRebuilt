@@ -22,7 +22,8 @@ namespace PostProcess
 {
 
 #ifdef PLATFORM_PC
-Debug::Bool		g_debugMotionBlur						("Graphics.Render.PostProcess.MotionBlur.Enable", false);
+// [Blur2PC] T107: retail PC (Blur.exe 1.2) registers it on (0x00e19cb0, global 0x0114c7fc); the snapshot had it off
+Debug::Bool		g_debugMotionBlur						("Graphics.Render.PostProcess.MotionBlur.Enable", true);
 #else
 Debug::Bool		g_debugMotionBlur						("Graphics.Render.PostProcess.MotionBlur.Enable", true);
 #endif

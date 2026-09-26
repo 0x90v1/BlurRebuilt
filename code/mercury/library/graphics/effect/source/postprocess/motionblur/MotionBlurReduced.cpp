@@ -221,9 +221,9 @@ U32 C_MotionBlurReduced::GetTextureBufferRequiredSize() const
 
 void C_MotionBlurReduced::Display() const
 {
-#if !defined(PLATFORM_PC)
+	// [Blur2PC] T107: the snapshot returned here unconditionally on PC ("this is broken on PC"); retail PC
+	// (Blur.exe 1.2, 0x00668d10) runs the pass under the same test as the consoles
 	if(!m_Manager.Enabled() || !g_debugMotionBlur || !m_bEnabled)
-#endif
 		return;
 
 	const S32 iRenderTarget = m_Manager.GetRenderTargetIndex();
@@ -701,6 +701,10 @@ void C_MotionBlurReduced::DownsampleStencilBufferToAlpha() const
 	XGOffsetResourceAddress(&d3dStencilTexture, pDisplayTexture->GetAddress());
 
 	Display::Device()->GetD3DDevice()->SetTexture(1, &d3dStencilTexture);
+#elif defined(PLATFORM_PC)
+	// [Blur2PC] T107: retail PC (Blur.exe 1.2, 0x0065d680) reads the stencil from the display window's stencil
+	// texture (Render::GetGlobalStencilBuffer, 0x006a1940; T089), not the depth buffer
+	Display::Device()->SetTexture(1, Render::GetGlobalStencilBuffer());
 #else
 	Display::Device()->SetTexture(1, Render::GetGlobalDepthStencilBuffer());	
 #endif

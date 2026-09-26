@@ -378,7 +378,6 @@ namespace SplashCamera
 			}
 
 
-			// knock out until we have a begin vertices method for PC
 		#ifndef PLATFORM_PC
 			Vertex* pVertices = (Vertex*)pDisplay->BeginVertices(Display::E_PrimitiveType_QuadList, vertexCount, sizeof(Vertex), Vertex::m_pDeclaration);
 
@@ -428,6 +427,74 @@ namespace SplashCamera
 					++it;
 				}
 				pDisplay->EndVertices();
+			}
+		#else
+			// [Blur2PC] T107: retail PC (Blur.exe 1.2, C_SplashCamera::Render 0x00b2a5b0) draws the splashes through
+			// the device's dynamic vertices as a triangle list, six vertices per splash: the quad's corners 0, 1, 2
+			// and 3, 0, 2. Retail writes the repeated corners 0 and 2 with the fade alone, without alphaFactor;
+			// kept as retail has it.
+			Vertex* pVertices = (Vertex*)Display::Device()->BeginVertices(Display::E_PrimitiveType_TriangleList, 6 * splashCount, sizeof(Vertex), Vertex::m_pDeclaration);
+
+			if(pVertices)
+			{
+				float alphaFactor = 1.f;
+				if (!m_pRefractionTexture && pDistorsionTextureResource && pDistorsionTextureResource->IsDataValid() && (pSplashType->m_RefractionIntensity > 0.01f))
+				{
+					alphaFactor = 1.f - pSplashType->m_RefractionIntensity;
+				}
+				SplashList::ConstIterator it = splashList.Begin();
+				for (S32 i = 0; i < splashCount; i++)
+				{
+					const C_Splash& splash = *it;
+
+					Maths::HVec2 splashAxisY(splash.m_Direction.X() * Maths::Cos(splash.m_Rotate) + splash.m_Direction.Y() * Maths::Sin(splash.m_Rotate),
+											-splash.m_Direction.X() * Maths::Sin(splash.m_Rotate) + splash.m_Direction.Y() * Maths::Cos(splash.m_Rotate));
+					Maths::HVec2 splashAxisX(splashAxisY.Y(), -splashAxisY.X());
+
+					splashAxisX *= splash.m_Size;
+					splashAxisY *= splash.m_Size;
+
+					Maths::HVec2 position = Maths::HVec2((splash.m_Position.X() / fovFactor), (splash.m_Position.Y() / fovFactor));
+
+					const U32 colour = GPU_U8_4_TO_U32(0,0,0,U8(Maths::Clamp(splash.m_Fade * alphaFactor * 255.f, 0.f, 255.f)));
+					const U32 colourRepeated = GPU_U8_4_TO_U32(0,0,0,U8(Maths::Clamp(splash.m_Fade * 255.f, 0.f, 255.f)));
+					const F32 v0 = F32(splash.m_TextureArrayIndex) / F32(pSplashType->m_TextureArraySize);
+					const F32 v1 = F32(splash.m_TextureArrayIndex + 1) / F32(pSplashType->m_TextureArraySize);
+
+					Maths::Store(position - splashAxisX - splashAxisY, (MathsStorage::Float2*)&pVertices[0].x);
+					pVertices[0].c = colour;
+					pVertices[0].u = 0.f;
+					pVertices[0].v = v0;
+
+					Maths::Store(position - splashAxisX + splashAxisY, (MathsStorage::Float2*)&pVertices[1].x);
+					pVertices[1].c = colour;
+					pVertices[1].u = 1.f;
+					pVertices[1].v = v0;
+
+					Maths::Store(position + splashAxisX + splashAxisY, (MathsStorage::Float2*)&pVertices[2].x);
+					pVertices[2].c = colour;
+					pVertices[2].u = 1.f;
+					pVertices[2].v = v1;
+
+					Maths::Store(position + splashAxisX - splashAxisY, (MathsStorage::Float2*)&pVertices[3].x);
+					pVertices[3].c = colour;
+					pVertices[3].u = 0.f;
+					pVertices[3].v = v1;
+
+					Maths::Store(position - splashAxisX - splashAxisY, (MathsStorage::Float2*)&pVertices[4].x);
+					pVertices[4].c = colourRepeated;
+					pVertices[4].u = 0.f;
+					pVertices[4].v = v0;
+
+					Maths::Store(position + splashAxisX + splashAxisY, (MathsStorage::Float2*)&pVertices[5].x);
+					pVertices[5].c = colourRepeated;
+					pVertices[5].u = 1.f;
+					pVertices[5].v = v1;
+
+					pVertices += 6;
+					++it;
+				}
+				Display::Device()->EndVertices();
 			}
 		#endif
 		}

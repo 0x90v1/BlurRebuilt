@@ -22,6 +22,7 @@ namespace HDR
 	extern Display::C_Float4	g_vFlareColours[4];
 };
 
+
 namespace HDR
 {
 	Debug::Float g_Gamma("Graphics.Game.Gamma", 2.2f, Debug::Range(0.0f, 3.0f));
@@ -29,6 +30,10 @@ namespace HDR
 
 namespace Game
 {
+
+#if PLATFORM_PC
+extern Debug::Bool g_MainPrepassEnable;	// [Blur2PC] T107: View/Main.cpp
+#endif
 
 C_GameWorldPostProcess::C_GameWorldPostProcess( )
 	: m_pPostProcessMgr(NULL)
@@ -208,15 +213,27 @@ void C_GameWorldPostProcess::EndRenderSplitscreenWithoutAA()
 	m_pPostProcessBloom->SetScales(HDR::g_vFlareScales[0], HDR::g_vFlareScales[1], HDR::g_vFlareScales[2], HDR::g_vFlareScales[3]);
 	m_pPostProcessBloom->SetColours(HDR::g_vFlareColours[0], HDR::g_vFlareColours[1], HDR::g_vFlareColours[2], HDR::g_vFlareColours[3]);
 
-	m_pPostProcessHdr->SetMotionBlurTexture(m_pPostProcessMotionBlur->GetTexture());
-
-	if(m_bMotionBlur)
+#if PLATFORM_PC
+	// [Blur2PC] T107: retail PC (Blur.exe 1.2, 0x00419340) runs motion blur and depth of field only while
+	// Amax.Views.Main.PrepassEnable is on (graphical detail 2-4) and clears the tone map's motion-blur
+	// texture otherwise
+	if(!g_MainPrepassEnable)
 	{
-		m_pPostProcessMotionBlur->Display();
+		m_pPostProcessHdr->SetMotionBlurTexture(NULL);
 	}
-	if(m_bDepthOfField)
+	else
+#endif
 	{
-		m_pPostProcessDoF->Display();
+		m_pPostProcessHdr->SetMotionBlurTexture(m_pPostProcessMotionBlur->GetTexture());
+
+		if(m_bMotionBlur)
+		{
+			m_pPostProcessMotionBlur->Display();
+		}
+		if(m_bDepthOfField)
+		{
+			m_pPostProcessDoF->Display();
+		}
 	}
 	m_pPostProcessHdr->Display();
 	m_pPostProcessMgr->End();
