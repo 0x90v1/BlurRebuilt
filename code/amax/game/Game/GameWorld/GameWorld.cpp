@@ -1964,6 +1964,13 @@ void C_GameWorld::BeginFrame()
 	}
 #endif
 
+#if PLATFORM_PC
+	// [Blur2PC] Retail PC has no garage hack: the prepass follows Amax.Views.Main.PrepassEnable (0x0111e020,
+	// off at graphical detail 1) in the front end too, and mInUI only drops its lights (the light buffer
+	// binding in C_MainView::Schedule 0x0042a170, RenderPrepass1 0x00426390, RenderPrepass2 0x00554c10). The
+	// prepass depth is what the blob shadows read, so the hack left the showroom car without one (T115).
+	Game::g_PrepassEnable = g_MainPrepassEnable;
+#else
 	// [Stove] HACK ALERT!!!!!!! [12022010]
 	// Stop the garage framing out, this is done in a really sucky way.
 	static U32 notFirstFrame = 0;
@@ -1978,16 +1985,9 @@ void C_GameWorld::BeginFrame()
 	else
 		Game::g_PrepassEnable = true;
 
-#if PLATFORM_PC
-	// [Blur2PC] Retail PC turns the prepass off at graphical detail 1 through Amax.Views.Main.PrepassEnable,
-	// which this garage hack would otherwise overwrite every frame. Retail has no such hack (it checks
-	// mInUI where the prepass is used); combining the two is ours (docs/analysis.md).
-	if(!g_MainPrepassEnable)
-		Game::g_PrepassEnable = false;
-#endif
-
 	if(!notFirstFrame)
 		notFirstFrame++;
+#endif
 
 	{
 		PERF_EVENT("Render.AnimationEvalFlush");

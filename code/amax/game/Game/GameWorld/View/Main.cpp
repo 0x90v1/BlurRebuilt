@@ -551,7 +551,12 @@ void C_MainView::Schedule(const C_View& gameView)
 			{
 				if (m_pViewManager->m_pLightingPrepass->GetLightingTexture(pFrameworkView->m_ViewIndex) && m_pViewManager->m_pLightingPrepass->GetLightingTexture(pFrameworkView->m_ViewIndex)->GetGPUTexture())
 				{
+				#if PLATFORM_PC
+					// [Blur2PC] retail 0x0042a170: the light buffer only outside the front end (mInUI, T115)
+					if(g_PrepassEnable && !C_Game::GetInstance()->GetLevelState().mInUI)
+				#else
 					if(g_PrepassEnable)
+				#endif
 					{
 						const void* pLightBufferAddress = m_pViewManager->m_pLightingPrepass->GetLightingTexture(pFrameworkView->m_ViewIndex)->GetGPUTexture();
 						FX::SetParameter(g_FxParams.dynamicLights, &pLightBufferAddress);
@@ -642,7 +647,16 @@ void C_MainView::Schedule(const C_View& gameView)
 	Display::Device()->SetBlendMode(Display::E_BlendMode_Solid);
 
 	S32 totalLights = m_pMain->GetVisiblePointLightList().Size() + m_pMain->GetVisibleSpotLightList().Size() + m_pMain->GetVisibleDropShadowsList().Size();
+#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC's C_MainView::Schedule (Blur.exe 1.2 0x0042a170) schedules the prepass under
+	// Amax.Views.Main.PrepassEnable (0x0111e020) alone, whatever the light count, as RenderPrepass1 draws it
+	// (T108). With no visible light the snapshot scheduled nothing and the depth target kept its far-plane
+	// clear, which the blob shadows, fog and depth fades read (found under T115).
+	(void)totalLights;
+	bool prepassEnable = g_PrepassEnable;
+#else
 	bool prepassEnable = g_PrepassEnable && totalLights != 0;
+#endif
 
 	if(prepassEnable)
 	{
@@ -1156,6 +1170,13 @@ void C_MainView::RenderPrepass1(C_View& gameView)
 
 #endif
 
+#if PLATFORM_PC
+	// [Blur2PC] retail 0x00426390 renders the lights only outside the front end (mInUI); the prepass depth
+	// above is drawn in the front end too (T115)
+	if(C_Game::GetInstance()->GetLevelState().mInUI)
+		return;
+#endif
+
 	CPU_TIMING(5, Maths::RGBA(255, 255, 128, 255), "CPU.RenderLights");
 	GPU_TIMING(5, Maths::RGBA(255, 255, 128, 255), "GPU.RenderLights");
  	m_pViewManager->m_pDropShadows->SetFarClip(g_MainPrepassDrawDistance);
@@ -1167,6 +1188,11 @@ void C_MainView::RenderPrepass2(C_View& gameView)
 {
 	if(g_MainPrepassShow || !g_PrepassEnable || !m_pViewManager->m_pLightingPrepass)
 		return;
+#if PLATFORM_PC
+	// [Blur2PC] retail 0x00554c10: no lights in the front end (mInUI, T115)
+	if(C_Game::GetInstance()->GetLevelState().mInUI)
+		return;
+#endif
 
 	PERF_EVENT("Render.RenderPrepass");
 	CPU_TIMING(5, Maths::RGBA(255, 255, 128, 255), "CPU.RenderLights");

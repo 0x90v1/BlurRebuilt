@@ -1186,7 +1186,9 @@ void C_BlobShadows::Render(Display::C_Context* pContext, U32 visibilityFlags) co
 	stencilState.m_StencilEnable = Display::E_Bool_False;
 	pContext->SetStencilState(stencilState);
 
-#if PLATFORM_XENON // I have no idea why I have to do this, CW should work fine on all platforms
+#if PLATFORM_XENON || PLATFORM_PC // I have no idea why I have to do this, CW should work fine on all platforms
+	// [Blur2PC] retail PC (Blur.exe 1.2 0x00732d20) culls CW as well: the box's far faces draw, so the shadow
+	// shows with the camera inside it (showroom, countdown shots); CCW left only the near faces (T115)
 	pContext->SetCullMode(Display::E_CullMode_Cw);
 #else
 	pContext->SetCullMode(Display::E_CullMode_Ccw);

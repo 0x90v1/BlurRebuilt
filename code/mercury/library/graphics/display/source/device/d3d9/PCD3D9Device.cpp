@@ -763,6 +763,203 @@ bool C_PCD3D9Device::ResetD3D9()
 	}
 }
 
+// [Blur2PC] Video recorder for the automation `record` command (system/debug/Blur2PCAutomation.h).
+namespace
+{
+	struct Blur2PCRecorder
+	{
+		enum { k_Ring = 3 };
+
+		struct Frame { Frame* next; unsigned char* data; };
+
+		IDirect3DSurface9*	rt[k_Ring];
+		IDirect3DSurface9*	sys[k_Ring];
+		UINT				width, height;
+		int					total, blitted, read;
+		HANDLE				process, pipe, thread, wake;
+		CRITICAL_SECTION	lock;
+		Frame*				head;
+		Frame*				tail;
+		bool				closing;
+		FILE*				times;
+
+		static DWORD WINAPI Writer(LPVOID p)
+		{
+			Blur2PCRecorder& r = *(Blur2PCRecorder*)p;
+			const DWORD bytes = r.width * r.height * 4;
+			for (;;)
+			{
+				EnterCriticalSection(&r.lock);
+				Frame* f = r.head;
+				if (f) { r.head = f->next; if (!r.head) r.tail = NULL; }
+				const bool closing = r.closing;
+				LeaveCriticalSection(&r.lock);
+				if (!f)
+				{
+					if (closing)
+						break;
+					WaitForSingleObject(r.wake, 100);
+					continue;
+				}
+				DWORD written = 0;
+				if (r.pipe)
+					WriteFile(r.pipe, f->data, bytes, &written, NULL);
+				free(f->data);
+				delete f;
+			}
+			if (r.pipe) CloseHandle(r.pipe);
+			r.pipe = NULL;
+			DWORD code = (DWORD)-1;
+			if (r.process)
+			{
+				WaitForSingleObject(r.process, 120000);
+				GetExitCodeProcess(r.process, &code);
+				CloseHandle(r.process);
+				r.process = NULL;
+			}
+			Blur2PCAutomation::LogF("recording written, ffmpeg exit code %d", (int)code);
+			Blur2PCAutomation::RecordingDone();
+			return 0;
+		}
+
+		bool Start(IDirect3DDevice9* pDevice, const char* prefix, int frames)
+		{
+			memset(this, 0, sizeof(*this));
+			IDirect3DSurface9* pBack = NULL;
+			if (FAILED(pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBack)))
+				return false;
+			D3DSURFACE_DESC desc;
+			pBack->GetDesc(&desc);
+			pBack->Release();
+			width = (desc.Width / 2) & ~1u;
+			height = (desc.Height / 2) & ~1u;
+			for (int i = 0; i < k_Ring; ++i)
+				if (FAILED(pDevice->CreateRenderTarget(width, height, D3DFMT_X8R8G8B8, D3DMULTISAMPLE_NONE, 0, FALSE, &rt[i], NULL)) ||
+					FAILED(pDevice->CreateOffscreenPlainSurface(width, height, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &sys[i], NULL)))
+					return false;
+
+			const char* fpsText = getenv("BLUR2PC_FRAMELIMIT");
+			const int fps = (fpsText && atoi(fpsText) > 0) ? atoi(fpsText) : 60;
+			const char* exe = getenv("BLUR2PC_FFMPEG");
+			char cmd[2048];
+			_snprintf_s(cmd, _TRUNCATE, "\"%s\" -hide_banner -loglevel error -y -f rawvideo -pixel_format bgr0 -video_size %ux%u -framerate %d -i - -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p \"%s.mp4\"",
+				exe ? exe : "ffmpeg.exe", width, height, fps, prefix);
+
+			SECURITY_ATTRIBUTES sa = { sizeof(sa), NULL, TRUE };
+			HANDLE readEnd = NULL;
+			if (!CreatePipe(&readEnd, &pipe, &sa, 8 * 1024 * 1024))
+				return false;
+			SetHandleInformation(pipe, HANDLE_FLAG_INHERIT, 0);
+			STARTUPINFOA si = { sizeof(si) };
+			si.dwFlags = STARTF_USESTDHANDLES;
+			si.hStdInput = readEnd;
+			si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+			si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+			PROCESS_INFORMATION pi;
+			const BOOL ok = CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+			CloseHandle(readEnd);
+			if (!ok)
+			{
+				Blur2PCAutomation::LogF("record: cannot start ffmpeg (%lu): %s", GetLastError(), cmd);
+				CloseHandle(pipe);
+				pipe = NULL;
+				return false;
+			}
+			CloseHandle(pi.hThread);
+			process = pi.hProcess;
+
+			char timesPath[MAX_PATH];
+			_snprintf_s(timesPath, _TRUNCATE, "%s_times.txt", prefix);
+			fopen_s(&times, timesPath, "w");
+			InitializeCriticalSection(&lock);
+			wake = CreateEvent(NULL, FALSE, FALSE, NULL);
+			total = frames;
+			thread = CreateThread(NULL, 0, Writer, this, 0, NULL);
+			Blur2PCAutomation::LogF("record: %d frames, %ux%u at %d fps, into %s.mp4", frames, width, height, fps, prefix);
+			return true;
+		}
+
+		void ReadBack(IDirect3DDevice9* pDevice)
+		{
+			const int slot = read % k_Ring;
+			++read;
+			D3DLOCKED_RECT lr;
+			if (FAILED(pDevice->GetRenderTargetData(rt[slot], sys[slot])) || FAILED(sys[slot]->LockRect(&lr, NULL, D3DLOCK_READONLY)))
+				return;
+			Frame* f = new Frame;
+			f->next = NULL;
+			f->data = (unsigned char*)malloc(width * height * 4);
+			for (UINT y = 0; y < height; ++y)
+				memcpy(f->data + y * width * 4, (const unsigned char*)lr.pBits + y * lr.Pitch, width * 4);
+			sys[slot]->UnlockRect();
+			EnterCriticalSection(&lock);
+			if (tail) tail->next = f; else head = f;
+			tail = f;
+			LeaveCriticalSection(&lock);
+			SetEvent(wake);
+		}
+
+		// Returns false once every frame has been handed to the writer.
+		bool Frame_(IDirect3DDevice9* pDevice)
+		{
+			if (blitted < total)
+			{
+				if (blitted - read >= k_Ring - 1)
+					ReadBack(pDevice);
+				IDirect3DSurface9* pBack = NULL;
+				if (SUCCEEDED(pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBack)))
+				{
+					pDevice->StretchRect(pBack, NULL, rt[blitted % k_Ring], NULL, D3DTEXF_LINEAR);
+					pBack->Release();
+				}
+				if (times)
+					fprintf(times, "%d %.4f\n", blitted, Blur2PCAutomation::Now());
+				++blitted;
+				return true;
+			}
+			while (read < blitted)
+				ReadBack(pDevice);
+			for (int i = 0; i < k_Ring; ++i)
+			{
+				if (rt[i]) rt[i]->Release();
+				if (sys[i]) sys[i]->Release();
+				rt[i] = sys[i] = NULL;
+			}
+			if (times) fclose(times);
+			times = NULL;
+			EnterCriticalSection(&lock);
+			closing = true;
+			LeaveCriticalSection(&lock);
+			SetEvent(wake);
+			CloseHandle(thread);	// the writer finishes on its own and reports through RecordingDone
+			return false;
+		}
+	};
+
+	void Blur2PCRecordFrame(IDirect3DDevice9* pDevice)
+	{
+		static Blur2PCRecorder* s_pRecorder = NULL;
+		static bool s_busy = false;
+		if (!s_busy)
+		{
+			int frames = 0;
+			const char* pPrefix = Blur2PCAutomation::TakeRecordRequest(&frames);
+			if (!pPrefix)
+				return;
+			s_pRecorder = new Blur2PCRecorder;	// one per recording, never freed: its writer thread may outlive it
+			if (!s_pRecorder->Start(pDevice, pPrefix, frames < 1 ? 1 : frames))
+			{
+				Blur2PCAutomation::LogF("record: could not start");
+				Blur2PCAutomation::RecordingDone();
+				return;
+			}
+			s_busy = true;
+		}
+		if (!s_pRecorder->Frame_(pDevice))
+			s_busy = false;
+	}
+}
+
 bool C_PCD3D9Device::Present()
 {
 	BIZ_ASSERT(m_pd3dDevice);
@@ -785,53 +982,11 @@ bool C_PCD3D9Device::Present()
 			pBack->Release();
 		}
 	}
-	// [Blur2PC] scripted recording: blit consecutive back buffers into half-size video-memory
-	// targets while the game runs at its own pace, save them all once the last one is taken.
-	{
-		enum { k_MaxRecord = 240 };
-		static IDirect3DSurface9* s_rec[k_MaxRecord];
-		static double s_recTime[k_MaxRecord];
-		static int s_recCount = 0, s_recTaken = 0;
-		static char s_recPrefix[MAX_PATH];
-		int frames = 0;
-		if (s_recCount == 0)
-			if (const char* pPrefix = Blur2PCAutomation::TakeRecordRequest(&frames))
-			{
-				strncpy_s(s_recPrefix, pPrefix, _TRUNCATE);
-				s_recCount = frames < 1 ? 1 : (frames > k_MaxRecord ? k_MaxRecord : frames);
-				s_recTaken = 0;
-				memset(s_rec, 0, sizeof(s_rec));
-			}
-		if (s_recCount > 0)
-		{
-			IDirect3DSurface9* pBack = NULL;
-			if (SUCCEEDED(m_pd3dDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBack)))
-			{
-				D3DSURFACE_DESC desc;
-				pBack->GetDesc(&desc);
-				IDirect3DSurface9*& pDst = s_rec[s_recTaken];
-				if (SUCCEEDED(m_pd3dDevice->CreateRenderTarget(desc.Width / 2, desc.Height / 2, desc.Format, D3DMULTISAMPLE_NONE, 0, FALSE, &pDst, NULL)))
-					m_pd3dDevice->StretchRect(pBack, NULL, pDst, NULL, D3DTEXF_LINEAR);
-				pBack->Release();
-			}
-			s_recTime[s_recTaken] = Blur2PCAutomation::Now();
-			if (++s_recTaken == s_recCount)
-			{
-				for (int i = 0; i < s_recCount; ++i)
-				{
-					if (!s_rec[i])
-						continue;
-					char path[MAX_PATH];
-					_snprintf_s(path, MAX_PATH, _TRUNCATE, "%s_%03d.png", s_recPrefix, i);
-					D3DXSaveSurfaceToFileA(path, D3DXIFF_PNG, s_rec[i], NULL, NULL);
-					s_rec[i]->Release();
-					s_rec[i] = NULL;
-					Blur2PCAutomation::LogF("frame %03d at %.4f", i, s_recTime[i]);
-				}
-				s_recCount = 0;
-			}
-		}
-	}
+	// [Blur2PC] scripted recording: stream consecutive back buffers, at half size, to an ffmpeg process
+	// that encodes <prefix>.mp4. Each frame is blitted on the GPU and read back two frames later so the
+	// CPU never waits for the copy; a writer thread feeds ffmpeg's stdin. No per-frame image files: saving
+	// PNGs on this thread froze the game for tens of seconds (AGENTS.md rule 12).
+	Blur2PCRecordFrame(m_pd3dDevice);
 	const HRESULT hr = m_pd3dDevice->Present(NULL, NULL, NULL, NULL);
 	// [Blur2PC] log every non-OK present (bring-up diagnostics)
 	{

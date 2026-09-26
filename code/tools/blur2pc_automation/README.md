@@ -6,8 +6,10 @@ minimised, waits for it to exit and prints `automation.log`. The script format i
 top of `code/mercury/library/common/system/include/system/debug/Blur2PCAutomation.h`.
 
 Commands: `tap`, `down`, `up` (keys), `shot` (back-buffer PNG), `record <prefix> <frames>` (the
-next consecutive presented frames, up to 240, at half size: copied on the GPU while the game runs at
-its own pace, saved as `<prefix>_NNN.png` afterwards; for flicker and pacing checks), `quit`,
+next consecutive presented frames at half size, encoded by ffmpeg into `<prefix>.mp4`, with each
+frame's time in `<prefix>_times.txt`; for motion, flicker and pacing checks. ffmpeg comes from PATH
+or `BLUR2PC_FFMPEG`, the frame rate from `BLUR2PC_FRAMELIMIT`, else 60. The game keeps its pace while
+recording, and a `quit` waits until the file is finished), `quit`,
 `lua <code>` (runs in the UI Lua state) and `wait <timeout> <Lua expression>`. A `wait` blocks the lines below it until the
 expression is true; their times count from that moment. A wait that times out saves `timeout.png`
 and exits with code 3, so a broken run fails fast and says where it stopped.
@@ -40,6 +42,10 @@ quoted Lua string `\s` is not a backslash.
   and the single player carousel until the Career tier screen (context 5) is up.
 - `career_record.txt`: boot, start screen, Career through the real menus (`career.lua`), then records
   240 frames of the tier screen.
+
+Never capture bursts of PNGs (repeated `shot` lines): each one is written on the render thread and
+freezes the game, which the user sees on the taskbar with its sound looping (AGENTS.md rule 12). Use
+`record` for anything that moves; extract stills from the video with ffmpeg when needed.
 
 Frame-rate-sensitive runs: the player's `settings.xml` may have vsync on, which paces a scripted run
 to the display (about 30 fps while the display sleeps). Point `BLUR2PC_SETTINGS` at a copy with

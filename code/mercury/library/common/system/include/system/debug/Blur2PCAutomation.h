@@ -15,9 +15,12 @@
 //     <time> down <KEY>               press and keep held
 //     <time> up   <KEY>               release
 //     <time> shot <file.png>          save the next presented frame (path relative to the script)
-//     <time> record <prefix> <frames> copy the next <frames> presented frames (max 240) at half size
-//                                     into video memory, then save them as <prefix>_NNN.png; the copy
-//                                     is a GPU blit, so the game's frame timing holds while recording
+//     <time> record <prefix> <frames> encode the next <frames> presented frames, at half size, into
+//                                     <prefix>.mp4 (ffmpeg on PATH, or BLUR2PC_FFMPEG; frame rate
+//                                     BLUR2PC_FRAMELIMIT, else 60) and write each frame's time to
+//                                     <prefix>_times.txt. Frames are blitted on the GPU, read back two
+//                                     frames later and piped to ffmpeg from a worker thread, so the game
+//                                     keeps its pace. A `quit` waits for the file to be finished.
 //     <time> quit                     exit the process (exit code 0)
 //     <time> lua  <code>              run <code> in the UI Lua state (rest of the line, '#' is Lua)
 //     <time> wait <timeout> <expr>    block until the Lua expression <expr> is true (tested once per
@@ -100,6 +103,9 @@ namespace Blur2PCAutomation
 		int luaTapDik;
 		bool luaTapPressed;
 		double luaTapUp;
+		// a recording is being captured or encoded; a `quit` waits for it
+		volatile LONG recordingBusy;
+		bool quitPending;
 	};
 
 	inline State& Get()
@@ -321,6 +327,17 @@ namespace Blur2PCAutomation
 			LeaveCriticalSection(&s.lock);
 			return true;
 		}
+		if (s.quitPending)
+		{
+			if (!s.recordingBusy)
+			{
+				LogF("quit");
+				if (s.log) fclose(s.log);
+				ExitProcess(0);
+			}
+			LeaveCriticalSection(&s.lock);
+			return true;
+		}
 		if (s.waiting)
 		{
 			if (s.waitMet)
@@ -381,7 +398,9 @@ namespace Blur2PCAutomation
 				s.waiting = true; s.waitMet = false; s.waitStart = t; s.waitEvent = &e;
 				LogF("wait (up to %.0f s): %s", e.timeout, e.text);
 				break;
-			case E_Quit: LogF("quit"); if (s.log) fclose(s.log); ExitProcess(0);
+			case E_Quit:
+				if (s.recordingBusy) { s.quitPending = true; LogF("quit waits for the recording"); break; }
+				LogF("quit"); if (s.log) fclose(s.log); ExitProcess(0);
 			}
 		}
 		LeaveCriticalSection(&s.lock);
@@ -426,6 +445,12 @@ namespace Blur2PCAutomation
 		return path;
 	}
 
+	//! The recorder has finished writing its file: a waiting `quit` may exit.
+	inline void RecordingDone()
+	{
+		Get().recordingBusy = 0;
+	}
+
 	//! Returns the requested recording's path prefix once (frame count in *pFrames), or NULL.
 	inline const char* TakeRecordRequest(int* pFrames)
 	{
@@ -437,6 +462,7 @@ namespace Blur2PCAutomation
 		strncpy_s(path, s.pendingRecord, _TRUNCATE);
 		*pFrames = s.pendingRecordFrames;
 		s.pendingRecord[0] = 0;
+		s.recordingBusy = 1;
 		LeaveCriticalSection(&s.lock);
 		LogF("record %s, %d frames", path, *pFrames);
 		return path;
