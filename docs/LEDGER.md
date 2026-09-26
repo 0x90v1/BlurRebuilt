@@ -705,3 +705,9 @@ Verified: user confirmed the fix in photo mode (Blur1PC exe). Release builds 0 e
 Blocked: none.
 Next: user check of pickups on 360/PS3 data if wanted. Automation note: `Blur2PC_QuickRace(1, 1)` on the current save needs a car id (T098); 1233078605 works.
 Files touched: Blur1PC code/amax/game/Graphics/Lighting/Prepass.cpp, code/amax/game/Game/GameWorld/View/Main.cpp; Blur1Multi Prepass.cpp, View/ConsoleDepth.{h,cpp}; docs/{BOARD,LEDGER,analysis}.md.
+## 2026-09-26 09:00 — session 19 (Claude) — T108: console bridge change reverted
+Did: at the user's request (the cut-out was never seen on console data), reverted the `ConsoleDepth` 0.0 write on blur1multi (9c978c3f), merged into blurx. Kept 2c4413c5's console-source prepass clear (0xFFFFFFFF): without it the blur1pc merge would clear the console prepass to 0 and the bridge would decode every undrawn pixel as garbage depth; with it console sources behave as before T108.
+Verified: Blur1Multi and BlurX Release builds 0 errors, exes delivered to each `_work/run`.
+Blocked: none.
+Next: if pickups cut out against distant scenery on 360/PS3 data, re-apply 2c4413c5's ConsoleDepth hunk (`return 0.0;`).
+Files touched: Blur1Multi code/amax/game/Game/GameWorld/View/ConsoleDepth.{h,cpp}; docs/{BOARD,LEDGER,analysis}.md.
