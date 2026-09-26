@@ -476,8 +476,30 @@ HRESULT C_UiLayer::OnResize()
 		return S_OK;
 
 	m_pPostProcessMgr->DestroyVolatile();
+
+	// [Blur2PC] retail (Blur.exe 1.2 0x00c30f00) also remakes the UI composite buffers, which are sized from
+	// the back buffer when created: the in-game one, or the front end's render buffer and post-process buffer
+	if( !m_IsFrontend )
+	{
+		DestroyIgPostProcessBuffer();
+	}
+	else
+	{
+		DestroyRenderBuffer();
+		DestroyFePostProcessBuffer();
+	}
+
 	SetupViews();
 
+	if( m_IsFrontend )
+	{
+		CreateRenderBuffer();
+		CreateFePostProcessBuffer();
+		m_pPostProcessMgr->CreateVolatile();
+		return S_OK;
+	}
+
+	CreateIgPostProcessBuffer();
 	m_pPostProcessMgr->CreateVolatile();
 
 	return S_OK;

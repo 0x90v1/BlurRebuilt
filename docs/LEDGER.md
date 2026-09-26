@@ -603,3 +603,10 @@ Delivered: `Blur1Multi/_work/run/Amax.exe` 23:17 (clean worktree). Not delivered
 Blocked: none.
 Next: the next delivery from `Blur1PC/` and `BlurX/` carries the title (both committed).
 Files touched: code/mercury/library/gamesys/framework/source/application/ApplicationPC.cpp (blur1pc), BlurX code/amax/game/GameSystems.cpp (blurx), docs/{BOARD,LEDGER}.md.
+
+## 2026-09-25 23:40 — session 9 (Claude) — T090: stray UI textures after a resolution change
+Did: reproduced on the current blur1pc build (`live_change2.txt`: 1280x720 detail 1 -> 1280x1024 detail 4 in a race: font cache sheet over the confirm popup and the pause menu, a white frame, a white glow in the race). Split: the resolution change alone shows it, the detail change alone and an AA change do not. Retail `C_UiLayer::OnResize` (0x00c30f00) remakes the UI composite buffers (sized from the back buffer at creation) at the new size; the snapshot's only redid the post-process manager. Ported in `UiLayer.cpp`. Details: analysis.md, T090 bullet under the graphics options.
+Verified: Release build 0 errors (Blur1PC worktree). Private runs (`_work/run_t062`): resolution-only and resolution+detail changes in a race show the confirm popup, the options, the pause menu and the race clean (`out_t090fix1`, `out_t090fix2`); a front-end change through `Amax.UpdateGraphicsOptions` renders the menus (`out_t090fenew`). Delivered `_work/run/Amax.exe` + `.pdb` 23:35 (sha256 f92d4f8c...); that build also carries session 13's uncommitted T096 edit to `GameWorld.cpp` (car light cube maps), which was in this worktree at build time.
+Blocked: none.
+Next: T091 is session 10's; nothing else open for session 9.
+Files touched: code/amax/library/Ui/UiLayer.cpp; docs/{analysis.md,BOARD.md}, this ledger; `_work/ghidra/gh.ps1` (paths for the new worktree layout, gitignored).
