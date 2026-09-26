@@ -332,10 +332,21 @@ HRESULT C_Application::MyCreateWindow(const C_ApplicationParams& params)
 	RECT rect;
 	GetWindowRectFromClient(&rect);
 
+	// [Blur2PC] the title bar shows the data directory the game reads (the working directory by now), so
+	// a window says which copy of the game data it runs. Not in retail, whose title is the name alone;
+	// m_Name itself stays "Blur", it also names the settings folder.
+	char title[MAX_PATH + 64];
+	char dataDir[MAX_PATH];
+	const DWORD dataDirLength = GetCurrentDirectoryA(sizeof dataDir, dataDir);
+	if(dataDirLength > 0 && dataDirLength < sizeof dataDir)
+		_snprintf_s(title, sizeof title, _TRUNCATE, "%s - %s", m_Window.m_Name.Chars(), dataDir);
+	else
+		_snprintf_s(title, sizeof title, _TRUNCATE, "%s", m_Window.m_Name.Chars());
+
 	m_Window.m_hWnd = CreateWindowExA(
 		0,
 		m_Class.m_WndClassName.Chars(),
-		m_Window.m_Name.Chars(),
+		title,
 		createStyle,
 		rect.left,
 		rect.top,
