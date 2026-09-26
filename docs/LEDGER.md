@@ -884,3 +884,22 @@ Open: purple rounded squares under the player car (independent of T107; present 
 
 ## 2026-09-26 14:05 — session 24 (Claude) — T107 note
 The "purple squares under the player car" of the previous entries are the pickup carousel's empty slots (UIPerks2; user); the white flash was a pickup being collected. Not an issue.
+
+## 2026-09-26 16:10 — session dbgrace (Claude) — debug menu: prototype city names
+Did: user: the debug menu shows no city name for the Kanzen cities. The picker shows `loc_string` through `cityandroutenames.loc`; `nov10-b1rules` served retail's (pinned with `\gamedata\*`), which has no prototype city names. Compared the three tables (Blur2Test's extracted Aug 31, Nov 10 and retail 360 copies): Nov 10's holds every retail string with the same text plus 84 more. BlurX `catalog/profiles.txt` pins `\gamedata\xt\loc\cityandroutenames.loc` to nov10 nov09 nov04 aug31 blur1x360, ahead of the `\gamedata\*` pin. analysis.md "Debug menu race launch" has the details.
+Verified: private BlurX run (`_work/run_dbg`, `game_slot.ps1`, 60 s cap): the menu's City reads "Brighton Storm" (`scripts/menu.png`); before, blank.
+Not verified: every city in the list; the 13 Aug 31-only strings stay blank by design.
+Blocked: none.
+Next: none. Not committed (user has not asked).
+Files touched: BlurX catalog/profiles.txt; Blur1PC docs/{analysis,LEDGER}.md.
+
+## 2026-09-26 14:05 — session 24 (Claude) — T107 note
+The "purple squares under the player car" of the previous entries are the pickup carousel's empty slots (UIPerks2; user); the white flash was a pickup being collected. Not an issue.
+
+## 2026-09-26 17:00 — session dbgrace (Claude) — debug menu on Blur1Multi (360, PS3)
+Did: user: commit, and set up the debug files for Blur1Multi on both platforms. The desktop shortcuts run Blur1Multi's exe from `_work/sources/x360_retail` and `_work/sources/ps3_retail` (real folders, junctions into the discs). Copied Blur1PC's Blur 1 `debug_frontend.xml` into both and set `Ui.NewLaunchMode` to `DebugRb` in their `debug_values.xml` (backup `x360_retail/debug_values.xml.master-bak`). PS3 reads both from `ps3_retail`, not `PS3_GAME/USRDIR` (a `DebugRb` copy there logged `LaunchMode == MASTER`); USRDIR's `debug_values.xml` put back as it was. analysis.md "Debug menu race launch" updated.
+Verified: Blur1Multi `_work/run/Amax.exe` through `game_slot.ps1`, 100 s cap, Right Ctrl then Enter: 360 racing 10.7 s after Enter, PS3 7.0 s after, HUD screen up, log `LaunchMode == Debug : RaceBook`.
+Found: one PS3 run crashed on the start screen before any input, in `Cam2::C_Camera` scalar deleting destructor from `DynamicCameraActor` (write to 0x17534600, an unmapped code address); the next run did not. Not investigated.
+Blocked: none.
+Next: none.
+Files touched: Blur1Multi `_work/sources/{x360_retail,ps3_retail}/debug_{values,frontend}.xml`; Blur1PC docs/{analysis,LEDGER}.md.
