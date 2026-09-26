@@ -946,3 +946,39 @@ Verified: inspected the staged file lists and diffs before committing. No build 
 Blocked: a reviewed course is still needed for routes without an authored spline, and the Dubai route 4 spline disagrees with collision. Other uncommitted BlurX changes still prevent a task-only delivery build.
 Next: resolve the Dubai height disagreement or provide a reviewed route trace from its disc, generate a candidate with road support, then build and deliver the BlurX exe when the worktree permits a task-only build.
 Files touched: BlurX code/tools/kanzen_aid/, code/mercury/library/util/assetcatalog/engine/CatalogFs.{h,cpp}; Blur1PC docs/{analysis,BOARD,LEDGER}.md.
+
+## 2026-09-26 18:45 — session Codex (Storm continuation) — T120
+
+Did: resumed the Brighton Storm bolt work. Confirmed the T120 hook runs in the PC main view's without-AA layer message while the display window's depth surface is still bound. The current worktree still contained the temporary T120 far-plane/depth-view shader switches and held lightning reveal, despite the previous ledger entry saying they were removed; removed them. The depth restore now returns before changing device state if D3D9 cannot create its state block. Corrected the source and analysis notes: the PC path does use display windows, and a future D3D11 implementation would sample multisampled depth in a shader rather than use `ResolveSubresource` on a depth format.
+
+Verified: `git diff --check` passed; no T120 probe markers remain in the touched source; CMake configure and BlurX Release Amax build completed with zero errors. The build compiled `AnimatedModelInstance.cpp` and `ConsoleDepthRestore.cpp`. No game was launched, and the built exe was not copied to `_work/run` because the bolt appearance is still unverified.
+
+Blocked: the two previous T120 runs stopped during D3D9 `GetDeviceCaps`, before reaching the restore. The visual effect and the depth-resolve path on this GPU remain unverified.
+
+Next: run Brighton Storm through the debug menu and `tools/game_slot.ps1` with a short video, compare the bolts with `Amax.Views.Main.ConsoleDepthRestore` enabled and disabled, then deliver the verified build to `BlurX/_work/run` if successful. Do not commit unless asked.
+
+Files touched: BlurX code/amax/game/Game/GameWorld/View/ConsoleDepthRestore.cpp, code/mercury/library/gamesys/animated_model/source/AnimatedModelInstance.cpp, cmake/blurx.cmake; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No commit.
+
+## 2026-09-26 19:22 — session Codex (Storm continuation) — T120 visual check and delivery
+
+Did: corrected the erroneous assertion in this ledger and the board that the user had paused game testing; the user explicitly said they had not. Ran Brighton Storm through the debug menu in `_work/run_t104`, minimized and queued with `tools/game_slot.ps1`. With the reveal held open for diagnosis, clearing the bound depth or forcing the restore shader to far depth showed the bolts; the unmodified five-tap result hid them. D3D9 `CheckDeviceFormat` on this adapter rejects float `D24FS8` (0x8876086a) and accepts fixed `D24S8`. Moving the five-tap result back one D24S8 step (1/16777215) made the bolts visible. This is a PC depth-format adaptation, not part of the recovered Xbox shader. Removed every temporary held-reveal, depth-clear, forced-far and environment-disable probe from the source.
+
+Verified: the clean Release build had zero errors; a 1,200-frame compressed Storm recording (`BlurX/_work/run_t104/scripts/natural_clean.mp4`) with no diagnostic environment variables shows the actual bolt appearing and fading with the sky cycle, rather than staying on. The NVAPI multisampled-depth resolve was selected without an error. The same route reached about 144 render fps in fast runs; the known T091 intermittent whole-run stall also occurred at roughly 27 fps, so its cause is not attributed to T120. `git diff --check` passed and no T120 diagnostic markers remain. The shared `_work/build/vs/Release/Amax.exe` changed during delivery as another session built; copied the exact tested exe and PDB from `_work/run_t104` (it had first been copied from that standard Release build) to `BlurX/_work/run`. Both exe hashes match: `C8FDCFBEAB70137237F264BF6E017B08C1E04DF94CABB9FC4A20098EC847CE27`.
+
+Blocked: none for the NVIDIA path. The RESZ path on AMD/Intel and the user's visual check remain outstanding; T120 is in review. No commit was requested.
+
+Next: user checks Brighton Storm in `BlurX/_work/run/Amax.exe`. If accepted, commit T120's own files/hunks on blurx; inspect RESZ on suitable hardware when available. Keep the separate T091 frame stall on its task.
+
+Files touched: BlurX code/amax/game/Game/GameWorld/View/{ConsoleDepthRestore.h,ConsoleDepthRestore.cpp,Main.cpp}, cmake/blurx.cmake, `_work/run/Amax.{exe,pdb}`; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No commit.
+
+## 2026-09-26 19:46 — session Codex (Storm continuation) — T120 commit
+
+Did: at the user's request, committed the Brighton Storm depth restore on blurx as f68a7503. The commit contains only ConsoleDepthRestore.{h,cpp}, the Main.cpp hook and the T120 CMake block. Updated the shared T120 board, analysis and ledger record; other sessions' uncommitted edits remain unstaged.
+
+Verified: inspected the staged code diff and ran `git diff --cached --check` before committing. The delivered exe remains the clean build verified in the 1,200-frame Storm video; no new game run was needed for the commit.
+
+Blocked: the user's visual review and the RESZ path on AMD/Intel remain outstanding.
+
+Next: check the bolts in Brighton Storm with BlurX/_work/run/Amax.exe. Inspect RESZ on a suitable adapter when available; keep the separate T091 frame stall on its task.
+
+Files touched: BlurX code/amax/game/Game/GameWorld/View/{ConsoleDepthRestore.h,ConsoleDepthRestore.cpp,Main.cpp}, cmake/blurx.cmake; Blur1PC docs/{BOARD,analysis,LEDGER}.md.
