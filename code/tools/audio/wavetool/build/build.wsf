@@ -1,0 +1,52 @@
+<job>
+  <script language="JScript" src="..\..\..\bin\scripts\compilation\symbol_server.js"/>
+  <script language="JScript" src="helper.js"/>
+  <script language="JScript">
+  
+SetEnvPC_2005()
+
+SetToolsSymbolsServer();
+
+// This is the path where we copy files to, e.g. \\gothambitch2\Tools_src_sym\x86\GetMeInGame3\2006.06.15.4\
+var symbolServerPath = GenerateSymbolServerPath(Env("SYM_SERVER_LOC"), "sorcery");
+
+// Create source map which tells .Net how to map local paths to server paths
+MakeSourceMap("\\code\\sorcery\\", symbolServerPath);
+
+Build2005(Env("SRC_ROOT") + "\\code\\sorcery\\sorcery.sln", "Release|Win32", false);
+
+if (g_iErrors == 0)
+{
+	CopyFilesToSymbolServer(
+		["code\\mercury\\library\\core", "code\\mercury\\library\\system", "code\\mercury\\library\\xt2", "code\\mercury\\library\\xtwin", "code\\sorcery" ],	// List of folders to copy to symbol server
+		symbolServerPath,																							// Where to copy them
+		"*.cpp *.c *.h *.hpp");																						// Only copy files matching these extensions
+		
+	CopyFilesToSymbolServer(
+		["code\\sorcery\\bin\\sorcery\\release"],
+		symbolServerPath,																			
+		"*.exe *.pdb");																					
+		
+	RegisterSymbolServer("\"" + symbolServerPath + "code\\sorcery\\bin\\sorcery\\release\\*.*\"", "Sorcery", Env("SYM_SERVER_SERVER_LOC"));
+
+	// If this variable is specified then we copy to the folder it points to (allows us to give away this EXE without putting it on server)
+	if (Env("COPY_TO_LATEST") != "")
+	{
+		DOS("xcopy /Y \"" + Env("SRC_ROOT") + "\\code\\sorcery\\bin\\sorcery\\release\\*.exe\" " + Env("COPY_TO_LATEST"));
+	}
+}
+
+// We need to revert this file to stop Subversion revision numbers being calculated incorrectly (it'll detect this file changed else)
+RevertSourceMap("\\code\\sorcery\\");
+
+if (g_iErrors == 0)
+{
+	WScript.Echo("BUILD SUCCESSFUL\n");
+}
+else
+{
+	WScript.Echo("BUILD FAILED\n");
+}
+
+ </script>
+</job>

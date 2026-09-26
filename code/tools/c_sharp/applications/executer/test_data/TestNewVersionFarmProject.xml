@@ -1,0 +1,68 @@
+<root version="1.1">
+  <use_template name="C:\Users\Keith\Desktop\tools\c_sharp\applications\executer\test_data\FarmTemplate.xml" />
+  <root_type_entry name="TestNewVersionFarmProject" type_name="root_node">
+    <values>
+      <container name="job1" display_name="Job 1" type="basic" value="**UNINITIALISED**" />
+    </values>
+    <type_entry type_name="Folder" name="New Folder">
+      <values />
+      <type_entry type_name="Job2" name="New Job2">
+        <values>
+          <container name="job2" display_name="Job 2" type="basic" value="**UNINITIALISED**">
+            <container name="image1" display_name="image1" type="bitmap" bitmap="Z:\tools\ravin\executer\media\ToolPcl.bmp" default="" value="" />
+            <container name="level_filename" display_name="Filename" type="filename" filepicker_filter="*.lvl" filepicker_share_name="alienbrainWork" force_local_network_path="true" force_file_exists="true" default="" pre_format="cr;" value="\\keith2\alienbrainWork\Project.ini" />
+          </container>
+        </values>
+      </type_entry>
+      <type_entry type_name="Job1" name="New Job1">
+        <values>
+          <container name="job1" display_name="Job 16" type="basic" value="**UNINITIALISED**">
+            <container name="image1" display_name="image1" type="bitmap" bitmap="Z:\tools\ravin\executer\media\ToolPcl.bmp" default="" value="" />
+            <container name="input" display_name="Input" type="basic" pre_format="cr;" value="**UNINITIALISED**">
+              <container name="level_filename" display_name="Filename" type="filename" filepicker_filter="*.lvl" filepicker_share_name="alienbrainWork" force_local_network_path="true" force_file_exists="true" default="" pre_format="cr;" value="\\keith2\alienbrainWork\Project.ini" />
+            </container>
+            <container name="output" display_name="Output" type="basic" pre_format="cr;" value="**UNINITIALISED**">
+              <container name="level_filename" display_name="Filename" type="filename" filepicker_filter="*.lvl" filepicker_share_name="alienbrainWork" force_local_network_path="true" force_path_exists="true" default="" pre_format="cr;" value="\\keith2\alienbrainWork\" />
+            </container>
+          </container>
+        </values>
+      </type_entry>
+      <type_entry type_name="Job3" name="New Job3">
+        <values>
+          <container name="job3" display_name="Job 3" type="basic" value="**UNINITIALISED**">
+            <container name="image1" display_name="image1" type="bitmap" bitmap="Z:\tools\ravin\executer\media\ToolPcl.bmp" default="" value="" />
+          </container>
+        </values>
+      </type_entry>
+      <type_entry type_name="Job1" name="New Job1">
+        <values>
+          <container name="job1" display_name="Job 16" type="basic" value="**UNINITIALISED**">
+            <container name="image1" display_name="image1" type="bitmap" bitmap="Z:\tools\ravin\executer\media\ToolPcl.bmp" default="" value="" />
+            <container name="input" display_name="Input" type="basic" pre_format="cr;" value="**UNINITIALISED**">
+              <container name="level_filename" display_name="Filename" type="filename" filepicker_filter="*.lvl" filepicker_share_name="alienbrainWork" force_local_network_path="true" force_file_exists="true" default="" pre_format="cr;" value="" />
+            </container>
+            <container name="output" display_name="Output" type="basic" pre_format="cr;" value="**UNINITIALISED**">
+              <container name="level_filename" display_name="Filename" type="filename" filepicker_filter="*.lvl" filepicker_share_name="alienbrainWork" force_local_network_path="true" force_path_exists="true" default="" pre_format="cr;" value="" />
+            </container>
+          </container>
+        </values>
+      </type_entry>
+      <type_entry type_name="Job1" name="New Job1">
+        <values>
+          <container name="job1" display_name="Job 16" type="basic" value="**UNINITIALISED**">
+            <container name="image1" display_name="image1" type="bitmap" bitmap="Z:\tools\ravin\executer\media\ToolPcl.bmp" default="" value="" />
+            <container name="input" display_name="Input" type="basic" pre_format="cr;" value="**UNINITIALISED**">
+              <container name="level_filename" display_name="Filename" type="filename" filepicker_filter="*.lvl" filepicker_share_name="alienbrainWork" force_local_network_path="true" force_file_exists="true" default="" pre_format="cr;" value="" />
+            </container>
+            <container name="output" display_name="Output" type="basic" pre_format="cr;" value="**UNINITIALISED**">
+              <container name="level_filename" display_name="Filename" type="filename" filepicker_filter="*.lvl" filepicker_share_name="alienbrainWork" force_local_network_path="true" force_path_exists="true" default="" pre_format="cr;" value="" />
+            </container>
+          </container>
+        </values>
+      </type_entry>
+      <type_entry type_name="Folder" name="New Folder">
+        <values />
+      </type_entry>
+    </type_entry>
+  </root_type_entry>
+</root>

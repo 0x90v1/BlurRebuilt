@@ -1,0 +1,43 @@
+#include "..\vsCommon.h"
+
+float4x4	g_UiTransform						: register( CCV_UI_TRANSFORM );
+
+float4x4	g_PolygonTransform					: register( CCV_POLYGON_TRANSFORM );
+float4		g_PolygonColour						: register( CCV_POLYGON_COLOUR );
+float4		g_TextureVector						: register( CCV_POLYGON_TEXTURE_VECTOR );
+
+struct VS_INPUT
+{
+	float2 Position				: POSITION;
+	float2 TexCoord0			: TEXCOORD0;
+};
+
+struct VS_OUTPUT
+{
+	float4 Colour				: COLOR0;
+	float4 MyWorldPosition		: TEXCOORD3;
+	float4 Position				: POSITION;
+	float2 TexCoord0			: TEXCOORD0;
+};
+
+
+VS_OUTPUT main( VS_INPUT IN )
+{
+	VS_OUTPUT OUT = (VS_OUTPUT)0;
+
+	IN.Position = IN.Position * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
+	IN.TexCoord0 = IN.TexCoord0 * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
+
+	float4 newPos = float4( IN.Position.xy, 0.0f, 1.0f );
+	float4 pos = mul( newPos, g_PolygonTransform );
+	
+	OUT.TexCoord0 = g_TextureVector.xy + (IN.TexCoord0 * g_TextureVector.zw);
+
+	OUT.MyWorldPosition = pos;
+	
+	OUT.Position = mul( OUT.MyWorldPosition, g_UiTransform );
+	
+	OUT.Colour = g_PolygonColour;
+	
+	return OUT;
+}

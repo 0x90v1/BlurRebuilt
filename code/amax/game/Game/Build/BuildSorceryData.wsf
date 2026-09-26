@@ -1,0 +1,79 @@
+<job>
+    <script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\core.js"/>
+    <script language="JScript" src="..\..\..\..\..\bin\scripts\common\exec.js"/>
+    <script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\filesystem.js"/>
+    <script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\misc.js"/>
+    <script language="JScript" src="..\..\..\..\..\bin\scripts\luntbuild\PublishUtils.js"/>
+    <script language="JScript">
+
+    var buildLocation = Env("BUILD_LOCATION");
+    if ((buildLocation == undefined) || (buildLocation == ""))
+    {
+        WScript.Echo("BUILD_LOCATION not defined");
+        WScript.Quit();
+    }
+
+// Shouldn't need to edit beyond this point
+    var projectName = Env("project_name");
+    var gameImageServer = "\\\\bizgame01";
+    var toolsRoot = Env("BIZARRE_ROOT") + "\\tools";
+    var alchemyCmd = MergeFolderStrings(toolsRoot, "common_tools\\win32\\sorcery\\alchemy");
+    var copyCmd = "\"" + MergeFolderStrings(Env("SRC_ROOT"), "bin\\build_tools\\robocopy.exe") + "\" /NP ";
+    
+    var sorcerySrc = MergeFolderStrings(Env("SRC_ROOT"), "svn_publish\\sorcery");
+    var sorceryLocalDst = "z:\\" + Env("project_name") + "\\working";
+    var sorceryServerDst = MergeFolderStrings(gameImageServer, "\\" + projectName + "\\game\\retail\\" + buildLocation);
+    var sorceryServerPreTestDst = MergeFolderStrings(gameImageServer, "\\" + projectName + "\\game\\retail\\PreTest");
+    
+    var t1 = TimeStamp();
+    {
+        // We need to make sure we have the latest and greatest tools
+        var command = "\\\\Biztools01\\shared\\dev_setup_stub\\setup.bat";
+        ExecAndCapture(command);
+
+        command = "%BIZARRE_ROOT%\\tools\\common_tools\\scripts\\installers\\game\\lib\\install_game_tool_chain_impl.bat " + gameImageServer + " " + projectName + " Retail " + buildLocation;
+        ExecAndCapture(command);
+        
+        // Now we run the export and copy
+        {
+            prepareFolder(sorceryLocalDst, "360");
+            prepareFolder(sorceryLocalDst, "pc");
+            prepareFolder(sorceryLocalDst, "ps3");
+            
+            // Export
+            ExecAndCapture(alchemyCmd + " " + sorcerySrc);
+            
+            // Copy to server
+            copyToServer(sorceryLocalDst, sorceryServerDst, "360");
+            copyToServer(sorceryLocalDst, sorceryServerDst, "pc");
+            copyToServer(sorceryLocalDst, sorceryServerDst, "ps3");
+            
+			if (buildLocation.toLowerCase() != "pretest")
+			{
+				copyToServer(sorceryLocalDst, sorceryServerPreTestDst, "360");
+				copyToServer(sorceryLocalDst, sorceryServerPreTestDst, "pc");
+				copyToServer(sorceryLocalDst, sorceryServerPreTestDst, "ps3");
+			}
+        }
+
+        WScript.Echo("BUILD SUCCESSFUL\n");
+    }
+    TimeStampDiff(t1);
+    
+    function prepareFolder(local, platform)
+    {
+        var srcD = local + "\\" + platform + "\\gamedata\\xt";
+        
+        DeleteFolder(srcD);
+    }
+    
+    function copyToServer(local, server, platform)
+    {
+        var srcD = local + "\\" + platform + "\\gamedata\\xt";
+        var dstD = server + "\\" + platform + "\\gamedata\\xt";
+        
+        ExecAndCapture(copyCmd + " " + srcD + " " + dstD + " /MIR");
+    }
+
+    </script>
+</job>

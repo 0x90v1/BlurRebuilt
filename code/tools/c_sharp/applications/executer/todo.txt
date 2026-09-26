@@ -1,0 +1,272 @@
+TODO:
+=====
+
+Seperate the Menu definition file and the menu data file.													Done.
+Simply seperate the <types> tag and the <tree_definition> tag into seperate files.							Done.
+Put the name of the definition file to be used into the menu data file, so the correct definition			Done.
+file is automatically loaded.
+	Make a data file by hand.																				Done.
+	Load it. (Hardcode the loading for now, then do it by file dialog - Open or append.)					Done.
+	Load the corresponding data definition. It's name should be stored in the data file.					Done.
+	The root definition should hold the definition doc, the data doc and the filename of each.				Done.
+	In the root definition, make a context menu that allows save, delete.									Done. Obselete. Needs rework.
+Contain each treeview root node such that it holds all the data needed to manipulate that data set.			Done.
+	This will allow multiple data files to be managed in one tree.
+Make it so the root definition can add types allowed by the type 'root'.									Done.
+Make it so the program can create new root items. Create a Data definition from scratch.					Done.
+Creating a data definition allows the creation of a defrault data set.										Done.
+Make a 'load data' dropdown menu item.																		Done.
+Prevent the editing of root node labels.																	Done. Obselete. Undone.
+Prompt to save modified files at all places.																Done.
+SetDefaultValues																							Done.
+Save any renaming of the root item to the data file.														Done.
+Modify 'name' field to be 'name' and 'display_name'															Done.
+Spawn each process instead of just printing it.																Done.
+- Put all the parameters into a unique file and pass that file to the process.								Done.
+On right click in the tree view, select that node.															Done.
+Right click context menu, add 'rename' option.																Done.
+Remove 'Process recursively' from leaf nodes.																Done.
+Load last config.																							Done.
+Minimize to taskbar.																						Done.
+Start application with a command line specifying a key value pair to search for and then process.			Done. See code comments.
+If the app. is already running, pass the command line to the existing app. then terminate.					Done.
+- e.g. 'MenuSystem -p "filename" "<value>". Process the node if it is found. Dialog if not found.			Done.
+- e.g. 'MenuSystem -h "filename" "<value>" to launch the app. and highlight.								Done.
+Prevent multiple instances.																					Done.
+Fix processing of comments.																					Done.
+Tree view delete node via 'delete' key.																		Done.
+Filepicker, specify file mask.																				Done.
+- If filemask is invalid, report this to the user and then use '*.*'.										Done.
+Add a properties panel to the root entry if this is not too time consuming.									Done.
+Disallow the same project file being opened twice.															Done.
+Make an 'append data' dropdown menu item.																	Done.
+
+Make definition file path relative to the data file path? Should allow it to optionally go either way.		No. Confusing. Wait to see if it's asked for.
+New icon.																									Done.
+New name.																									Done.
+On failure of the SAVE operation, initiate SAVE AS.															Done.
+
+Treeview icons.
+	Load each icon based on a filename from the definition document?										Done.
+	Flip the root icon when the child data is dirty.														Wait to see if it's relevant / asked for.
+
+Validation
+	New file
+		Ensure data file can be created.																	Done.
+		Ensure definition file exists.																		Done.
+		
+Malformed xml. Report that an xml file failed to load.														Done.
+
+Malformed xml. Report any missing tags that are expected.													Done. Needs regular review.
+
+Key-value pair to allow / disallow recursive processing???													Done.
+On process, recursively add parent data to Xml data. (Optionally?)											Not easy. Se if it's needed.
+
+Context menus. Tidy up the root menu. Make it similar (or the same as) the non-root menu.					Done.
+- Root level menu has different functionality. 'Delete' must prompt to save the file.						Done.
+
+Add a debug mode that manages a debug bool.																	Done.
+Warn about entering debug mode.																				Done.
+In debug mode, add a 'Show process command line' to the tree context menu.									Done.
+Create a non-modal dialog to display and manage the command line.											Done.
+
+Load last preferences.																						Done.
+Config: Remember last selected tree node.																	Done.
+- Do this by guid, since a guid is needed for the job manager.												Not done.
+
+Mark some properties as 'not saveable'.																		Done.
+- Perhaps draw them in grey to show this to the user?														Done.
+- Must do something different to the ReadOnly properties.													Done.
+
+Show when the project is write protected.																	Done.
+
+On process, set working directory to that of the process (default)											Done.
+- Allow this to be overridden.																				Done.
+
+Pre-register YesNo dialogs.																					No.
+
+DOCUMENTATION!	Wiki.																						.
+
+Do something clever about a job manager.																	Done.
+
+In YesNoMemory. Add a Show function that specifies the question that will be asked in the					Done.
+YesNoMemoryManager as well as the question that is asked to the user. Why? So for example the following:	Done.
+'Your string is corrupt, it is "BANANA"' and																Done.
+'Your string is corrupt, it is "ORANGE"' can be replaced with												Done.
+'Your string is corrupt' in the manager dialog.																Done.
+
+MenuSystemLibrary
+=================
+
+Filepicker that ensures that the file and/or folder that is chosen actually exists.							Done.
+
+Buy Voodoo Ray
+
+Urgent TODO:
+============
+
+Command line switch to tell Executer to abort.																Done. (-a)
+New method for child processing for Roger.																	Done. May need review when Roger is using it.
+Allow command line args to be specified in the template. Macro expand the temp. args file.					Done.
+To the command line, add a macro that expands to the name of the server the job is running on.				Done.
+Per-job, specify an Xml file to insert into the 'values' Xml file.											Done.
+
+Specify multiple jobs per type.																				Done.
+- Context menu
+- - List jobs by name that can be processed.																Done.
+- - As a sublist to each job, list the servers that it can run on.											Done.
+- - - Don't bother with the list if there is only one server.												Done.
+- - If recurse flag is set to 'ask', add a recurse yes / no sublist.										Done.
+
+
+Mike Waterworth TODO:
+=====================
+
+Autocreate model / texture files if they do not exist when Executer is launched from Maya.					Done.
+- Create an entry in a special folder with default values. Process it.										Done.
+Filepicker in sub-menu. Add a button to copy just the fileNAME into the copy buffer.						Done.
+Batch export. See if the Farm stuff covers his needs.														Done.
+
+Farm connection TODO:
+=====================
+
+Template.xml
+- Add flags on how to process things.																		Done.
+- - List the farmservers that can launch applications in a given template.									Done.
+- - One of these entries may refer to a local farm server for local jobs.									Done.
+- - One of these entries may refer to an 'Execute and abandon' process, for backward compatability.			Done. In server_list, local_name = "immediate"
+Template.xml
+- List servers by friendly name that can process the current job.											Done.
+- When presenting the list to the user, filter out servers that are not common to all jobs in the queue.	Done.
+
+Instead of server 'running_locally' flag, pass in server ip. null => search for it.							Done.
+Modify server constructor so an ip can be passed in.														Done.
+Add a timer that lists servers that are 'searching' and re-issues UDP requests.								Done.
+
+Remove farm_connection from taskbar.																		Done.
+
+Farm connection task list:
+==========================
+
+On project load / close, regenerate the farm_connection server list.										Done.
+
+TreeObject
+----------
+TreeObject needs a list of job id's it thinks it owns. The jobs may have terminated ages ago.				Done.
+- Expose
+- - AddJobId(int id)																						Done. Needs saving to project.
+- - RemoveJobId(int id)																						Done. Needs saving to project.
+- The list needs to be saved with the project.																.
+
+On selecting a TreeObject it needs to enumerate the jobs it has, get the jobPanel from the jobManager 
+(using the jobId), add it into it's tab view. If the jobManager does not contain the jobPanel
+then either request the job status from the farm / create a blank one or remove it from the list.
+
+JobPanel
+--------
+Make a panel that contains a menu. Expose a function to set the menu contents.								Done.
+Define an event to call when the menu wants to communicate back to the farm.								.
+
+The jobTab must know it's jobId so it can identify itself when it talks back to it's owner job.				.
+
+The jobId is assigned when the farm_connection assigns it. It may need a temporary id until then.
+- Use the temporary id that was passed in when the job was created.
+
+JobManager
+----------
+Job requests from 'ProcessCommand' go through here.
+- The tree node that has requested the job is passed in.													Done.
+- The job tab is created.																					Done.
+- The job is requested of the farm.																			Done.
+- The true job id is acquired from the farm.																Done.
+- The job id is used as a key to add the job tab to the job manager.										Done.
+- Needs rework since the jobId's are not unique across projects.											Done. a strJobId is made from servrername and jobId.
+														
+- The tree node (or anything for that matter) can get a job tab by passing in a strJobId.					Done.
+Keeps a list of all the jobTabs that are in existence.														Done.
+- GetJobPanel(str strJobId);																				Done.
+- RemoveJobPanel(strJobId);																					Done.
+
+FarmConnection
+--------------
+- Expose RequestJob.																						Done.
+
+Create and populate a richTextBox that reports all server Tcp conversations.								Done.
+
+Refinements:
+============
+
+Grey out servers that we're not connected to.																Done.
+Don't add servers to m_servers if they're not defined in root/servers.										Done.
+Re-ping missing remote servers.																				Done.
+Specify a temporary folder to use for parameter files.														Done.
+- Use a macro to describe a path to the current machine, thus making the path meaningful to any machine.	Done.
+- Clean the folder preiodically. On startup delete any files more than a week old.							Done.
+Move the config file to a standard folder, away from the exe folder. (For Roger.)							Done.
+- On load, if the standard one isn't there look for the old one.											Done.
+- On exit, write out the new one.																			Done.
+When adding a job's tabpage to the tabcontrol, move the focus to the newly created tabpage.					Done.
+When closing a job's tabpage, move the focus to an appropriate neighbour tabpage.							Done.
+Indent the temporary file output.																			Done.
+
+
+Notes:
+======
+
+Job manager.
+Interface:
+
+Might need some sort of feedback to say that there has been a change to the job status for a given job.
+- DON'T REALLY KNOW HOW TO DO THIS YET.
+
+Panel view.
+Add an XmlDocument that describes the run-time status of the job associated with the panel. (And therefore associated with the tree node.)
+Add a status variable that describes the status of the associated job.
+
+Fake job.
+- Need to create a standalone 'fake job' that supports the job interface and pretends to do a job that takes a suitable amount of time.
+- - This job needs to provide status information to it's owner.
+
+Permanent panel that displays links to global executables. Customised through Xml.
+Something perhaps like a toolbar with icons and hovertext.
+- Dockable toolbars that can be shown / hidden.
+
+
+BUGS:
+=====
+
+Hitting 'escape' on a tree node during editing restores the treenode text but doesn't update				Fixed.
+the corresponding Xml value.
+
+bool values seem to have the first character in uppercase when set by the GUI and are all					Fixed.
+lower case in the definition.
+
+Hitting the del key whilst editing a tree node name prompts to delete the node.								Fixed.
+
+"Are you sure you wish to delete this node?" Yes/No/Ask. Always do 'No' makes no sense. Need 'Yes/Ask'.		Fixed. Simply resetting 'always' flag if 'no' is chosen.
+
+Various asserts if the template omits tags that would otherwise be empty. Roger is to provide a list.		In progress.
+
+Job panels can't have functions invoked on them if they've not been viewed, because they don't have a window handle.
+																											Fixed.
+																											
+Losing and regaining a TCP connection loses the datacallback for that connection.							Fixed.
+
+Quitting the application leaves the JobQueueThread running.													Fixed.
+
+GetCustomMatchedChild 'value' equality test is case sensitive and should not be.							Fixed.
+
+Killing a job that has been abandoned by the farm is impossible.											Fixed.
+
+Hitting the delete key on a project root causes an exception.												Fixed.
+
+Must prevent or otherwise deal well with the user dragging a node from one project to another.				Done.
+
+
+Autocreate tree node -> Yes => Process the new node -> No => YesNoMemory stuff is forgotten and				Probably fixed.
+application bails out.																						Probably fixed.
+
+Temporary folder scope is tree view. It should be per project.												Fixed.
+
+
+

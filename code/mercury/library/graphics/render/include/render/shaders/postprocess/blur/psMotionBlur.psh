@@ -1,0 +1,31 @@
+#include "..\..\psConstants.h"
+#include "..\..\psCommon.h"
+#include "psMotionBlur.h"
+
+sampler2D textureMap : register(s0);
+sampler2D depthMap : register(s1);
+
+
+
+struct PS_OUTPUT
+{
+	float4 RGBColor0     : COLOR0; 
+};
+
+struct VS_OUTPUT
+{
+    float4 position	: POSITION;		//Pixel position (world-view-proj space)  
+    float2 uv		: TEXCOORD0;
+};
+
+PS_OUTPUT main(VS_OUTPUT input)
+{ 
+    PS_OUTPUT output = (PS_OUTPUT)0;
+   
+	float depth = GetDepth(tex2D(depthMap, input.uv).r);
+	float4 step = GetStep(depth, input.uv);
+	
+	output.RGBColor0 = GetSamples(5, textureMap, input.uv, step);
+	
+	return output;
+}

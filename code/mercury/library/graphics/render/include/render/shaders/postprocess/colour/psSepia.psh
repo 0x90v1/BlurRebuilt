@@ -1,0 +1,28 @@
+#include "..\..\psCommon.h"
+#include "psColour.h"
+
+sampler2D textureMap : register(s0);
+
+struct PS_OUTPUT
+{
+	float4 RGBColor0     : COLOR0; 
+};
+
+struct VS_OUTPUT
+{
+    float4 position	: POSITION;		//Pixel position (world-view-proj space)  
+    float2 uv		: TEXCOORD0;
+};
+
+PS_OUTPUT main(VS_OUTPUT input)
+{ 
+    PS_OUTPUT output = (PS_OUTPUT)0;
+   
+	float3 diffuseTexture = tex2D(textureMap, input.uv).rgb;
+	
+	diffuseTexture = ApplySepia(diffuseTexture, 1.0f);
+	
+	output.RGBColor0 = float4(diffuseTexture, 1.0f);
+	
+	return output;
+}

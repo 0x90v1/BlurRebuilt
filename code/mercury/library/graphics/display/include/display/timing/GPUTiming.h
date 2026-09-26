@@ -1,0 +1,140 @@
+#ifndef DISPLAY_GPU_TIMING_TIMING_H
+#define DISPLAY_GPU_TIMING_TIMING_H
+
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#include <System/Perf/Timing.h>
+#include <Core/Containers/Genesis_Containers/List.h>
+#include <Core/Threads/ThreadLocalStorage.h>
+#include <Display2/Utils/Utils.h>
+
+#ifdef PLATFORM_XENON
+#include "Display/Device/D3D9/D3D9.h"
+void __cdecl D3DBeginTimingCallback(DWORD context);
+void __cdecl D3DEndTimingCallback(DWORD context);
+#endif
+
+namespace Display
+{
+
+//! C_GPUTimingStats
+
+class C_GPUTimingStats : public Perf::C_TimingStats, public Util::C_Item<C_GPUTimingStats>
+{
+public:
+
+	C_GPUTimingStats(const S32 level, const Maths::RGBA colour, const Util::C_String80& name);
+	~C_GPUTimingStats();
+
+	const bool Show() const;
+
+	static void UpdateStats();
+	static void ResetPeaks();
+	static void BeginFrame();
+	static void EndFrame();
+
+	#ifdef PLATFORM_PS3
+	void AdvanceTimingRead();
+	void AdvanceTimingWrite();
+	#endif
+	
+	static const C_GPUTimingStats *FindStats(const char *psz);
+
+public:
+
+	#ifdef PLATFORM_PS3
+	U32											m_TimingRead;
+	U32											m_TimingWrite;
+	static const U32							m_TimingCount = 4;
+	U32											m_TimingIndex[m_TimingCount];
+	#endif
+	
+	#ifdef PLATFORM_XENON
+	U64											m_DisplayTime;
+	U64											m_StartTime;
+	U64											m_TempTime;
+	U64											m_EndTime;
+	#endif
+
+	static Util::C_List<C_GPUTimingStats>		m_StatsList;
+};
+
+//! C_GPUTimingEvent
+
+class C_GPUTimingEvent
+{
+public:
+
+	C_GPUTimingEvent(C_GPUTimingStats& stats);
+	~C_GPUTimingEvent();
+
+public:
+
+	S32											m_Depth;
+	
+	#ifdef PLATFORM_PS3
+	U32											m_Index;
+	#endif
+
+private:
+
+	C_GPUTimingEvent* __restrict				m_pParent;
+	C_GPUTimingStats* __restrict				m_pStats;
+
+	static MT::ThreadLocalStorage				m_Tls;
+};
+
+} // namespace Display
+
+#include "Display/Timing/GPUTiming.inl"
+
+#if !defined(CFG_GOLD)
+#define USE_GPU_TIMINGS
+#endif
+
+#ifdef USE_GPU_TIMINGS
+
+#if USE_GPU_TIMINGS2
+
+	#define GPU_TIMING_BEGIN_FRAME() \
+		Display2::C_TimingManager::GetInstance().BeginFrame()
+
+	#define GPU_TIMING_END_FRAME() \
+		Display2::C_TimingManager::GetInstance().EndFrame()
+
+	#define GPU_TIMING_UPDATE() \
+		Display2::C_TimingManager::GetInstance().Update()
+
+	#define GPU_TIMING(_level, _colour, _name) \
+		static Display2::C_TimingString gpuTimingString2(_name, _level); \
+		Display2::C_TimingEvent gpuTimingEvent2(&gpuTimingString2)
+
+#else
+
+	#define GPU_TIMING_BEGIN_FRAME() \
+		Display::C_GPUTimingStats::BeginFrame()
+
+	#define GPU_TIMING_END_FRAME() \
+		Display::C_GPUTimingStats::EndFrame()
+
+	#define GPU_TIMING_UPDATE() \
+		Display::C_GPUTimingStats::UpdateStats()
+
+	#define GPU_TIMING(_level, _colour, _name) \
+		static Display::C_GPUTimingStats gpuTimingStats(_level, _colour, _name); \
+		Display::C_GPUTimingEvent gpuTimingEvent(gpuTimingStats)
+
+#endif
+
+#else
+
+	#define GPU_TIMING_BEGIN_FRAME()
+	#define GPU_TIMING_END_FRAME()
+	#define GPU_TIMING_UPDATE()
+	#define GPU_TIMING(_level, _colour, _name)
+
+#endif
+
+#endif // DISPLAY_GPU_TIMING_TIMING_H

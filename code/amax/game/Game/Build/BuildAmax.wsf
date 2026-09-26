@@ -1,0 +1,115 @@
+<job>
+	<script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\core.js"/>
+	<script language="JScript" src="..\..\..\..\..\bin\scripts\common\exec.js"/>
+	<script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\vstudio.js"/>
+	<script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\misc.js"/>
+	<script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\filesystem.js"/>
+	<script language="JScript" src="..\..\..\..\..\bin\scripts\compilation\symbol_server2.js"/>
+	<script language="JScript" src="..\..\..\..\..\bin\scripts\perforce\perforce_helper_functions.js"/>
+	<script language="JScript">
+
+	CreateP4ConfigFiles(GetUserName());
+
+	var buildType = WScript.Arguments.Item(0);
+	WScript.Echo("Build Type: " + buildType);
+
+	if (buildType == "BUILD")
+	{
+		if (WScript.Arguments.length < 3)
+		{
+			WScript.Echo("Incorrect number of arguments. Usage: JamBuild.wsf BUILDTYPE {PLATFORM CONFIGURATIONS}...\n");
+			WScript.Echo("e.g. cscript.exe //nologo Z:\tools\code_tools\scripts\build_server\jam_build.wsf BUILD WIN32 Release Debug\n");
+			WScript.Quit(1);
+		}
+		
+		var t1 = TimeStamp();
+
+		var perform_rebuild = (Env("no_rebuild") != "true");
+
+		if (Env("do_clean_build") == "0")   // Did luntbuild schedule require a clean?
+			perform_rebuild = true;
+
+		// Build an array of the build types	
+		build_Verbose(false);
+
+		// For CI builds we don't worry if nothing is rebuilt
+		if (Env("do_ci_build") != "1")
+		{
+			build_TouchFile("main.cpp");
+			SetupSymbolServer(Env("project_name"), "\\code\\amax\\game\\");
+		}
+
+		var build_list = build_Init();
+
+		build_SetRebuild(perform_rebuild);
+		build_SetPlatform("jam");
+		build_SetOutputFilter("");
+
+		build_SetWorkingFolder("code\\amax\\game");
+
+		//Build specified platform and configurations, if platform is set to ALL, build for all known platforms	
+
+		var platform = WScript.Arguments.Item(1);
+		WScript.Echo("Building for Platform: " + platform);
+
+		if ((platform.indexOf("XBOX_360") != -1) || (platform == "ALL_PLATFORMS"))
+		{
+			for (var i = 2; i < WScript.Arguments.length; i++)
+			{
+				var buildType = WScript.Arguments.Item(i);
+
+				build_SetTarget("XBOX_360");
+				build_SetConfiguration(buildType);
+				build_SetOutputFolder("code\\amax\\game\\bin\\xbox_360\\" + buildType);
+
+				build_AddBuild(build_list);
+			}
+		}
+        
+		if ((platform.indexOf("PS3") != -1) || (platform == "ALL_PLATFORMS"))
+		{
+			build_SetOutputFilter("*.elf *.self *.map *.fxb *.snproj");
+			for (var i = 2; i < WScript.Arguments.length; i++)
+			{
+				var buildType = WScript.Arguments.Item(i);
+
+				build_SetTarget("PS3");
+				build_SetConfiguration(buildType);
+				build_SetOutputFolder("code\\amax\\game\\bin\\ps3\\" + buildType);
+
+				build_AddBuild(build_list);
+			}
+		}
+            
+		if ((platform.indexOf("WIN32") != -1) || (platform == "ALL_PLATFORMS"))
+		{
+			build_SetOutputFilter("*.exe *.exe.manifest *.pdb *.fxb");
+			
+			for (var i = 2; i < WScript.Arguments.length; i++)
+			{
+				var buildType = WScript.Arguments.Item(i);
+
+				build_SetTarget("WIN32");
+				build_SetConfiguration(buildType);
+				build_SetOutputFolder("code\\amax\\game\\bin\\win32\\" + buildType);
+
+				build_AddBuild(build_list);
+			}
+		}
+        
+		BuildFromList(build_list);
+
+		TimeStampDiff(t1);
+		
+		if (g_iErrors == 0)
+		{
+			WScript.Echo("BUILD SUCCESSFUL\n");
+		}
+		else
+		{
+			WScript.Quit(1);
+		}
+	}
+
+	</script>
+</job>

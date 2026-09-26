@@ -1,0 +1,51 @@
+<job>
+  <script language="JScript" src="..\..\..\..\..\bin\scripts\common\copy.js"/>
+  <script language="JScript" src="..\..\..\..\..\bin\scripts\common\exec.js"/>
+  <script language="JScript" src="..\..\..\..\..\bin\scripts\luntbuild\PublishUtils.js"/>
+  <script language="JScript">
+  
+	var g_iErrors = 0;
+	
+	if (WScript.Arguments.length < 4)
+	{
+		WScript.Echo("Incorrect number of arguments. Usage: PublishMercuryGame.wsf LOCATION PROJECT PLATFORM CONFIGURATION1 {CONFIGURATION2 ...} \n");
+		WScript.Echo("PUBLISH FAILED\n");
+		WScript.Quit();
+	}
+	
+	var location = WScript.Arguments.Item(0);
+	
+	var project = WScript.Arguments.Item(1);
+	
+	var platforms = WScript.Arguments.Item(2);
+	if (platforms == "ALL_PLATFORMS")
+	{
+		platforms = "XBOX_360 WIN32 PS3";
+	}
+	
+	var configs = WScript.Arguments.Item(3);
+	for (var i = 4; i < WScript.Arguments.length; i++)
+	{
+		configs += " " + WScript.Arguments.Item(i);
+	}
+	
+	var source = ".\\bin";
+	var dest = GetGameImageServer(project) + "\\" + project + "\\Game\\Retail\\" + location;
+	var workingFolder = "z:\\" + project + "\\working";
+	
+	//Robocopy the .exe data to the server
+		
+	PublishExecutableToImage(source, dest, platforms, configs, project);
+	PublishShadersToImage(workingFolder, dest, platforms);
+	
+	if (g_iErrors == 0)
+	{
+		WScript.Echo("PUBLISH SUCCESSFUL");
+	}
+	else
+	{
+		WScript.Echo("PUBLISH FAILED");
+	}
+	
+  </script>
+</job>

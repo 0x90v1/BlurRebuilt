@@ -1,0 +1,472 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4556B2D4-FEE8-4D4B-ACBA-EC0F2B800385}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Executer</RootNamespace>
+    <AssemblyName>Executer</AssemblyName>
+    <TargetZone>LocalIntranet</TargetZone>
+    <GenerateManifests>false</GenerateManifests>
+    <ApplicationIcon>Resources\executer_icon_32.ico</ApplicationIcon>
+    <SignManifests>false</SignManifests>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <SignAssembly>false</SignAssembly>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;USE_XDEVKIT, thing</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;USE_XDEVKIT</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug remote|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug remote\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>bin\Debug\Executer.xml</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UIAutomationProvider">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsFormsIntegration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\WINDOWS\assembly\GAC_MSIL\WindowsFormsIntegration\3.0.0.0__31bf3856ad364e35\WindowsFormsIntegration.dll</HintPath>
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="xdevkit, Version=2.0.7776.0, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\xdevkit.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutBox.Designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CommandDetails.cs" />
+    <Compile Include="CommandLineInterface.cs" />
+    <Compile Include="Helpers\ExecuterTreeUtilities.cs" />
+    <Compile Include="ExecuterTreeView.Events.cs">
+    </Compile>
+    <Compile Include="Helpers\CustomFileWatcher.cs" />
+    <Compile Include="Interfaces\ICanReloadSelf.cs" />
+    <Compile Include="Interfaces\IContextMenu.cs" />
+    <Compile Include="Interfaces\IDuplicateSelf.cs" />
+    <Compile Include="Interfaces\IMoveable.cs" />
+    <Compile Include="Interfaces\IRemoveable.cs" />
+    <Compile Include="Interfaces\IRenameable.cs" />
+    <Compile Include="Interfaces\ISaveable.cs" />
+    <Compile Include="Farm\FarmClient.Events.cs" />
+    <Compile Include="Interfaces\ITreeNodeContainer.cs" />
+    <Compile Include="Interfaces\IViewableObject.cs" />
+    <Compile Include="Interfaces\IViewedObject.cs" />
+    <Compile Include="RemotingService.cs" />
+    <Compile Include="TreeObjects\NewTreeUserObject.cs" />
+    <Compile Include="Resource1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource1.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Saveable.cs" />
+    <Compile Include="SearchDetails.cs" />
+    <Compile Include="SearchDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SearchDialog.Designer.cs">
+      <DependentUpon>SearchDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="simple_message_box.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="simple_message_box.Designer.cs">
+      <DependentUpon>simple_message_box.cs</DependentUpon>
+    </Compile>
+    <Compile Include="JobManagement\JobViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="JobManagement\JobViewer.Designer.cs">
+      <DependentUpon>JobViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="options_manager.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="options_manager.Designer.cs">
+      <DependentUpon>options_manager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="debug_text_dialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="debug_text_dialog.Designer.cs">
+      <DependentUpon>debug_text_dialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="debug_window.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="debug_window.Designer.cs">
+      <DependentUpon>debug_window.cs</DependentUpon>
+    </Compile>
+    <Compile Include="JobManagement\Job.cs" />
+    <Compile Include="JobManagement\JobManager.cs" />
+    <Compile Include="form_new_datafile.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="form_new_datafile.Designer.cs">
+      <DependentUpon>form_new_datafile.cs</DependentUpon>
+    </Compile>
+    <Compile Include="JobManagement\job_panel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="JobManagement\job_panel.Designer.cs">
+      <DependentUpon>job_panel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Helpers\launch_process.cs" />
+    <Compile Include="Helpers\locally_unique_identifier.cs" />
+    <Compile Include="timestamp.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ToolstripUtility.cs" />
+    <Compile Include="TreeObjects\TreeObjectBase.cs" />
+    <Compile Include="TreeObjects\TreeObjectViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TreeObjects\TreeObjectViewer.Designer.cs">
+      <DependentUpon>TreeObjectViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TreeObjects\TreeProjectObject.cs" />
+    <Compile Include="TreeObjects\TreeSolutionObject.cs" />
+    <Compile Include="ExecuterTreeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ExecuterTreeView.Designer.cs">
+      <DependentUpon>ExecuterTreeView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="tree_object_properties.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="tree_object_properties.Designer.cs">
+      <DependentUpon>tree_object_properties.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TreeObjects\TreeUserObjectViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TreeObjects\TreeUserObjectViewer.Designer.cs">
+      <DependentUpon>TreeUserObjectViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PromptSave.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PromptSave.Designer.cs">
+      <DependentUpon>PromptSave.cs</DependentUpon>
+    </Compile>
+    <Compile Include="remoting.cs" />
+    <Compile Include="executer_main_form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="executer_main_form.Designer.cs">
+      <DependentUpon>executer_main_form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="AboutBox.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="JobManagement\JobViewer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>JobViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="options_manager.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>options_manager.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="debug_text_dialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>debug_text_dialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="debug_window.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>debug_window.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="form_new_datafile.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>form_new_datafile.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="JobManagement\job_panel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>job_panel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resource1.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource1.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SearchDialog.resx">
+      <DependentUpon>SearchDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="simple_message_box.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>simple_message_box.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExecuterTreeView.resx">
+      <DependentUpon>ExecuterTreeView.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="tree_object_properties.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>tree_object_properties.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TreeObjects\TreeUserObjectViewer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TreeUserObjectViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PromptSave.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>PromptSave.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="executer_main_form.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>executer_main_form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Farm\FarmClientViewer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FarmClientViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XmlViewer.resx">
+      <DependentUpon>XmlViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <BaseApplicationManifest Include="app.manifest" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Farm\FarmClient.cs" />
+    <Compile Include="Farm\FarmClientManager.cs" />
+    <Compile Include="ClientJobRequestQueue.cs" />
+    <Compile Include="Farm\FarmClientViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Farm\FarmClientViewer.Designer.cs">
+      <DependentUpon>FarmClientViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TreeObjects\TreeUserObject.cs" />
+    <Compile Include="Unfinished stuff.cs" />
+    <Compile Include="Helpers\UtilityFunctions.cs" />
+    <Compile Include="WPFTestUserControl.xaml.cs">
+      <DependentUpon>WPFTestUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="XmlViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XmlViewer.Designer.cs">
+      <DependentUpon>XmlViewer.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libraries\communications\communications_library\communications_tcp.csproj">
+      <Project>{2ECB7B87-2942-432D-9EAF-C95D63C0E9CF}</Project>
+      <Name>communications_tcp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\communications_udp\communications_udp.csproj">
+      <Project>{5C6E757A-D7E9-469A-8E22-0B15168347C6}</Project>
+      <Name>communications_udp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\macro_expander\macro_expander.csproj">
+      <Project>{C05914F0-BA9C-44A5-9ED0-91261C366339}</Project>
+      <Name>macro_expander</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\memory_variable\memory_variable.csproj">
+      <Project>{8C4D7B89-89F9-437D-9C6D-CD52375DADBC}</Project>
+      <Name>memory_variable</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\message_handler\message_handler.csproj">
+      <Project>{DD282EBB-96C0-44C0-8C2B-EDDFA197FEB9}</Project>
+      <Name>message_handler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\MiniDump\MiniDump.csproj">
+      <Project>{BB21419E-163C-462A-AA45-E0756D1EC6DF}</Project>
+      <Name>MiniDump</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\persistent_variables\persistent_variables.csproj">
+      <Project>{4BE786E1-3E3D-4CD2-84AC-D7DCDD059FD7}</Project>
+      <Name>persistent_variables</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\super_collections\super_collections.csproj">
+      <Project>{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}</Project>
+      <Name>super_collections</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\super_list_view\super_list_view.csproj">
+      <Project>{AAF08F48-F40F-45BB-8508-CDBE6675D25B}</Project>
+      <Name>super_list_view</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\xml_helper\xml_helper.csproj">
+      <Project>{64001E62-266B-4086-A5B7-7A36C9EDB481}</Project>
+      <Name>xml_helper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libraries\xml_menu_system\menu_system_library\menu_system_library.csproj">
+      <Project>{980A03A0-6136-4FF4-9EA6-352E443135C0}</Project>
+      <Name>menu_system_library</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CustomMessageBox\CustomMessageBox.csproj">
+      <Project>{23373E48-FB41-4E57-A572-C6F06A4F1859}</Project>
+      <Name>CustomMessageBox</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Command Line specification.txt" />
+    <Content Include="Resources\AboutImage.png" />
+    <Content Include="Resources\Camel.bmp" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="Resources\iconQuickSearch.bmp" />
+    <Content Include="Resources\Search.bmp" />
+    <Content Include="Resources\UnknownIcon.bmp" />
+    <Content Include="Resources\TreeProjectIcon.bmp" />
+    <Content Include="Resources\executer_icon_32.ico" />
+    <Content Include="Resources\executer_icon_64.ico" />
+    <None Include="executer.dtd" />
+    <Content Include="options_screen.xml" />
+    <None Include="Resources\chord.wav" />
+    <None Include="Resources\notify.wav" />
+    <None Include="TestSolution.ExecuterSolution" />
+    <Content Include="Resources\TreeSolutionIcon.bmp" />
+    <Content Include="test_process_command_line.xml" />
+    <Content Include="ToDo\todo.txt" />
+    <Content Include="ToDo\todo2.txt" />
+    <Content Include="ToDo\ToDo3.txt" />
+    <Content Include="ToDo\ToDo4.txt" />
+    <Content Include="TreeProjectIcon.ico" />
+    <Content Include="TreeSolutionIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="WPFTestUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PreBuildEvent>echo public class BuildTime { public const string Time = "%25TIME%25";public const string Date = "%25DATE%25"; } &gt; "$(ProjectDir)Timestamp.cs"
+rem touch -t 040101012000.00 Timestamp.cs
+copy "$(ProjectDir)executer.dtd" "$(ProjectDir)test_data\"
+copy "$(ProjectDir)options_screen.xml" "$(TargetDir)\Configuration.Executer"
+</PreBuildEvent>
+    <PostBuildEvent>rem xcopy "$(TargetDir)*.*" "\\kenmacws\Keith remote debug\TestExecuter" /s /y</PostBuildEvent>
+  </PropertyGroup>
+</Project>

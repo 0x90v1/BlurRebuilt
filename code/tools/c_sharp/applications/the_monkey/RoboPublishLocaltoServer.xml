@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<!DOCTYPE root [
+
+	<!ELEMENT root (panel)>
+	<!ATTLIST root template_version CDATA #IMPLIED>
+	<!ATTLIST root application_info_file CDATA #IMPLIED>
+	<!ATTLIST root tag CDATA #IMPLIED>
+
+	<!ELEMENT panel (file_types, sku+)>
+	<!ATTLIST panel name CDATA #REQUIRED>
+	<!ATTLIST panel button_name CDATA #REQUIRED>
+	<!ATTLIST panel copy_newer_files CDATA #REQUIRED>
+	<!ATTLIST panel copy_older_files CDATA #REQUIRED>
+	<!ATTLIST panel copy_same_files CDATA #REQUIRED>
+	<!ATTLIST panel delete_source_after_copy CDATA #REQUIRED>
+	<!ATTLIST panel do_not_delete_filespec CDATA #REQUIRED>
+	<!ATTLIST panel exclude_from_source_filespec CDATA #REQUIRED>
+
+	<!ELEMENT file_types (file_type+)>
+
+	<!ELEMENT file_type EMPTY>
+	<!ATTLIST file_type type CDATA #REQUIRED>
+	<!ATTLIST file_type friendly_name CDATA #REQUIRED>
+
+	<!ELEMENT sku (paths, extensions)>
+	<!ATTLIST sku name CDATA #REQUIRED>
+
+	<!ELEMENT paths (path+)>
+
+	<!ELEMENT path EMPTY>
+	<!ATTLIST path name CDATA #REQUIRED>
+	<!ATTLIST path colour CDATA #IMPLIED>
+	<!ATTLIST path source_path CDATA #REQUIRED>
+	<!ATTLIST path dest_path CDATA #REQUIRED>
+	<!ATTLIST path folder_mask CDATA #IMPLIED>
+	<!ATTLIST path file_mask CDATA #IMPLIED>
+	<!ATTLIST path merge_folders CDATA #IMPLIED>
+	<!ATTLIST path dest_path_pattern_to_replace CDATA #IMPLIED>
+	<!ATTLIST path dest_path_pattern_replacement CDATA #IMPLIED>
+	
+	<!ELEMENT extensions (extension+)>
+
+  	<!ELEMENT extension EMPTY>
+	<!ATTLIST extension ext CDATA #REQUIRED>
+	<!ATTLIST extension type CDATA #REQUIRED>
+]>
+
+<root template_version = "1.0" application_info_file ="\\bizgame02\shitstorm\Tools\Live\Data\data\club_tool_info\ClubtoolInfo.applicationInfo" tag = "art_monkey_template" >
+	<panel
+		name							= "WORKING FOLDER"
+		button_name						= "Publish"
+		copy_newer_files				= "true"
+		copy_older_files				= "true"
+		copy_same_files					= "true"
+		
+		delete_source_after_copy		= "true"
+		do_not_delete_filespec			= ".pdb$|.ilk$|.svn$|Z:\\shitstorm\\Working\\Common\\Data\\Image\\Effects|Z:\\shitstorm\\Working\\Common\\Data\\Image\\IniFiles|Z:\\shitstorm\\Working\\Common\\Data\\Image\\Scripts|Z:\\shitstorm\\Working\\Common\\Data\\Image\\Ui|.pdb$|.idb$|.ilk$|xe_xtprofile.xml"
+		exclude_from_source_filespec	= ".pdb$|.ilk$|.svn$|image\\scripts\\"
+	>
+
+		<file_types>
+			<file_type type = "texture"			friendly_name= "texture" />
+			<file_type type = "level"			friendly_name = "level" />
+			<file_type type = "resource"		friendly_name = "resource" />
+			<file_type type = "model"			friendly_name = "model" />
+			<file_type type = "texture atlas"	friendly_name = "texture atlas" />
+			<file_type type = "font"			friendly_name = "font" />
+			<file_type type = "skeleton"		friendly_name = "skeleton" />
+			<file_type type = "skeleton cycle"	friendly_name = "skeleton cycle" />
+			<file_type type = "physics model"	friendly_name = "physics model" />
+			<file_type type = "executable"		friendly_name = "executable" />
+		</file_types>
+
+		<sku name = "X360">
+			<paths>
+				<path name = "unpacked"	colour ="red"	source_path = "Z:\shitstorm\Working\360\data"		dest_path = "\\bizgame02\shitstorm\Game\360\Live\Data"	folder_mask = "^(?:(?!image\\objects|image\\animations).)*$" file_mask = ""/>
+				<path name = "packed"	colour ="blue"	source_path = "Z:\shitstorm\Working\360\data"		dest_path = "\\bizgame02\shitstorm\Game\360\LiveUnpaked"	folder_mask = "image\\objects|image\\animations" file_mask = "" merge_folders = "true" dest_path_pattern_to_replace = "\\image" dest_path_pattern_replacement = ""/>
+				<path name = "common"	colour ="green"	source_path = "Z:\shitstorm\Working\Common\data"	dest_path = "\\bizgame02\shitstorm\Game\360\Live\Data"	folder_mask = "" file_mask = "" merge_folders = "true" />
+			</paths>
+			<extensions>
+				<extension ext = "xet" type = "texture" />
+				<extension ext = "xel" type = "level" />
+				<extension ext = "xer" type = "resource" />
+				<extension ext = "xem" type = "model" />
+				<extension ext = "xea" type = "texture atlas" />
+				<extension ext = "xef" type = "font" />
+				<extension ext = "xes" type = "skeleton" />
+				<extension ext = "xec" type = "skeleton cycle" />
+				<extension ext = "xep" type = "physics model" />
+				<extension ext = "xex" type = "executable" />
+			</extensions>
+		</sku>
+
+		<sku name = "PC">
+			<paths>
+				<path name = "unpacked"	colour ="red"	source_path = "Z:\shitstorm\Working\PC\data"		dest_path = "\\bizgame02\shitstorm\Game\PC\Live\Data"		folder_mask = "^(?:(?!image\\objects|image\\animations).)*$" file_mask = ""/>
+				<path name = "packed"	colour ="blue"	source_path = "Z:\shitstorm\Working\PC\data"		dest_path = "\\bizgame02\shitstorm\Game\PC\LiveUnpaked"	folder_mask = "image\\objects|image\\animations" file_mask = "" merge_folders = "true" dest_path_pattern_to_replace = "\\image" dest_path_pattern_replacement = ""/>
+				<path name = "common"	colour ="green"	source_path = "Z:\shitstorm\Working\Common\data"	dest_path = "\\bizgame02\shitstorm\Game\PC\Live\Data"		folder_mask = "" file_mask = "" merge_folders = "true"/>
+			</paths>
+			<extensions>
+				<extension ext = "pct" type = "texture" />
+				<extension ext = "pcl" type = "level" />
+				<extension ext = "pcr" type = "resource" />
+				<extension ext = "pcm" type = "model" />
+				<extension ext = "pca" type = "texture atlas" />
+				<extension ext = "pcf" type = "font" />
+				<extension ext = "pcs" type = "skeleton" />
+				<extension ext = "pcc" type = "skeleton cycle" />
+				<extension ext = "pcp" type = "physics model" />
+				<extension ext = "exe" type = "executable" />
+			</extensions>
+		</sku>
+
+		<sku name = "PS3" >
+			<paths>
+				<path name = "unpacked"	colour ="red"	source_path = "Z:\shitstorm\Working\PS3\data"		dest_path = "\\bizgame02\shitstorm\Game\PS3\Live\Data"		folder_mask = "^(?:(?!image\\objects|image\\animations).)*$" file_mask =""/>
+				<path name = "packed"	colour ="blue"	source_path = "Z:\shitstorm\Working\PS3\data"		dest_path = "\\bizgame02\shitstorm\Game\PS3\LiveUnpaked"	folder_mask = "image\\objects|image\\animations" file_mask =""  merge_folders = "true" dest_path_pattern_to_replace = "\\image" dest_path_pattern_replacement = ""/>
+				<path name = "common"	colour ="green"	source_path = "Z:\shitstorm\Working\Common\data"	dest_path = "\\bizgame02\shitstorm\Game\PS3\Live\Data"		folder_mask = "" file_mask =""  merge_folders = "true"/>
+			</paths>
+			<extensions>
+				<extension ext = "p3t"  type = "texture" />
+				<extension ext = "p3l"  type = "level" />
+				<extension ext = "p3r"  type = "resource" />
+				<extension ext = "p3m"  type = "model" />
+				<extension ext = "p3a"  type = "texture atlas" />
+				<extension ext = "p3f"  type = "font" />
+				<extension ext = "p3s"  type = "skeleton" />
+				<extension ext = "p3c"  type = "skeleton cycle" />
+				<extension ext = "p3p"  type = "physics model" />
+				<extension ext = "self" type = "executable" />
+			</extensions>
+		</sku>
+
+	</panel>
+</root>

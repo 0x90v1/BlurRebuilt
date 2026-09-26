@@ -1,0 +1,42 @@
+SubDir TOP Code Tools BizBrain ;
+
+SupportedTargets WIN32_TOOL ;
+
+IncludePath
+./source/
+$(TOP)/code/mercury/library/common/core/include
+$(TOP)/code/mercury/library/common/system/include
+$(TOP)/code/mercury/library/common/misc_shared/include
+$(TOP)/code/mercury/library/util/tools_shared/include
+$(TOP)/code/vendor/tclap/current
+$(TOP)/libs/vendor/alienbrain/1.2.4a/include
+;
+
+LINKLIBS += dbghelp.lib ws2_32.lib NxN_alienbrain_XDK_124.lib ;
+
+LINKFLAGS += /SUBSYSTEM:CONSOLE /MACHINE:X86 
+	/LIBPATH:$(TOP)/libs/vendor/alienbrain/1.2.4a/lib
+;
+
+CCFLAGS += "/Zc:wchar_t-" ;	##Required for Alienbrain library.
+
+SRC =
+./source/Alienbrain.cpp
+./source/Application.cpp
+./source/Main.cpp
+;
+
+LinkLibraries BizBrain :
+	core system misc_shared tools_shared 
+;
+
+Application BizBrain : $(SRC) : stdafx.cpp ;
+
+ExportVcproj BizBrain ;
+
+SubInclude TOP code mercury library common core ;
+SubInclude TOP code mercury library common system ;
+SubInclude TOP code mercury library common misc_shared ;
+SubInclude TOP code mercury library util tools_shared ;
+
+

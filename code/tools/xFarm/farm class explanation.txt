@@ -1,0 +1,52 @@
+SERVER SIDE
+
+farmprocess
+- network connection code
+- contains pointer to server and a pointer to "farmstranger" which is the object that processes the network messages
+
+farmserver
+- has a list of jobs to run (Job class)
+- has a list of connections (FarmProcess)
+
+farmstranger
+- processes incoming and outgoing network messages
+- other classes derive from this using
+	- onstart -> send message hook
+	- onstop -> send message hook
+	- onidle
+	- oncommond -> process an incoming message
+
+farmstranger has two classes derived from it:
+server side connect to "manager" -> farmmanager
+server side connect to "user"    -> farmassistant
+
+farmmanager
+- handles information request such as list of jobs, list of machines etc.
+- handles many different commands. a lot of them are interpreted and then the actual sending information back is done by the farmserver class
+
+note:
+killallmyjobs = legacy thing. basically it deletes that particular job on the server and stops workers that are processing it
+
+for example on exit, farmassistant will call
+farmstranger::killallmyjobs which calls (parent class)
+farmprocess::killallmyjobs which calls (network code)
+farmserver::killallmyjobs (server class)
+which then sends a network messages via the farm process interface that called it
+
+CLIENT SIDE
+
+executestranger:
+this function is passed in a class derived from farmstranger.
+the class then overrides these functions:
+	- onstart -> needs to do announceuser("manager") or announceuser("worker")
+	- onstop -> do cleanup such as deleting jobs
+	- oncommand -> process an incoming message
+	- onidle -> gets called every so often if no network traffic is received. if it returns "false" the thread quits out.
+
+to send a network command do Send("LIST") Send("QUIT") etc.
+
+UI SIDE
+
+FarmWindow is the main UI class
+FarmUser is the class inherited from farmstranger which processes messages and sends messages for the UI window
+as soon as a server is found, a farmuser is created and is only destroyed when server shuts down or when program exits

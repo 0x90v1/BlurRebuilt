@@ -1,0 +1,34 @@
+<job>
+  <script language="JScript" src="..\..\..\..\..\bin\scripts\common\copy.js"/>
+  <script language="JScript" src="..\..\..\..\..\bin\scripts\common\exec.js"/>
+  <script language="JScript" src="..\..\..\..\..\bin\scripts\luntbuild\PublishUtils.js"/>
+  <script language="JScript">
+  	
+  	var g_iErrors = 0;
+  	if (WScript.Arguments.length < 3)
+	{
+		WScript.Echo("Incorrect number of arguments. Usage: CopyStagingAreas.wsf PROJECT LOCATION_SRC LOCATION_DEST \n");
+		WScript.Echo("PUBLISH FAILED\n");
+		WScript.Quit();
+	}
+	
+	var project = WScript.Arguments.Item(0);
+	var sourceLocation = WScript.Arguments.Item(1);
+	var destLocation = WScript.Arguments.Item(2);
+	
+	var source = GetGameImageServer(project) + "\\" + project + "\\Game\\Retail\\" + sourceLocation;
+	var dest = GetGameImageServer(project) + "\\" + project + "\\Game\\Retail\\" + destLocation;
+
+	RoboCopyFiles(source, dest, true, null, "BuildVersion.xml");
+
+	if (g_iErrors == 0)
+	{
+		WScript.Echo("PUBLISH SUCCESSFUL");
+	}
+	else
+	{
+		WScript.Echo("PUBLISH FAILED");
+	}
+	
+  </script>
+</job>

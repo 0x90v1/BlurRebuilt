@@ -1,0 +1,33 @@
+/*---------------------------------------------------------------------------------------
+	File	: psPolygonPaint.vsh
+
+	Desc	: 
+---------------------------------------------------------------------------------------*/
+
+#include "..\psCommon.h"
+
+sampler2D	g_Texture0			: register(s0);
+
+struct PS_INPUT
+{
+	float3 Position				: POSITION;
+	float4 Colour				: COLOR;
+	float2 TexCoord0			: TEXCOORD0;
+};
+
+struct PS_OUTPUT
+{
+	float4 Colour				: COLOR;
+};
+
+PS_OUTPUT main( PS_INPUT IN )
+{
+	PS_OUTPUT OUT = (PS_OUTPUT)0;
+	
+	float4 t0 = tex2D( g_Texture0, IN.TexCoord0 );
+
+	t0.a = t0.g;
+	OUT.Colour = (IN.Colour * t0);
+
+	return OUT;
+}
