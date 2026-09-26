@@ -4,8 +4,8 @@ _work/
 **/code/amax/game/obj/
 **/bin/Win32/
 **/obj/Win32/
-build/
-out/
+/build/
+/out/
 *.ncb
 *.suo
 *.user

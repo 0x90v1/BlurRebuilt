@@ -1,6 +1,6 @@
 # Shared build description for every phase (Blur1PC, Blur1Multi, BlurX).
 # [Blur2PC] Split out of CMakeLists.txt on 2026-09-24 so every phase shares it.
-# Since 2026-09-26 (D16) each phase is a git branch checked out in its own
+# Since 2026-09-25 (D16) each phase is a git branch checked out in its own
 # worktree, so BLUR_TOP and BLUR_PROJECT are both the worktree root. The
 # including CMakeLists.txt sets:
 #   BLUR_TOP        root of the source tree (contains code/)
