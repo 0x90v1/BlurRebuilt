@@ -5,8 +5,8 @@ This file provides guidance to agents when working with code in this repository.
 ## What this repository is
 
 Blur2PC turns the leaked Blur (2010, Bizarre Creations, PC) C++ source into a PC build that plays whatever is recoverable from five Xbox 360 prototype discs of the cancelled Blur 2 (codename **Kanzen**). The Blur 1 path is kept working throughout; the long-term goal is one executable that runs any Blur game (Blur 1, the Blur 2 prototypes) from any platform's data (PC, Xbox 360, PS3), see decision D09. Two pieces are new: an **asset inventory manager** that knows every asset on every disc and serves each one from the best source, and a **per-disc shader recompilation cache**. The engine only ever reads PC-format data: disc assets are converted to PC format on the fly as they are opened (D11), and only shaders, which cannot be recompiled at load time, are cached per source.
-
 This is a multi-session, multi-agent project. **Start every session by reading `docs/BOARD.md` and the last few entries of `docs/LEDGER.md`. End every session by appending a ledger entry.** The protocol is at the bottom of this file.
+Before starting work on any of the stages, see to read the goal statement an definitions in the "Project stages/layers" section below.
 
 ## Layout
 
@@ -40,7 +40,7 @@ External inputs (never modified, never copied into the repo):
 We're dividing the project's lifetime into stages/layers.
 1. **PC Blur 1**: Get a 100% faithful reproduction of the retail Blur. During this stage, it is of the utmost importance that any corrections we make will 100% be made based on decompiling Blur 1 PC retail code, especially if it's for issues that are known not to exist in the retail game. This decompile will mainly be performed using Ghidra. For any code extracted using this method, for which we have no symbols, try your best to give code entities proper names to try to keep the code human-readable, adding a tag to each of them indicating this fact.
 2. **Multiplatform Blur 1**: Get the project to run on Xbox 360 and PlayStation 3 retail data (PS3 support added 2026-09-25, board task T076). See game source abstraction below. For this stage #1 priority is not to reinvent the wheel as most if not all the asset loading from X360 data is already resolved by Blur2Test.
-3. **Blur 2 support**: Get the project to run on Blur 2 prototype data (see asset catalog section below)
+3. **Blur 2 support**: Get the project to run on Blur 2 prototype data (see asset catalog section below). #1 thing to keep in mind for this stage is that Blur2Test has a nearly full decode of all Blur 2 prototype data.
 Each of them will be organized and implemented in such a way that they're independent layers, and at any given time the upper ones can be removed with no interference to the lower ones.
 For example, we should have a 100% faithful Blur 1 PC source, then a standalone version that's able to run just Blur 1 from PC and Xbox with no sign of Blur 2 support.
 
@@ -162,3 +162,4 @@ Recompiled shaders will be cached per each game source alongside the executable.
 7. **Do not launch the game in foreground** Every time you launch a foreground process you're interrupting anything the user is doing. Launch the game minimized, never hidden: a minimized window stays on the taskbar, so the user can spot a stray session. `<Phase>/_work/run/run_script.ps1` does this (the game shows its window minimized without activation while `BLUR2PC_AUTOMATION` is set, and keeps rendering).
 8. **Never kill processes you don't own**.
 9. **One exe per phase for the user: `<Phase>/_work/run/Amax.exe`** (`Blur1PC/_work/run/Amax.exe`, `Blur1Multi/_work/run/Amax.exe`). It is what that phase's `play.bat` and `Blur.lnk` start, so it is the only place the user tests that phase. Build with the standard command into `<Phase>/_work/build/vs/Release`, then copy `Amax.exe` and `Amax.pdb` to `<Phase>/_work/run`. If that `Amax.exe` is running, wait for it to exit and then copy. Do not build or copy to another output directory, a renamed exe or a private folder because the usual one is busy. A private copy for automated runs is fine, but it does not count as delivery. Do not tell the user a change is ready to test until that phase's `_work/run/Amax.exe` contains it; if you have to stop before then, say so plainly.
+10. **Do not stop just to report progress**: When asked for a task, only stop if either the task is considered complete, user input is required, or an error or some other unrecoverable condition was encountered.

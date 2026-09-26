@@ -413,6 +413,41 @@ void C_GameSystems::CreateFsLayers()
 		params.flags.writable = false;
 		((LogicalFs::C_OverlayFs*)m_pFileSystem)->AddLayer("/", s_pCatalogFs, "/", params, LogicalFs::E_MediaLayer_0, "AssetCatalog");
 		LOGINFO(Framework::g_BootLog, "AssetCatalog: profile '%s' serves the game", s_pCatalogFs->Profile().Name().c_str());
+		// [BlurX] The game source (GameSource::Current()) is the profile's first disc found on
+		// this machine. Blur1Multi code picks per-platform behaviour from its platform (the
+		// damage volume format in DamageLayer.cpp, the console lighting prepass in Prepass.cpp);
+		// left unselected it reads E_Platform_Unknown, which built the damage volume as F32 for
+		// the Xbox 360 vehicle programs and hid every car body (T093). Every disc the catalog
+		// covers is an Xbox 360 disc. Select() moves the working directory to the source, so
+		// the working directory (catalog mode's writable layer 0) is put back afterwards.
+		{
+			const AssetCatalog::C_Catalog& catalog = s_pCatalogFs->Catalog();
+			const std::vector<std::string>& order = s_pCatalogFs->Profile().Order();
+			std::string root;
+			for (size_t o = 0; o < order.size() && root.empty(); ++o)
+				for (size_t d = 0; d < catalog.Discs().size(); ++d)
+					if (catalog.Discs()[d].m_Id == order[o])
+					{
+						const DWORD a = GetFileAttributesA(catalog.Discs()[d].m_Root.c_str());
+						if (a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_DIRECTORY))
+							root = catalog.Discs()[d].m_Root;
+						break;
+					}
+			char cwd[MAX_PATH] = { 0 };
+			GetCurrentDirectoryA(MAX_PATH, cwd);
+			const char* prev = getenv("BLUR_SOURCE");
+			const std::string prevSource = prev ? prev : "";
+			_putenv_s("BLUR_SOURCE", root.c_str());
+			const bool found = !root.empty() && GameSource::Select(s_source);
+			_putenv_s("BLUR_SOURCE", prevSource.c_str());
+			SetCurrentDirectoryA(cwd);
+			char text[1024];
+			GameSource::Describe(GameSource::Current(), text, sizeof text);
+			if (found && GameSource::Current().m_Platform == GameSource::E_Platform_Xbox360)
+				LOGINFO(Framework::g_BootLog, "AssetCatalog: game source platform from the profile's first disc: %s", text);
+			else
+				LOGWARN(Framework::g_BootLog, "AssetCatalog: the profile's first disc is not an Xbox 360 source (%s); per-platform code will misbehave", text);
+		}
 		// BLURX_DUMP_RAW=1: the BLUR1MULTI_PAKDUMP hook below reads the discs' bytes, unconverted
 		if (getenv("BLURX_DUMP_RAW"))
 		{
