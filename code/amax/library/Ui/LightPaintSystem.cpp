@@ -603,6 +603,22 @@ void LightPaint_Render()
 
 	gSparkleBufferIndex = (gSparkleBufferIndex + 1) % kMaxSparkleBuffers;
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] The sprites added here go into the UI sprite lists, which only the UI update clears
+	// (C_Simple2D::StartFrame from C_UiManager::Process). Retail renders once per update, so each trail had
+	// one sprite. The decoupled PC loop (ApplicationPC.cpp IdleLoop) renders several frames per update, and
+	// each added another sprite for the same trail: the additive trail drew 2 or 3 times on the frames
+	// between updates and once on update frames, and flickered. Add the sprites on the first render after
+	// the lists were rebuilt; later renders only refill the vertex buffer, which the sprite draws from
+	// (LightPaint_RenderElement binds gSparkleBuffers[gSparkleBufferIndex]). Trails are started and
+	// ended only in the update, so the set of active trails matches the sprites already added.
+	static U32 s_spriteListGeneration = 0xFFFFFFFF;
+	const bool addSprites = s_spriteListGeneration != UI::gSimple2D.Blur2PCListGeneration();
+	s_spriteListGeneration = UI::gSimple2D.Blur2PCListGeneration();
+#else
+	const bool addSprites = true;
+#endif
+
 	if (SparkleVertex* buffer = (SparkleVertex*)gSparkleBuffers[gSparkleBufferIndex].Lock())
 	{
 		for(int i = 0; i < gSparkleCount; i++)
@@ -615,6 +631,9 @@ void LightPaint_Render()
 			Maths::Mat44 transform = UI::gSimple2D.GetTransformMatrixByPanel(so->panel);
 
 			SO_PreRender(so, buffer + so->vbIndex, transform);
+
+			if (!addSprites)	// [Blur2PC] see above
+				continue;
 
 			UI::gSimple2D.AddSprite(so->layer, Maths::HVec3(), 1.0f, 1.0f, colours, so->panel, (UI::E_SpriteType)UI::E_GameSpriteType_LightPaint, rs, (U32)so);
 			UI::gSimple2D.CurrentSprite()->m_Callback = LightPaint_RenderElement;

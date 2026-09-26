@@ -785,6 +785,53 @@ bool C_PCD3D9Device::Present()
 			pBack->Release();
 		}
 	}
+	// [Blur2PC] scripted recording: blit consecutive back buffers into half-size video-memory
+	// targets while the game runs at its own pace, save them all once the last one is taken.
+	{
+		enum { k_MaxRecord = 240 };
+		static IDirect3DSurface9* s_rec[k_MaxRecord];
+		static double s_recTime[k_MaxRecord];
+		static int s_recCount = 0, s_recTaken = 0;
+		static char s_recPrefix[MAX_PATH];
+		int frames = 0;
+		if (s_recCount == 0)
+			if (const char* pPrefix = Blur2PCAutomation::TakeRecordRequest(&frames))
+			{
+				strncpy_s(s_recPrefix, pPrefix, _TRUNCATE);
+				s_recCount = frames < 1 ? 1 : (frames > k_MaxRecord ? k_MaxRecord : frames);
+				s_recTaken = 0;
+				memset(s_rec, 0, sizeof(s_rec));
+			}
+		if (s_recCount > 0)
+		{
+			IDirect3DSurface9* pBack = NULL;
+			if (SUCCEEDED(m_pd3dDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBack)))
+			{
+				D3DSURFACE_DESC desc;
+				pBack->GetDesc(&desc);
+				IDirect3DSurface9*& pDst = s_rec[s_recTaken];
+				if (SUCCEEDED(m_pd3dDevice->CreateRenderTarget(desc.Width / 2, desc.Height / 2, desc.Format, D3DMULTISAMPLE_NONE, 0, FALSE, &pDst, NULL)))
+					m_pd3dDevice->StretchRect(pBack, NULL, pDst, NULL, D3DTEXF_LINEAR);
+				pBack->Release();
+			}
+			s_recTime[s_recTaken] = Blur2PCAutomation::Now();
+			if (++s_recTaken == s_recCount)
+			{
+				for (int i = 0; i < s_recCount; ++i)
+				{
+					if (!s_rec[i])
+						continue;
+					char path[MAX_PATH];
+					_snprintf_s(path, MAX_PATH, _TRUNCATE, "%s_%03d.png", s_recPrefix, i);
+					D3DXSaveSurfaceToFileA(path, D3DXIFF_PNG, s_rec[i], NULL, NULL);
+					s_rec[i]->Release();
+					s_rec[i] = NULL;
+					Blur2PCAutomation::LogF("frame %03d at %.4f", i, s_recTime[i]);
+				}
+				s_recCount = 0;
+			}
+		}
+	}
 	const HRESULT hr = m_pd3dDevice->Present(NULL, NULL, NULL, NULL);
 	// [Blur2PC] log every non-OK present (bring-up diagnostics)
 	{

@@ -15,6 +15,9 @@
 //     <time> down <KEY>               press and keep held
 //     <time> up   <KEY>               release
 //     <time> shot <file.png>          save the next presented frame (path relative to the script)
+//     <time> record <prefix> <frames> copy the next <frames> presented frames (max 240) at half size
+//                                     into video memory, then save them as <prefix>_NNN.png; the copy
+//                                     is a GPU blit, so the game's frame timing holds while recording
 //     <time> quit                     exit the process (exit code 0)
 //     <time> lua  <code>              run <code> in the UI Lua state (rest of the line, '#' is Lua)
 //     <time> wait <timeout> <expr>    block until the Lua expression <expr> is true (tested once per
@@ -26,6 +29,8 @@
 // Lua helpers the UI manager adds while a script is active (amax/library/Ui/UiManager.cpp):
 //     Blur2PC.RaceState()   "None" "Loading" "Intro" "Starting" "Racing" "Finished" "Outro" ...
 //                           (race logic layer state; "None" when there is no race)
+//     Blur2PC.Tap(key)      press and release KEY (names as above) from Lua, e.g. from a `wait` condition
+//                           that drives menus by the screen it sees; false while an earlier tap is held
 //     Blur2PC.Log(text)     write a line to automation.log
 //     Blur2PC.Run(file)     run a Lua file (absolute, or relative to the script); returns what the file returns
 // plus everything the game's UI scripts see (UIScreen.GetCurrentScreen(), UIGlobals, Amax.*, ...).
@@ -48,7 +53,7 @@
 
 namespace Blur2PCAutomation
 {
-	enum E_Kind { E_Down, E_Up, E_Shot, E_Quit, E_Lua, E_Wait };
+	enum E_Kind { E_Down, E_Up, E_Shot, E_Record, E_Quit, E_Lua, E_Wait };
 
 	enum { k_MaxEvents = 512, k_MaxText = 768 };
 
@@ -71,6 +76,8 @@ namespace Blur2PCAutomation
 		int next;
 		bool keys[256];
 		char pendingShot[MAX_PATH];
+		char pendingRecord[MAX_PATH];
+		int pendingRecordFrames;
 		char baseDir[MAX_PATH];
 		LARGE_INTEGER start;
 		LARGE_INTEGER freq;
@@ -89,6 +96,10 @@ namespace Blur2PCAutomation
 		double failQuitAt;
 		// parsing: latest time used so far in the current segment
 		double parseSegmentLast;
+		// key tap requested from Lua (Blur2PC.Tap): DIK code (0 = none), pressed yet, release time
+		int luaTapDik;
+		bool luaTapPressed;
+		double luaTapUp;
 	};
 
 	inline State& Get()
@@ -247,6 +258,12 @@ namespace Blur2PCAutomation
 			if (_stricmp(cmd, "quit") == 0) { AddEvent(segment, t, E_Quit, 0); continue; }
 			if (args < 1)
 				continue;
+			if (_stricmp(cmd, "record") == 0)
+			{
+				if (Event* e = AddEvent(segment, t, E_Record, args >= 2 ? hold : 60))
+					_snprintf_s(e->text, k_MaxText, _TRUNCATE, "%s%s", s.baseDir, arg);
+				continue;
+			}
 			if (_stricmp(cmd, "shot") == 0)
 			{
 				if (Event* e = AddEvent(segment, t, E_Shot, 0))
@@ -322,6 +339,23 @@ namespace Blur2PCAutomation
 				return true;
 			}
 		}
+		// a tap requested from Lua: press on this update, release 150 ms later (at least one update apart)
+		if (s.luaTapDik)
+		{
+			if (!s.luaTapPressed)
+			{
+				s.keys[s.luaTapDik & 0xFF] = true;
+				s.luaTapPressed = true;
+				s.luaTapUp = t + 0.15;
+				LogF("key down %s (lua)", KeyName(s.luaTapDik));
+			}
+			else if (t >= s.luaTapUp)
+			{
+				s.keys[s.luaTapDik & 0xFF] = false;
+				LogF("key up %s (lua)", KeyName(s.luaTapDik));
+				s.luaTapDik = 0;
+			}
+		}
 		bool pressedNow[256] = { false };
 		while (!s.waiting && s.next < s.count && s.events[s.next].time <= t - s.segmentStart)
 		{
@@ -341,6 +375,7 @@ namespace Blur2PCAutomation
 			case E_Down: s.keys[e.dik & 0xFF] = true;  LogF("key down %s", KeyName(e.dik)); break;
 			case E_Up:   s.keys[e.dik & 0xFF] = false; LogF("key up %s", KeyName(e.dik)); break;
 			case E_Shot: strncpy_s(s.pendingShot, e.text, _TRUNCATE); break;
+			case E_Record: strncpy_s(s.pendingRecord, e.text, _TRUNCATE); s.pendingRecordFrames = e.dik; break;
 			case E_Lua:  s.pendingLua = &e; break;
 			case E_Wait:
 				s.waiting = true; s.waitMet = false; s.waitStart = t; s.waitEvent = &e;
@@ -359,6 +394,23 @@ namespace Blur2PCAutomation
 		return Get().active && dik >= 0 && dik < 256 && Get().keys[dik];
 	}
 
+	//! Lua side (Blur2PC.Tap): queue a press and release of a key; false while an earlier tap is still held.
+	inline bool QueueTap(int dik)
+	{
+		State& s = Get();
+		if (!s.active || dik <= 0 || dik > 255)
+			return false;
+		EnterCriticalSection(&s.lock);
+		const bool queued = s.luaTapDik == 0;
+		if (queued)
+		{
+			s.luaTapDik = dik;
+			s.luaTapPressed = false;
+		}
+		LeaveCriticalSection(&s.lock);
+		return queued;
+	}
+
 	//! Returns the requested screenshot path once, or NULL.
 	inline const char* TakeShotRequest()
 	{
@@ -371,6 +423,22 @@ namespace Blur2PCAutomation
 		s.pendingShot[0] = 0;
 		LeaveCriticalSection(&s.lock);
 		LogF("shot %s", path);
+		return path;
+	}
+
+	//! Returns the requested recording's path prefix once (frame count in *pFrames), or NULL.
+	inline const char* TakeRecordRequest(int* pFrames)
+	{
+		State& s = Get();
+		if (!s.active || !s.pendingRecord[0])
+			return NULL;
+		static char path[MAX_PATH];
+		EnterCriticalSection(&s.lock);
+		strncpy_s(path, s.pendingRecord, _TRUNCATE);
+		*pFrames = s.pendingRecordFrames;
+		s.pendingRecord[0] = 0;
+		LeaveCriticalSection(&s.lock);
+		LogF("record %s, %d frames", path, *pFrames);
 		return path;
 	}
 

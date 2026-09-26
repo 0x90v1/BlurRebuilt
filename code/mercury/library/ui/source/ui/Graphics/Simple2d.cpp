@@ -356,6 +356,9 @@ C_Simple2D::C_Simple2D()
 #endif
 
 	m_sPanelUsage3D = 0;
+#ifdef PLATFORM_PC
+	m_Blur2PCListGeneration = 0;	// [Blur2PC]
+#endif
 }
 
 C_Simple2D::~C_Simple2D()
@@ -701,6 +704,9 @@ void C_Simple2D::StartFrame()
 		}
 	}
 	m_SpritesBatched = false;
+#ifdef PLATFORM_PC
+	++m_Blur2PCListGeneration;	// [Blur2PC]
+#endif
 
 	// Reset global reference
 	m_StencilRef = 0;

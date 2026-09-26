@@ -2234,6 +2234,16 @@ namespace
 		return 1;
 	}
 
+	int Blur2PCLua_Tap( lua_State* pState )
+	{
+		const char* name = lua_tostring( pState, 1 );
+		const int dik = name ? Blur2PCAutomation::KeyFromName( name ) : -1;
+		if ( dik < 0 )
+			return luaL_error( pState, "Blur2PC.Tap: unknown key %s", name ? name : "(nil)" );
+		lua_pushboolean( pState, Blur2PCAutomation::QueueTap( dik ) );
+		return 1;
+	}
+
 	int Blur2PCLua_Log( lua_State* pState )
 	{
 		const char* text = lua_tostring( pState, 1 );
@@ -2313,7 +2323,7 @@ namespace
 		lua_pop( pState, 1 );
 		if ( !registered )
 		{
-			static const luaL_Reg s_lib[] = { { "RaceState", Blur2PCLua_RaceState }, { "Log", Blur2PCLua_Log }, { "Run", Blur2PCLua_Run }, { NULL, NULL } };
+			static const luaL_Reg s_lib[] = { { "RaceState", Blur2PCLua_RaceState }, { "Tap", Blur2PCLua_Tap }, { "Log", Blur2PCLua_Log }, { "Run", Blur2PCLua_Run }, { NULL, NULL } };
 			luaL_register( pState, "Blur2PC", s_lib );
 			lua_pop( pState, 1 );
 		}

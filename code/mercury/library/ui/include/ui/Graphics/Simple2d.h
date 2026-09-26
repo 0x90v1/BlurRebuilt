@@ -594,6 +594,11 @@ public:
 	void		ReAllocSprites(const U32 sprite_alloc_cnt);
 
 	void		StartFrame( );
+#ifdef PLATFORM_PC
+	/// [Blur2PC] counts StartFrame calls: the sprite lists are rebuilt once per game update, and with the
+	/// decoupled PC loop several frames can render one set of lists
+	U32			Blur2PCListGeneration( ) const { return m_Blur2PCListGeneration; }
+#endif
 	/// Sets render states and binds the renderer
 	void		PreRender( );
 	/// Cleans up render states and un-binds the renderer
@@ -840,6 +845,9 @@ private:
 	U32											m_NewMaxSprites;
 	U32											m_SpriteCount;
 	bool										m_SpritesBatched;
+#ifdef PLATFORM_PC
+	U32											m_Blur2PCListGeneration;	// [Blur2PC] see Blur2PCListGeneration
+#endif
 
 	Btl::Vector< C_StackedRenderState *>		m_StackedRenderStates;
 	Btl::DynamicPool< C_StackedRenderState >	m_StackedRenderStatePool;
