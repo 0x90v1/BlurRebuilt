@@ -1122,7 +1122,14 @@ void C_MainView::RenderPrepass1(C_View& gameView)
 		
 		Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_All);
 
+#if PLATFORM_PC
+		// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x00426390) draws the prepass whatever the light count: its
+		// depth target feeds the depth-fade effects, blob shadows and fog as well as the lights
+		(void)totalLights;
+		if(true)
+#else
 		if(totalLights != 0)
+#endif
 		{
 			m_pMainPrepass->BeginRender();
 			m_pMainPrepass->RenderGroup(0);

@@ -192,7 +192,13 @@ void C_LightingPrepass::Begin() const
 	viewport.m_Y = 0;
 	Display::Device()->SetViewport(viewport);
 
+#if PLATFORM_PC
+	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x004a5b30) clears to 0: target 1 holds reversed z/w, so 0 is
+	// the far plane where the prepass draws nothing (depth-fade effects decoded 0xFFFFFFFF as the near plane)
+	Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth | Display::E_Clear_Stencil, Maths::RGBA(0x00000000));
+#else
 	Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth | Display::E_Clear_Stencil, Maths::RGBA(0xFFFFFFFF));
+#endif
 
 	{
 		Display::C_StencilState stencilState;
