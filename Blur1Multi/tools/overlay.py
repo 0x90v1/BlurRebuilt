@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-overlay.py - manage Blur1Multi's overlay copies of Blur1PC files.
+overlay.py - manage a phase's overlay copies of the files of the phases below it.
 
 The phase 2 build compiles ../Blur1PC/code with the files under ./code laid
 over it: a file at the same relative path replaces the base file. Every such
@@ -21,6 +21,13 @@ take and sync record the current Blur1PC commit, so the base file must be
 committed first (no uncommitted edits), or the record would point at nothing.
 Blob ids are git's (line endings normalised), so they match `git log --raw`.
 Paths are relative to the phase folder (code/...). Run from anywhere.
+
+[Blur2PC] Stacked phases (2026-09-25): this file serves Blur1Multi, whose one
+base is Blur1PC. BlurX/tools/overlay.py imports it and calls configure() with
+its own folder and the bases Blur1Multi, Blur1PC (highest first): a BlurX copy
+is recorded against the highest base that has the file (its `base_layer`), so
+it can shadow a Blur1Multi overlay copy, a Blur1Multi-only file or a Blur1PC
+file. Entries without `base_layer` are against Blur1PC.
 """
 import datetime
 import json
@@ -31,8 +38,40 @@ import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = os.path.dirname(HERE)
-BASE = os.path.join(REPO, 'Blur1PC')
+BASES = ['Blur1PC']            # phase folders below this one, highest first
 MANIFEST = os.path.join(HERE, 'overlay.json')
+
+
+BASE_DIRS = {}                 # base phase -> folder read in its place (a committed snapshot)
+
+
+def configure(here, bases, base_dirs=None):
+    """point the tool at another phase folder and its bases (highest first); base_dirs maps a
+    base to the folder that stands for it (BlurX reads Blur1Multi from a committed snapshot)"""
+    global HERE, REPO, BASES, MANIFEST, BASE_DIRS
+    HERE = os.path.abspath(here)
+    REPO = os.path.dirname(HERE)
+    BASES = list(bases)
+    MANIFEST = os.path.join(HERE, 'overlay.json')
+    BASE_DIRS = dict(base_dirs or {})
+
+
+def base_dir(layer):
+    return BASE_DIRS.get(layer, os.path.join(REPO, layer))
+
+
+def base_layer(relpath, entry=None):
+    """the base phase a copy is recorded against: the entry's, else the highest base holding the file"""
+    if entry is not None:
+        return entry.get('base_layer', 'Blur1PC')
+    for b in BASES:
+        if os.path.isfile(os.path.join(base_dir(b), relpath)):
+            return b
+    return BASES[-1]
+
+
+def base_file(relpath, entry=None):
+    return os.path.join(base_dir(base_layer(relpath, entry)), relpath)
 
 
 def git(*args, check=True):
@@ -42,17 +81,17 @@ def git(*args, check=True):
     return r.stdout.strip()
 
 
-def base_git_path(relpath):
-    return 'Blur1PC/' + relpath
+def base_git_path(relpath, entry=None):
+    return base_layer(relpath, entry) + '/' + relpath
 
 
-def blob_hash(relpath):
-    """git's blob id of the Blur1PC file in the working tree, with git's line-ending filters applied"""
-    return git('hash-object', '--path', base_git_path(relpath), os.path.join(BASE, relpath))
+def blob_hash(relpath, entry=None):
+    """git's blob id of the base file in the working tree, with git's line-ending filters applied"""
+    return git('hash-object', '--path', base_git_path(relpath, entry), base_file(relpath, entry))
 
 
-def committed_blob(commit, relpath):
-    return git('rev-parse', '--verify', '-q', f'{commit}:{base_git_path(relpath)}', check=False)
+def committed_blob(commit, relpath, entry=None):
+    return git('rev-parse', '--verify', '-q', f'{commit}:{base_git_path(relpath, entry)}', check=False)
 
 
 def now():
@@ -73,19 +112,19 @@ def save(m):
 
 def rel(p):
     p = p.replace('\\', '/').strip('/')
-    for prefix in ('Blur1Multi/', 'Blur1PC/'):
+    for prefix in [os.path.basename(HERE) + '/'] + [b + '/' for b in BASES]:
         if p.startswith(prefix):
             p = p[len(prefix):]
     return p
 
 
-def current_base(relpath):
+def current_base(relpath, entry=None):
     """(commit, blob) for the base file as committed at HEAD; exits if the working copy differs"""
     head = git('rev-parse', 'HEAD')
-    blob = blob_hash(relpath)
-    if committed_blob(head, relpath) != blob:
-        raise SystemExit(f'{base_git_path(relpath)} has uncommitted changes (or is untracked); '
-                         'commit the Blur1PC change first so the record can name its commit')
+    blob = blob_hash(relpath, entry)
+    if committed_blob(head, relpath, entry) != blob:
+        raise SystemExit(f'{base_git_path(relpath, entry)} has uncommitted changes (or is untracked); '
+                         'commit the base change first so the record can name its commit')
     return head, blob
 
 
@@ -98,13 +137,13 @@ def record(entry, action, commit, blob, note):
 
 
 def commits_since(entry, relpath):
-    out = git('log', '--format=%h %ad %s', '--date=short', f'{entry["base_commit"]}..HEAD', '--', base_git_path(relpath))
+    out = git('log', '--format=%h %ad %s', '--date=short', f'{entry["base_commit"]}..HEAD', '--', base_git_path(relpath, entry))
     return [l for l in out.splitlines() if l]
 
 
 def cmd_take(relpath, why):
     relpath = rel(relpath)
-    src = os.path.join(BASE, relpath)
+    src = base_file(relpath)
     dst = os.path.join(HERE, relpath)
     if not os.path.isfile(src):
         print('no such base file:', src)
@@ -112,14 +151,18 @@ def cmd_take(relpath, why):
     if os.path.exists(dst):
         print('overlay copy already exists:', dst)
         return 1
-    commit, blob = current_base(relpath)
+    layer = base_layer(relpath)
+    entry = {'why': why}
+    if layer != 'Blur1PC':
+        entry['base_layer'] = layer
+    commit, blob = current_base(relpath, entry)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     shutil.copy2(src, dst)
     m = load()
-    m[relpath] = {'why': why}
+    m[relpath] = entry
     record(m[relpath], 'take', commit, blob, why)
     save(m)
-    print('took', relpath, 'at Blur1PC commit', commit[:10])
+    print('took', relpath, 'from', layer, 'at commit', commit[:10])
     return 0
 
 
@@ -131,7 +174,7 @@ def cmd_sync(relpath, note):
         return 1
     e = m[relpath]
     since = commits_since(e, relpath)
-    commit, blob = current_base(relpath)
+    commit, blob = current_base(relpath, e)
     if blob == e['base_blob']:
         print('base unchanged since the last sync; nothing to record')
         return 0
@@ -139,7 +182,7 @@ def cmd_sync(relpath, note):
         note = 'merged ' + ', '.join(c.split()[0] for c in since) if since else 'merged base changes'
     record(e, 'sync', commit, blob, note)
     save(m)
-    print('synced', relpath, 'to Blur1PC commit', commit[:10], '-', note)
+    print('synced', relpath, 'to', base_layer(relpath, e), 'commit', commit[:10], '-', note)
     return 0
 
 
@@ -147,7 +190,7 @@ def cmd_check():
     m = load()
     bad = 0
     for relpath, e in sorted(m.items()):
-        src = os.path.join(BASE, relpath)
+        src = base_file(relpath, e)
         dst = os.path.join(HERE, relpath)
         if not os.path.exists(dst):
             print('MISSING overlay copy:', relpath)
@@ -157,7 +200,7 @@ def cmd_check():
             print('base file gone:', relpath)
             bad += 1
             continue
-        if blob_hash(relpath) != e['base_blob']:
+        if blob_hash(relpath, e) != e['base_blob']:
             since = commits_since(e, relpath)
             what = f'{len(since)} commit(s)' if since else 'uncommitted edits'
             print(f'CHANGED in base since {e["synced"][:10]} ({what}): {relpath}; '
@@ -169,10 +212,10 @@ def cmd_check():
     for root, dirs, files in os.walk(os.path.join(HERE, 'code')):
         for f in files:
             p = rel(os.path.relpath(os.path.join(root, f), HERE))
-            if p not in m and os.path.exists(os.path.join(BASE, p)):
+            if p not in m and any(os.path.exists(os.path.join(base_dir(b), p)) for b in BASES):
                 print('UNRECORDED override (use overlay.py take):', p)
                 bad += 1
-    print('base:', BASE, '| overrides:', len(m), '| problems:', bad)
+    print('bases:', ', '.join(BASES), '| overrides:', len(m), '| problems:', bad)
     return 1 if bad else 0
 
 
@@ -180,7 +223,7 @@ def cmd_status():
     m = load()
     for relpath, e in sorted(m.items()):
         since = commits_since(e, relpath)
-        dirty = blob_hash(relpath) != committed_blob('HEAD', relpath)
+        dirty = blob_hash(relpath, e) != committed_blob('HEAD', relpath, e)
         state = f'{len(since)} base commit(s) since' if since else 'base unchanged'
         if dirty:
             state += ', base has uncommitted edits'
@@ -195,14 +238,14 @@ def cmd_changes(relpath):
     if not e:
         print('not in overlay.json:', relpath)
         return 1
-    print(f'# {relpath}: last synced {e["synced"]} at Blur1PC commit {e["base_commit"][:10]}')
+    print(f'# {relpath}: last synced {e["synced"]} at {base_layer(relpath, e)} commit {e["base_commit"][:10]}')
     since = commits_since(e, relpath)
-    print('# Blur1PC commits to this file since:' if since else '# no Blur1PC commits to this file since')
+    print('# base commits to this file since:' if since else '# no base commits to this file since')
     for c in since:
         print('#   ' + c)
     sys.stdout.flush()
     # commit -> working tree, so uncommitted base edits show too
-    return subprocess.call(['git', '-C', REPO, '--no-pager', 'diff', e['base_commit'], '--', base_git_path(relpath)])
+    return subprocess.call(['git', '-C', REPO, '--no-pager', 'diff', e['base_commit'], '--', base_git_path(relpath, e)])
 
 
 def cmd_history(relpath):
@@ -219,7 +262,8 @@ def cmd_history(relpath):
 
 def cmd_diff(relpath):
     relpath = rel(relpath)
-    return subprocess.call(['git', 'diff', '--no-index', '--', os.path.join(BASE, relpath), os.path.join(HERE, relpath)])
+    e = load().get(relpath)
+    return subprocess.call(['git', 'diff', '--no-index', '--', base_file(relpath, e), os.path.join(HERE, relpath)])
 
 
 def main(argv):

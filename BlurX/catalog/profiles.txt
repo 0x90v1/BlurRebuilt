@@ -1,0 +1,83 @@
+# BlurX serving profiles: which disc serves a file when several carry it.
+# Read by the game at boot (--profile=<name> or BLURX_PROFILE) and by
+# code/tools/blurx_catalog/catalog.py (resolve, report). Keywords:
+#   profile <name> <description>   starts a profile
+#   order <disc> ...               preference order; a disc not listed never serves
+#   prefer <glob> <disc> ...       for virtual paths matching <glob> (lower case,
+#                                  backslashes, '*' and '?' only), these discs
+#                                  come first, then 'order'
+#   pin <glob> <disc> ...          matching paths are served only by these discs
+#   accept <status> ...            catalog statuses that may be served (default: ok)
+# Rules are tried in order; the first matching one applies. A disc serves a file
+# only when every copy it holds has an accepted status.
+#
+# Local changes go in profiles.local.txt beside this file (same syntax, not
+# tracked; --profile-overrides=<file> or BLURX_PROFILE_OVERRIDES name another):
+# for a profile it names, 'order' and 'accept' replace these and its rules are
+# tried before these. No rebuild is needed for either file.
+#
+# The defaults below come from Blur2Test, which established why a per-asset
+# provider is needed and which disc should serve what (AGENTS.md "Asset catalog"):
+#   - Nov 10 is missing assets; fill newest-first: Nov 9, Nov 4, Aug 31, then
+#     retail Blur 1 (Blur2Test AGENTS.md "Fallback sources"; _notes/disc_resource_map.md).
+#   - Weapons come from Aug 31: the PickupType tables in pickups.bin /
+#     dynamiceffects.bin / effects.bin, the perk meshes and cycles; a weapon asset
+#     only on a November disc (the Icewall meshes) comes from there (Blur2Test
+#     AGENTS.md, decided 2026-09-17, gameplay 2026-09-22). The particle textures
+#     that bundle uses have no path list in the notes yet; not ruled here.
+#   - Audio is the prototypes' own; retail audio is never substituted (Blur2Test
+#     README "every graph and every wave is the prototype's own"). Nov 10 ships no
+#     audio banks, so Nov 9 is the newest source.
+#   - Nov 25 is not in the fallback order (Blur2Test _notes/nov25_disc_assessment.md:
+#     "not promoted into the normal asset fallback order"; a damaged rip). It is
+#     served only by its own profile, for what only it has.
+
+# The test base (AGENTS.md "Disc generations").
+profile nov10 Blur 2 as of Nov 10 2010, gaps filled newest first (Blur2Test policy)
+order nov10 nov09 nov04 aug31 blur1x360
+prefer \gamedata\xt\pickups.bin aug31
+prefer \gamedata\xt\dynamiceffects.bin aug31
+prefer \gamedata\xt\effects.bin aug31
+prefer \models\perks\* aug31
+prefer \animations\perks\* aug31
+pin \audio\* nov10 nov09 nov04 aug31
+
+profile aug31 Blur 2 as of Aug 31 2010 (Blur 1 formats), gaps filled from retail Blur 1
+order aug31 blur1x360
+pin \audio\* aug31
+
+# Nov 25's own content (mp_la_docksbowl, user_feargal_p, the revised levels);
+# records whose container framing is broken are refused (status bad:...).
+profile nov25 Blur 2 as of Nov 25 2010 (damaged rip), nothing from other discs
+order nov25
+
+# Regression profile: retail Blur 1 for Xbox 360 served through the catalog.
+# Must behave exactly as Blur1Multi does with --source=<that disc>.
+profile blur1x360 Retail Blur 1 (Xbox 360) through the catalog
+order blur1x360
+
+# STOPGAP (D13): Nov 10 content with retail Blur 1's gameplay databases, so the
+# Blur 1 game code in the tree can run the prototypes. Gameplay here is Blur 1's.
+# The gameplay databases reference each other by record id (Multiplayer.bin's
+# vehicle unlocks -> Vehicles.bin, pickups -> dynamic effects, ...), so they are
+# taken as one set (\gamedata\) and Kanzen databases come back one at a time as
+# their consumers are understood; each change notes the crash it answers. The
+# pins go away as Kanzen's own code is recovered from the XEX (D13 step 2).
+# History: pickups.bin (Kanzen PickupType has no DoubleTap: NULL in
+# LevelStateVehiclePickupInfo::Init) -> multiplayer.bin (C_MultiplayerData::
+# PreCacheData) -> vehicles referenced by it (MultiplayerChallengeSystem.cpp:644).
+# Audio: Aug 31's graphs and banks until Kanzen's audio objects are read. Nov 9's
+# and Nov 4's .dat audio objects are version 2.12 (BlurX reads 2.11: Blur1Multi
+# AobjConvert, Blur2Test b2_xbox_aobj). Blur2Test pairs Aug 31 graphs with Nov 9
+# waves (_notes/weapon_recovery_package.md), but in the engine that mix corrupts
+# the heap at race load, with the Nov 9 banks converted (T075, 2026-09-25 18:10;
+# before T075 it crashed in SendQueue::ReceiveItem). Aug 31's objects and banks
+# load together. The streamed banks (music, ambience) are served: on 2026-09-25 an
+# intermittent memory fault in BlurX showed up with them (heap corruption at race
+# load, 1 of 3 runs) and without them (Context::SetMaterial, a texture index past
+# its node's list, 1 of 2 runs); under page heap 3 of 3 runs with them raced to the
+# end. Leaving them out does not avoid the fault (ledger 2026-09-25 19:55 and later).
+profile nov10-b1rules STOPGAP: Nov 10 content, retail Blur 1 gameplay databases
+order nov10 nov09 nov04 aug31 blur1x360
+pin \audio\* aug31
+pin \gamedata\* blur1x360

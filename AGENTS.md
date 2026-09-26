@@ -23,7 +23,7 @@ Three phase folders (see "Project stages/layers"), one shared docs folder, one s
 | `Blur1PC/code/vendor/` | demonware, lua, zlib, libtom*, cxxtest, tclap; our shims (dxerr, bink-stub, efx-util, crt-compat, crash-handler). |
 | `Blur1PC/cmake/` | `blur_common.cmake` (the build description every phase includes), `overrides.cmake` (hand tweaks), `targets.cmake` (generated, never edited). |
 | `Blur1Multi/` | **Phase 2**: Blur 1 from any platform's data: retail PC, Xbox 360 and PS3. Holds no engine copy: it builds `Blur1PC/code` with `Blur1Multi/code` laid over it. Read `Blur1Multi/README.md` before touching it. |
-| `Blur2/` | **Phase 3**: the Blur 2 prototypes. Placeholder until phase 2 serves 360 data. |
+| `BlurX/` | **Phase 3**: the Blur 2 prototypes. Builds `Blur1PC/code` with `Blur1Multi/code` and `BlurX/code` laid over it; serves several discs at once through the asset catalog (`BlurX/catalog/`, D12). Read `BlurX/README.md` before touching it. |
 | `docs/` | Project docs for all phases: analysis, decisions, plan, board, ledger. |
 | `_work/` | Shared scratch (gitignored): `vendor/` (third-party SDKs), `ghidra/`, `ghidra_proj/`, `retail_lua*/`, `tools/`. Each phase has its own `<Phase>/_work/`: `build/` (targets JSON, generated units, VS tree), `run/` (the user's exe, automation harness, `shadercache/<source>/` recompiled shaders). No other converted data is stored (D11). |
 
@@ -44,10 +44,10 @@ We're dividing the project's lifetime into stages/layers.
 Each of them will be organized and implemented in such a way that they're independent layers, and at any given time the upper ones can be removed with no interference to the lower ones.
 For example, we should have a 100% faithful Blur 1 PC source, then a standalone version that's able to run just Blur 1 from PC and Xbox with no sign of Blur 2 support.
 
-**How the layers are kept apart (D10).** Each phase is a folder with its own CMake project, `_work/` and exe. A phase never edits the folder below it: Blur1Multi compiles `Blur1PC/code` as a read-only base with its own `Blur1Multi/code` laid over it (a file at the same relative path replaces the base file, a new path is a new file declared in `Blur1Multi/cmake/multi.cmake`), and Blur2 will do the same over both. Rules that follow:
+**How the layers are kept apart (D10).** Each phase is a folder with its own CMake project, `_work/` and exe. A phase never edits the folder below it: Blur1Multi compiles `Blur1PC/code` as a read-only base with its own `Blur1Multi/code` laid over it (a file at the same relative path replaces the base file, a new path is a new file declared in `Blur1Multi/cmake/multi.cmake`), and BlurX will do the same over both. Rules that follow:
 - A fix for Blur 1 on PC data goes in `Blur1PC/`, and every phase inherits it at its next generate.
 - Code that exists only for another platform or for Blur 2 goes in that phase's folder, as new files where possible. An overlay copy of a base file is the last resort: it stops inheriting Blur1PC changes to that file, so it is recorded in `<Phase>/overlay.json` (`python tools/overlay.py take ...`) and `python tools/overlay.py check` must report no drift before a build is called done. When it reports drift, merge the base change into the copy (`overlay.py changes <relpath>` lists the Blur1PC commits and diff since the last sync) and record it with `overlay.py sync <relpath> "<what was merged>"`: each copy keeps the Blur1PC commit and date it was last synced to, and its full take/sync history, so later questions of the form "what has this copy absorbed" are answered from `overlay.py history`.
-- Phase-specific translation units can test `BLUR1MULTI` (phase 2); base files must not, since the base must build without it.
+- Phase-specific translation units can test `BLUR1MULTI` (phase 2, also defined in BlurX) or `BLURX` (phase 3); base files must not, since the base must build without it.
 - Deleting a phase folder must leave the phases below building and running unchanged.
 
 ## Future goals
@@ -74,10 +74,12 @@ python code/tools/jam2cmake/errsum.py _work/build/amax.log
 
 **Blur1Multi**, from `Blur1Multi/`: the same generators from `../Blur1PC/code/tools/jam2cmake/` with `--top ../Blur1PC`, `--overlay .` (shadergen, luabundle, gen_cmake) and `--project-dir .` (gen_cmake); the exact lines are in `Blur1Multi/README.md` and at the top of `Blur1Multi/CMakeLists.txt`. Run `gen_cmake.py` again after taking or removing an overlay file. `cpgen.py` runs in Blur1PC only (its headers land beside the `.cp` files).
 
+**BlurX**, from `BlurX/`: first `python tools/sync_base.py` (BlurX builds on Blur1Multi **as committed**, exported to `BlurX/_work/base/Blur1Multi`; user, 2026-09-25), then the same generators with two overlays, lowest first (`--overlay _work/base/Blur1Multi --overlay .` for shadergen and luabundle, `--overlay _work/base/Blur1Multi=BLUR1MULTI_DIR --overlay .` for gen_cmake); exact lines in `BlurX/README.md`. Its overlay tool is `BlurX/tools/overlay.py` (bases Blur1Multi snapshot, Blur1PC).
+
 - `cmake` lives at `C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`; MSBuild prints its summary in the system locale (Spanish), so judge builds by `errsum.py`'s error count.
 - Configurations map to the engine's build configs: Debug → `BUILD_CONFIG_DEBUG`, Release → `BUILD_CONFIG_SPEED`, RelWithDebInfo → `BUILD_CONFIG_RELEASE`, MinSizeRel → `BUILD_CONFIG_MASTER`.
 - Jam's `[ Batch … : StdAfx.h ]` groups were **unity translation units**; the generator reproduces them as `_work/build/gen/unity/<target>_batchN.cpp`. A file that fails alone but built originally is almost always relying on an earlier file in its group. Run `gen_cmake.py` again after adding or removing sources.
-- `cmake/targets.cmake` is generated; never edit it. Per-file or per-target tweaks go in `Blur1PC/cmake/overrides.cmake` (every phase includes it) with a comment saying why; the shared flags, vendor SDKs and shims are in `Blur1PC/cmake/blur_common.cmake`. Source edits in `Blur1PC/code/` get a `// [Blur2PC]` comment; Blur1Multi files get `// [Blur1Multi]`.
+- `cmake/targets.cmake` is generated; never edit it. Per-file or per-target tweaks go in `Blur1PC/cmake/overrides.cmake` (every phase includes it) with a comment saying why; the shared flags, vendor SDKs and shims are in `Blur1PC/cmake/blur_common.cmake`. Source edits in `Blur1PC/code/` get a `// [Blur2PC]` comment; Blur1Multi files get `// [Blur1Multi]`; BlurX files get `// [BlurX]`.
 - Third-party inputs live in the shared `_work/vendor` at the repo root (D3DX 9.29 from the `Microsoft.DXSDK.D3DX` NuGet, OpenAL Soft 1.24.3 binaries, IJG libjpeg 6b); `blur_common.cmake` has cache variables for each. Shims for pieces we do not have: `code/vendor/dxerr` (DXGetErrorString) and `code/vendor/efx-util` (Creative's reverb-preset conversion).
 - Built-in shaders (`.psh`/`.vsh`, 647 variants) are compiled by `shadergen.py` with the Windows SDK `fxc` into `_work/build/gen/shaders/<target>_shaders.cpp` in the blob layout `C_D3D9Device::CreatePixelShader` reads. Re-run it after editing any of them.
 
@@ -120,6 +122,8 @@ Paths in this section and in `docs/analysis.md` are relative to `Blur1PC/`.
 
 Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` databases lost), zero-filled 32 KB blocks in several level files, 60-byte stub `.levelanim` files. It alone has `mp_la_docksbowl`, `user_feargal_p` and a full `liverpool`. Full details and per-disc counts: `docs/analysis.md`.
 
+**Test base for Blur 2 work: the Nov 10 prototype** (user, 2026-09-25): the last more-or-less healthy build. Tests, verification runs and the default BlurX profile start from Nov 10. Nov 25 is known broken; it is catalogued so its unique assets can be reached, never used as a test base.
+
 ## Game source abstraction
 
 From the "multi-platform Blur 1" layer and upwards, we'll want to have a component that creates an abstraction layer for a game's disc source, independent of platform, and allows the game to play off of it.
@@ -130,6 +134,9 @@ Started 2026-09-24 in `Blur1Multi/code/mercury/library/util/gamesource/` (`GameS
 
 Extending on the game source abstraction, when the time comes to consume from the 5 Blur 2 prototype discs, we'll want to have a component that we can ask for game assets and it will deliver them from the disc that's a better fit.
 For this, the component will hold a persisted catalog of every asset present in all of the game discs, which it will use for the decision.
+
+- **Where the reasons and the initial settings come from** (user, 2026-09-25): Blur2Test's notes. Its `AGENTS.md` ("Fallback sources", "Reaching disc assets", the Aug 31 weapons exception), `_notes/disc_resource_map.md` and `_notes/nov25_disc_assessment.md` record why a per-asset cross-disc provider exists (Nov 10 is missing assets; builds differ per asset) and which disc should serve what. Read them before changing a profile, and cite them in the profile's comment.
+- **Settings live outside the exe**: the serving policy is data read at boot (`BlurX/catalog/profiles.txt`, plus a local overrides file), so it can be changed after the fact without recompiling. The catalog's contents are maintained off line (`BlurX/code/tools/blurx_catalog/catalog.py build`); the runtime only reads them. Design: D12.
 
 ## Shader cache
 

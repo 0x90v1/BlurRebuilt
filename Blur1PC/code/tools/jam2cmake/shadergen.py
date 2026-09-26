@@ -93,7 +93,7 @@ def main():
     ap.add_argument('--fxc', default=None)
     ap.add_argument('--jobs', type=int, default=os.cpu_count() or 4)
     ap.add_argument('--only', default=None, help='only this target')
-    ap.add_argument('--overlay', default=None, help='[Blur2PC] overlay dir: a shader or include dir found there replaces the base one')
+    ap.add_argument('--overlay', action='append', default=[], help='[Blur2PC] overlay dir: a shader or include dir found there replaces the base one (repeatable, lowest first; DIR=VAR accepted as for gen_cmake.py)')
     a = ap.parse_args()
 
     fxc = a.fxc or find_fxc()
@@ -102,11 +102,12 @@ def main():
         return 2
     d = json.load(open(a.json, encoding='utf-8'))
     top = d['config']['top']
-    overlay = os.path.abspath(a.overlay) if a.overlay else None
+    overlays = [os.path.abspath(o.partition('=')[0]) for o in reversed(a.overlay)]   # highest first
 
     def ov(rel):
-        if overlay is not None and os.path.isfile(os.path.join(overlay, rel)):
-            return os.path.join(overlay, rel)
+        for o in overlays:
+            if os.path.isfile(os.path.join(o, rel)):
+                return os.path.join(o, rel)
         return os.path.join(top, rel)
 
     os.makedirs(a.out, exist_ok=True)
@@ -119,8 +120,9 @@ def main():
         for i in t['includes']:
             if not i['exists']:
                 continue
-            if overlay is not None and os.path.isdir(os.path.join(overlay, i['path'])):
-                incs.append(os.path.join(overlay, i['path']))
+            for o in overlays:
+                if os.path.isdir(os.path.join(o, i['path'])):
+                    incs.append(os.path.join(o, i['path']))
             incs.append(os.path.join(top, i['path']))
         for sh in t['shaders']:
             src = ov(sh['file'])

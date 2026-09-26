@@ -3,7 +3,7 @@
 gen_cmake.py — turn the jamextract JSON into cmake/targets.cmake.
 
 Usage: python gen_cmake.py --json _work/build/targets_pc_speed.json --out cmake/targets.cmake
-       [--shaders-dir _work/build/gen/shaders] [--project-dir DIR] [--overlay DIR]
+       [--shaders-dir _work/build/gen/shaders] [--project-dir DIR] [--overlay DIR[=VAR] ...]
 
 [Blur2PC] Phase layering (2026-09-24): --project-dir is the phase project that
 owns the generated files (unity units, shader blobs, build stamp; emitted as
@@ -12,6 +12,12 @@ code/ mirrors the base tree: a source, header directory or PCH that exists at
 the same relative path under the overlay is compiled from there in place of the
 base tree's copy (emitted as ${BLUR_OVERLAY}/...). Blur1PC uses neither;
 Blur1Multi uses both with its own directory.
+
+[Blur2PC] Stacked overlays (2026-09-25, BlurX): --overlay may be given more
+than once, lowest first; the last one given wins where several hold a file.
+Each can name the cmake variable it is emitted as (DIR=VAR); the last overlay
+defaults to BLUR_OVERLAY, any other must name its variable. BlurX passes
+--overlay ../Blur1Multi=BLUR1MULTI_DIR --overlay .
 
 The root CMakeLists.txt defines the global flags, the vendor variables
 (BLUR_DXSDK_INCLUDE, BLUR_D3DX9_LIB, BLUR_OPENAL_INCLUDE, BLUR_OPENAL_LIB,
@@ -56,28 +62,43 @@ def main():
     # the unity build (cross-file templates, headers relying on earlier files).
     ap.add_argument('--unity-targets', default=r'^(Amax|amax_\w+)$', help='regex of targets built as unity units')
     ap.add_argument('--project-dir', default=None, help='phase project owning _work/ (default: the JSON top)')
-    ap.add_argument('--overlay', default=None, help='overlay directory whose code/ overrides the base tree')
+    ap.add_argument('--overlay', action='append', default=[], metavar='DIR[=VAR]',
+                    help='overlay directory whose code/ overrides the base tree (repeatable, lowest first)')
     a = ap.parse_args()
     d = json.load(open(a.json, encoding='utf-8'))
     top = d['config']['top']
     proj = cm(os.path.abspath(a.project_dir)) if a.project_dir else top
-    overlay = cm(os.path.abspath(a.overlay)) if a.overlay else None
+    # (directory, cmake variable), highest first
+    overlays = []
+    for i, spec in enumerate(a.overlay):
+        d_, _, var = spec.partition('=')
+        if not var:
+            if i != len(a.overlay) - 1:
+                ap.error(f'--overlay {spec}: only the last overlay may omit =VAR')
+            var = 'BLUR_OVERLAY'
+        overlays.insert(0, (cm(os.path.abspath(d_)), var))
 
-    def in_overlay(rel):
-        return overlay is not None and os.path.isfile(os.path.join(overlay, rel))
+    def which_overlay(rel):
+        for d_, var in overlays:
+            if os.path.isfile(os.path.join(d_, rel)):
+                return d_, var
+        return None, None
 
     def src_expr(rel):
-        """cmake expression for a base-tree source (or its overlay replacement)"""
-        return ('${BLUR_OVERLAY}/' if in_overlay(rel) else '${BLUR_TOP}/') + cm(rel)
+        """cmake expression for a base-tree source (or its highest overlay replacement)"""
+        _, var = which_overlay(rel)
+        return '${%s}/' % (var or 'BLUR_TOP') + cm(rel)
 
     def src_abs(rel):
-        return cm(os.path.join(overlay if in_overlay(rel) else top, rel))
+        d_, _ = which_overlay(rel)
+        return cm(os.path.join(d_ or top, rel))
 
     def inc_exprs(rel):
-        """include dir: the overlay's copy of the directory shadows the base one"""
+        """include dir: each overlay's copy of the directory shadows the ones below it"""
         out = []
-        if overlay is not None and os.path.isdir(os.path.join(overlay, rel)):
-            out.append('${BLUR_OVERLAY}/' + cm(rel))
+        for d_, var in overlays:
+            if os.path.isdir(os.path.join(d_, rel)):
+                out.append('${%s}/' % var + cm(rel))
         out.append('${BLUR_TOP}/' + cm(rel))
         return out
     targets = [t for t in d['targets'] if t['supported']]

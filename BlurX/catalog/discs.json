@@ -1,0 +1,42 @@
+{
+ "_comment": [
+  "Input of code/tools/blurx_catalog/catalog.py build: the discs the BlurX asset catalog covers.",
+  "root: the disc as supplied on this machine (never modified); the game can be pointed elsewhere",
+  "with --disc=<id>=<dir>. cache: the folder holding the disc's paks, relative to root.",
+  "generation: A = Blur 1 layout (retail formats), B = Kanzen layout (AGENTS.md 'Disc generations').",
+  "damaged: payloads and loose files known to be damaged; loose files with zero-filled 32 KB blocks",
+  "are marked suspect. mounts: archive -> [mount point, path inside the pak], the Xenon mount set of",
+  "the Blur 1 source (GameSystems.cpp CreateFsLayers, BootLayer.cpp, AmaxWorldLayer.cpp) plus",
+  "models.pak as the PC/PS3 branches mount it; order = the order the engine mounts them.",
+  "layers: game folders the Xenon engine overlays at / as media layer 1 (GameHelpers.cpp",
+  "CreateGameFs, 'layer1'); their loose files are catalogued at the same virtual paths. Their",
+  "cache folder is not read (retail's layer1/cache/root_streaming.pak is byte-identical to cache/'s)."
+ ],
+ "mounts": [
+  ["root.pak", "/", "/"],
+  ["root_streaming.pak", "/", "/"],
+  ["shaders-speed.pak", "/graphics/shaders/speed/", "/"],
+  ["gamedata.pak", "/gamedata/", "/gamedata/"],
+  ["gamedata_boot.pak", "/", "/"],
+  ["boot_rampak.pak", "/", "/"],
+  ["boot.pak", "/", "/"],
+  ["lut_rampak.pak", "/", "/"],
+  ["models.pak", "/models/", "/models/"],
+  ["shaders-debug.pak", "/graphics/shaders/debug/", "/"]
+ ],
+ "discs": [
+  {"id": "nov10", "title": "Blur 2 (Nov 10, 2010 prototype)", "game": "blur2", "generation": "B",
+   "root": "C:/AIProjects/Blur/GameData/Blur 2 X360 prototypes/Blur 2 (Nov 10, 2010 prototype)", "cache": "cache"},
+  {"id": "nov09", "title": "Blur 2 (Nov 9, 2010 prototype)", "game": "blur2", "generation": "B",
+   "root": "C:/AIProjects/Blur/GameData/Blur 2 X360 prototypes/Blur 2 (Nov 9, 2010 prototype)", "cache": "cache"},
+  {"id": "nov04", "title": "Blur 2 (Nov 4, 2010 prototype)", "game": "blur2", "generation": "B",
+   "root": "C:/AIProjects/Blur/GameData/Blur 2 X360 prototypes/Blur 2 (Nov 4, 2010 prototype)", "cache": "cache"},
+  {"id": "aug31", "title": "Blur 2 (Aug 31, 2010 prototype)", "game": "blur2", "generation": "A",
+   "root": "C:/AIProjects/Blur/GameData/Blur 2 X360 prototypes/Blur 2 (Aug 31, 2010 prototype)", "cache": "cache"},
+  {"id": "nov25", "title": "Blur 2 (Nov 25, 2010 prototype, damaged rip)", "game": "blur2", "generation": "B", "damaged": true,
+   "root": "C:/AIProjects/Blur/GameData/Blur 2 X360 prototypes/Blur 2 (Nov 25 2010 prototype) DAMAGED", "cache": "fragged cache Cluster 618908"},
+  {"id": "blur1x360", "title": "Blur (retail, Xbox 360)", "game": "blur1", "generation": "A",
+   "root": "C:/AIProjects/Blur/GameData/Xbox 360/Blur (USA, Europe) (En,Fr,De,Es,It)", "cache": "cache",
+   "layers": ["layer1"]}
+ ]
+}

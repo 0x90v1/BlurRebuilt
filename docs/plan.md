@@ -44,7 +44,7 @@ Showroom + one race with AI on an Aug 31 track, then a Nov 10 track.
 Convert the frame-counted consumers listed in `analysis.md` §2 to elapsed time; keep the fixed 60 Hz step; verify at 30 / 60 / 144 fps with a debug frame limiter.
 
 ## Phase layout (D10, 2026-09-24)
-The repo is split into `Blur1PC/` (phase 1), `Blur1Multi/` (phase 2) and `Blur2/` (phase 3). A phase builds the one below as a read-only base with its own `code/` laid over it (`gen_cmake.py --overlay`), so Blur1PC fixes flow up and nothing flows down. M1 and M7 work continues in Blur1PC; M9 is the first Blur1Multi milestone; M2-M6 (Blur 2) will move into `Blur2/` when they start, and their converters/loaders are written as Blur2 overlay or new files, never as Blur1PC edits.
+The repo is split into `Blur1PC/` (phase 1), `Blur1Multi/` (phase 2) and `BlurX/` (phase 3). A phase builds the one below as a read-only base with its own `code/` laid over it (`gen_cmake.py --overlay`), so Blur1PC fixes flow up and nothing flows down. M1 and M7 work continues in Blur1PC; M9 is the first Blur1Multi milestone; M2-M6 (Blur 2) will move into `BlurX/` when they start, and their converters/loaders are written as BlurX overlay or new files, never as Blur1PC edits.
 
 ## M9 — Phase 2: Blur 1 from Xbox 360 and PS3 retail data (Blur1Multi)
 The retail X360 Blur 1 disc is Generation A data (the Aug 31 prototype's layout), so every reader written here is reused by M3/M4 for the Aug 31 disc.
@@ -59,3 +59,12 @@ Blur 1 on retail PC data remains a supported configuration after every milestone
 
 ## Out of scope
 Multiplayer, Demonware, Live/PSN, DLC, achievements, avatar awards.
+
+## M10 — Phase 3: the Blur 2 prototypes (BlurX, D12)
+Started 2026-09-25. BlurX builds on Blur1Multi, so every 360 converter written for M9 serves the prototypes too; what BlurX adds is the choice of disc per file and, later, the Generation B formats. This milestone takes over M2 (inventory: T010-T012 are superseded by T081/T082) and hosts M4 (Gen B loaders, as BlurX converters) and M6 (first playable).
+- W10.1 BlurX build stacked on Blur1Multi + Blur1PC (T080).
+- W10.2 Asset catalog, off line: every file on every disc with its provenance and a payload framing check; profiles as data, defaults from Blur2Test's policy (T081).
+- W10.3 Asset catalog, run time: catalog mode, per-disc engine mounts behind one file-system layer (T082).
+- W10.4 Boot the Aug 31 profile (Generation A, Blur1Multi's converters) (T083), then the Nov 10 profile, listing Generation B failures in load order (T084) for T030-T033.
+- W10.5 Kanzen's own mount table and signature check from the XEX (T085).
+Test base: the Nov 10 prototype; Nov 25 is a damaged rip, never a test base (AGENTS.md).
