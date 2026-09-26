@@ -5,27 +5,30 @@ This file provides guidance to agents when working with code in this repository.
 ## What this repository is
 
 Blur2PC turns the leaked Blur (2010, Bizarre Creations, PC) C++ source into a PC build that plays whatever is recoverable from five Xbox 360 prototype discs of the cancelled Blur 2 (codename **Kanzen**). The Blur 1 path is kept working throughout; the long-term goal is one executable that runs any Blur game (Blur 1, the Blur 2 prototypes) from any platform's data (PC, Xbox 360, PS3), see decision D09. Two pieces are new: an **asset inventory manager** that knows every asset on every disc and serves each one from the best source, and a **per-disc shader recompilation cache**. The engine only ever reads PC-format data: disc assets are converted to PC format on the fly as they are opened (D11), and only shaders, which cannot be recompiled at load time, are cached per source.
-This is a multi-session, multi-agent project. **Start every session by reading `docs/BOARD.md` and the last few entries of `docs/LEDGER.md`. End every session by appending a ledger entry.** The protocol is at the bottom of this file.
+This is a multi-session, multi-agent project. **Start every session in the worktree of the phase you work on, and read `Blur1PC/docs/BOARD.md` and the last few entries of `Blur1PC/docs/LEDGER.md` (the docs are edited in the `Blur1PC/` worktree only, whichever phase the work is on). End every session by appending a ledger entry there.** The protocol is at the bottom of this file.
 Before starting work on any of the stages, see to read the goal statement an definitions in the "Project stages/layers" section below.
 
 ## Layout
 
-Three phase folders (see "Project stages/layers"), one shared docs folder, one shared scratch folder. Since 2026-09-24 (D10); before that the Blur1PC contents were at the repo root, which is what older ledger entries and analysis notes mean by `code/`.
+`C:\AIProjects\Blur2PC\` is a container: a bare git repository (`.git`) and one worktree per branch, one branch per phase (D16, since 2026-09-25). Every worktree has the same layout, `code/` at its root. Before D16 (2026-09-24 to 2026-09-25, D10) the phases were folders of one working tree stacked at build time, and before D10 the Blur1PC contents were at the repo root; older ledger entries and analysis notes use those paths.
+
+| Worktree | Branch | What |
+|---|---|---|
+| `Blur1PCSource/` | `master` | The leaked Blur 1 PC source snapshot (~2010-06-29), byte for byte as at `C:\AIProjects\Blur\code`. Never edited. `git diff master blur1pc` is every port change. |
+| `Blur1PC/` | `blur1pc` | **Phase 1**: Blur 1 from retail PC data. The port of `master`: the source tree, the CMake build, the launchers (`play.bat`, `Blur.lnk`), `docs/`, this file, `tools/`, and its `_work/` (build output, the user's exe, and the scratch every phase shares: `vendor/`, `ghidra/`, `ghidra_proj/`, `retail_lua*/`). |
+| `Blur1Multi/` | `blur1multi` | **Phase 2**: `blur1pc` plus Blur 1 from any platform's data: retail PC, Xbox 360 and PS3. Read `README.Blur1Multi.md` there before touching it. |
+| `BlurX/` | `blurx` | **Phase 3**: `blur1multi` plus the Blur 2 prototypes, served several discs at once through the asset catalog (`catalog/`, D12). Read `README.BlurX.md` there before touching it. |
+
+Inside a worktree:
 
 | Path | What |
 |---|---|
-| `Blur1PC/` | **Phase 1**: Blur 1 from retail PC data. The source tree, its CMake build, its launchers (`play.bat`, `Blur.lnk`) and its `_work/` (build output, the user's exe). |
-| `Blur1PC/code/` | Blur 1 PC source snapshot (~2010-06-29). Pristine copy at `C:\AIProjects\Blur\code`; `diff -rq` against it shows every port change. |
-| `Blur1PC/code/amax/` | The game: `game/` (entry `Main.cpp`, `GameApp.cpp`, `GameSystems.cpp`), `library/` (Ui, RaceBook, Network, Kanzen cameras), `tools/` (asset converters). |
-| `Blur1PC/code/mercury/library/` | The engine: `common/` (system, xt2 gamedata, btl containers), `util/` (logicalFs, resource, input), `graphics/`, `physics/`, `gamesys/`, `ai/`, `audio/`, `ui/`. |
-| `Blur1PC/code/mercurygame/` | Older tech-test game shell, superseded by `amax/`. |
-| `Blur1PC/code/tools/` | Build farm, bizpak (pak tool), jam sources, exporters; ours: `jam2cmake/` (build generators, used by every phase) and `ghidra_retail/` (retail Blur.exe decompilation scripts). |
-| `Blur1PC/code/vendor/` | demonware, lua, zlib, libtom*, cxxtest, tclap; our shims (dxerr, bink-stub, efx-util, crt-compat, crash-handler). |
-| `Blur1PC/cmake/` | `blur_common.cmake` (the build description every phase includes), `overrides.cmake` (hand tweaks), `targets.cmake` (generated, never edited). |
-| `Blur1Multi/` | **Phase 2**: Blur 1 from any platform's data: retail PC, Xbox 360 and PS3. Holds no engine copy: it builds `Blur1PC/code` with `Blur1Multi/code` laid over it. Read `Blur1Multi/README.md` before touching it. |
-| `BlurX/` | **Phase 3**: the Blur 2 prototypes. Builds `Blur1PC/code` with `Blur1Multi/code` and `BlurX/code` laid over it; serves several discs at once through the asset catalog (`BlurX/catalog/`, D12). Read `BlurX/README.md` before touching it. |
-| `docs/` | Project docs for all phases: analysis, decisions, plan, board, ledger. |
-| `_work/` | Shared scratch (gitignored): `vendor/` (third-party SDKs), `ghidra/`, `ghidra_proj/`, `retail_lua*/`, `tools/`. Each phase has its own `<Phase>/_work/`: `build/` (targets JSON, generated units, VS tree), `run/` (the user's exe, automation harness, `shadercache/<source>/` recompiled shaders). No other converted data is stored (D11). |
+| `code/` | The source tree. `amax/`: the game (`game/`: entry `Main.cpp`, `GameApp.cpp`, `GameSystems.cpp`; `library/`: Ui, RaceBook, Network, Kanzen cameras; `tools/`: asset converters). `mercury/library/`: the engine (`common/`: system, xt2 gamedata, btl containers; `util/`: logicalFs, resource, input, and from phase 2 `gamesource/`, `x360convert/`, from phase 3 `assetcatalog/`; `graphics/`, `physics/`, `gamesys/`, `ai/`, `audio/`, `ui/`). `mercurygame/`: older tech-test shell, superseded by `amax/`. `tools/`: build farm, bizpak, jam sources, exporters; ours: `jam2cmake/` (build generators), `ghidra_retail/`, and the phases' verification tools. `vendor/`: demonware, lua, zlib, libtom*, cxxtest, tclap; our shims (dxerr, bink-stub, efx-util, crt-compat, crash-handler); from phase 2 xmem-pc, libmspack, xenosrecomp. |
+| `cmake/` | `blur_common.cmake` (the build description), `overrides.cmake` (hand tweaks), `targets.cmake` (generated, never edited); `multi.cmake` (phase 2 additions), `blurx.cmake` (phase 3 additions). |
+| `CMakeLists.txt` | The same file on every branch except its marked phase lines (project name, `BLUR1MULTI` / `BLURX` defines, the phase cmake include). |
+| `docs/` | Project docs for all phases: analysis, decisions, plan, board, ledger. Edited in `Blur1PC/` only. |
+| `tools/` | `build.sh` (regenerate and build the phase this worktree holds). |
+| `_work/` | Scratch (gitignored, so never inherited): `build/` (targets JSON, generated units, VS tree), `run/` (the user's exe, automation harness, `shadercache/<source>/` recompiled shaders, `audiocache/`). Third-party SDKs are read from `Blur1PC/_work/vendor` by every phase (`blur_common.cmake`). No other converted data is stored (D11). |
 
 External inputs (never modified, never copied into the repo):
 
@@ -44,11 +47,13 @@ We're dividing the project's lifetime into stages/layers.
 Each of them will be organized and implemented in such a way that they're independent layers, and at any given time the upper ones can be removed with no interference to the lower ones.
 For example, we should have a 100% faithful Blur 1 PC source, then a standalone version that's able to run just Blur 1 from PC and Xbox with no sign of Blur 2 support.
 
-**How the layers are kept apart (D10).** Each phase is a folder with its own CMake project, `_work/` and exe. A phase never edits the folder below it: Blur1Multi compiles `Blur1PC/code` as a read-only base with its own `Blur1Multi/code` laid over it (a file at the same relative path replaces the base file, a new path is a new file declared in `Blur1Multi/cmake/multi.cmake`), and BlurX will do the same over both. Rules that follow:
-- A fix for Blur 1 on PC data goes in `Blur1PC/`, and every phase inherits it at its next generate.
-- Code that exists only for another platform or for Blur 2 goes in that phase's folder, as new files where possible. An overlay copy of a base file is the last resort: it stops inheriting Blur1PC changes to that file, so it is recorded in `<Phase>/overlay.json` (`python tools/overlay.py take ...`) and `python tools/overlay.py check` must report no drift before a build is called done. When it reports drift, merge the base change into the copy (`overlay.py changes <relpath>` lists the Blur1PC commits and diff since the last sync) and record it with `overlay.py sync <relpath> "<what was merged>"`: each copy keeps the Blur1PC commit and date it was last synced to, and its full take/sync history, so later questions of the form "what has this copy absorbed" are answered from `overlay.py history`.
+**How the layers are kept apart (D16).** Each phase is a git branch checked out in its own worktree, with its own CMake project, `_work/` and exe: `master` (untouched source) → `blur1pc` → `blur1multi` → `blurx`, each the one below plus its own commits. Nothing flows down; a lower branch reaches the ones above by `git merge`. Rules that follow:
+- **Work in the worktree of the phase the change belongs to.** A fix for Blur 1 on PC data is committed on `blur1pc` in `Blur1PC/`, then merged down: `git merge blur1pc` in `Blur1Multi/`, then `git merge blur1multi` in `BlurX/`. Whoever commits on a lower branch does the merges as part of finishing the task; merges only, never rebases (shared, long-lived branches).
+- **Where a fault belongs is decided by reproduction**: the lowest phase whose exe shows it on its own data owns it (`Blur1PC/_work/run/Amax.exe` on retail PC data, `Blur1Multi/` on 360/PS3 data). A base reader that breaks only on converted console data is the converter's fault (the base gets PC-shaped data, D11); a base file that compiles only because a unity batch-mate includes its header is the base's fault even if only a higher phase's batches expose it. Record it on the board (`Found in` / `Belongs to`), fix it in the owning worktree, merge down. **Never patch a lower phase's fault in a higher branch**: the patch conflicts with the real fix when it merges, and hides the bug from that phase. If a stopgap is unavoidable it lives in a file that already belongs to the higher phase, marked as such, with a board task to remove it.
+- Code that exists only for another platform or for Blur 2 goes on that phase's branch, as new files where possible (declared in `cmake/multi.cmake` / `cmake/blurx.cmake`). Editing a base file on a higher branch is allowed but is a merge-conflict surface every time the lower phase changes that file, so keep such edits few and small and say why in the commit.
 - Phase-specific translation units can test `BLUR1MULTI` (phase 2, also defined in BlurX) or `BLURX` (phase 3); base files must not, since the base must build without it.
-- Deleting a phase folder must leave the phases below building and running unchanged.
+- Deleting a branch (and its worktree) must leave the branches below building and running unchanged.
+- `docs/`, this file and `tools/` are edited in `Blur1PC/` only, by every agent whatever phase it works on, so there is one board and one ledger; the copies in the other worktrees are as of their last merge.
 
 ## Future goals
 
@@ -59,7 +64,7 @@ In the future we'll want to:
 
 ## Building
 
-The build is CMake generated from the original jamfiles (decision D08). Each phase builds from its own folder. **Blur1PC**, from `Blur1PC/`, in order:
+The build is CMake generated from the original jamfiles (decision D08). Each phase builds from its own worktree with the same commands (`tools/build.sh` runs them all), in order:
 
 ```
 python code/tools/jam2cmake/jamextract.py --top . --root code/amax/game/jamfile.jam --target WIN32 --platform PC --build Speed --out _work/build/targets_pc_speed.json
@@ -72,15 +77,13 @@ cmake --build _work/build/vs --config Release --target Amax -- -m -v:m -nologo >
 python code/tools/jam2cmake/errsum.py _work/build/amax.log
 ```
 
-**Blur1Multi**, from `Blur1Multi/`: the same generators from `../Blur1PC/code/tools/jam2cmake/` with `--top ../Blur1PC`, `--overlay .` (shadergen, luabundle, gen_cmake) and `--project-dir .` (gen_cmake); the exact lines are in `Blur1Multi/README.md` and at the top of `Blur1Multi/CMakeLists.txt`. Run `gen_cmake.py` again after taking or removing an overlay file. `cpgen.py` runs in Blur1PC only (its headers land beside the `.cp` files).
-
-**BlurX**, from `BlurX/`: first `python tools/sync_base.py` (BlurX builds on Blur1Multi **as committed**, exported to `BlurX/_work/base/Blur1Multi`; user, 2026-09-25), then the same generators with two overlays, lowest first (`--overlay _work/base/Blur1Multi --overlay .` for shadergen and luabundle, `--overlay _work/base/Blur1Multi=BLUR1MULTI_DIR --overlay .` for gen_cmake); exact lines in `BlurX/README.md`. Its overlay tool is `BlurX/tools/overlay.py` (bases Blur1Multi snapshot, Blur1PC).
+Run `gen_cmake.py` again after adding or removing sources, including after a merge that does, and commit the regenerated `cmake/targets.cmake`. `cpgen.py`'s headers land beside the `.cp` files and are gitignored, so it runs in every worktree.
 
 - `cmake` lives at `C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`; MSBuild prints its summary in the system locale (Spanish), so judge builds by `errsum.py`'s error count.
 - Configurations map to the engine's build configs: Debug → `BUILD_CONFIG_DEBUG`, Release → `BUILD_CONFIG_SPEED`, RelWithDebInfo → `BUILD_CONFIG_RELEASE`, MinSizeRel → `BUILD_CONFIG_MASTER`.
 - Jam's `[ Batch … : StdAfx.h ]` groups were **unity translation units**; the generator reproduces them as `_work/build/gen/unity/<target>_batchN.cpp`. A file that fails alone but built originally is almost always relying on an earlier file in its group. Run `gen_cmake.py` again after adding or removing sources.
-- `cmake/targets.cmake` is generated; never edit it. Per-file or per-target tweaks go in `Blur1PC/cmake/overrides.cmake` (every phase includes it) with a comment saying why; the shared flags, vendor SDKs and shims are in `Blur1PC/cmake/blur_common.cmake`. Source edits in `Blur1PC/code/` get a `// [Blur2PC]` comment; Blur1Multi files get `// [Blur1Multi]`; BlurX files get `// [BlurX]`.
-- Third-party inputs live in the shared `_work/vendor` at the repo root (D3DX 9.29 from the `Microsoft.DXSDK.D3DX` NuGet, OpenAL Soft 1.24.3 binaries, IJG libjpeg 6b); `blur_common.cmake` has cache variables for each. Shims for pieces we do not have: `code/vendor/dxerr` (DXGetErrorString) and `code/vendor/efx-util` (Creative's reverb-preset conversion).
+- `cmake/targets.cmake` is generated; never edit it. Per-file or per-target tweaks go in `cmake/overrides.cmake` (on `blur1pc`, so every phase inherits it) with a comment saying why; the shared flags, vendor SDKs and shims are in `cmake/blur_common.cmake`. Source edits on `blur1pc` get a `// [Blur2PC]` comment; `blur1multi` edits get `// [Blur1Multi]`; `blurx` edits get `// [BlurX]`.
+- Third-party inputs live in `Blur1PC/_work/vendor` (D3DX 9.29 from the `Microsoft.DXSDK.D3DX` NuGet, OpenAL Soft 1.24.3 binaries, IJG libjpeg 6b, FFmpeg 5.1.2 for phase 2); `blur_common.cmake` has cache variables for each and the other phases resolve them there. Shims for pieces we do not have: `code/vendor/dxerr` (DXGetErrorString) and `code/vendor/efx-util` (Creative's reverb-preset conversion).
 - Built-in shaders (`.psh`/`.vsh`, 647 variants) are compiled by `shadergen.py` with the Windows SDK `fxc` into `_work/build/gen/shaders/<target>_shaders.cpp` in the blob layout `C_D3D9Device::CreatePixelShader` reads. Re-run it after editing any of them.
 
 What the tree shipped with, for reference:
@@ -95,7 +98,7 @@ What the tree shipped with, for reference:
 
 ## Architecture (what you need across many files)
 
-Paths in this section and in `docs/analysis.md` are relative to `Blur1PC/`.
+Paths in this section and in `docs/analysis.md` are relative to a phase worktree (the layout is the same in all of them).
 
 **Layering.** `amax` (game) → `mercury/library` (engine) → `common` + `vendor`. Namespaces map to folders: `Sys::` (common/system), `LogicalFs::` (util/logicalFs), `Resource::` (util/resource), `GameResource::` (gamesys/game_resource), `WorldRender::` and `RenderingData::` (graphics/world_render, renderingdata), `FX::` (graphics/fx), `Display::` (graphics/display), `Game::` (amax/game), `Xt`/`XtDb` (common/xt2).
 
@@ -128,7 +131,7 @@ Nov 25 is a bad rip: pak payloads truncated past a point (all 48 `.bin` database
 
 From the "multi-platform Blur 1" layer and upwards, we'll want to have a component that creates an abstraction layer for a game's disc source, independent of platform, and allows the game to play off of it.
 
-Started 2026-09-24 in `Blur1Multi/code/mercury/library/util/gamesource/` (`GameSource::Select`: `--source=<dir>` or `BLUR_SOURCE`, platform detection from `cache/root.pak` byte order plus `default.xex` / `PS3_GAME`). The platform data layers behind it are board tasks T071-T076; design in D11. Xbox 360 and PS3 sources share one converting layer (`X360Convert::C_ConvertFs`, told the source with `X360Convert::SetSource`): the formats both consoles write alike (chunk trees, XT flasks, loc, animation, audio objects, the scene grammar) go through the same code; textures, audio banks and effects have per-console converters (D14).
+Started 2026-09-24 in `code/mercury/library/util/gamesource/` on `blur1multi` (`GameSource::Select`: `--source=<dir>` or `BLUR_SOURCE`, platform detection from `cache/root.pak` byte order plus `default.xex` / `PS3_GAME`). The platform data layers behind it are board tasks T071-T076; design in D11. Xbox 360 and PS3 sources share one converting layer (`X360Convert::C_ConvertFs`, told the source with `X360Convert::SetSource`): the formats both consoles write alike (chunk trees, XT flasks, loc, animation, audio objects, the scene grammar) go through the same code; textures, audio banks and effects have per-console converters (D14).
 
 ## Asset catalog
 
@@ -136,7 +139,7 @@ Extending on the game source abstraction, when the time comes to consume from th
 For this, the component will hold a persisted catalog of every asset present in all of the game discs, which it will use for the decision.
 
 - **Where the reasons and the initial settings come from** (user, 2026-09-25): Blur2Test's notes. Its `AGENTS.md` ("Fallback sources", "Reaching disc assets", the Aug 31 weapons exception), `_notes/disc_resource_map.md` and `_notes/nov25_disc_assessment.md` record why a per-asset cross-disc provider exists (Nov 10 is missing assets; builds differ per asset) and which disc should serve what. Read them before changing a profile, and cite them in the profile's comment.
-- **Settings live outside the exe**: the serving policy is data read at boot (`BlurX/catalog/profiles.txt`, plus a local overrides file), so it can be changed after the fact without recompiling. The catalog's contents are maintained off line (`BlurX/code/tools/blurx_catalog/catalog.py build`); the runtime only reads them. Design: D12.
+- **Settings live outside the exe**: the serving policy is data read at boot (`catalog/profiles.txt` in `BlurX/`, plus a local overrides file), so it can be changed after the fact without recompiling. The catalog's contents are maintained off line (`code/tools/blurx_catalog/catalog.py build`, on `blurx`); the runtime only reads them. Design: D12.
 
 ## Shader cache
 
@@ -145,7 +148,7 @@ Recompiled shaders will be cached per each game source alongside the executable.
 
 ## Conventions
 
-- New engine code lives beside what it extends (the inventory layer under `code/mercury/library/util/logicalFs/`, for example), inside the phase folder it belongs to (`Blur1Multi/code/mercury/library/util/gamesource/` is the model). New tools live under `code/tools/<name>/`. Do not restructure the source tree.
+- New engine code lives beside what it extends (the inventory layer under `code/mercury/library/util/logicalFs/`, for example), on the branch of the phase it belongs to (`code/mercury/library/util/gamesource/` on `blur1multi` is the model). New tools live under `code/tools/<name>/`. Do not restructure the source tree.
 - Build output, the shader cache and scratch output go under the phase's `_work/` (gitignored). Other disc assets are converted in memory when opened and never stored (D11). Never write into the disc folders.
 - The C++ source's own serialisers are the ground truth for PC formats; Blur2Test decoders are the ground truth for 360 formats. When they disagree, record it in `docs/analysis.md`.
 - Blur2Test's rule also applies here: never guess a value to make something load. Record unknowns as unknowns.
@@ -153,13 +156,13 @@ Recompiled shaders will be cached per each game source alongside the executable.
 
 ## Multi-session / multi-agent protocol
 
-1. **Read** `docs/BOARD.md` (open tasks and who holds them) and the tail of `docs/LEDGER.md` (what just happened) before doing anything.
-2. **Claim** a task on the board before working on it: set `Owner` to your session or agent name and `Status` to `in progress`. One task per agent at a time. Parallel agents claim disjoint tasks and touch disjoint files; list the files you expect to touch in the task row.
+1. **Read** `Blur1PC/docs/BOARD.md` (open tasks and who holds them) and the tail of `Blur1PC/docs/LEDGER.md` (what just happened) before doing anything. The docs are read and edited in the `Blur1PC/` worktree whatever phase you work on; the copies in the other worktrees are as of their last merge.
+2. **Claim** a task on the board before working on it: set `Owner` to your session or agent name and `Status` to `in progress`. One task per agent at a time. Parallel agents claim disjoint tasks and touch disjoint files; list the files you expect to touch in the task row. A task names the phase it belongs to (its branch); work on it in that phase's worktree. A fault found in a higher phase that belongs to a lower one gets its own task on the lower phase (`Found in` / `Belongs to` in the row) and the finder's task is `blocked` on it.
 3. **Decisions** that change direction go in `docs/decisions.md` as a new numbered entry with status `proposed` until the user confirms. Never silently reverse an `accepted` decision.
 4. **Facts** discovered about the source, the discs or the formats go in `docs/analysis.md`, not in the ledger.
 5. **Finish** by appending a ledger entry (template at the top of that file): what changed, what was verified and how, what is blocked, and the exact next step. Then update the board row. If you stop mid-task, say where in the ledger so the next agent can resume.
-6. Commit only when the user asks, and commit your changes only, staging by hunk if needed.
+6. Commit only when the user asks, and commit your changes only, staging by hunk if needed. Commit on the branch of the phase the change belongs to, and when it is a lower branch, merge it down through every branch above (`git merge`, never rebase) before calling the task done: the upper phases see committed, merged changes only. Never push until the user asks.
 7. **Do not launch the game in foreground** Every time you launch a foreground process you're interrupting anything the user is doing. Launch the game minimized, never hidden: a minimized window stays on the taskbar, so the user can spot a stray session. `<Phase>/_work/run/run_script.ps1` does this (the game shows its window minimized without activation while `BLUR2PC_AUTOMATION` is set, and keeps rendering).
 8. **Never kill processes you don't own**.
-9. **One exe per phase for the user: `<Phase>/_work/run/Amax.exe`** (`Blur1PC/_work/run/Amax.exe`, `Blur1Multi/_work/run/Amax.exe`). It is what that phase's `play.bat` and `Blur.lnk` start, so it is the only place the user tests that phase. Build with the standard command into `<Phase>/_work/build/vs/Release`, then copy `Amax.exe` and `Amax.pdb` to `<Phase>/_work/run`. If that `Amax.exe` is running, wait for it to exit and then copy. Do not build or copy to another output directory, a renamed exe or a private folder because the usual one is busy. A private copy for automated runs is fine, but it does not count as delivery. Do not tell the user a change is ready to test until that phase's `_work/run/Amax.exe` contains it; if you have to stop before then, say so plainly.
+9. **One exe per phase for the user: `<Phase>/_work/run/Amax.exe`** (`Blur1PC/_work/run/Amax.exe`, `Blur1Multi/_work/run/Amax.exe`, `BlurX/_work/run/Amax.exe`). It is what that phase's `play.bat` and `Blur.lnk` start, so it is the only place the user tests that phase. Build in that phase's worktree with the standard command into `<Phase>/_work/build/vs/Release`, then copy `Amax.exe` and `Amax.pdb` to `<Phase>/_work/run`. A build contains what is committed on that branch plus your own worktree edits, nobody else's. If that `Amax.exe` is running, wait for it to exit and then copy. Do not build or copy to another output directory, a renamed exe or a private folder because the usual one is busy. A private copy for automated runs is fine, but it does not count as delivery. Do not tell the user a change is ready to test until that phase's `_work/run/Amax.exe` contains it; if you have to stop before then, say so plainly.
 10. **Do not stop just to report progress**: When asked for a task, only stop if either the task is considered complete, user input is required, or an error or some other unrecoverable condition was encountered.

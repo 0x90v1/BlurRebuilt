@@ -4,7 +4,7 @@ Facts established by reading the source and the discs. Add to this file when you
 
 ## 1. The source (`code/`)
 
-**Layout since 2026-09-24 (D10):** the source tree moved from the repo root to `Blur1PC/code/`; every `code/...` path in this file is relative to `Blur1PC/`. Phase 2 files are named with a `Blur1Multi/` prefix.
+**Layout since 2026-09-25 (D16; D10 from 2026-09-24 to then):** each phase is a git branch checked out in its own worktree (`Blur1PC/`, `Blur1Multi/`, `BlurX/`), all with the same layout, `code/` at the root. Every `code/...` path in this file is relative to a phase worktree. A `Blur1Multi/` or `BlurX/` prefix on a path names the branch the file lives on (`blur1multi`, `blurx`); the path inside the worktree is the part after the prefix. "Overlay copy" in older notes means a phase's edit of a base file, now an ordinary edit on that phase's branch.
 
 - Byte-identical copy of `C:\AIProjects\Blur\code` (20,770 files). Blur 1 PC snapshot: newest dated artefact is the Xlast header of 2010-04-22, newest bug comment 2010-03-22, all mtimes 2010-06-29. XT pack list is Blur 1 retail plus "DLC Pack Offer E". It predates all five discs.
 - Build: VS2008 makefile project driving Jam (`z:\tools\common_bin\jam -sTARGET=WIN32 -sBUILD=Speed`). Jam sources are in `code/tools/jam` and `code/tools/jamplus`. The custom rules used by every jamfile (`SupportedTargets`, `IncludePath`, `Define`, `CheckXDKVersion`, `LINKLIBS`, `PCLIBS`) are defined nowhere in the tree. Expected SDK versions: Xbox 360 SDK 2.0.11164.2, PS3 SDK 310.001, DirectX SDK via `$(DXSDK_PATH)`.

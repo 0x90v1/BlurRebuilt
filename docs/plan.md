@@ -43,8 +43,8 @@ Showroom + one race with AI on an Aug 31 track, then a Nov 10 track.
 ## M7 — Time independence
 Convert the frame-counted consumers listed in `analysis.md` §2 to elapsed time; keep the fixed 60 Hz step; verify at 30 / 60 / 144 fps with a debug frame limiter.
 
-## Phase layout (D10, 2026-09-24)
-The repo is split into `Blur1PC/` (phase 1), `Blur1Multi/` (phase 2) and `BlurX/` (phase 3). A phase builds the one below as a read-only base with its own `code/` laid over it (`gen_cmake.py --overlay`), so Blur1PC fixes flow up and nothing flows down. M1 and M7 work continues in Blur1PC; M9 is the first Blur1Multi milestone; M2-M6 (Blur 2) will move into `BlurX/` when they start, and their converters/loaders are written as BlurX overlay or new files, never as Blur1PC edits.
+## Phase layout (D16, 2026-09-25; D10 before that)
+Each phase is a git branch in its own worktree under `C:\AIProjects\Blur2PC\`: `Blur1PCSource/` (`master`, the untouched leak), `Blur1PC/` (`blur1pc`, phase 1), `Blur1Multi/` (`blur1multi`, phase 2), `BlurX/` (`blurx`, phase 3), each branched from the previous one. Lower-phase commits reach the upper phases by `git merge`, nothing flows down. M1 and M7 work is committed on `blur1pc`; M9 on `blur1multi`; M2-M6 (Blur 2) on `blurx`, as new files where possible and never as edits that belong below. Docs, board and ledger are edited in `Blur1PC/` only.
 
 ## M9 — Phase 2: Blur 1 from Xbox 360 and PS3 retail data (Blur1Multi)
 The retail X360 Blur 1 disc is Generation A data (the Aug 31 prototype's layout), so every reader written here is reused by M3/M4 for the Aug 31 disc.
