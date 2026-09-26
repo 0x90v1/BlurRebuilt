@@ -67,4 +67,8 @@ Started 2026-09-25. BlurX builds on Blur1Multi, so every 360 converter written f
 - W10.3 Asset catalog, run time: catalog mode, per-disc engine mounts behind one file-system layer (T082).
 - W10.4 Boot the Aug 31 profile (Generation A, Blur1Multi's converters) (T083), then the Nov 10 profile, listing Generation B failures in load order (T084) for T030-T033.
 - W10.5 Kanzen's own mount table and signature check from the XEX (T085).
+- W10.6 Test bench: Split Screen > Custom Race on `nov10-b1rules`, with the prototypes' tracks added to Blur 1's route inventory (T099, a D13 stopgap), so tracks Blur 1's career never offers can be raced.
+- W10.7 (later, user 2026-09-25) Tools the prototype tracks need to race properly:
+  - an `.aid` generator: most prototype tracks ship no AI data (of the four Aug 31 Blur 2 tracks only `uk_brighton_storm` has an `.aid`), so no AI racers can run on them (T100);
+  - a containment-collision generator: most Kanzen tracks on the Nov 10 disc have only basic fencing in their collision, and cars easily fall off the world; generate proper containing collision geometry for them (T101).
 Test base: the Nov 10 prototype; Nov 25 is a damaged rip, never a test base (AGENTS.md).
