@@ -234,10 +234,24 @@ void C_MotionBlurReduced::Display() const
 
 	PERF_EVENT("MotionBlur");
 
+#if defined(PLATFORM_PC)
+	// [Blur2PC] T107: retail PC (0x00668d59, 0x00668d64) resets the device's state cache first
+	Display::Device()->InvalidateState();
+	Display::Device()->DefaultStates();
+#endif
+
 	m_nShader = m_eMethod * E_MotionBlurSamples_Count + m_eSamples;
 	SetShader(&m_BlurShader[m_nShader]);
 
 	Display::Device()->SetBlendMode(Display::E_BlendMode_Solid);
+
+#if defined(PLATFORM_PC)
+	// [Blur2PC] T107: retail PC (0x00668d92) calls I_PostProcess::SetViewport here, which resolves the frame
+	// into the manager's render texture and makes it the chain texture that DownsampleStencilBufferToAlpha
+	// reads. Without it the chain texture still held the previous frame's last bloom level, and the pass
+	// blended the near road toward black.
+	SetViewport();
+#endif
 
 	// downsample
 #if defined(PLATFORM_XENON)
