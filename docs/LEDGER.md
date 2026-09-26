@@ -899,7 +899,6 @@ The "purple squares under the player car" of the previous entries are the pickup
 ## 2026-09-26 17:00 — session dbgrace (Claude) — debug menu on Blur1Multi (360, PS3)
 Did: user: commit, and set up the debug files for Blur1Multi on both platforms. The desktop shortcuts run Blur1Multi's exe from `_work/sources/x360_retail` and `_work/sources/ps3_retail` (real folders, junctions into the discs). Copied Blur1PC's Blur 1 `debug_frontend.xml` into both and set `Ui.NewLaunchMode` to `DebugRb` in their `debug_values.xml` (backup `x360_retail/debug_values.xml.master-bak`). PS3 reads both from `ps3_retail`, not `PS3_GAME/USRDIR` (a `DebugRb` copy there logged `LaunchMode == MASTER`); USRDIR's `debug_values.xml` put back as it was. analysis.md "Debug menu race launch" updated.
 Verified: Blur1Multi `_work/run/Amax.exe` through `game_slot.ps1`, 100 s cap, Right Ctrl then Enter: 360 racing 10.7 s after Enter, PS3 7.0 s after, HUD screen up, log `LaunchMode == Debug : RaceBook`.
-Found: one PS3 run crashed on the start screen before any input, in `Cam2::C_Camera` scalar deleting destructor from `DynamicCameraActor` (write to 0x17534600, an unmapped code address); the next run did not. Not investigated.
 Blocked: none.
 Next: none.
 Files touched: Blur1Multi `_work/sources/{x360_retail,ps3_retail}/debug_{values,frontend}.xml`; Blur1PC docs/{analysis,LEDGER}.md.
