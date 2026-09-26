@@ -800,3 +800,24 @@ Verified: BlurX Release 0 errors; not delivered to `BlurX/_work/run` at session 
 Blocked: none.
 Next: BlurX delivery with the next build from that worktree.
 Files touched: Blur1Multi code/mercury/library/util/x360convert/{source/RsxTranslate.h,source/RsxTranslate.cpp,source/Ps3EffectConvert.cpp,engine/X360ConvertFs.cpp}; BlurX merge; docs/{BOARD,LEDGER,analysis}.md.
+
+## 2026-09-26 13:05 — session 20 (Claude) — T114 committed and merged
+Did: user confirmed the rims and asked to commit. Committed on blur1pc (ad5b6618; my 11 code files and my doc lines only), merged into blur1multi (b67dc998) and blurx (e993b112). In BlurX another session's uncommitted `Buttons.cpp` edit (render-pass XT fields) blocked the merge; its diff was saved, the file set to HEAD for the merge and the diff reapplied (it sits in other hunks).
+Verified: clean exports of blur1multi and blurx HEAD after the merges build with 0 errors (scratchpad, deleted). Blur1Multi and BlurX `_work/run` exes not rebuilt (those worktrees hold other sessions' uncommitted work).
+Blocked: none.
+Next: none for T114; `UITargeting`, `UIMiniMap`, `UIRaceLine`, `UIFanMessage` can be anchored the same way if they show jitter.
+Files touched: docs/LEDGER.md.
+
+## 2026-09-26 13:35 — session 20 (Claude) — T121: Storm video wall picture jitters
+Did: user report: the video wall in BlurX's Brighton Storm jitters like T114. The wall camera is placed once per update from the VehicleFocusPosition message while the car is drawn blended. `C_VideoWallView` now re-places the camera at the start of each render (`PlaceCameraForRender`, from `Gather`) by the car's shift to its render pose, blends the orbit time, and draws the wall's blob shadows at the render pose. analysis.md, T109 video walls note, T121 sub-item.
+Verified: temporary log over 3,000 renders of a Storm race (private folder `BlurX/_work/run_t121`, nov10-b1rules, through `game_slot.ps1`): distance between the car as drawn and the point the camera orbits, old placement up to 0.67 m, new 0.000; log removed. Delivery built from a clean export of blurx 3f8c929b plus VideoWall.{h,cpp} (the worktree holds other sessions' uncommitted files), 0 errors; delivered `BlurX/_work/run/Amax.exe` 13:32 (sha256 9CED805A...). Not checked by eye.
+Blocked: user check.
+Next: user checks the Storm video walls; on confirmation commit VideoWall.{h,cpp} on blurx.
+Files touched: BlurX code/amax/game/Game/GameWorld/View/VideoWall.{h,cpp}; Blur1PC docs/{BOARD,LEDGER,analysis}.md.
+
+## 2026-09-26 13:45 — session 20 (Claude) — T121 committed
+Did: user confirmed the video walls and asked to commit. Committed VideoWall.{h,cpp} on blurx (b32cf328); my doc lines on blur1pc, merged up.
+Verified: the committed files are the ones in the delivered BlurX exe (13:32).
+Blocked: none.
+Next: none for T121.
+Files touched: docs/{BOARD,LEDGER,analysis}.md.
