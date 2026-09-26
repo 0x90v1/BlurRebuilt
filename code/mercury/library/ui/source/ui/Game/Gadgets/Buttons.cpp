@@ -695,6 +695,9 @@ void C_GadgetBase::CalcTransformHierarchy( TransformIndex& ti )
 	ti = gSimple2D.PopPostTransformMatrix();
 	Maths::HMat43& mat = gSimple2D.GetPostTransformMatrix( ti );
 	mat = m;
+#ifdef PLATFORM_PC
+	gSimple2D.Blur2PCNoteTransform( this, ti );	// [Blur2PC] sprites that follow a car (C_Simple2D::Blur2PCSetAnchor)
+#endif
 }
 
 // TODO -> This is really really slow -> prestore m0 and m1 if we end up with many parented objects

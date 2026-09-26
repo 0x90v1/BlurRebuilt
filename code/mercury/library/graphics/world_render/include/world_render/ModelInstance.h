@@ -30,6 +30,11 @@ void Blur2PCInterpRecordStore(const void* owner, MathsStorage::MatrixRow44* pDst
 // [Blur2PC] same, for a store that belongs to the current update tick even when issued inside a render
 // (deferred update tasks flushed at frame start, e.g. animated models); the blend is written immediately
 void Blur2PCInterpRecordTickStore(const void* owner, MathsStorage::MatrixRow44* pDst, const Maths::HMat43& m);
+// [Blur2PC] Blur2PCInterpRecordStore for a part that spins with a wheel: m is the part's matrix, wheel the
+// wheel matrix it follows (orthonormal, the axle is its local X), spinRate the rotor's turn about that axle
+// in radians per second; a render between ticks then turns the part the whole way it spun
+void Blur2PCInterpRecordWheelStore(const void* owner, MathsStorage::MatrixRow44* pDst, const Maths::HMat43& m, const Maths::HMat43& wheel, F32 spinRate);
+void Blur2PCInterpSetTickSeconds(F32 seconds);	// [Blur2PC] game time the update about to run covers
 void Blur2PCInterpRecordTickStore43(const void* owner, MathsStorage::MatrixRow43* pDst, const Maths::HMat43& m);
 void Blur2PCInterpForget(const void* owner);
 // [Blur2PC] render hooks: called with begin=true after the blend pass that starts a render, and with
@@ -53,6 +58,9 @@ public:
 	// setting and getting of 
 	void				SetElementMatrix( const S32 elementIndex, const Maths::HMat43 PCREF m );
 	void				WriteElementMatrix( const S32 elementIndex, const Maths::HMat43 PCREF m );	// [Blur2PC] raw store, no interpolation bookkeeping
+#if PLATFORM_PC
+	void				Blur2PCSetWheelElementMatrix( const S32 elementIndex, const Maths::HMat43 PCREF m, const Maths::HMat43 PCREF wheel, const F32 spinRate );	// [Blur2PC] see Blur2PCInterpRecordWheelStore
+#endif
 	Maths::HMat43		GetElementMatrix( const S32 elementIndex ) const;
 
 	// set data to model parameter

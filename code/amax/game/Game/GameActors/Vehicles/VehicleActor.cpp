@@ -5154,6 +5154,18 @@ void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& pho
 		//Wheel matrix
 		Maths::HMat43 wheelMatrix = pWheelInput->m_mMatrix;
 		wheelMatrix.AW(wheelMatrix.AW() + photoOffset);
+#if PLATFORM_PC
+		// [Blur2PC] render interpolation: the rotor's spin about the wheel's axle (its local X), so renders
+		// between ticks turn the tyre, rim, disc and alloy the whole way (Blur2PCInterpRecordWheelStore)
+		F32 blur2pcSpinRate = 0.0f;
+		{
+			const RacingPhysics::Vector3R rotorAngVel = wheel.GetRotor().AngularVelocity();
+			const Maths::HVec3 axle = wheelMatrix.AX();
+			const F32 axleLength = (F32)axle.Length();
+			if (axleLength > 1e-6f)
+				blur2pcSpinRate = (F32)Maths::DotProduct(Maths::HVec3(RPToMaths(&rotorAngVel)), axle) / axleLength;
+		}
+#endif
 
 		//Update matrices for wheel elements
 		Vehicle::C_Part* pPart = &m_pVehicleModel->GetComponentList()[Vehicle::E_PartCode_Tyre].m_Nodes[eLocCode];
@@ -5161,7 +5173,7 @@ void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& pho
 		{
 			Maths::Store((Maths::HMat44)wheelMatrix, pPart->m_pWorldMatrix);
 #if PLATFORM_PC
-			WorldRender::Blur2PCInterpRecordStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix);	// [Blur2PC] render interpolation
+			WorldRender::Blur2PCInterpRecordWheelStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix, wheelMatrix, blur2pcSpinRate);	// [Blur2PC] render interpolation
 #endif
 		}
 
@@ -5170,7 +5182,7 @@ void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& pho
 		{
 			Maths::Store((Maths::HMat44)wheelMatrix, pPart->m_pWorldMatrix);
 #if PLATFORM_PC
-			WorldRender::Blur2PCInterpRecordStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix);	// [Blur2PC] render interpolation
+			WorldRender::Blur2PCInterpRecordWheelStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix, wheelMatrix, blur2pcSpinRate);	// [Blur2PC] render interpolation
 #endif
 		}
 		
@@ -5179,7 +5191,7 @@ void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& pho
 		{
 			Maths::Store((Maths::HMat44)wheelMatrix, pPart->m_pWorldMatrix);
 #if PLATFORM_PC
-			WorldRender::Blur2PCInterpRecordStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix);	// [Blur2PC] render interpolation
+			WorldRender::Blur2PCInterpRecordWheelStore(pPart->m_pModelInstance, pPart->m_pWorldMatrix, wheelMatrix, wheelMatrix, blur2pcSpinRate);	// [Blur2PC] render interpolation
 #endif
 		}
 		
@@ -5212,7 +5224,11 @@ void C_VehicleActor::SynchData(Maths::HMat43* p_pMatrix, const Maths::HVec3& pho
 
 			Maths::HMat43 mat = pPart->m_Matrix;
 			mat.AW(mat.AW() + photoOffset);
-			pAlloyModelInstance->SetElementMatrix(-1, mat);								
+#if PLATFORM_PC
+			pAlloyModelInstance->Blur2PCSetWheelElementMatrix(-1, mat, wheelMatrix, blur2pcSpinRate);	// [Blur2PC] render interpolation
+#else
+			pAlloyModelInstance->SetElementMatrix(-1, mat);
+#endif								
 		}
 
 		pWheelInput->m_bOnGround			= wheel.OnGround();

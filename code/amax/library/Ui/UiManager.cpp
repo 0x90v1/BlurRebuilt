@@ -1,6 +1,7 @@
 #include "Stdafx.h"
 #if PLATFORM_PC
 #include "game/Gadgets/Hud/UIPerks2.h"	// [Blur2PC] car panel delta
+#include "game/Gadgets/Hud/UIAiHud.h"	// [Blur2PC] AI badges at the cars' render pose
 #endif
 
 #ifdef PLATFORM_PS3
@@ -2644,6 +2645,7 @@ void C_UiManager::PreRender()
 			if( UIPerks2::Blur2PCCarPanelDelta( delta ) )
 				carPanel = Maths::HMat44( delta ) * carPanel;
 			gSimple2D.SetTransformMatrixByPanel( E_GameSpritePanel_VP0_CAR, carPanel );
+			UIAiHud::Blur2PCPlaceCarSprites();	// other sprites that follow a car (AI badges, countdown), likewise
 		}
 #endif
 

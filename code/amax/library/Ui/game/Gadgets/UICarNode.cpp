@@ -53,6 +53,12 @@ void UICarNode::FrameUpdate()
 		CalcTransformHierarchy( mat );
 
 		SetMatrix(mat * m_pLogicActor->GetWorldMatrix());
+#if PLATFORM_PC
+		// [Blur2PC] render interpolation: this node and its children (the race start countdown) are placed at
+		// the car's update pose; each rendered frame moves them with the car to the pose it is drawn at
+		if( Game::Actors::C_VehicleActor* pVehicleActor = m_pLogicActor->GetGraphicalActor( m_sLocalPlayerIndex ) )
+			gSimple2D.Blur2PCSetAnchor( this, m_sLocalPlayerIndex, true, pVehicleActor->Blur2PCRenderMatrix() );
+#endif
 	}
 
 	return C_GadgetBase::FrameUpdate();

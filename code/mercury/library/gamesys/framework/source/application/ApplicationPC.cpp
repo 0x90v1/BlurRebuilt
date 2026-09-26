@@ -6,6 +6,7 @@ namespace WorldRender
 {
 	void Blur2PCInterpEnable(bool enable);
 	void Blur2PCInterpTick();
+	void Blur2PCInterpSetTickSeconds(F32 seconds);
 	void Blur2PCInterpBeginRender(F32 alpha);
 	void Blur2PCInterpEndRender();
 }
@@ -528,6 +529,7 @@ void C_Application::IdleLoop()
 		if (s_decouple)
 		{
 			::WorldRender::Blur2PCInterpTick();
+			::WorldRender::Blur2PCInterpSetTickSeconds(g_Blur2PCForcedFrameTime);
 			Cam2::I_Feed::Blur2PCAdvanceTick();
 		}
 		CPU_TIMING(1, g_TimingColour_Update, "CPU.Update");	// [Blur2PC] as Application360.cpp

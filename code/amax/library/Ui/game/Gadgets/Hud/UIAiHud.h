@@ -73,6 +73,13 @@ public:
 
 	void	Resolve( C_GadgetBase* pParentClone );
 
+#if PLATFORM_PC
+	// [Blur2PC] render interpolation: moves every sprite built from a car's update pose (AI badges, the
+	// countdown's UICarNode; see C_Simple2D::Blur2PCSetAnchor) to the car's render pose; called per
+	// rendered frame from C_UiManager::PreRender
+	static void	Blur2PCPlaceCarSprites();
+#endif
+
 private:
 	bool	IsBossCar( const S32 sVehicleIndex );
 

@@ -3,6 +3,9 @@
 #include "ui/Game/UILua.h"
 #include "ui/Game/Gadgets/Buttons.h"
 #include "ui/Graphics/Simple2d.h"
+#ifdef PLATFORM_PC
+#include <vector>	// [Blur2PC] anchored sprite transforms
+#endif
 #include "ui/Graphics/UITextureManager.h"
 #include "ui/Graphics/Movie.h"
 //#include "ui/Graphics/PostProcess.h"
@@ -654,6 +657,118 @@ inline void C_Simple2D::AddClipWindow( const LayerIndex layer, const F32 x1, con
 	}
 #endif
 }
+
+#ifdef PLATFORM_PC
+// [Blur2PC] see C_Simple2D::Blur2PCSetAnchor
+namespace
+{
+	struct S_Blur2PCAnchor
+	{
+		const C_GadgetBase*	gadget;
+		S32					key;
+		bool				rigid;
+		Maths::HMat43		built;
+	};
+	struct S_Blur2PCAnchoredEntry
+	{
+		U32					anchor;
+		TransformIndex		ti;
+		Maths::HMat43		original;
+	};
+	std::vector< S_Blur2PCAnchor >			s_Blur2PCAnchors;
+	std::vector< S_Blur2PCAnchoredEntry >	s_Blur2PCAnchored;
+	U32										s_Blur2PCAnchorGeneration = 0;
+	bool									s_Blur2PCAnchoredSaved = false;	// originals captured for this generation
+}
+
+void C_Simple2D::Blur2PCSetAnchor( const C_GadgetBase* pAnchor, const S32 key, const bool rigid, const Maths::HMat43& built )
+{
+	if( s_Blur2PCAnchorGeneration != m_Blur2PCListGeneration )
+	{
+		s_Blur2PCAnchorGeneration = m_Blur2PCListGeneration;
+		s_Blur2PCAnchors.clear();
+		s_Blur2PCAnchored.clear();
+		s_Blur2PCAnchoredSaved = false;
+	}
+	for( size_t i = 0; i < s_Blur2PCAnchors.size(); i++ )
+	{
+		if( s_Blur2PCAnchors[ i ].gadget == pAnchor )
+		{
+			s_Blur2PCAnchors[ i ].key = key;
+			s_Blur2PCAnchors[ i ].rigid = rigid;
+			s_Blur2PCAnchors[ i ].built = built;
+			return;
+		}
+	}
+	S_Blur2PCAnchor a = { pAnchor, key, rigid, built };
+	s_Blur2PCAnchors.push_back( a );
+}
+
+void C_Simple2D::Blur2PCNoteTransform( const C_GadgetBase* pGadget, const TransformIndex ti )
+{
+	if( s_Blur2PCAnchorGeneration != m_Blur2PCListGeneration || s_Blur2PCAnchors.empty() || s_Blur2PCAnchoredSaved )
+		return;
+	if( ti == 0 || ti >= m_PostTransformMatrixPool.Size() )
+		return;
+	for( const C_GadgetBase* p = pGadget; p; p = p->Parent() )
+	{
+		for( size_t i = 0; i < s_Blur2PCAnchors.size(); i++ )
+		{
+			if( s_Blur2PCAnchors[ i ].gadget == p )
+			{
+				S_Blur2PCAnchoredEntry e;
+				e.anchor = (U32)i;
+				e.ti = ti;
+				s_Blur2PCAnchored.push_back( e );
+				return;
+			}
+		}
+	}
+}
+
+void C_Simple2D::Blur2PCPlaceAnchored( T_Blur2PCResolveAnchor resolve )
+{
+	if( s_Blur2PCAnchorGeneration != m_Blur2PCListGeneration || s_Blur2PCAnchored.empty() )
+		return;
+	if( !s_Blur2PCAnchoredSaved )
+	{	// the lists are complete by the first render: keep the entries as the UI built them
+		for( size_t i = 0; i < s_Blur2PCAnchored.size(); i++ )
+			s_Blur2PCAnchored[ i ].original = m_PostTransformMatrixPool[ s_Blur2PCAnchored[ i ].ti ];
+		s_Blur2PCAnchoredSaved = true;
+	}
+	std::vector< Maths::HMat43 > delta( s_Blur2PCAnchors.size() );
+	std::vector< bool > valid( s_Blur2PCAnchors.size() );
+	for( size_t i = 0; i < s_Blur2PCAnchors.size(); i++ )
+	{
+		Maths::HMat43 render;
+		valid[ i ] = resolve( s_Blur2PCAnchors[ i ].key, render );
+		if( !valid[ i ] )
+			continue;
+		const S_Blur2PCAnchor& a = s_Blur2PCAnchors[ i ];
+		if( a.rigid )
+			delta[ i ] = a.built.InverseRotTrans() * render;
+		else
+		{
+			delta[ i ].SetIdentity();
+			delta[ i ].AW( render.AW() - a.built.AW() );
+		}
+	}
+	for( size_t i = 0; i < s_Blur2PCAnchored.size(); i++ )
+	{
+		const S_Blur2PCAnchoredEntry& e = s_Blur2PCAnchored[ i ];
+		if( !valid[ e.anchor ] )
+			m_PostTransformMatrixPool[ e.ti ] = e.original;
+		else if( s_Blur2PCAnchors[ e.anchor ].rigid )
+			m_PostTransformMatrixPool[ e.ti ] = e.original * delta[ e.anchor ];
+		else
+		{
+			Maths::HMat43 m = e.original;
+			m.AW( m.AW() + delta[ e.anchor ].AW() );
+			m_PostTransformMatrixPool[ e.ti ] = m;
+		}
+	}
+}
+#endif
 
 void C_Simple2D::StartFrame()
 {

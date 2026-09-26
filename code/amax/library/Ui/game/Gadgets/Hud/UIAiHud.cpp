@@ -407,6 +407,11 @@ void UIAiHud::Render()
 		posAI.Y( posAI.Y() + fExtentsY * fMult );
 
 		objects[ E_AiHud_Parent ]->m_Position = posAI + m_Position;
+#if PLATFORM_PC
+		// [Blur2PC] render interpolation: the badges are placed at the car's update pose; each rendered frame
+		// moves them with the car to the pose it is drawn at (translation only: they face the camera)
+		gSimple2D.Blur2PCSetAnchor( objects[ E_AiHud_Parent ], sVehicleIndexO, false, pVehicleActor->Blur2PCRenderMatrix() );
+#endif
 
 		// targeting
 		if ( objects[ E_AiHud_Targeting ] )
@@ -531,6 +536,23 @@ void UIAiHud::Render()
 
 	C_GadgetBase::Render();
 }
+
+#if PLATFORM_PC
+static bool Blur2PCResolveCar( const S32 sVehicleIndex, Maths::HMat43& renderMatrix )	// [Blur2PC]
+{
+	Game::Actors::C_VehicleLogicActor* pLogicActor = GetVehicleLogicActor( sVehicleIndex );
+	Game::Actors::C_VehicleActor* pVehicleActor = pLogicActor ? pLogicActor->GetGraphicalActor( sVehicleIndex ) : NULL;
+	if ( !pVehicleActor )
+		return false;
+	renderMatrix = pVehicleActor->Blur2PCRenderMatrix();
+	return true;
+}
+
+void UIAiHud::Blur2PCPlaceCarSprites()
+{
+	gSimple2D.Blur2PCPlaceAnchored( &Blur2PCResolveCar );
+}
+#endif
 
 bool UIAiHud::IsBossCar( const S32 sVehicleIndex )
 {

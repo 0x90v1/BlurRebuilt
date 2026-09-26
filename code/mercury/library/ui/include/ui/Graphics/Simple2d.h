@@ -598,6 +598,17 @@ public:
 	/// [Blur2PC] counts StartFrame calls: the sprite lists are rebuilt once per game update, and with the
 	/// decoupled PC loop several frames can render one set of lists
 	U32			Blur2PCListGeneration( ) const { return m_Blur2PCListGeneration; }
+
+	/// [Blur2PC] render interpolation for sprites that follow a car. The UI builds its sprite lists once per
+	/// game update, from the car's update pose, while the car is drawn blended between its last two updates.
+	/// A gadget registered as an anchor for the current lists (after StartFrame) marks every post-transform
+	/// entry popped by it or its descendants (C_GadgetBase::CalcTransformHierarchy); every rendered frame,
+	/// Blur2PCPlaceAnchored moves those entries by the car's move from `built` to its render pose. rigid:
+	/// the whole move; otherwise only the translation (sprites that face the camera).
+	void		Blur2PCSetAnchor( const C_GadgetBase* pAnchor, const S32 key, const bool rigid, const Maths::HMat43& built );
+	void		Blur2PCNoteTransform( const C_GadgetBase* pGadget, const TransformIndex ti );
+	typedef bool (*T_Blur2PCResolveAnchor)( const S32 key, Maths::HMat43& renderMatrix );
+	void		Blur2PCPlaceAnchored( T_Blur2PCResolveAnchor resolve );
 #endif
 	/// Sets render states and binds the renderer
 	void		PreRender( );
