@@ -699,3 +699,9 @@ Found: `Blur2PC_QuickRace(1, 1)` crashes in `C_LevelState::SetupOpponent` on a f
 Blocked: none.
 Next: user check of Options > Keyboard in each phase; saves become version 1374 on the first save (1373 saves load).
 Files touched: blur1pc T103 files (commit 96a89062); Blur1Multi, BlurX `_work/run/scripts/race_long.txt`; docs/{BOARD,LEDGER}.md.
+## 2026-09-26 08:40 — session 19 (Claude) — T108: pickups cut out against distant scenery
+Did: traced the pickups' soft-edge depth fade to the PC prepass depth (R32F target 1, reversed z). The snapshot clears it to 0xFFFFFFFF, which decodes as the near plane, so every pixel the prepass leaves undrawn (past its 250 m draw distance) faded the pickups to 0. Ported from retail Blur.exe 1.2: `C_LightingPrepass::Begin` (0x004a5b30) clears to 0 (far plane); `C_MainView::RenderPrepass1` (0x00426390) draws the prepass group even with no lights. PC only. Committed on blur1pc (7ec9a0fa), merged into blur1multi; there a console source keeps the 0xFFFFFFFF prepass clear and `ConsoleDepth` writes 0.0 for undrawn pixels (2c4413c5); merged into blurx. Details in analysis.md beside the display-window notes. No docs note about an unidentified clear pass was found (user asked).
+Verified: user confirmed the fix in photo mode (Blur1PC exe). Release builds 0 errors in all three phases; exes delivered to each `_work/run`. Blur1Multi on the retail 360 source: quick race renders with car shadow and intact background (`Blur1Multi/_work/run/scripts_t108/`), exit 0. Pickups on console data not checked by eye.
+Blocked: none.
+Next: user check of pickups on 360/PS3 data if wanted. Automation note: `Blur2PC_QuickRace(1, 1)` on the current save needs a car id (T098); 1233078605 works.
+Files touched: Blur1PC code/amax/game/Graphics/Lighting/Prepass.cpp, code/amax/game/Game/GameWorld/View/Main.cpp; Blur1Multi Prepass.cpp, View/ConsoleDepth.{h,cpp}; docs/{BOARD,LEDGER,analysis}.md.
