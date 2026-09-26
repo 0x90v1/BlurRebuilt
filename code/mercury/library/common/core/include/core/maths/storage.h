@@ -1423,9 +1423,19 @@ typedef struct _UByte4
 /// F16 (half precision floating point)
 struct F16
 {
+#if defined( PLATFORM_PC )
+    // [Blur2PC] MSVC on x86 allocates bitfields from the low bit, so the console order below put the sign in bit 0
+    // and decoded every half wrongly on PC (light sample positions came out as garbage, so cars got no SH light).
+    // Retail Blur.exe 1.2 decodes IEEE halves with sign = bit 15, exponent = bits 10-14 (C_BSPPointTree::GetClosestSample
+    // 0x0072a4d0); this is that layout.
+    U16 mantissa : 10;
+    U16 exponent : 5;
+    U16 sign     : 1;
+#else
     U16 sign     : 1;
     U16 exponent : 5;
     U16 mantissa : 10;
+#endif
 };
 
 /// 4 Element Vector of F16 (half precision floating point) components

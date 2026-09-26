@@ -3259,7 +3259,9 @@ void C_GameWorld::BeginCarEffectTasks()
 					C_CarUpdateLightCubeMapTaskInit& carUpdateLightCubeMapTaskInit = m_CarUpdateLightCubeMapTaskInit[viewIndex];
 					U32& lightCubeMapIndex = lightCubeMapIndexTable[viewIndex];
 
-	#ifndef PLATFORM_PC
+					// [Blur2PC] Retail PC locks the six faces and fills the light cube maps too (Blur.exe 1.2
+					// BeginCarEffectTasks 0x00420ac0 schedules CarUpdateLightCubeMapTaskModule 0x0041bb90); the snapshot
+					// compiled this out on PC, so the cars' light environment (fake sun, nearby lights) stayed black.
 					Display2::C_LockedRect lockedRect;
 
 					lockedRect = Display2::LockTextureRectCube(pLightCubeMap, Display2::E_CubeMapFace_PosX, 0);
@@ -3283,7 +3285,6 @@ void C_GameWorld::BeginCarEffectTasks()
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_Pitch = lockedRect.GetPitch();
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_pTextureCube = pLightCubeMap;
 
-	#endif
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_Position = pVehicleActor->GetMatrix().AW();
 					lightCubeMapIndex++;
 				}
@@ -3291,7 +3292,7 @@ void C_GameWorld::BeginCarEffectTasks()
 		}
 
 		//Prepare task
-		#ifndef PLATFORM_PC
+		// [Blur2PC] scheduled on PC as well (retail 0x00420ac0, see above)
 		
 		//For each view
 		for (S32 iView = 0; iView < m_pViewManager->GetNumViews(); iView++)
@@ -3313,7 +3314,6 @@ void C_GameWorld::BeginCarEffectTasks()
 				Scheduler::AddTask(CarUpdateLightCubeMapTaskModule,&m_CarUpdateLightCubeMapTaskInit[iView], NULL, m_CarUpdateLightCubeMapTaskGroup, C_SchedulerConfig::GetInstance()->GetCarUpdateLightCubeMapPolicy(), lightCubeMapRange, 2 * sizeof(U32));				
 			}
 		}
-		#endif		
 	}
 }
 
