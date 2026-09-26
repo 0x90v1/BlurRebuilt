@@ -640,3 +640,11 @@ Not verified: a retail side-by-side; the user's own red profile car; LodMesh tex
 Blocked: none.
 Next: user check of T096 (showroom and race, their red car); then commit T096 on `blur1pc` and merge down (storage.h is engine-wide, so rebuild Blur1Multi and BlurX after the merge).
 Files touched: code/mercury/library/common/core/include/core/maths/storage.h, docs/{BOARD,analysis}.md, this ledger.
+
+## 2026-09-26 00:10 — session 9 (Claude) — T089 follow-up: retail application byte +0xd
+Did: searched retail Blur.exe 1.2 for every access to the application byte +0xd that the per-view render 0x0084df00 checks before clearing colour: byte accesses in 0x00840000-0x00860000, the 179 loads of the singleton 0x011aa290, the application vtables 0x00eaf6f8/0x00eaf2c0, and byte patterns outside defined functions in .text and .8thSin (scripts `_work/ghidra/t089x_{d,f,g,h,i}.py`, output `t089x_*.txt`).
+Found: the constructor 0x0084e500 writes 0 and 0x0084df00 is the only reader, so the byte is always 0 and retail clears colour per view only under `Graphics.Render.ClearBufferColour`, as the port does. No code change. Recorded in analysis.md (T089 bullet).
+Verified: n/a (analysis only).
+Blocked: none.
+Next: nothing open for session 9.
+Files touched: docs/analysis.md, this ledger.
