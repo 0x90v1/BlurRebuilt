@@ -691,3 +691,11 @@ Found: (1) the player's settings.xml has vsync on; a scripted run then paces to 
 Blocked: none.
 Next: user check of the Career ribbon in `_work/run/Amax.exe`; on approval commit on blur1pc (my files only: LightPaintSystem.cpp, Simple2d.{h,cpp}, Blur2PCAutomation.h, PCD3D9Device.cpp, UiManager.cpp, tools/blur2pc_automation/{README.md,career.lua,career_record.txt}, docs) and merge into blur1multi and blurx.
 Files touched: code/amax/library/Ui/LightPaintSystem.cpp, code/mercury/library/ui/include/ui/Graphics/Simple2d.h, code/mercury/library/ui/source/ui/Graphics/Simple2d.cpp, code/mercury/library/common/system/include/system/debug/Blur2PCAutomation.h, code/mercury/library/graphics/display/source/device/d3d9/PCD3D9Device.cpp, code/amax/library/Ui/UiManager.cpp, code/tools/blur2pc_automation/{README.md,career.lua,career_record.txt}; docs/{BOARD,analysis}.md, this ledger.
+
+## 2026-09-26 08:25 — session 15 (Claude) — T103 committed and merged
+Did: user asked to commit and propagate. Committed T103 on blur1pc (96a89062, my files only) and merged it into blur1multi (e544faaa); session 18's T106 merges (3f221f42, 24c83584) then carried it into blurx. Throttle key in the Blur1Multi and BlurX run-folder `race_long.txt` scripts: Q (layout 1) plus UP, like Blur1PC's.
+Verified: Blur1Multi Release 0 errors; private run of its build on PC data (`Blur1PC/_work/run_t103/multi`, own save copy, launched through `tools/game_slot.ps1`): Q drives (66 mph), pause > Options > Keyboard shows Layout 1 with retail's labels. Delivered `Blur1Multi/_work/run/Amax.exe` = the post-merge build (sha256 dc84ebd7..., contains T103 and T106). `BlurX/_work/run/Amax.exe` was built at 08:16 after the blurx merge, so it carries T103; not run by me.
+Found: `Blur2PC_QuickRace(1, 1)` crashes in `C_LevelState::SetupOpponent` on a fresh save (event `lastVehicle` 0) on Blur1Multi too: T098 is not BlurX-specific. My test script passes an unlocked class-3 car from `SinglePlayer.VehicleInfo()`.
+Blocked: none.
+Next: user check of Options > Keyboard in each phase; saves become version 1374 on the first save (1373 saves load).
+Files touched: blur1pc T103 files (commit 96a89062); Blur1Multi, BlurX `_work/run/scripts/race_long.txt`; docs/{BOARD,LEDGER}.md.
