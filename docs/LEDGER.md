@@ -711,3 +711,9 @@ Verified: Blur1Multi and BlurX Release builds 0 errors, exes delivered to each `
 Blocked: none.
 Next: if pickups cut out against distant scenery on 360/PS3 data, re-apply 2c4413c5's ConsoleDepth hunk (`return 0.0;`).
 Files touched: Blur1Multi code/amax/game/Game/GameWorld/View/ConsoleDepth.{h,cpp}; docs/{BOARD,LEDGER,analysis}.md.
+## 2026-09-26 09:15 — session 19 (Claude) — T108: console bridge change reinstated
+Did: the user saw the pickup badges' transparency cut-out on PS3 data, so the `ConsoleDepth` 0.0 write is back on blur1multi (8ade6afa, reverts 9c978c3f), merged into blurx.
+Verified: Blur1Multi and BlurX Release builds 0 errors, exes delivered to each `_work/run`. The fix on PS3 data awaits the user's check.
+Blocked: none.
+Next: user check of the badges on PS3 (and 360) data with `Blur1Multi/_work/run/Amax.exe`.
+Files touched: Blur1Multi code/amax/game/Game/GameWorld/View/ConsoleDepth.{h,cpp}; docs/{BOARD,LEDGER,analysis}.md.
