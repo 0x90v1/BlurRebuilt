@@ -821,3 +821,39 @@ Verified: the committed files are the ones in the delivered BlurX exe (13:32).
 Blocked: none.
 Next: none for T121.
 Files touched: docs/{BOARD,LEDGER,analysis}.md.
+
+## 2026-09-26 14:30 — session dbgrace (Claude) — debug-menu race assert on retail PC data
+Did: user report: Right Ctrl debug menu (`Ui.NewLaunchMode=DebugRb`, `Game.DevMode`) -> Enter asserts at LevelState.cpp:311 "Couldn't match Vehicle(0)". Cause is data: `C_GameModeDebug::Start` loads the menu's saved race from `debug_frontend.xml` in the data folder, and the copy the user placed in the retail folder (dated 2010-11-10) names a city (29873806), route (2643635770), manufacturer (3116051393) and car loc id (3271838780) that Blur 1's retail XT data does not have (they exist on Aug 31, where the menu works). `SetupRace` resolves cars by loc id + style, finds none, leaves `mCarID` 0. Page Down (car page) asserts the same way because DebugScreen calls `Amax.SetupRace` before switching. No code change. The retail folder's file was kept as `debug_frontend.xml.aug31` and rewritten with Blur 1 ids: UK_Brighton (496308235), route UK_Brighton_1 (4112414174), manufacturer 1127237626 / loc 1728551317 style 0 for every car slot; characters (71324675) exist in Blur 1.
+Verified: `Blur1PC/_work/run/scripts_dbgrace/dbg.txt` (Right Ctrl, Enter) through `game_slot.ps1`: before, assert at LevelState.cpp:311; after, race on Brighton in 4.4 s (`race.png`). First choice UK_Brighton_0 crashed in `CSpeedTracker::HandleMessage` (cspeedtracker.cpp, null vehicle state; log "Split Start/Fin not found"): that route has no race setup. Same crash signature as the Nov 10 bench races in T119's entry.
+Blocked: none.
+Next: none. The game rewrites `debug_frontend.xml` on each debug race start (`SaveDebugValues`), so the file follows whatever the menu last launched.
+Files touched: retail folder `debug_frontend.xml` (+ `.aug31` backup); docs/LEDGER.md.
+
+## 2026-09-26 13:35 — session 20 (Claude) — T121: Storm video wall picture jitters
+Did: user report: the video wall in BlurX's Brighton Storm jitters like T114. The wall camera is placed once per update from the VehicleFocusPosition message while the car is drawn blended. `C_VideoWallView` now re-places the camera at the start of each render (`PlaceCameraForRender`, from `Gather`) by the car's shift to its render pose, blends the orbit time, and draws the wall's blob shadows at the render pose. analysis.md, T109 video walls note, T121 sub-item.
+Verified: temporary log over 3,000 renders of a Storm race (private folder `BlurX/_work/run_t121`, nov10-b1rules, through `game_slot.ps1`): distance between the car as drawn and the point the camera orbits, old placement up to 0.67 m, new 0.000; log removed. Delivery built from a clean export of blurx 3f8c929b plus VideoWall.{h,cpp} (the worktree holds other sessions' uncommitted files), 0 errors; delivered `BlurX/_work/run/Amax.exe` 13:32 (sha256 9CED805A...). Not checked by eye.
+Blocked: user check.
+Next: user checks the Storm video walls; on confirmation commit VideoWall.{h,cpp} on blurx.
+Files touched: BlurX code/amax/game/Game/GameWorld/View/VideoWall.{h,cpp}; Blur1PC docs/{BOARD,LEDGER,analysis}.md.
+## 2026-09-26 14:40 — session 16 (Claude) — T104/T109/T110 committed; T120 bolts traced
+Did: user asked to commit: blurx d851e400 (T104 race rule, lending, sky params, particle buffers; T109 video walls; T110 lightning flash and the CreateEnvironmentSettings flag; session 17's T112 RaceServes pin check), staged by hunk around session 24's T107 hunk in GameWorld.cpp. User: the bolt itself is missing (T120, new). Traced with temporary logs (all removed, files back to HEAD): channels bind, patch materials read the right pool entries, values animate, textures bind, recompiled program matches Blur2Test; the patches are coplanar with the dome and lose the depth tie (analysis.md "Lightning bolts (T120)"). Session 24's T107 device-state fix made them draw at all.
+Verified: private runs in BlurX/_work/run_t104 (held reveal + dome hidden: bolts visible; nothing forced: bolts hidden). Scratch deleted.
+Blocked: user decision on the fix.
+Next: either a stopgap (patches drawn with a small depth offset toward the camera, flagged as such) or a look for Aug 31's own handling in Kanzen_Speed.xex (sky pass / depth state for model skies).
+Files touched: code none kept; docs/{analysis,BOARD,LEDGER}.md.
+
+## 2026-09-26 13:45 — session 20 (Claude) — T121 committed
+Did: user confirmed the video walls and asked to commit. Committed VideoWall.{h,cpp} on blurx (b32cf328); my doc lines on blur1pc, merged up.
+Verified: the committed files are the ones in the delivered BlurX exe (13:32).
+Blocked: none.
+Next: none for T121.
+Files touched: docs/{BOARD,LEDGER,analysis}.md.
+
+## 2026-09-26 15:30 — session dbgrace (Claude) — debug-menu races on Blur 2 tracks (BlurX)
+Did: user: the menu is for the Blur 2 tracks, which the career cannot start; prefer fixes in external files; make it the documented way to launch races. Under `nov10-b1rules` the Nov 10 disc's `debug_frontend.xml` (Kanzen car, Dubai) is served by the catalog above the exe folder, and retail's vehicle data lacks its car: same LevelState.cpp:311 assert. `catalog/profiles.txt` (nov10-b1rules) pins `\debug_frontend.xml` to blur1x360 (none there), so the exe folder's copy serves; seeded `BlurX/_work/run/debug_frontend.xml` with Aug 31 `UK_Brighton_Storm_1` and the retail BMW. The menu already lists every bench disc's cities and routes (KanzenTracks registers them in C_GameData). Docs: AGENTS.md rule 13 (debug menu is the preferred race launch), analysis.md "Debug menu race launch", board T122.
+Verified: private runs in `BlurX/_work/run_dbg` (copy of the 13:32 BlurX exe, DebugRb, own caches, audio cache junction to run's, `game_slot.ps1`): before, assert at LevelState.cpp:311; with the pin, Nov 10 Dubai loads then crashes in `CSpeedTracker::HandleMessage` (T122); Aug 31 Brighton Storm races ~20 s after boot (`scripts/race.png`), also with the rule from `profiles.txt` alone. City/route list dump for all discs: every id resolves.
+User: the desktop shortcut (BlurX exe, `_work/run`, nov10-b1rules) showed no debug menu: that folder's `debug_values.xml` said `Master`, so the exe folder's copy is the one that decides; set to `DebugRb` (backup `debug_values.xml.master-bak`). Not verified: Blur1Multi (not set up).
+Found: while an assert screen is up, automation `wait` lines never time out and the game holds the slot until the crash handler exits (80-120 s here); runs now pass a short `-TimeoutSeconds`.
+Blocked: none.
+Next: T122 for the Kanzen routes.
+Files touched: BlurX catalog/profiles.txt; BlurX `_work/run/debug_frontend.xml`; Blur1PC AGENTS.md, docs/{BOARD,LEDGER,analysis}.md.
