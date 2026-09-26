@@ -1,12 +1,12 @@
-# Shared build description for every phase project (Blur1PC, Blur1Multi, ...).
-# [Blur2PC] Split out of Blur1PC/CMakeLists.txt on 2026-09-24 so the phase 2+
-# projects inherit it without copying. The including CMakeLists.txt sets:
-#   BLUR_TOP        root of the Blur 1 source tree (contains code/); Blur1PC/
-#   BLUR_PROJECT    the phase project that owns _work/ (generated files, build)
-#                   and cmake/targets.cmake; equals BLUR_TOP for Blur1PC
-#   BLUR_WORKSPACE  parent of the phase folders; holds the shared _work/vendor
-#   BLUR_OVERLAY    (phase 2+) directory whose code/ mirrors and overrides
-#                   files of BLUR_TOP/code; unset for Blur1PC
+# Shared build description for every phase (Blur1PC, Blur1Multi, BlurX).
+# [Blur2PC] Split out of CMakeLists.txt on 2026-09-24 so every phase shares it.
+# Since 2026-09-26 (D16) each phase is a git branch checked out in its own
+# worktree, so BLUR_TOP and BLUR_PROJECT are both the worktree root. The
+# including CMakeLists.txt sets:
+#   BLUR_TOP        root of the source tree (contains code/)
+#   BLUR_PROJECT    the phase project that owns _work/ and cmake/targets.cmake
+#   BLUR_WORKSPACE  the container of the phase worktrees; Blur1PC/_work/vendor
+#                   there holds the third-party SDKs every phase uses
 # Everything below is the build as it was in Blur1PC/CMakeLists.txt.
 
 if(NOT MSVC)
@@ -16,7 +16,14 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "Configure for 32-bit: -A Win32 (the engine and its vendor libs are x86)")
 endif()
 
-set(BLUR_VENDOR ${BLUR_WORKSPACE}/_work/vendor CACHE PATH "Downloaded third-party SDKs (shared by every phase)")
+# The third-party SDKs live in Blur1PC/_work/vendor (untracked, so the other
+# phases cannot inherit them by merge); a phase's own _work/vendor wins if present.
+if(EXISTS ${BLUR_PROJECT}/_work/vendor)
+    set(_blur_vendor_default ${BLUR_PROJECT}/_work/vendor)
+else()
+    set(_blur_vendor_default ${BLUR_WORKSPACE}/Blur1PC/_work/vendor)
+endif()
+set(BLUR_VENDOR ${_blur_vendor_default} CACHE PATH "Downloaded third-party SDKs (shared by every phase)")
 
 set(BLUR_DXSDK_INCLUDE ${BLUR_VENDOR}/d3dx/build/native/include CACHE PATH "d3dx9.h location")
 set(BLUR_D3DX9_LIB ${BLUR_VENDOR}/d3dx/build/native/release/lib/x86/d3dx9.lib CACHE FILEPATH "d3dx9.lib")
