@@ -786,3 +786,17 @@ Found: my early runs in run_t116 logged into `run_t104/amax.log` through a copie
 Blocked: none.
 Next: user check of Storm (wall, sea) and a Nov 10 track; a November-refraction check needs Nov weapon meshes (a private override `prefer \models\perks\* nov10`) and a fired Shunt or Nitro; Kanzen water routing (the PostResolveAlpha row) is open.
 Files touched: BlurX as listed in board T119, catalog/profiles.txt (T116 pin removed); Blur1PC docs/{BOARD,LEDGER,analysis}.md.
+
+## 2026-09-26 09:15 — session 19 (Claude) — T108: PS3 effects read the depth as RGBA8
+Did: user reported PS3 pickups invisible until close, with cut-outs. The PS3 effects rebuild depth from the texture's r, g, b bytes (their view of the D24 depth buffer), and D3D9 samples our R32F depth as (r, 1, 1, 1). Blur1Multi's RSX translator now wraps fetches from units bound to `g_tDepthBuffer` in `Depth24()` (the RSX byte split); converter tag bumped to `rsx-hlsl-d3d9 4`. Files: Blur1Multi code/mercury/library/util/x360convert/source/{RsxTranslate.h,RsxTranslate.cpp,Ps3EffectConvert.cpp}, engine/X360ConvertFs.cpp. Uncommitted.
+Verified: `ps3shader_verify` over the 820 retail PS3 effects: all 7,574 programs compile; 73 programs sample `g_tDepthBuffer`, all 73 carry the PS3 24-bit decode, none without the flag. Blur1Multi Release 0 errors, exe delivered to `Blur1Multi/_work/run`. A PS3 race (tier 1 event 2) runs and renders (`Blur1Multi/_work/run/scripts_t108ps3/`); no pickups are in view on that stretch on PC data either, so the pickups themselves are not verified. The PS3 run shows a purple rounded square at the player car's rear at 4 s that the PC run does not; not identified.
+Blocked: user check of PS3 pickups in photo mode.
+Next: on the user's confirmation, commit the translator change on blur1multi and merge into blurx (BlurX has another session's uncommitted edits in GameWorld.cpp, which this change does not touch).
+Files touched: as above; docs/{BOARD,LEDGER,analysis}.md.
+
+## 2026-09-26 09:40 — session 19 (Claude) — T108 done
+Did: user confirmed PS3 pickups. Committed the RSX translator depth decode on blur1multi (0b93b3cc) and merged into blurx (d0ba048e; conflict in X360ConvertFs.cpp `ShaderConverterTag` resolved as PS3 `rsx-hlsl-d3d9 4`, 360 BlurX's `xenosrecomp-d3d9 3 kanzen-fx 5`). Session 16 reported BlurX Storm scenes brighter since the T108 merges; its A/B builds cleared T108 (ConsoleDepth 1.0 vs 0.0 and the prepass draw gate measure the same).
+Verified: BlurX Release 0 errors; not delivered to `BlurX/_work/run` at session 16's request (its worktree holds temporary A/B switches).
+Blocked: none.
+Next: BlurX delivery with the next build from that worktree.
+Files touched: Blur1Multi code/mercury/library/util/x360convert/{source/RsxTranslate.h,source/RsxTranslate.cpp,source/Ps3EffectConvert.cpp,engine/X360ConvertFs.cpp}; BlurX merge; docs/{BOARD,LEDGER,analysis}.md.
