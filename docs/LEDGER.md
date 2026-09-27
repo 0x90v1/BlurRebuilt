@@ -1003,3 +1003,17 @@ Verified: staged T129 diff passed `git diff --cached --check`; both upper-phase 
 Blocked: none for the reported join/hint issue. In-race controller input was not separately checked; the keyboard-primary pad shift remains a documented adaptation pending a direct retail PC comparison.
 Next: continue T123 and other BlurX work using the merged build; if a later split-screen race shows a pad assignment fault, compare retail's physical controller routing and repair the owning phase.
 Files touched: Blur1PC T129 source commit; merge commits on Blur1Multi and BlurX; delivered `_work/run/Amax.{exe,pdb}` in Blur1Multi and BlurX; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No push.
+
+## 2026-09-26 23:02 — session Codex — T130 AI race menu
+Did: replaced the BlurX Single Player Career entry with `AI race`; built a vertical paged list of Career-style city cards, then up to four large square layout tiles. Routed layout selection into an eight-car debug race, fixed the showroom-to-race `mInUI` transition and prevented a second route screen from opening during launch. Changed both visible `AI RACE` labels to `AI race`. No commit or push.
+Verified: Release build `errsum.py` found 0 errors; scoped `git diff --check` found no whitespace errors. A queued minimized Nov 10 `nov10-b1rules` run displayed the city cards and route tiles, reached the race with eight cars and exited 0 in 79 seconds. Its `debug_frontend.xml` was updated; the older crash file was not. Delivered `BlurX/_work/run/Amax.{exe,pdb}` after the standard game process exited; executable SHA256 B81D88A2C1BDAB2FE3C4B420CA2BE9F342C3C5F328560F6AA47FFD5E0AFA12C0.
+Blocked: none for the tested route. Other city/layout combinations remain untested.
+Next: user tests the standard BlurX launcher and the desired city/layout; if a particular route fails, preserve its source/profile and race log for a route-specific investigation. Commit only if the user asks, staging T130 files alone.
+Files touched: BlurX code/amax/library/Ui/game/lua_scripts/screens/SinglePlayer/{SpMain.lua,SpTierSelect.lua}; code/amax/game/GameLogic/GameModes/GameModeDebug.cpp; Blur1PC docs/{BOARD,analysis,LEDGER}.md; ignored BlurX/_work/run_t130 artifacts and delivered _work/run/Amax.{exe,pdb}.
+
+## 2026-09-26 23:12 - session Codex - T130 commit
+Did: committed the isolated BlurX AI race code as 8ad3ef4c. The later T132 city-navigation edit remains unstaged in SpTierSelect.lua. Committed this T130 board, analysis, and ledger record separately on blur1pc; no push.
+Verified: the staged BlurX code diff passed git diff --cached --check, and the unstaged SpTierSelect.lua diff contains only the T132 block. The existing T130 Release build and queued Nov 10 eight-car race verification remain the delivery check.
+Blocked: none for T130.
+Next: test additional city/layout choices as requested; T132 continues independently.
+Files touched: BlurX T130 code commit 8ad3ef4c; Blur1PC docs/{BOARD,analysis,LEDGER}.md.
