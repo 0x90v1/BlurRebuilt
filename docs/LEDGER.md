@@ -1057,3 +1057,15 @@ Blocked: none for this commit. T132 still awaits the user's check of Brighton Su
 Next: commit the selected shared docs on blur1pc and merge that lower-branch commit through blur1multi into blurx. Do not stage the other sessions' work or push.
 
 Files touched: BlurX commit `f6528ecc`; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No new game launch.
+
+## 2026-09-27 00:18 — session Codex — T125/T126/T132 merge closure
+
+Did: committed only the selected shared docs on blur1pc as `1e2f0468`, merged blur1pc into blur1multi as `eb056dd7`, then merged blur1multi into blurx as `483594a4`. The BlurX code and shortcut remain in `f6528ecc`. No push.
+
+Verified: both merges touched only docs/{BOARD,LEDGER,analysis}.md and completed without conflicts. Other sessions' dirty files were left unstaged in all three worktrees. No new build or game run was needed after the previously tested source commit.
+
+Blocked: none for committing and merging these changes. T132 still awaits user confirmation for Brighton Sunny and Kanzen LA River; the separate T128 intermittent texture-copy fault remains open.
+
+Next: if the user reports another specific route or repeated-load failure, use that run's log and pinned disc to identify the mechanism; handle the independently reported split-screen and restart faults under their own board tasks.
+
+Files touched: Blur1PC docs/LEDGER.md. No executable, profile or source-disc changes.
