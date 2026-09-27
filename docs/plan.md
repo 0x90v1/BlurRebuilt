@@ -12,63 +12,14 @@ Nothing else can be tested until this exists. Retail Blur 1 PC data is the test 
 - W1.3 Run against `C:\Program Files (x86)\Activision\Blur(TM)` data: front end appears, Showroom loads, one race runs. Fix crashes caused by the 2012 retail data being newer than the June 2010 source, if any.
 - W1.4 Debug affordances: `FileMappingDebug`, logfs, a command-line data-root override (the source has none).
 
-## M2 — Inventory
-- W2.1 Inventory tool (C++ under `code/tools/kanzen_inventory/` or Python bootstrap reading Blur2Test's catalogues): walk the five discs (loose files + pak FATs), record path, size, content SHA-1, disc, container, format generation, validity (framing check, zero-block scan, header check). Output: one table (`_work/inventory/inventory.sqlite` or CSV set).
-- W2.2 Serving policy: named scenarios (e.g. "nov10-base + aug31-audio + aug31-only-tracks"), rules by path prefix / extension / generation / validity, deterministic resolution to one (disc, path) per virtual path. Written as a manifest the engine can load.
-- W2.3 Engine layer: an `I_FileSystem` that maps a virtual path to the converted file chosen by the manifest, mounted above the paks in `CreateFsLayers`. Fallback to retail PC data for anything missing.
-
-## M3 — Converter (Generation A first, Generation B in parallel once formats are pinned)
-C++ tool under `code/tools/kanzen_convert/`, one sub-converter per format, each verified by round-tripping retail X360 → PC and diffing against the retail PC files where the same asset exists.
-- W3.1 Chunk-file byte-swap framework (FourCC, C_FileBlock headers, per-chunk field descriptors).
-- W3.2 `.texture`: untile Xenos, endian-swap, emit PC texture (reference: Blur2Test `b2_extract_textures.py`, retail PC textures).
-- W3.3 `.model` (Gen A 4-chunk, Gen B 5-chunk).
-- W3.4 `.level` / `.levelphysics` / `.levelrender` / `.levelstream` (Gen A = retail layout; Gen B `Scen` layout needs new reader on the engine side, see M4).
-- W3.5 XT/KSLF `.bin` and `.loc`: big-endian flask → PC flask.
-- W3.6 Audio `.baf` (XMA2 → whatever the PC audio path consumes; check what retail PC ships).
-- W3.7 Paks: either leave everything loose or rebuild with `bizpak`.
-
-## M4 — Engine loaders for Generation B
-- W4.1 `.levelrender` `Scen` layout; `.texture` v1; `.model` 5-chunk; `.levelanim`.
-- W4.2 XT: load `Tracks.bin`, `Levels.*.bin`, `Ui.bin`; reconcile schema drift between Blur 1 types and Kanzen records.
-- W4.3 XEFX v12 technique graphs in the FX importer.
-
-## M5 — Shader cache
-- W5.1 Extract microcode per effect per disc (Blur2Test `decode_xbox_fxb_effect.py`, `xenos_dis.py`).
-- W5.2 XenosRecomp → HLSL → fxc SM3 → `PCFX` block → `.fxb`. Cache dir `_work/shaders/<disc>/<hash>/`.
-- W5.3 Handle effects that exceed SM3 limits: record them, do not guess.
-
-## M6 — First playable (D07)
-Showroom + one race with AI on an Aug 31 track, then a Nov 10 track.
-
 ## M7 — Time independence
 Convert the frame-counted consumers listed in `analysis.md` §2 to elapsed time; keep the fixed 60 Hz step; verify at 30 / 60 / 144 fps with a debug frame limiter.
 
 ## Phase layout (D16, 2026-09-25; D10 before that)
-Each phase is a git branch in its own worktree under `C:\AIProjects\Blur2PC\`: `Blur1PCSource/` (`master`, the untouched leak), `Blur1PC/` (`blur1pc`, phase 1), `Blur1Multi/` (`blur1multi`, phase 2), `BlurX/` (`blurx`, phase 3), each branched from the previous one. Lower-phase commits reach the upper phases by `git merge`, nothing flows down. M1 and M7 work is committed on `blur1pc`; M9 on `blur1multi`; M2-M6 (Blur 2) on `blurx`, as new files where possible and never as edits that belong below. Docs, board and ledger are edited in `Blur1PC/` only.
-
-## M9 — Phase 2: Blur 1 from Xbox 360 and PS3 retail data (Blur1Multi)
-The retail X360 Blur 1 disc is Generation A data (the Aug 31 prototype's layout), so every reader written here is reused by M3/M4 for the Aug 31 disc.
-- W9.1 Game source (done 2026-09-24): `--source=<dir>` / `BLUR_SOURCE`, platform detection, PC path unchanged (T070).
-- W9.2 360 pak layer: big-endian pak v1 + XMem/LZX codecs on PC (T071).
-- W9.3 Platform data layer (D11): files converted in memory when opened and served through a file-system layer, nothing stored (T072); textures (T073); shaders (T074); audio (T075).
-- W9.4 Showroom, then one race, from the 360 disc; keep the Blur1PC and Blur1Multi PC smoke runs passing (T077).
-- W9.5 PS3 (T076, started 2026-09-25, D14): the 360 layer takes the source as a parameter; PS3 paks, detection, models, levels, textures, audio banks and audio objects convert; RSX effects to HLSL; then the same showroom/race milestones as W9.4.
+Each phase is a git branch in its own worktree under `C:\AIProjects\Blur2PC\`: `Blur1PCSource/` (`master`, the untouched leak), `Blur1PC/` (`blur1pc`, phase 1), `Blur1Multi/` (`blur1multi`, phase 2), `BlurX/` (`blurx`, phase 3), each branched from the previous one. Lower-phase commits reach the upper phases by `git merge`, nothing flows down. M1 and M7 work is committed on `blur1pc`. Docs, board and ledger are edited in `Blur1PC/` only.
 
 ## Standing goal (D09)
-Blur 1 on retail PC data remains a supported configuration after every milestone; re-run the T005 smoke test (boot, start screen, Showroom, one race) before closing any milestone. Readers and converters grow additively per platform (PC, 360, PS3) and per game (Blur 1, Blur 2 Gen A/Gen B).
+Blur 1 on retail PC data remains a supported configuration after every milestone; re-run the T005 smoke test (boot, start screen, Showroom, one race) before closing any milestone.
 
 ## Out of scope
 Multiplayer, Demonware, Live/PSN, DLC, achievements, avatar awards.
-
-## M10 — Phase 3: the Blur 2 prototypes (BlurX, D12)
-Started 2026-09-25. BlurX builds on Blur1Multi, so every 360 converter written for M9 serves the prototypes too; what BlurX adds is the choice of disc per file and, later, the Generation B formats. This milestone takes over M2 (inventory: T010-T012 are superseded by T081/T082) and hosts M4 (Gen B loaders, as BlurX converters) and M6 (first playable).
-- W10.1 BlurX build stacked on Blur1Multi + Blur1PC (T080).
-- W10.2 Asset catalog, off line: every file on every disc with its provenance and a payload framing check; profiles as data, defaults from Blur2Test's policy (T081).
-- W10.3 Asset catalog, run time: catalog mode, per-disc engine mounts behind one file-system layer (T082).
-- W10.4 Boot the Aug 31 profile (Generation A, Blur1Multi's converters) (T083), then the Nov 10 profile, listing Generation B failures in load order (T084) for T030-T033.
-- W10.5 Kanzen's own mount table and signature check from the XEX (T085).
-- W10.6 Test bench: Split Screen > Custom Race on `nov10-b1rules`, with the prototypes' tracks added to Blur 1's route inventory (T099, a D13 stopgap), so tracks Blur 1's career never offers can be raced.
-- W10.7 (later, user 2026-09-25) Tools the prototype tracks need to race properly:
-  - an `.aid` generator: most prototype tracks ship no AI data (of the four Aug 31 Blur 2 tracks only `uk_brighton_storm` has an `.aid`), so no AI racers can run on them (T100);
-  - a containment-collision generator: most Kanzen tracks on the Nov 10 disc have only basic fencing in their collision, and cars easily fall off the world; generate proper containing collision geometry for them (T101).
-Test base: the Nov 10 prototype; Nov 25 is a damaged rip, never a test base (AGENTS.md).
