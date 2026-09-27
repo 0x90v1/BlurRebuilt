@@ -743,6 +743,15 @@ void C_GameApp::OnShutdown()
 	NetPlay::C_Core::Instance().Shutdown();
 
 	AmaxCam::CameraSystem().Exit();
+
+#ifdef PLATFORM_PC
+	// [Blur2PC] T142: retail PC's OnShutdown (Blur.exe 1.2, 0x0042f620) ends here with
+	// TerminateProcess (0x0042f826) whatever the run state, so the layer manager never tears
+	// down the layers. Without it a window close (not a forced quit) reached
+	// C_LayerManager::ShutDown, which destroyed the running world and race-logic layers after
+	// m_pRaceBookLayer was cleared above (PickupPositionActor::Destroy, C_RaceLogicLayer::Destroy).
+	TerminateProcess(GetCurrentProcess(), 0);
+#endif
 }
 
 void C_GameApp::SetTimeScale(F32 p_TimeScale) 

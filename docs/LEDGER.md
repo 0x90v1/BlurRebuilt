@@ -472,3 +472,10 @@ Blocked: none for the reported join/hint issue. In-race controller input was not
 Next: if a later split-screen race shows a pad assignment fault, compare retail's physical controller routing and repair the owning phase.
 Files touched: Blur1PC T129 source commit; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No push.
 
+## 2026-09-27 19:00 — session Claude facade-wall — T142
+
+Did: reproduced the BlurX shutdown crash on Blur1PC with retail PC data (queued debug-menu race, then WM_CLOSE: crash in PickupPositionActor::Destroy reading NULL GetRaceBookLayer()). Retail decompile (`_work/ghidra/t142_shutdown.md`): OnShutdown ends with TerminateProcess unconditionally on PC. Ported in GameApp.cpp.
+Verified: Release build 0 errors; the same queued race + WM_CLOSE exits with code 0 and no crash.txt (was 0xC0000005 every time).
+Blocked: none.
+Next: commit on blur1pc and merge up (blur1multi, blurx, blur1pcdx11) when the user asks; BlurX's exe has the crash until then.
+Files touched: code/amax/game/GameApp.cpp; docs.
