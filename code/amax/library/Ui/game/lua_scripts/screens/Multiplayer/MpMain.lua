@@ -295,6 +295,8 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 				end
 
 			elseif selection == UIEnums.RwMpBranch.Splitscreen then
+				-- [Blur2PC] Retail marks a fresh sign-in so it can keep the primary input device.
+				UIGlobals.splitscreen_enter = true
 				net_MpEnter( UIEnums.GameMode.SplitScreen )
 				OpenApp( selection )
 				-- store this as this is the only pad we're allowed to save on in splitscreen

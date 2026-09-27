@@ -1,6 +1,8 @@
 GUI =
 {
 	finished = false,
+	ProfileDevice = {  },
+	reset_controls_to_sp = false,
 	carousel_branch = "MpSplitscreenSignIn",
 
 	CanExit = function( _GUI, arg1 )
@@ -18,6 +20,8 @@ GUI =
 		Splitscreen_Clear()
 		
 		PlaySfxGraphicBack()
+		-- [Blur2PC] Retail restores the single-player controls when leaving sign-in.
+		_GUI.reset_controls_to_sp = true
 		
 		return true
 	end,
@@ -58,6 +62,16 @@ GUI =
 }
 
 function Init()
+	-- [Blur2PC] Retail PC maps the second keyboard to the next input slot.
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		local primary = Profile.GetPrimaryPad()
+		local primary_device = UIGlobals.ProfileDevice[ primary ]
+		if UIGlobals.splitscreen_enter == true then
+			primary_device = UIGlobals.LastInputDevice
+		end
+		Amax.SetSplitscreenKeyboards( primary, ( primary + 1 ) % 4,
+			primary_device == UIEnums.Device.Keyboard )
+	end
 	AddSCUI_Elements()
 	DeferCam_Init( UIGlobals.CameraNames.MpAppBase )
 	
@@ -70,6 +84,7 @@ function Init()
 	--GUI.demo == *something*
 	
 	for i = 0, 3, 1 do
+		GUI.ProfileDevice[ i ] = UIGlobals.ProfileDevice[ i ]
 		UIGlobals.LoadProfile[ i ] = false						-- reset global load table
 		GUI.ProfileState[ i ] = UIGlobals.ProfileState[ i ]		-- store the current global state
 		
@@ -102,6 +117,10 @@ function Init()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC and UIGlobals.splitscreen_enter == true then
+		UIGlobals.splitscreen_enter = false
+		UIGlobals.ProfileDevice[ UIGlobals.splitscreen_primary_pad_original ] = UIGlobals.LastInputDevice
+	end
 	SplitscreenSignIn_UpdatePlayerInfo()
 	SplitscreenSignIn_UpdatePadChanges( true )
 end
@@ -249,18 +268,58 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 	end
 	
 	if message == UIEnums.Message.ButtonY then
-		if UIGlobals.ProfileState[ arg1 ] == UIEnums.Profile.PreLoad then
+		-- [Blur2PC] Retail PC joins the second keyboard in the first free profile slot.
+		if UIEnums.CurrentPlatform == UIEnums.Platform.PC and
+		   arg1 ~= UIGlobals.splitscreen_primary_pad_original and
+		   arg4 == UIEnums.Device.Keyboard then
+			local keyboard_slot = -1
+			for i = 0, 3, 1 do
+				if UIGlobals.ProfileState[ i ] == UIEnums.Profile.Blagged and
+				   UIGlobals.ProfileDevice[ i ] == UIEnums.Device.Keyboard then
+					keyboard_slot = i
+					break
+				end
+			end
+			if keyboard_slot == -1 then
+				for i = 0, 3, 1 do
+					if UIGlobals.ProfileState[ i ] == UIEnums.Profile.None then
+						keyboard_slot = i
+						break
+					end
+				end
+				if keyboard_slot == -1 then
+					PlaySfxError()
+				else
+					PlaySfxToggle()
+					UIGlobals.ProfileState[ keyboard_slot ] = UIEnums.Profile.Blagged
+					UIGlobals.ProfileDevice[ keyboard_slot ] = arg4
+					Profile.ClearProfile( keyboard_slot )
+					GameProfile.ClearGameProfile( keyboard_slot, true )
+					Profile.Setup( keyboard_slot, true )
+					UIGlobals.ProfilesFound = UIGlobals.ProfilesFound + 1
+				end
+			else
+				PlaySfxToggle()
+				UIGlobals.ProfileState[ keyboard_slot ] = UIEnums.Profile.None
+				UIGlobals.ProfileDevice[ keyboard_slot ] = -1
+				Profile.ClearProfile( keyboard_slot )
+				GameProfile.ClearGameProfile( keyboard_slot, true )
+				UIGlobals.ProfilesFound = UIGlobals.ProfilesFound - 1
+			end
+		elseif UIGlobals.ProfileState[ arg1 ] == UIEnums.Profile.PreLoad then
 			PlaySfxToggle()
 			
 			-- flag a profile not loaded at start to be loaded now
 			UIGlobals.LoadProfile[ arg1 ] = true
 			UIGlobals.ProfileState[ arg1 ] = UIEnums.Profile.GamerProfile
+			UIGlobals.ProfileDevice[ arg1 ] = arg4
 		
 		elseif UIGlobals.ProfileState[ arg1 ] == UIEnums.Profile.None then
 			PlaySfxToggle()
 			
 			-- new blagged
 			UIGlobals.ProfileState[ arg1 ] = UIEnums.Profile.Blagged
+			UIGlobals.ProfileDevice[ arg1 ] = arg4
 			Profile.ClearProfile( arg1 )
 			GameProfile.ClearGameProfile( arg1, true )
 			Profile.Setup( arg1, true )
@@ -271,6 +330,7 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 			
 			-- sign out blagged
 			UIGlobals.ProfileState[ arg1 ] = UIEnums.Profile.None
+			UIGlobals.ProfileDevice[ arg1 ] = -1
 			
 			Profile.ClearProfile( arg1 )
 			GameProfile.ClearGameProfile( arg1, true )
@@ -307,6 +367,10 @@ function EnterEnd()
 	Profile.ActOnProfileChanges( true )
 	Profile.AllowAllPadInput( false )
 	Profile.LockToPad( Profile.GetPrimaryPad() )
+	if GUI.reset_controls_to_sp == true and UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		Amax.Options( nil )
+		GUI.reset_controls_to_sp = false
+	end
 end
 
 function End()
@@ -333,7 +397,11 @@ function SplitscreenSignIn_UpdatePlayerInfo()
 		elseif UIGlobals.ProfileState[ i ] == UIEnums.Profile.None then
 			UIButtons.TimeLineActive( "player_active_" .. i, false )
 			
-			if is_ps3 == true or is_demo == true then
+			if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+				-- [Blur2PC] Retail PC's combined numpad + and pad Y prompt.
+				UIButtons.ChangeText( GUI.info1_ids[ i ], UIText.PRO_SS_JOIN_PCP_PCY )
+				UIButtons.ChangeText( GUI.info2_ids[ i ], UIText.CMN_NOWT )
+			elseif is_ps3 == true or is_demo == true then
 				UIButtons.ChangeText( GUI.info1_ids[ i ], UIText.PRO_SS_JOIN_Y )
 				UIButtons.ChangeText( GUI.info2_ids[ i ], UIText.CMN_NOWT )
 			else
@@ -355,7 +423,10 @@ function SplitscreenSignIn_UpdatePlayerInfo()
 		elseif UIGlobals.ProfileState[ i ] == UIEnums.Profile.Blagged then
 			UIButtons.TimeLineActive( "player_active_" .. i, true )
 			
-			if is_ps3 == true or is_demo == true then
+			if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+				UIButtons.ChangeText( GUI.info1_ids[ i ], UIText.PRO_SS_LEAVE_PCP_PCY )
+				UIButtons.ChangeText( GUI.info2_ids[ i ], UIText.CMN_NOWT )
+			elseif is_ps3 == true or is_demo == true then
 				UIButtons.ChangeText( GUI.info1_ids[ i ], UIText.PRO_SS_LEAVE_Y )
 				UIButtons.ChangeText( GUI.info2_ids[ i ], UIText.CMN_NOWT )
 			else
@@ -429,6 +500,22 @@ function SplitscreenSignIn_ValidateProfiles( confirm )
 			UIGlobals.Splitscreen.players[ #UIGlobals.Splitscreen.players + 1 ] = player
 			UIGlobals.Splitscreen.pad_to_player[ i ] = #UIGlobals.Splitscreen.players
 		end
+	end
+	-- [Blur2PC] Retail keeps keyboard controls on the active primary and second player.
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		local primary_keyboard = -1
+		local second_keyboard = -1
+		for i = 0, 3, 1 do
+			if UIGlobals.Splitscreen.pad_to_player[ i ] ~= nil then
+				if i == UIGlobals.splitscreen_primary_pad_original then
+					primary_keyboard = i
+				elseif UIGlobals.ProfileDevice[ i ] == UIEnums.Device.Keyboard then
+					second_keyboard = i
+				end
+			end
+		end
+		Amax.SetSplitscreenKeyboards( primary_keyboard, second_keyboard,
+			UIGlobals.ProfileDevice[ UIGlobals.splitscreen_primary_pad_original ] == UIEnums.Device.Keyboard )
 	end
 	
 	if load_profiles == true then

@@ -623,6 +623,12 @@ function SCUI_MessageUpdate( message, arg1, arg2, arg3, arg4, overide )
 		return false
 	end
 
+	-- [Blur2PC] Retail GuiBank records the device of a menu action for split-screen sign-in.
+	if ( message == UIEnums.Message.MenuNext or message == UIEnums.Message.MenuBack or
+	     message == UIEnums.Message.ButtonX or message == UIEnums.Message.ButtonY ) and arg4 ~= nil then
+		UIGlobals.LastInputDevice = arg4
+	end
+
 	if message == UIEnums.Message.MenuNext and IsString( table.on_next ) then
 		return ProtectedLoadRunString( table.on_next )
 	elseif message == UIEnums.Message.MenuBack and IsString( table.on_back ) then

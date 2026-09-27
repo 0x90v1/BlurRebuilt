@@ -46,6 +46,13 @@ void AddButtonInput( Input::C_GameInput* pGameInput, const U32 buttonId, Input::
 // combine an axis input with an existing one
 void AddAxisInput( Input::C_GameInput* pGameInput, const U32 axisId, Input::C_AxisInput* pNewAxisInput )
 {
+	// [Blur2PC] Retail PC's split-screen setup leaves keyboard photo axes empty on
+	// controller-only slots. The first pad axis becomes the binding directly.
+	if ( pGameInput->GetAxisInput(axisId) == NULL )
+	{
+		pGameInput->SetAxisInput(axisId, pNewAxisInput);
+		return;
+	}
 	Input::C_AxisInputCombiner* pAxisCombiner = new Input::C_AxisInputCombiner();
 	pAxisCombiner->AddAxisInput( pGameInput->GetAxisInput(axisId) );
 	pAxisCombiner->AddAxisInput( pNewAxisInput );

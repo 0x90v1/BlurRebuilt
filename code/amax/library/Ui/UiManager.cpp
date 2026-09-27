@@ -82,6 +82,7 @@
 #include <GameApp.h>
 
 #include <input/Device.h>
+#include <input/Keyboard.h>	// [Blur2PC] identify the keyboard join key in retail split-screen
 #include <framework/application/ApplicationBase.h>
 
 #include "Ui/SoundEffects.h"
@@ -1637,6 +1638,14 @@ void C_UiManager::CreateGameLuaEnums( lua_State* pState )
 	// normal next button mapping
 	Lua::AddDataMember( pState, "NormalNextButtonMapping", m_bNormalNextButtonMapping );
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] Retail UIEnums.Device.Keyboard (Blur.exe 1.2, 0x00c325a0).
+	lua_pushstring( pState, "Device" );
+	lua_newtable( pState );
+		Lua::AddDataMember( pState, "Keyboard", 0 );
+	lua_rawset( pState, -3 );
+#endif
+
 	// Launch codes 3...2...1... blast off Amax Yeah!
 	lua_pushstring(pState, "LaunchMode");
 	lua_newtable(pState);
@@ -1953,12 +1962,8 @@ void C_UiManager::ProcessController()
 	// Get context mask
 	S32 sMask = C_ScreenControlManager::Instance().InputMessageMask();
 
-	// process all pads
-#ifdef PLATFORM_PC
-	for ( S32 i = 0; i < 1; i++ )	// shouldn't GetGameInput() just return NULL if it doesn't exist instead?
-#else
+	// [Blur2PC] Retail PC processes all four slots (0x00c348c0).
 	for ( S32 i = 0; i < m_MaxLocalPlayers; i++ )
-#endif
 	{
 		// disable certain pads?
 		if ( !C_ProfileInterface::Instance().AllowPadInput( i ) )
@@ -2070,10 +2075,21 @@ void C_UiManager::ProcessController()
 			else
 			if ( pInput->GetButtonPressedDebounced( Game::E_UiButton_Confirm ) )
 			{
+				F64 inputDevice = 0.0;
+#ifdef PLATFORM_PC
+				// [Blur2PC] Pass the actual source of the menu action to Lua.
+				Input::C_Device* pKeyboard = Framework::C_ApplicationBase::GetInstance()->GetKeyboard( i );
+				const bool primaryKeys = i == SysProfile::C_Manager::Instance().GetPrimaryPadNo();
+				const bool keyPressed = pKeyboard &&
+					( pKeyboard->GetButtonValue( Input::C_Keyboard::E_Button_NumPadEnter ) > 0.5f ||
+					  ( primaryKeys && ( pKeyboard->GetButtonValue( Input::C_Keyboard::E_Button_Return ) > 0.5f ||
+						pKeyboard->GetButtonValue( Input::C_Keyboard::E_Button_Space ) > 0.5f ) ) );
+				inputDevice = keyPressed ? 0.0 : 1.0;
+#endif
 				if ( m_bNormalNextButtonMapping )
-					_UI_MESSAGE_PAD( E_UiMsg_MenuNext, sPadIndex, true, 1.0, 0, sMask );
+					_UI_MESSAGE_PAD( E_UiMsg_MenuNext, sPadIndex, true, 1.0, inputDevice, sMask );
 				else
-					_UI_MESSAGE_PAD( E_UiMsg_MenuBack, sPadIndex, true, 1.0, 0, sMask );
+					_UI_MESSAGE_PAD( E_UiMsg_MenuBack, sPadIndex, true, 1.0, inputDevice, sMask );
 			}
 			else
 			if ( pInput->GetButtonPressedDebounced( Game::E_UiButton_Cancel ) )
@@ -2091,7 +2107,17 @@ void C_UiManager::ProcessController()
 			else
 			if ( pInput->GetButtonPressedDebounced( Game::E_UiButton_Option2 ) )
 			{
+#ifdef PLATFORM_PC
+				// [Blur2PC] Retail's fifth Lua argument identifies keyboard (0) or pad.
+				// The split-screen keyboard's Option2 binding is numpad + (0x00e653b8).
+				const S32 primaryPad = SysProfile::C_Manager::Instance().GetPrimaryPadNo();
+				Input::C_Device* pKeyboard = Framework::C_ApplicationBase::GetInstance()->GetKeyboard( i );
+				const S32 joinKey = i == primaryPad ? Input::C_Keyboard::E_Button_RControl : Input::C_Keyboard::E_Button_Add;
+				const F64 inputDevice = pKeyboard && pKeyboard->GetButtonValue( joinKey ) > 0.5f ? 0.0 : 1.0;
+				_UI_MESSAGE_PAD( E_UiMsg_CtrlButton_Y, sPadIndex, true, 1.0, inputDevice, sMask );
+#else
 				_UI_MESSAGE_PAD( E_UiMsg_CtrlButton_Y, sPadIndex, true, 1.0, 0, sMask );
+#endif
 			}
 			else
 			if ( pInput->GetButtonPressedDebounced( Game::E_UiButton_LeftShoulder ) )

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <GameLogic/ActorStudioActors/DynamicObjectMessages.h>	// [Blur2PC]
 #include <Game/Game.h>
+#include <Game/GameControls/GameControls.h>	// [Blur2PC] retail split-screen keyboard remapping
 #include <GameSystems.h>
 
 #include <system/serialise/C_FileSystem.h>
@@ -3070,6 +3071,48 @@ static int GetPCKeyboard( lua_State* pState )
 	else
 		lua_pushstring( pState, "" );
 	return 1;
+}
+
+// [Blur2PC] Retail Amax.SetSplitscreenKeyboards, Blur.exe 1.2 0x00b88cb0.
+// With no arguments, the second keyboard occupies the slot after the primary pad.
+// The optional third argument shifts physical pads when the primary uses a keyboard;
+// this is a PC adaptation for a single XInput controller on port 0.
+static int SetSplitscreenKeyboards( lua_State* pState )
+{
+	const S32 primary = SysProfile::C_Manager::Instance().GetPrimaryPadNo();
+	S32 keyboard0 = primary;
+	S32 keyboard1 = ( primary + 1 ) & 3;
+	bool keyboardPrimary = false;
+	if( lua_gettop( pState ) != 0 )
+	{
+		if( lua_type( pState, 1 ) != LUA_TNUMBER || lua_type( pState, 2 ) != LUA_TNUMBER )
+		{
+			UI::g_pUILua->StackDump( pState, "SetSplitscreenKeyboards - incorrect arguments" );
+			return 0;
+		}
+		keyboard0 = (S32)lua_tonumber( pState, 1 );
+		keyboard1 = (S32)lua_tonumber( pState, 2 );
+		// [Blur2PC] A keyboard primary frees its XInput port for the next local player.
+		keyboardPrimary = lua_toboolean( pState, 3 ) != 0;
+	}
+
+	C_GameApp* pApp = C_GameApp::GetInstance();
+	UI::C_UiXtConfig* pUiConfig = UI::C_UiXtConfig::Instance();
+	if( !pApp || !pUiConfig )
+		return 0;
+	for( S32 i = 0; i < 4; ++i )
+	{
+		C_GameProfile* pProfile = C_GameProfileManager::Instance().GetProfile( i );
+		if( !pProfile )
+			continue;
+		Input::C_Device* pKeyboard = ( i == keyboard0 || i == keyboard1 ) ? pApp->GetKeyboard( i ) : NULL;
+		const S32 padIndex = keyboardPrimary && i != primary ? ( i + 3 ) & 3 : i;
+		Input::C_Device* pPad = keyboardPrimary && i == primary ? NULL : pApp->GetPad( padIndex );
+		Game::SetupAmaxUserControlsPC( Input::GetGameInput( i ), pPad, pKeyboard, pApp->GetMouse( i ),
+			pProfile->mOptions.mKeyboardLayout, i != keyboard0,
+			&pUiConfig->m_ControlConfigs[ (S32)pProfile->mOptions.mControlIndex ], i != keyboard0 );
+	}
+	return 0;
 }
 #endif
 
@@ -7285,6 +7328,7 @@ static const luaL_reg amax_lib[] =
 	{"UpdateGraphicsOptions",		UpdateGraphicsOptions},
 	{"UpdateCustomKeyboardControls",	UpdateCustomKeyboardControls},	// [Blur2PC] retail Blur PC keyboard options
 	{"GetPCKeyboard",				GetPCKeyboard},
+	{"SetSplitscreenKeyboards",	SetSplitscreenKeyboards},	// [Blur2PC] retail PC split-screen input
 	{"GraphicResolutionCount",		GraphicResolutionCount},
 	{"GraphicAACount",				GraphicAACount},
 	{"GetScreenResolution",			GetScreenResolution},

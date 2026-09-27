@@ -191,11 +191,9 @@ int AmaxApplicationMain(Framework::C_CoreSystemsParams& coreSystemsParams, Frame
 		applicationParams.m_NetworkStackAlreadyStarted	= pCoreSystems->NetworkInitialised();
 		applicationParams.m_InputButtonCount			= Game::E_UiButton_Count;
 		applicationParams.m_InputAxisCount				= Game::E_UiAxis_Count;
-#ifndef PLATFORM_PC
+		// [Blur2PC] Retail PC processes four input slots in C_UiManager::ProcessController
+		// (Blur.exe 1.2, 0x00c348c0), including the second split-screen keyboard.
 		applicationParams.m_InputUserCount				= 4;
-#else
-		applicationParams.m_InputUserCount				= 1;
-#endif
 
 		hr = pApplication->Initialise(applicationParams);
 
