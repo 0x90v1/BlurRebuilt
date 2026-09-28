@@ -2,1086 +2,698 @@
 #include "AudioPch.h"
 
 #include "engine_pc.h"
-#include "primary_sound.h"
 
 #include "coreheaders.h"
 #include "../SystemHeaders.h"
-
 
 #ifdef AUDIO_OPTIMIZE_OFF
 #pragma optimize ("", off) // AUDIO_OPTIMIZE_OFF
 #endif	//	AUDIO_OPTIMIZE_OFF
 
+// [Blur2PC] T144: retail Blur PC's output engine; see engine_pc.h and docs/analysis.md "Audio output (PC)".
+// Everything below follows Blur.exe 1.2 (addresses per function); names are ours [Blur2PC name].
 
-HANDLE g_ne(NULL);
-
-//reverb params
-#ifdef USE_EAX_REVERB	
-Debug::Bool g_AudioDebugSetReverbParams("Audio.EFX.Reverb.OverrideGameReverbForTestingOnly",	false);
-Debug::Bool g_AudioDebugUseLegacyReverbParams("Audio.EFX.Reverb.UseLegacyPreset",	false);
-
-Debug::Float g_AudioDebugflDensity("Audio.EFX.Reverb.flDensity",	0.0625f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflDiffusion("Audio.EFX.Reverb.flDiffusion",	0.5f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflGain("Audio.EFX.Reverb.flGain",	1.f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflGainHF("Audio.EFX.Reverb.flGainHF",	0.84042704f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflGainLF("Audio.EFX.Reverb.flGainLF",	1.0f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflDecayTime("Audio.EFX.Reverb.flDecayTime",	1.5f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflDecayHFRatio("Audio.EFX.Reverb.flDecayHFRatio",	0.91f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflDecayLFRatio("Audio.EFX.Reverb.flDecayLFRatio",	1.0f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflReflectionsGain("Audio.EFX.Reverb.flReflectionsGain",	0.4864f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflReflectionsDelay("Audio.EFX.Reverb.flReflectionsDelay",	0.02f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflLateReverbGain("Audio.EFX.Reverb.flLateReverbGain",	2.437f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflLateReverbDelay("Audio.EFX.Reverb.flLateReverbDelay",	0.029f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflEchoTime("Audio.EFX.Reverb.flEchoTime",	0.25f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflEchoDepth("Audio.EFX.Reverb.flEchoDepth",	0.0f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflModulationTime("Audio.EFX.Reverb.flModulationTime",	4.0f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflModulationDepth("Audio.EFX.Reverb.flModulationDepth",	1.0f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflAirAbsorptionGainHF("Audio.EFX.Reverb.flAirAbsorptionGainHF",	0.0994f,	Debug::Range(0.f, 10.f));
-Debug::Float g_AudioDebugflHFReference("Audio.EFX.Reverb.flHFReference",	5000.0f,	Debug::Range(0.f, 10000.f));
-Debug::Float g_AudioDebugflLFReference("Audio.EFX.Reverb.flLFReference",	250.0f,	Debug::Range(0.f, 1000.f));
-Debug::Float g_AudioDebugflRoomRolloffFactor("Audio.EFX.Reverb.flRoomRolloffFactor",	0.0f,	Debug::Range(0.f, 10.f));
-Debug::Int   g_AudioDebugiDecayHFLimit("Audio.EFX.Reverb.iDecayHFLimit",	0,	Debug::Range(0, 5));
-#endif USE_EAX_REVERB	
-//#endif
-
-#ifdef USE_OPENAL
-ALenum Audio::Core::Engine::m_eBufferFormat = 0;
-ALuint Audio::Core::Engine::m_source = 0;
-ALuint Audio::Core::Engine::m_aBuffers[NUM_BUFFERS];
-ALCcontext* Audio::Core::Engine::m_pContext = NULL;
-ALCdevice* Audio::Core::Engine::m_pDevice = NULL;
-S16* Audio::Core::Engine::m_pData = NULL;
-//S16 Audio::Core::Engine::fCurr = 0;
-
-#ifdef USE_EAX_REVERB	
-ALenum Audio::Core::Engine::m_eReverbBufferFormat = 0;
-ALuint Audio::Core::Engine::m_aReverbBuffers[NUM_BUFFERS];
-S16* Audio::Core::Engine::m_pReverbData = NULL;
-
-EFXEAXREVERBPROPERTIES Audio::Core::Engine::efxReverb;
-ALuint		Audio::Core::Engine::m_uiEffectSlot = NULL, Audio::Core::Engine::m_uiEffect = NULL;
-//int Audio::Core::Engine::m_sawCount = 0;
-ALboolean Audio::Core::Engine::m_bEffectCreated = AL_FALSE;
-
-ALuint Audio::Core::Engine::m_sourceReverbVoice = 0;
-ALuint Audio::Core::Engine::m_sourceFilter = 0;
-// Imported EFX functions
-
-// Effect objects
-LPALGENEFFECTS alGenEffects = NULL;
-LPALDELETEEFFECTS alDeleteEffects = NULL;
-LPALISEFFECT alIsEffect = NULL;
-LPALEFFECTI alEffecti = NULL;
-LPALEFFECTIV alEffectiv = NULL;
-LPALEFFECTF alEffectf = NULL;
-LPALEFFECTFV alEffectfv = NULL;
-LPALGETEFFECTI alGetEffecti = NULL;
-LPALGETEFFECTIV alGetEffectiv = NULL;
-LPALGETEFFECTF alGetEffectf = NULL;
-LPALGETEFFECTFV alGetEffectfv = NULL;
-
-//Filter objects
-LPALGENFILTERS alGenFilters = NULL;
-LPALDELETEFILTERS alDeleteFilters = NULL;
-LPALISFILTER alIsFilter = NULL;
-LPALFILTERI alFilteri = NULL;
-LPALFILTERIV alFilteriv = NULL;
-LPALFILTERF alFilterf = NULL;
-LPALFILTERFV alFilterfv = NULL;
-LPALGETFILTERI alGetFilteri = NULL;
-LPALGETFILTERIV alGetFilteriv = NULL;
-LPALGETFILTERF alGetFilterf = NULL;
-LPALGETFILTERFV alGetFilterfv = NULL;
-
-// Auxiliary slot object
-LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots = NULL;
-LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = NULL;
-LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot = NULL;
-LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti = NULL;
-LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv = NULL;
-LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf = NULL;
-LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv = NULL;
-LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti = NULL;
-LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv = NULL;
-LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf = NULL;
-LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv = NULL;
-
-// XRAM functions and enum values
-
-LPEAXSETBUFFERMODE eaxSetBufferMode = NULL;
-LPEAXGETBUFFERMODE eaxGetBufferMode = NULL;
-
-ALenum eXRAMSize = 0;
-ALenum eXRAMFree = 0;
-ALenum eXRAMAuto = 0;
-ALenum eXRAMHardware = 0;
-ALenum eXRAMAccessible = 0;
-
-
-EAXREVERBPROPERTIES eaxReverbPreset = REVERB_PRESET_GENERIC;
-
-#endif //use eax reverb
-#endif
-
-Audio::Core::Engine Audio::Core::Engine::s_instance;
-
-DWORD Audio::Core::Engine::ThreadProc(LPVOID lpThreadParameter)
+////////////////////////////////////////////////////////////////////////////////
+//	Debug values (retail static initialisers 0x00e128d0..0x00e12b70)
+////////////////////////////////////////////////////////////////////////////////
+enum E_PCEngineSampleRate
 {
-#ifdef USE_OPENAL
-	int iTotalBuffersProcessed = 0;
-	int iTotalReverbBuffersProcessed = 0;
-#endif
+	E_PCEngineSampleRate_12000 = 12000,
+	E_PCEngineSampleRate_16000 = 16000,
+	E_PCEngineSampleRate_18000 = 18000,
+	E_PCEngineSampleRate_22050 = 22050,
+	E_PCEngineSampleRate_24000 = 24000,
+	E_PCEngineSampleRate_28000 = 28000,
+	E_PCEngineSampleRate_32000 = 32000,
+	E_PCEngineSampleRate_36000 = 36000,
+	E_PCEngineSampleRate_44100 = 44100,
+	E_PCEngineSampleRate_48000 = 48000,
+};
 
-#ifdef PLATFORM_PC
-	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-#endif
+enum E_PCEngineBitsPerSample
+{
+	E_PCEngineBitsPerSample_16 = 16,
+	E_PCEngineBitsPerSample_32 = 32,
+};
 
-	while (1)
+// options tables 0x01028c48 and 0x01028ca0
+DEBUG_ENUM(E_PCEngineSampleRate)
+DE_OPTION(E_PCEngineSampleRate_12000, "12000 Hz")
+DE_OPTION(E_PCEngineSampleRate_16000, "16000 Hz")
+DE_OPTION(E_PCEngineSampleRate_18000, "18000 Hz")
+DE_OPTION(E_PCEngineSampleRate_22050, "22050 Hz")
+DE_OPTION(E_PCEngineSampleRate_24000, "24000 Hz")
+DE_OPTION(E_PCEngineSampleRate_28000, "28000 Hz")
+DE_OPTION(E_PCEngineSampleRate_32000, "32000 Hz")
+DE_OPTION(E_PCEngineSampleRate_36000, "36000 Hz")
+DE_OPTION(E_PCEngineSampleRate_44100, "44100 Hz")
+DE_OPTION(E_PCEngineSampleRate_48000, "48000 Hz")
+END_DEBUG_ENUM
+
+DEBUG_ENUM(E_PCEngineBitsPerSample)
+DE_OPTION(E_PCEngineBitsPerSample_16, "16")
+DE_OPTION(E_PCEngineBitsPerSample_32, "32")
+END_DEBUG_ENUM
+
+static Debug::Enum<E_PCEngineSampleRate>	g_PCEngineSampleRate("Audio.PC.Engine.SampleRate", (E_PCEngineSampleRate)Audio::Core::uSampleRate);
+static Debug::Enum<E_PCEngineBitsPerSample>	g_PCEngineBitsPerSample("Audio.PC.Engine.BitsPerSample", E_PCEngineBitsPerSample_16);
+static Debug::Bool	g_PCEngineUseFloats("Audio.PC.Engine.UseFloats", false);
+static Debug::Int	g_PCEngineSoundChannels("Audio.PC.Engine.SoundChannels", 2, Debug::Range(2, 8));
+static Debug::Int	g_PCEngineNumberOfBuffers("Audio.PC.Engine.NumberOfBuffers", 16, Debug::Range(2, 256));
+static Debug::Bool	g_PCEngineNumberOfBuffersOverride("Audio.PC.Engine.NumberOfBuffersOverride", false);
+static Debug::Function	g_PCEngineChangeFormat("Audio.PC.Engine.ChangeFormat", Audio::Core::Engine::ChangeFormat, 0);
+static Debug::Bool	g_PCEngineInjectLatency("Audio.PC.Engine.InjectLatency.UseAtOwnRisk.AddNoiseToSignal", false);
+// registered by retail but read nowhere
+static Debug::Bool	g_PCEngineLeftTest("Audio.PC.Engine.LeftTest", false);
+static Debug::Bool	g_PCEngineCentreTest("Audio.PC.Engine.CentreTest", false);
+static Debug::Bool	g_PCEngineRightTest("Audio.PC.Engine.RightTest", false);
+static Debug::Bool	g_PCEngineLFETest("Audio.PC.Engine.LFETest", false);
+static Debug::Bool	g_PCEngineRearLeftTest("Audio.PC.Engine.RearLeftTest", false);
+static Debug::Bool	g_PCEngineRearRightTest("Audio.PC.Engine.RearRightTest", false);
+// milliseconds slept after each write, and between polls of the play cursor (0: yield)
+static Debug::Int	g_PCEngineDelayTest("Audio.PC.Engine.DelayTest", 0, Debug::Range(0, 10));
+static Debug::Int	g_PCEngineAudioSleep("Audio.PC.Engine.AudioSleep", 5, Debug::Range(0, 100));
+
+// 0x01028d18: the first write re-checks the write position against the buffer
+static bool g_bPCEngineResyncWritePos = true;
+
+// 0x01028cb8: DirectSound speaker configuration -> output channels
+static const U32 s_aSpeakerConfigChannels[12][2] =
+{
+	{ 6, 6 }, { 9, 6 }, { 6, 6 }, { 7, 8 }, { 0, 2 }, { 1, 2 },
+	{ 2, 2 }, { 3, 4 }, { 4, 2 }, { 5, 6 }, { 7, 8 }, { 8, 8 },
+};
+
+// 0x00e85a90 / 0x00e85aa0: KSDATAFORMAT_SUBTYPE_PCM and KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+static const GUID s_SubTypePCM =	{ 0x00000001, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 } };
+static const GUID s_SubTypeFloat =	{ 0x00000003, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 } };
+
+Audio::Core::Engine* Audio::Core::Engine::s_pInstance = NULL;
+
+////////////////////////////////////////////////////////////////////////////////
+//	Engine (0x00546f10)
+////////////////////////////////////////////////////////////////////////////////
+Audio::Core::Engine::Engine() :
+	m_pRenderer(NULL),
+	m_pDS(NULL),
+	m_pBuffer(NULL),
+	m_uWritePos(0),
+	m_hThread(NULL),
+	m_uDeviceIndex(0),
+	m_dwSpeakerConfig(0)
+{
+	memset(&m_Caps, 0, sizeof(m_Caps));
+	memset(&m_BufferDesc, 0, sizeof(m_BufferDesc));
+
+	m_uBitsPerSample = g_PCEngineBitsPerSample;
+	m_uChannels = g_PCEngineSoundChannels;
+	m_uSampleRate = g_PCEngineSampleRate;
+	m_bUseFloats = g_PCEngineUseFloats;
+
+	m_hThreadDone = CreateEventA(NULL, TRUE, FALSE, NULL);
+	m_hThreadStop = CreateEventA(NULL, TRUE, FALSE, NULL);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	~Engine (0x00546f90)
+////////////////////////////////////////////////////////////////////////////////
+Audio::Core::Engine::~Engine()
+{
+	if (m_pDS)
+		Shutdown();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	Instance (0x0054b100)
+////////////////////////////////////////////////////////////////////////////////
+Audio::Core::Engine& Audio::Core::Engine::Instance(void)
+{
+	if (s_pInstance == NULL)
 	{
-#ifdef USE_OPENAL
-
-		Sleep(5);
-
-		// Request the number of OpenAL Buffers have been processed (played) on the Source
-		int iBuffersProcessed = 0;
-		alGetSourcei(m_source, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
-		
-		// Keep a running count of number of buffers processed (for logging purposes only)
-		iTotalBuffersProcessed += iBuffersProcessed;
-		//AUDIO_CORE_DEBUG("Buffers Processed %d", iTotalBuffersProcessed);
-
-		// For each processed buffer, remove it from the Source Queue, read next chunk of audio
-		// data from disk, fill buffer with new data, and add it to the Source Queue
-		while (iBuffersProcessed)
-		{
-			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
-			ALuint uiBuffer = 0;
-			alSourceUnqueueBuffers(m_source, 1, &uiBuffer);
-
-			GetNextBuffer(m_pData);
-
-			alBufferData(uiBuffer, m_eBufferFormat, m_pData, 6 * Core::uFrameLength * sizeof(S16), Core::uSampleRate);
-			alSourceQueueBuffers(m_source, 1, &uiBuffer);
-
-			iBuffersProcessed--;
-		}
-
-#ifdef USE_EAX_REVERB	
-		//reverb **************************************
-		// Request the number of OpenAL Buffers have been processed (played) on the Source
-		int iReverbBuffersProcessed = 0;
-		alGetSourcei(m_sourceReverbVoice, AL_BUFFERS_PROCESSED, &iReverbBuffersProcessed);
-		
-		// Keep a running count of number of buffers processed (for logging purposes only)
-		iTotalReverbBuffersProcessed += iReverbBuffersProcessed;
-		//AUDIO_CORE_DEBUG("Buffers Processed %d", iTotalBuffersProcessed);
-
-		// For each processed buffer, remove it from the Source Queue, read next chunk of audio
-		// data from disk, fill buffer with new data, and add it to the Source Queue
-		while (iReverbBuffersProcessed)
-		{
-			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
-			ALuint uiReverbBuffer = 0;
-			alSourceUnqueueBuffers(m_sourceReverbVoice, 1, &uiReverbBuffer);
-
-			////if(m_sawCount==425)
-			//	m_sawCount = 0;
-
-			////get reverb buffers
-			GetNextReverbBuffer(m_pReverbData);
-
-			alBufferData(uiReverbBuffer, m_eReverbBufferFormat, m_pReverbData, Core::uFrameLength * sizeof(S16), Core::uSampleRate);
-			alSourceQueueBuffers(m_sourceReverbVoice, 1, &uiReverbBuffer);
-			//
-		//	m_sawCount++;
-
-			iReverbBuffersProcessed--;
-		}
-
-
-		
-		//[CIAN] NB these parameters are for testing only,and access EFX using new parameter format, the game uses
-		//the parameters in GameReverb as before...
-		if(g_AudioDebugSetReverbParams)
-		{
-
-			efxReverb.flDensity = 										   g_AudioDebugflDensity;
-			efxReverb.flDiffusion = 								   g_AudioDebugflDiffusion;
-			efxReverb.flGain = 										   g_AudioDebugflGain;
-			efxReverb.flGainHF = 									   g_AudioDebugflGainHF;
-			efxReverb.flGainLF = 									   g_AudioDebugflGainLF;
-			efxReverb.flDecayTime = 								   g_AudioDebugflDecayTime;
-			efxReverb.flDecayHFRatio =								   g_AudioDebugflDecayHFRatio;
-			efxReverb.flDecayLFRatio =									g_AudioDebugflDecayLFRatio;
-			efxReverb.flReflectionsGain =								g_AudioDebugflReflectionsGain;
-			efxReverb.flReflectionsDelay =								g_AudioDebugflReflectionsDelay;
-			efxReverb.flLateReverbGain =								 g_AudioDebugflLateReverbGain;
-			efxReverb.flLateReverbDelay		=							 g_AudioDebugflLateReverbDelay;
-			efxReverb.flEchoTime 		=								g_AudioDebugflEchoTime;
-			efxReverb.flEchoDepth 		=								 g_AudioDebugflEchoDepth;
-			efxReverb.flModulationTime 	=							 g_AudioDebugflModulationTime;
-			efxReverb.flModulationDepth	=							g_AudioDebugflModulationDepth;
-			efxReverb.flAirAbsorptionGainHF=						 g_AudioDebugflAirAbsorptionGainHF;
-			efxReverb.flHFReference 	=							g_AudioDebugflHFReference;
-			efxReverb.flLFReference		=							g_AudioDebugflLFReference;
-			efxReverb.flRoomRolloffFactor= 							g_AudioDebugflRoomRolloffFactor;
-			efxReverb.iDecayHFLimit	=								 g_AudioDebugiDecayHFLimit;
-
-			//if(g_AudioDebugUseLegacyReverbParams)
-			//{
-			//	// reverb options************************
-			//	// Reverb Preset is stored in legacy format, use helper function to convert to EFX EAX Reverb
-			//	ConvertReverbParameters(&eaxReverbPreset, &efxReverb);
-			//}
-
-			// Set the Effect parameters
-			if (!SetEFXEAXReverbProperties(&efxReverb, m_uiEffect))
-				AUDIO_CORE_DEBUG("Failed to set Reverb Parameters");
-			//END REVERB OPTIONS **************
-
-			//Load Effect into Auxiliary Effect Slot
-			alAuxiliaryEffectSloti(m_uiEffectSlot, AL_EFFECTSLOT_EFFECT, m_uiEffect);
-		}
-#endif //USE_EAX_REVERB	
-
-		// Check the status of the Source.  If it is not playing, then playback was either completed,
-		// or the Source was starved of audio data and needs to be restarted.
-		ALint iState;
-		alGetSourcei(m_source, AL_SOURCE_STATE, &iState);
-		if (iState != AL_PLAYING)
-		{
-			// If there are Buffers in the Source Queue then the Source was starved of audio
-			// data, so needs to be restarted (because there is more audio data to play)
-			ALint iQueuedBuffers;
-			alGetSourcei(m_source, AL_BUFFERS_QUEUED, &iQueuedBuffers);
-			if (iQueuedBuffers)
-			{
-				AUDIO_CORE_DEBUG("Dropped", iTotalBuffersProcessed);
-				alSourcePlay(m_source);
-			}
-			else
-			{
-				// Finished
-				break;
-			}
-		}
-
-#ifdef USE_EAX_REVERB			
-		ALint iStateReverbVoice;
-		alGetSourcei(m_sourceReverbVoice, AL_SOURCE_STATE, &iStateReverbVoice);
-		if (iStateReverbVoice != AL_PLAYING)
-		{
-			// If there are Buffers in the Source Queue then the Source was starved of audio
-			// data, so needs to be restarted (because there is more audio data to play)
-			ALint iQueuedBuffersReverbVoice;
-			alGetSourcei(m_sourceReverbVoice, AL_BUFFERS_QUEUED, &iQueuedBuffersReverbVoice);
-			ALenum erro = alGetError();
-			if (iQueuedBuffersReverbVoice)
-			{
-				AUDIO_CORE_DEBUG("Dropped Reverb Buffer", iTotalReverbBuffersProcessed);
-				alSourcePlay(m_sourceReverbVoice);
-			}
-			else
-			{
-				// Finished
-				break;
-			}
-		}
-#endif
-#else // USE_OPENAL
-
-		WaitForSingleObject(g_ne, INFINITE);
-
-		//OutputDebugString("Notify trigger...\n");
-
-		static U32 frameCount(0);
-
-		S32 lag(0);
-
-go_again:
-		const bool paused = Audio::System::Get()->IsPaused();
-
-		//F32* inputBuffer = (!paused) ? Audio::Core::Engine::Instance().GetRenderer()->GetNextFrame() : NULL;
-
-		//	dry
-		F32* pfMono = NULL;
-		F32* pfStereo = NULL;
-		F32* pfSurround = NULL;
-		F32* pfSurroundLFE = NULL;
-
-		//	get render buffers
-		Audio::Core::Engine::Instance().GetRenderer()->GetNextFrame(&pfSurroundLFE, &pfSurround, &pfStereo, &pfMono);
-
-		//Audio::Core::Engine::Instance().PrimarySound()->HandleWaveStreamNotification(inputBuffer, uFrameLength, 6, lag);
-/*
-		if (!paused)
-		{
-			Audio::Core::Engine::Instance().GetRenderer()->Process(frameCount++, true);
-		}
-
-		//	render specified outputs
-		if (Audio::Core::Engine::Instance().GetRenderer()->SurroundInput())
-		{
-			F32* inputBuffer = (!paused) ? Audio::Core::Engine::Instance().GetRenderer()->SurroundInput()->FrameData() : NULL;
-
-			Audio::Core::Engine::Instance().PrimarySound()->HandleWaveStreamNotification(inputBuffer, uFrameLength, 6, lag);
-			Audio::Core::Engine::Instance().GetRenderer()->SurroundInput()->Clear();
-		}
-		else if (Audio::Core::Engine::Instance().GetRenderer()->StereoInput())
-		{
-			F32* inputBuffer = (!paused) ? Audio::Core::Engine::Instance().GetRenderer()->StereoInput()->FrameData() : NULL;
-
-			Audio::Core::Engine::Instance().PrimarySound()->HandleWaveStreamNotification(inputBuffer, uFrameLength, 2, lag);
-			Audio::Core::Engine::Instance().GetRenderer()->StereoInput()->Clear();
-		}
-		else if (Audio::Core::Engine::Instance().GetRenderer()->MonoInput())
-		{
-			F32* inputBuffer = (!paused) ? Audio::Core::Engine::Instance().GetRenderer()->MonoInput()->FrameData() : NULL;
-
-			Audio::Core::Engine::Instance().PrimarySound()->HandleWaveStreamNotification(inputBuffer, uFrameLength, 1, lag);
-			Audio::Core::Engine::Instance().GetRenderer()->MonoInput()->Clear();
-		}
-*/
-
-		if (lag > 1)
-		{
-			if (!paused)
-				lag = -1;
-			else
-				lag--;
-
-			goto go_again;
-		}
-
-#endif // USE_OPENAL
+		s_pInstance = new Engine;
+		ResetOutputSampleRate();
 	}
+
+	return *s_pInstance;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	Init (0x00538150)
+////////////////////////////////////////////////////////////////////////////////
+bool Audio::Core::Engine::Init(Renderer* pRenderer)
+{
+	m_pRenderer = pRenderer;
+
+	// retail calls a DRM-relocated helper on the device list here (0x00547af0 -> 0x0053b560); read as
+	// emptying it before the enumeration refills it
+	m_aDevices.Clear();
+
+	if (FAILED(DirectSoundEnumerateA(EnumerateCallback, this)))
+		return false;
+
+	StartDevice(0);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	EnumerateCallback (0x00546fb0)
+////////////////////////////////////////////////////////////////////////////////
+BOOL CALLBACK Audio::Core::Engine::EnumerateCallback(LPGUID lpGuid, LPCSTR lpcstrDescription, LPCSTR lpcstrModule, LPVOID lpContext)
+{
+	Engine* pEngine = (Engine*)lpContext;
+
+	Device device;
+	if (lpGuid)
+		device.guid = *lpGuid;
+	else
+		memset(&device.guid, 0, sizeof(device.guid));
+	device.description = lpcstrDescription;
+	device.module = lpcstrModule;
+	device.pContext = lpContext;
+
+	pEngine->m_aDevices.PushBack(device);
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	StartDevice (0x00547710)
+////////////////////////////////////////////////////////////////////////////////
+bool Audio::Core::Engine::StartDevice(U32 uDeviceIndex)
+{
+	m_uDeviceIndex = uDeviceIndex;
+
+	if (m_pDS)
+		Shutdown();
+
+	// retail indexes the device list directly; with no devices listed that pointer is NULL (the default device)
+	const GUID* pGuid = (uDeviceIndex < (U32)m_aDevices.Size()) ? &m_aDevices[uDeviceIndex].guid : NULL;
+
+	HRESULT hr = DirectSoundCreate8(pGuid, &m_pDS, NULL);
+	if (FAILED(hr))
+		return false;
+
+	hr = m_pDS->SetCooperativeLevel(Audio::System::Get()->GetHWND(), DSSCL_PRIORITY);
+	if (SUCCEEDED(hr))
+	{
+		m_Caps.dwSize = sizeof(DSCAPS);
+		hr = m_pDS->GetCaps(&m_Caps);
+		if (SUCCEEDED(hr))
+		{
+			hr = CreateBuffer(m_pDS, &m_pBuffer, 0);
+			if (SUCCEEDED(hr))
+			{
+				hr = m_pBuffer->Play(0, 0, DSBPLAY_LOOPING);
+				if (SUCCEEDED(hr))
+				{
+					ResetEvent(m_hThreadStop);
+					ResetEvent(m_hThreadDone);
+					m_hThread = CreateThread(NULL, 0x4000, ThreadProc, this, 0, NULL);
+					SetThreadPriority(m_hThread, THREAD_PRIORITY_TIME_CRITICAL);
+					return true;
+				}
+			}
+		}
+	}
+
+	Shutdown();
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	Shutdown (0x00544060)
+////////////////////////////////////////////////////////////////////////////////
+bool Audio::Core::Engine::Shutdown()
+{
+	if (m_hThread)
+	{
+		// retail does not close the thread handle
+		SignalObjectAndWait(m_hThreadStop, m_hThreadDone, INFINITE, FALSE);
+		m_hThread = NULL;
+	}
+
+	if (m_pBuffer)
+	{
+		m_pBuffer->Stop();
+		m_pBuffer->Release();
+		m_pBuffer = NULL;
+	}
+
+	if (m_pDS)
+	{
+		m_pDS->Release();
+		m_pDS = NULL;
+	}
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	SetOutputSampleRate (0x020c5fb8)
+////////////////////////////////////////////////////////////////////////////////
+void Audio::Core::Engine::SetOutputSampleRate(U32 uSampleRate)
+{
+	if (Shutdown())
+	{
+		g_PCEngineSampleRate = (E_PCEngineSampleRate)uSampleRate;
+
+		m_uBitsPerSample = g_PCEngineBitsPerSample;
+		m_uChannels = g_PCEngineSoundChannels;
+		m_uSampleRate = g_PCEngineSampleRate;
+		m_bUseFloats = g_PCEngineUseFloats;
+
+		Audio::Core::SetOutputSampleRate(g_PCEngineSampleRate);
+
+		StartDevice(m_uDeviceIndex);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	ChangeFormat (0x00547870)
+////////////////////////////////////////////////////////////////////////////////
+void Audio::Core::Engine::ChangeFormat(void*)
+{
+	Engine& engine = Instance();
+
+	if (engine.Shutdown())
+	{
+		engine.m_uBitsPerSample = g_PCEngineBitsPerSample;
+		engine.m_uChannels = g_PCEngineSoundChannels;
+		engine.m_uSampleRate = g_PCEngineSampleRate;
+		engine.m_bUseFloats = g_PCEngineUseFloats;
+
+		Audio::Core::SetOutputSampleRate(g_PCEngineSampleRate);
+
+		engine.StartDevice(engine.m_uDeviceIndex);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	CreateBuffer (0x00546a90)
+////////////////////////////////////////////////////////////////////////////////
+HRESULT Audio::Core::Engine::CreateBuffer(IDirectSound8* pDS, IDirectSoundBuffer8** ppBuffer, DWORD dwChannelMask)
+{
+	// the device's speaker layout decides the channel count
+	if (pDS->GetSpeakerConfig(&m_dwSpeakerConfig) == DS_OK)
+	{
+		for (U32 i = 0; i < 12; i++)
+		{
+			if (s_aSpeakerConfigChannels[i][0] == (m_dwSpeakerConfig & 0xffff))
+			{
+				g_PCEngineSoundChannels = (int)s_aSpeakerConfigChannels[i][1];
+				m_uChannels = g_PCEngineSoundChannels;
+				break;
+			}
+		}
+	}
+
+	const bool bUseFloats = m_bUseFloats;
+
+	WAVEFORMATEXTENSIBLE wfx;
+	memset(&wfx, 0, sizeof(wfx));
+	wfx.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+	wfx.Format.nChannels = (WORD)m_uChannels;
+	wfx.Format.nSamplesPerSec = m_uSampleRate;
+	wfx.Format.wBitsPerSample = bUseFloats ? 32 : (WORD)m_uBitsPerSample;
+	wfx.Format.nBlockAlign = (WORD)(((S32)wfx.Format.wBitsPerSample * (S32)wfx.Format.nChannels) / 8);
+	wfx.Format.nAvgBytesPerSec = wfx.Format.nBlockAlign * m_uSampleRate;
+	wfx.Format.cbSize = 22;
+	wfx.Samples.wValidBitsPerSample = wfx.Format.wBitsPerSample;
+
+	if (dwChannelMask == 0)
+	{
+		switch (m_uChannels)
+		{
+			case 2: wfx.dwChannelMask = 0x3;	break;
+			case 3: wfx.dwChannelMask = 0xb;	break;
+			case 4: wfx.dwChannelMask = 0x33;	break;
+			case 5: wfx.dwChannelMask = 0x37;	break;
+			case 6: wfx.dwChannelMask = 0x3f;	break;
+			case 8: wfx.dwChannelMask = 0x63f;	break;
+			default:							break;
+		}
+	}
+	else
+	{
+		wfx.dwChannelMask = dwChannelMask;
+	}
+
+	wfx.SubFormat = bUseFloats ? s_SubTypeFloat : s_SubTypePCM;
+
+	// the buffer is NumberOfBuffers blocks of 256 frames; that count follows the output rate unless overridden
+	if (!g_PCEngineNumberOfBuffersOverride)
+		g_PCEngineNumberOfBuffers = (int)(m_uSampleRate / 1500);
+
+	memset(&m_BufferDesc, 0, sizeof(m_BufferDesc));
+	m_BufferDesc.dwSize = sizeof(DSBUFFERDESC);
+	m_BufferDesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_GLOBALFOCUS;
+	m_BufferDesc.dwBufferBytes = (wfx.Format.wBitsPerSample >> 3) * wfx.Format.nChannels * (U32)(int)g_PCEngineNumberOfBuffers * 256;
+	m_BufferDesc.lpwfxFormat = &wfx.Format;
+
+	IDirectSoundBuffer* pBuffer = NULL;
+	HRESULT hr = pDS->CreateSoundBuffer(&m_BufferDesc, &pBuffer, NULL);
+	if (SUCCEEDED(hr))
+	{
+		hr = pBuffer->QueryInterface(IID_IDirectSoundBuffer8, (void**)ppBuffer);
+		pBuffer->Release();
+	}
+
+	m_uWritePos = 0;
+
+	return hr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	WriteToBuffer (0x00546d00)
+////////////////////////////////////////////////////////////////////////////////
+bool Audio::Core::Engine::WriteToBuffer(const void* pData, U32 uSize)
+{
+	if (m_pBuffer == NULL)
+		return false;
+
+	if (g_PCEngineInjectLatency)
+	{
+		for (U32 i = 0; i < uSize; i++)
+			((U8*)pData)[i] |= 0x55;
+	}
+
+	if (g_bPCEngineResyncWritePos)
+	{
+		DWORD dwPlay, dwWrite;
+		if (m_pBuffer->GetCurrentPosition(&dwPlay, &dwWrite) == DS_OK && (S32)m_uWritePos < 0)
+			m_uWritePos += m_BufferDesc.dwBufferBytes;
+		g_bPCEngineResyncWritePos = false;
+	}
+
+	if (uSize != 0)
+	{
+		for (;;)
+		{
+			// room between the write position and the play cursor
+			DWORD dwPlay, dwWrite;
+			U32 uFree = 0;
+			if (m_pBuffer->GetCurrentPosition(&dwPlay, &dwWrite) == DS_OK)
+				uFree = (m_uWritePos > dwPlay) ? (m_BufferDesc.dwBufferBytes - m_uWritePos + dwPlay) : (dwPlay - m_uWritePos);
+
+			while (uFree < uSize)
+			{
+				if (g_PCEngineAudioSleep == 0)
+					SwitchToThread();
+				else
+					Sleep(g_PCEngineAudioSleep);
+
+				uFree = 0;
+				if (m_pBuffer->GetCurrentPosition(&dwPlay, &dwWrite) == DS_OK)
+					uFree = (m_uWritePos > dwPlay) ? (m_BufferDesc.dwBufferBytes - m_uWritePos + dwPlay) : (dwPlay - m_uWritePos);
+			}
+
+			void* pvPart1 = NULL;
+			void* pvPart2 = NULL;
+			DWORD dwPart1 = 0;
+			DWORD dwPart2 = 0;
+			const U32 uWritePos = m_uWritePos;
+			HRESULT hr = m_pBuffer->Lock(uWritePos, uSize, &pvPart1, &dwPart1, &pvPart2, &dwPart2, 0);
+			if (hr == DSERR_BUFFERLOST)
+			{
+				m_pBuffer->Restore();
+				hr = m_pBuffer->Lock(uWritePos, uSize, &pvPart1, &dwPart1, &pvPart2, &dwPart2, 0);
+			}
+			if (FAILED(hr))
+				continue;
+
+			memcpy(pvPart1, pData, dwPart1);
+			if (pvPart2)
+				memcpy(pvPart2, (const U8*)pData + dwPart1, dwPart2);
+
+			if (FAILED(m_pBuffer->Unlock(pvPart1, dwPart1, pvPart2, dwPart2)))
+				continue;
+
+			m_uWritePos = (m_uWritePos + uSize) % m_BufferDesc.dwBufferBytes;
+			break;
+		}
+	}
+
+	Sleep(g_PCEngineDelayTest);
+
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	Mixing (0x00544130, 0x00544400, 0x005458c0): renderer frames (planar, 128 samples per channel) added into
+//	an interleaved frame of uChannels channels
+////////////////////////////////////////////////////////////////////////////////
+void Audio::Core::Engine::MixMono(const F32* pfIn, F32* pfOut, U32 uChannels)
+{
+	switch (uChannels)
+	{
+		case 2:
+		case 3:
+		case 4:
+			for (U32 j = 0; j < uFrameLength; j++)
+			{
+				pfOut[j * uChannels] += pfIn[j];
+				pfOut[j * uChannels + 1] += pfIn[j];
+			}
+			break;
+
+		case 5:
+		case 6:
+		case 8:
+			for (U32 j = 0; j < uFrameLength; j++)
+				pfOut[j * uChannels + 2] += pfIn[j];
+			break;
+
+		default:
+			break;
+	}
+}
+
+void Audio::Core::Engine::MixStereo(const F32* pfIn, F32* pfOut, U32 uChannels)
+{
+	// retail reads input j and j + 1 for the two sides of output frame j, as the snapshot's OpenAL mix did,
+	// and uses this for the surround frame as well
+	if (m_uChannels >= 2 && (m_uChannels <= 6 || m_uChannels == 8))
+	{
+		for (U32 j = 0; j < uFrameLength; j++)
+		{
+			pfOut[j * uChannels] += pfIn[j];
+			pfOut[j * uChannels + 1] += pfIn[j + 1];
+		}
+	}
+}
+
+void Audio::Core::Engine::MixSurroundLFE(const F32* pfIn, F32* pfOut, U32 uChannels)
+{
+	// input planes: 0 front left, 1 front right, 2 centre, 3 LFE, 4 surround left, 5 surround right
+	const F32* pfL = pfIn;
+	const F32* pfR = pfIn + uFrameLength;
+	const F32* pfC = pfIn + uFrameLength * 2;
+	const F32* pfLFE = pfIn + uFrameLength * 3;
+	const F32* pfSL = pfIn + uFrameLength * 4;
+	const F32* pfSR = pfIn + uFrameLength * 5;
+
+	switch (m_uChannels)
+	{
+		case 2:
+			for (U32 j = 0; j < uFrameLength; j++)
+			{
+				F32* pf = pfOut + j * uChannels;
+				pf[0] += pfL[j];
+				pf[1] += pfR[j];
+				pf[0] += pfC[j] * 0.5f;
+				pf[1] += pfC[j] * 0.5f;
+			}
+			break;
+
+		case 3:
+			for (U32 j = 0; j < uFrameLength; j++)
+			{
+				F32* pf = pfOut + j * uChannels;
+				pf[0] += pfL[j];
+				pf[1] += pfR[j];
+				pf[2] += pfLFE[j];
+				pf[0] += pfSL[j] * 0.5f;
+				pf[1] += pfSR[j] * 0.5f;
+			}
+			break;
+
+		case 4:
+			for (U32 j = 0; j < uFrameLength; j++)
+			{
+				F32* pf = pfOut + j * uChannels;
+				pf[0] += pfL[j];
+				pf[1] += pfR[j];
+				pf[2] += pfSL[j];
+				pf[3] += pfSR[j];
+			}
+			break;
+
+		case 5:
+			for (U32 j = 0; j < uFrameLength; j++)
+			{
+				F32* pf = pfOut + j * uChannels;
+				pf[0] += pfL[j];
+				pf[1] += pfR[j];
+				pf[2] += pfC[j];
+				pf[3] += pfSL[j];
+				pf[4] += pfSR[j];
+			}
+			break;
+
+		case 6:
+			for (U32 j = 0; j < uFrameLength; j++)
+			{
+				F32* pf = pfOut + j * uChannels;
+				pf[0] += pfL[j];
+				pf[1] += pfR[j];
+				pf[2] += pfC[j];
+				pf[3] += pfLFE[j];
+				pf[4] += pfSL[j];
+				pf[5] += pfSR[j];
+			}
+			break;
+
+		case 8:
+			for (U32 j = 0; j < uFrameLength; j++)
+			{
+				F32* pf = pfOut + j * uChannels;
+				pf[0] += pfL[j];
+				pf[1] += pfR[j];
+				pf[2] += pfC[j];
+				pf[3] += pfLFE[j];
+				pf[4] += pfSL[j];
+				pf[5] += pfSR[j];
+				pf[6] += pfSL[j] * 0.25f;
+				pf[7] += pfSR[j] * 0.25f;
+			}
+			break;
+
+		default:
+			break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	RenderFrameFloat (0x00547250)
+////////////////////////////////////////////////////////////////////////////////
+static inline F32 ClampOutput(F32 f)
+{
+	return (f < 1.f) ? ((f < -1.f) ? -1.f : f) : 1.f;
+}
+
+void Audio::Core::Engine::RenderFrameFloat(F32* pfOut)
+{
+	F32 afMix[8 * uFrameLength];
+	const U32 uChannels = m_uChannels;
+
+	F32* pfSurroundLFE = NULL;
+	F32* pfSurround = NULL;
+	F32* pfStereo = NULL;
+	F32* pfMono = NULL;
+
+	while (!Instance().GetRenderer()->GetNextFrame(&pfSurroundLFE, &pfSurround, &pfStereo, &pfMono))
+		Sleep(1);
+
+	if (!Instance().GetRenderer()->IsOutputMuted())
+	{
+		memset(afMix, 0, uChannels * uFrameLength * sizeof(F32));
+
+		if (pfMono)
+			MixMono(pfMono, afMix, uChannels);
+		if (pfStereo)
+			MixStereo(pfStereo, afMix, uChannels);
+		if (pfSurround)
+			MixStereo(pfSurround, afMix, uChannels);
+		if (pfSurroundLFE)
+			MixSurroundLFE(pfSurroundLFE, afMix, uChannels);
+	}
+	else
+	{
+		memset(afMix, 0, sizeof(afMix));
+	}
+
+	for (U32 i = 0; i < uChannels * uFrameLength; i++)
+		pfOut[i] = ClampOutput(afMix[i]);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	RenderFrameS16 (0x00547500)
+////////////////////////////////////////////////////////////////////////////////
+void Audio::Core::Engine::RenderFrameS16(S16* psOut)
+{
+	F32 afFrame[8 * uFrameLength];
+	const U32 uSamples = m_uChannels * uFrameLength;
+
+	RenderFrameFloat(afFrame);
+
+	for (U32 i = 0; i < uSamples; i++)
+		psOut[i] = (S16)(S32)(ClampOutput(afFrame[i]) * 32767.f);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	RenderFrameS32 (0x005475a0)
+////////////////////////////////////////////////////////////////////////////////
+void Audio::Core::Engine::RenderFrameS32(S32* psOut)
+{
+	F32 afFrame[8 * uFrameLength];
+	const U32 uSamples = m_uChannels * uFrameLength;
+
+	RenderFrameFloat(afFrame);
+
+	for (U32 i = 0; i < uSamples; i++)
+		psOut[i] = (S32)(ClampOutput(afFrame[i]) * 2147483648.f);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	ThreadProc (0x00547630)
+////////////////////////////////////////////////////////////////////////////////
+DWORD WINAPI Audio::Core::Engine::ThreadProc(LPVOID)
+{
+	Engine& engine = Instance();
+
+	const U32 uChannels = engine.m_uChannels;
+	const U32 uBytesPerSample = engine.m_uBitsPerSample >> 3;
+
+	void* pBuffer = BizAlignedMalloc(uBytesPerSample << 10, 0x80);
+
+	do
+	{
+		if (!engine.m_bUseFloats)
+		{
+			if (engine.m_uBitsPerSample == 16)
+				engine.RenderFrameS16((S16*)pBuffer);
+			else
+				engine.RenderFrameS32((S32*)pBuffer);
+		}
+		else
+		{
+			// retail sizes the write below from BitsPerSample, not from the 32-bit floats
+			engine.RenderFrameFloat((F32*)pBuffer);
+		}
+
+		engine.WriteToBuffer(pBuffer, uChannels * uBytesPerSample * uFrameLength);
+	}
+	while (WaitForSingleObject(engine.m_hThreadStop, 0) != WAIT_OBJECT_0 && !Audio::g_bQuitAllTasks);
+
+	SetEvent(engine.m_hThreadDone);
+
+	BizAlignedFree(pBuffer);
 
 	return 0;
 }
 
-Audio::Core::Engine::Engine() :
-#ifndef USE_OPENAL
-	m_pPrimarySound(NULL),
-#endif
-	m_pRenderer(NULL)
+////////////////////////////////////////////////////////////////////////////////
+//	ShutdownOutputEngine: retail's C_GameApp::OnShutdown (0x0042f620) calls Engine::Instance().Shutdown()
+//	inline; a free function lets the game reach it without the audio library's private headers
+////////////////////////////////////////////////////////////////////////////////
+namespace Audio
 {
-}
-
-#ifndef USE_OPENAL
-Audio::Core::Error Audio::Core::Engine::SetupDirectSound()
-{
-	LPDIRECTSOUNDBUFFER pDSBPrimary = NULL;
-
-	//	create DSound
-	HRESULT hr = DirectSoundCreate8(NULL, &m_pDS, NULL);
-	if (hr != S_OK)
-		return eFailedToCreateDirectSound;
-
-	//	set co-op level
-	hr = m_pDS->SetCooperativeLevel(Audio::System::Get()->GetHWND(), DSSCL_PRIORITY);
-	if (hr != S_OK)
-		return eFailedToSetCoopLevel;
-
-	// get the primary buffer 
-	DSBUFFERDESC dsbd;
-	ZeroMemory(&dsbd, sizeof(DSBUFFERDESC));
-	dsbd.dwSize = sizeof(DSBUFFERDESC);
-	dsbd.dwFlags = DSBCAPS_PRIMARYBUFFER;
-	dsbd.dwBufferBytes = 0;
-	dsbd.lpwfxFormat = NULL;
-
-	hr = m_pDS->CreateSoundBuffer(&dsbd, &pDSBPrimary, NULL);
-	if (hr != S_OK)
-		return eFailedToCreatePrimaryBuffer;
-
-	WAVEFORMATEX wfx;
-	ZeroMemory(&wfx, sizeof(WAVEFORMATEX)); 
-	wfx.wFormatTag = (WORD)WAVE_FORMAT_PCM; 
-	wfx.nChannels = (WORD)2; 
-	wfx.nSamplesPerSec = (DWORD)48000; 
-	wfx.wBitsPerSample = (WORD)16; 
-	wfx.nBlockAlign = (WORD)(wfx.wBitsPerSample / 8 * wfx.nChannels);
-	wfx.nAvgBytesPerSec = (DWORD)(wfx.nSamplesPerSec * wfx.nBlockAlign);
-
-	hr = pDSBPrimary->SetFormat(&wfx);
-	if (hr != S_OK)
-		return eFailedToSetPrimaryBufferFormat;
-
-	pDSBPrimary->Release();
-
-	return eSuccess;
-}
-#endif // USE_OPENAL
-
-Audio::Core::Engine::~Engine()
-{
-}
-
-bool Audio::Core::Engine::Init(Audio::Core::Renderer* pRenderer)
-{
-	m_pRenderer = pRenderer;
-
-#ifdef USE_OPENAL
-
-	ALenum error;
-	m_pContext = NULL;
-	m_pDevice = alcOpenDevice(NULL);
-
-	ALchar* pString = (ALchar*)(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
-
-	if (pString)
+	void ShutdownOutputEngine()
 	{
-		while (*(pString) != 0)
-		{
-			AUDIO_CORE_DEBUG("Found audio device- %s", pString);
-
-			while (*(pString) != 0)
-				pString = &(pString[1]);
-
-			pString = &(pString[1]);
-		}
-	}
-
-	if (m_pDevice)
-	{
-		AUDIO_CORE_DEBUG("Opened %s audio device", alcGetString(m_pDevice, ALC_DEVICE_SPECIFIER));
-
-		m_pContext = alcCreateContext(m_pDevice, NULL);
-		if (m_pContext)
-		{
-			AUDIO_CORE_DEBUG("Created audio context");
-
-			alcMakeContextCurrent(m_pContext);
-
-			ALboolean bEAX = alIsExtensionPresent("EAX2.0");
-			AUDIO_CORE_DEBUG("EAX2 %s supported", bEAX ? "is" : "is not");
-
-			m_eBufferFormat = alGetEnumValue("AL_FORMAT_51CHN16");
-			if (!m_eBufferFormat)
-			{
-				AUDIO_CORE_ERROR("No support for 5.1 playback!");
-				goto failed;
-			}
-
-#ifdef USE_EAX_REVERB	
-			m_eReverbBufferFormat = alGetEnumValue("AL_FORMAT_MONO16");
-			if (!m_eReverbBufferFormat)
-			{
-				AUDIO_CORE_ERROR("No support for mono playback!");
-				goto failed;
-			}
-#endif //USE_EAX_REVERB	
-
-			// clear error code
-			alGetError();
-
-			// Generate buffers + sources
-			alGenBuffers(NUM_BUFFERS, m_aBuffers);
-			if ((error = alGetError()) != AL_NO_ERROR)
-			{
-				AUDIO_CORE_ERROR("alGenBuffers : %d", error);
-				goto failed;
-			}
-			alGenSources(1, &m_source);
-			if ((error = alGetError()) != AL_NO_ERROR)
-			{
-				AUDIO_CORE_ERROR("alGenSources : %d", error);
-				goto failed;
-			}
-
-#ifdef USE_EAX_REVERB	
-			//*******REVERB INIT			
-			alGenBuffers(NUM_BUFFERS, m_aReverbBuffers);
-			if ((error = alGetError()) != AL_NO_ERROR)
-			{
-				AUDIO_CORE_ERROR("alGenBuffers : %d", error);
-				goto failed;
-			}
-
-			alGenSources(1, &m_sourceReverbVoice);
-			if ((error = alGetError()) != AL_NO_ERROR)
-			{
-				AUDIO_CORE_ERROR("alGenSourcesReverbVoice : %d", error);
-				goto failed;
-			}
-#endif// USE_EAX_REVERB	
-			////********
-
-			U32 uBufferSize = 6 * Core::uFrameLength * sizeof(S16);
-			m_pData = (S16*)malloc(uBufferSize);
-			memset(m_pData, 0, uBufferSize);
-
-#ifdef USE_EAX_REVERB	
-			//*****************************REVERB BUFFERS
-			U32 uReverbBufferSize = Core::uFrameLength * sizeof(S16);
-			m_pReverbData = (S16*)malloc(uReverbBufferSize);
-			memset(m_pReverbData,0,uReverbBufferSize);
-			//*****************************************
-#endif
-
-			// queue initial data
-			int iLoop = 0;
-			for (iLoop = 0; iLoop < NUM_BUFFERS; iLoop++)
-			{
-				alBufferData(m_aBuffers[iLoop], m_eBufferFormat, m_pData, 6 * Core::uFrameLength * sizeof(S16), Core::uSampleRate);
-				alSourceQueueBuffers(m_source, 1, &m_aBuffers[iLoop]);
-				if (alGetError() != AL_NO_ERROR)
-					break;
-			}
-
-#ifdef USE_EAX_REVERB	
-			//************** queue initial reverb data
-			int iReverbLoop = 0;
-			for (iReverbLoop = 0; iReverbLoop < NUM_BUFFERS; iReverbLoop++)
-			{
-				
-				alBufferData(m_aReverbBuffers[iReverbLoop], m_eReverbBufferFormat, m_pReverbData, Core::uFrameLength * sizeof(S16), Core::uSampleRate);
-				ALenum erro = alGetError();
-				alSourceQueueBuffers(m_sourceReverbVoice, 1, &m_aReverbBuffers[iReverbLoop]);
-				ALenum err = alGetError();
-				if (alGetError() != AL_NO_ERROR)
-					break;
-			}
-			
-			// Check for EFX Extension and create the effect slot and effect itself
-			if (ALFWIsEFXSupported())
-			{
-				AUDIO_CORE_DEBUG("EFX SUPPORTED\n");
-				if (CreateAuxEffectSlot(&m_uiEffectSlot))
-				{
-				//	// Once we have an Auxiliary Effect Slot, we can generate an Effect Object, set its Type
-				//	// and Parameter Values, and then load the Effect into the Auxiliary Effect Slot ...
-				if (CreateEffect(&m_uiEffect, AL_EFFECT_EAXREVERB))
-					{
-						Audio::Core::Engine::m_bEffectCreated = AL_TRUE;
-					}
-					else
-					{
-						AUDIO_CORE_DEBUG("Failed to Create an EAX Reverb Effect\n");
-					}
-				}
-				else
-				{
-					AUDIO_CORE_DEBUG("Failed to generate an Auxilary Effect Slot\n");
-				}
-			}
-#endif //USE_EAX_REVERB	
-			//**********************
-
-			if (iLoop != NUM_BUFFERS)
-				AUDIO_CORE_ERROR("Failed to attach buffers to source");
-			else
-				alSourcePlay(m_source);
-
-#ifdef USE_EAX_REVERB	
-			////play reverb source
-			if (iReverbLoop != NUM_BUFFERS)
-				AUDIO_CORE_ERROR("Failed to attach reverb buffers to source");
-			else
-			{
-				alSourcePlay(m_sourceReverbVoice);
-				static float vSourceVoicePos[3] = {-1000.f, 0.f, 0.f };
-				alSourcefv(m_sourceReverbVoice, AL_POSITION, vSourceVoicePos);
-				alAuxiliaryEffectSloti(m_uiEffect, AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, AL_FALSE);
-
-				alGenFilters(1, &m_sourceFilter);
-
-				if (alIsFilter(m_sourceFilter))
-				{
-					/* Set Filter type to Low-Pass and set parameters */
-					alFilteri(m_sourceFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-					if (alGetError() == AL_NO_ERROR)
-					{
-						alFilterf(m_sourceFilter, AL_LOWPASS_GAIN, 0.0f);
-						alFilterf(m_sourceFilter, AL_LOWPASS_GAINHF, 0.0f);
-
-						alSourcei(m_sourceReverbVoice, AL_DIRECT_FILTER, m_sourceFilter);
-					}
-				}
-
-
-			}
-
-			//*************get the reverb parameter and load the effect into an aux slot
-			if (Audio::Core::Engine::m_bEffectCreated)
-			{
-				AUDIO_CORE_DEBUG("Playing Source with Send to Reverb Effect\n");
-				
-				// Reverb Preset is stored in legacy format, use helper function to convert to EFX EAX Reverb
-				ConvertReverbParameters(&eaxReverbPreset, &efxReverb);
-					
-				//// Set the Effect parameters
-				if (!SetEFXEAXReverbProperties(&efxReverb, m_uiEffect))
-					AUDIO_CORE_DEBUG("Failed to set Reverb Parameters\n");
-
-				//// Load Effect into Auxiliary Effect Slot
-				alAuxiliaryEffectSloti(m_uiEffectSlot, AL_EFFECTSLOT_EFFECT, m_uiEffect);
-
-				alSource3i(m_sourceReverbVoice, AL_AUXILIARY_SEND_FILTER, m_uiEffectSlot, 0, AL_FILTER_NULL);
-			}
-#endif //USE_EAX_REVERB	
-			///************************
-		}
-		else
-		{
-			AUDIO_CORE_ERROR("Could not create audio context");
-			alcCloseDevice(m_pDevice);
-			return false;
-		}
-	}
-	else
-	{
-		AUDIO_CORE_ERROR("Could not open audio device");
-		return false;
-	}
-
-	m_notificationThread = CreateThread(NULL, 16*1024, LPTHREAD_START_ROUTINE(ThreadProc), NULL, 0, NULL);
-	SetThreadPriority(m_notificationThread, THREAD_PRIORITY_HIGHEST); // THREAD_PRIORITY_TIME_CRITICAL
-
-	return true;
-
-failed:
-
-	alcMakeContextCurrent(NULL);
-	alcDestroyContext(m_pContext);
-	alcCloseDevice(m_pDevice);
-	return false;
-
-#else // USE_OPENAL
-
-	g_ne = m_notificationEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-	SetupDirectSound();
-
-	m_notificationThread = CreateThread(NULL, 16*1024, LPTHREAD_START_ROUTINE(ThreadProc), NULL, 0, NULL);
-	SetThreadPriority(m_notificationThread, THREAD_PRIORITY_HIGHEST); // THREAD_PRIORITY_TIME_CRITICAL
-	//SetThreadPriority(m_notificationThread, THREAD_PRIORITY_TIME_CRITICAL);
-
-	DWORD dwNotifySize = Audio::Core::uFrameLength * 2 * 2; // Frame::Size() * 2 * sizeof(S16);
-
-	HRESULT hr = CreatePrimarySoundBuffer(&m_pPrimarySound,
-		DSBCAPS_CTRLPOSITIONNOTIFY | DSBCAPS_GETCURRENTPOSITION2, 
-		GUID_NULL, 16, 
-		dwNotifySize, m_notificationEvent);
-
-	m_pPrimarySound->Play(0, DSBPLAY_LOOPING);
-
-	return true;
-#endif
-}
-
-#ifdef USE_OPENAL
-void Audio::Core::Engine::GetNextBuffer(S16* pData)
-{
-	F32* pSurroundLFE = NULL;
-	F32* pSurround = NULL;
-	F32* pStereo = NULL;
-	F32* pMono = NULL;
-
-	//	[TODO] non 6-channel renderers
-	Audio::Core::Engine::Instance().GetRenderer()->GetNextFrame(&pSurroundLFE, &pSurround, &pStereo, &pMono);
-
-	if (! Audio::Core::Engine::Instance().GetRenderer()->IsOutputMuted())
-	{
-		//	clear it
-		for ( U32 uCount = 0; uCount < 6 * Core::uFrameLength; uCount++ )
-			pData[ uCount ] = 0;
-
-		if (pMono)
-		{
-			for (int j=0; j<Core::uFrameLength; j++)
-				pData[j * 6 + 2] += (S16)(16384.f * Maths::Clamp(pMono[j], -1.f, 1.f)); // C
-		}
-		if (pStereo)
-		{
-			for (int j=0; j<Core::uFrameLength; j++)
-			{
-				pData[j * 6] += (S16)(16384.f * Maths::Clamp(pStereo[j], -1.f, 1.f)); // L
-				pData[j * 6 + 1] += (S16)(16384.f * Maths::Clamp(pStereo[j + 1], -1.f, 1.f)); // R
-			}
-		}
-		if (pSurround)
-		{
-			for (int j=0; j<Core::uFrameLength; j++)
-			{
-				pData[j * 6] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[j], -1.f, 1.f)); // L
-				pData[j * 6 + 1] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[Core::uFrameLength + j], -1.f, 1.f)); // R
-				pData[j * 6 + 2] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[2 *Core::uFrameLength + j], -1.f, 1.f)); // C
-				pData[j * 6 + 4] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[3 *Core::uFrameLength + j], -1.f, 1.f)); // SL
-				pData[j * 6 + 5] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[4 *Core::uFrameLength + j], -1.f, 1.f)); // SR
-			}
-		}
-		if (pSurroundLFE)
-		{
-			for (int j=0; j<Core::uFrameLength; j++)
-			{
-				pData[j * 6] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[j], -1.f, 1.f)); // L
-				pData[j * 6 + 1] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[Core::uFrameLength + j], -1.f, 1.f)); // R
-				pData[j * 6 + 2] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[2 *Core::uFrameLength + j], -1.f, 1.f)); // C
-				pData[j * 6 + 3] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[3 *Core::uFrameLength + j], -1.f, 1.f)); // LFE
-				pData[j * 6 + 4] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[4 *Core::uFrameLength + j], -1.f, 1.f)); // SL
-				pData[j * 6 + 5] += (S16)(16384.f * Maths::Clamp(pSurroundLFE[5 *Core::uFrameLength + j], -1.f, 1.f)); // SR
-			}
-		}
-	}
-	else
-	{
-		//if (pSurroundLFE)
-		{
-			for (int j=0; j<Core::uFrameLength; j++)
-			{
-				pData[j * 6] = 0;
-				pData[j * 6 + 1] = 0;
-				pData[j * 6 + 2] = 0;
-				pData[j * 6 + 3] = 0;
-				pData[j * 6 + 4] = 0;
-				pData[j * 6 + 5] = 0;
-			}
-		}
+		Audio::Core::Engine::Instance().Shutdown();
 	}
 }
-#ifdef USE_EAX_REVERB	
-Debug::Float g_DebugReverbVoiceLevel("Audio.System.ReverbVoiceLevel", 1.f, Debug::Range( 0.0f, 10.0f ));
-Debug::Float g_DebugReverbAuxEffectLevel("Audio.System.ReverbAuxEffectLevel", 1.f, Debug::Range( 0.0f, 10.0f ));
-Debug::Float g_DebugSourceDistanceOffset("Audio.System.SourceDistanceOffset", 1.f, Debug::Range( 0.0f, 1000.f));
-Debug::Bool g_DebugAuxSendAuto("Audio.System.ReverbAuxSendAuto", false);
-Debug::Float g_DebugFilterLowPassGain("Audio.System.DrySourceLowPassGain", 0.5f, Debug::Range(0.f, 1.f));
-Debug::Float g_DebugFilterLowPassGainHF("Audio.System.DrySourceLowPassGainHF", 0.5f, Debug::Range(0.f, 1.f));
-void Audio::Core::Engine::GetNextReverbBuffer(S16* pData)
-{	
-	alSourcef(m_sourceReverbVoice, AL_GAIN, g_DebugReverbVoiceLevel);
-	alAuxiliaryEffectSlotf(m_uiEffectSlot, AL_EFFECTSLOT_GAIN, g_DebugReverbAuxEffectLevel);
-
-	static float vSourceVoicePos2[3] = {g_DebugSourceDistanceOffset, 0.f, 0.f };
-	alSourcefv(m_sourceReverbVoice, AL_POSITION, vSourceVoicePos2);
-	alAuxiliaryEffectSloti(m_uiEffect, AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, (g_DebugAuxSendAuto) ? AL_TRUE : AL_FALSE);
-
-	if (alIsFilter(m_sourceFilter))
-	{
-		/* Set Filter type to Low-Pass and set parameters */
-		alFilterf(m_sourceFilter, AL_LOWPASS_GAIN, g_DebugFilterLowPassGain);
-		alFilterf(m_sourceFilter, AL_LOWPASS_GAINHF, g_DebugFilterLowPassGainHF);
-	}
-
-	F32* pReverb = NULL;
-
-	//	[TODO] non 6-channel renderers
-	Audio::Core::Engine::Instance().GetRenderer()->GetNextReverbFrame(&pReverb,0);
-
-	if (pReverb)
-	{
-		if (! Audio::Core::Engine::Instance().GetRenderer()->IsOutputMuted())
-		{
-			for (int j=0; j<Core::uFrameLength; j++)
-			{
-				pData[j] = (S16)(32767.f * Maths::Clamp(pReverb[j], -1.f, 1.f));
-			}
-		}
-		else
-		{
-			for (int j=0; j<Core::uFrameLength; j++)
-			{
-				pData[j] = 0;
-			}
-		}
-	}
-}
-
-ALboolean Audio::Core::Engine::CreateAuxEffectSlot(ALuint *puiAuxEffectSlot)
-{
-	ALboolean bReturn = AL_FALSE;
-
-	// Clear AL Error state
-	alGetError();
-
-	// Generate an Auxiliary Effect Slot
-	alGenAuxiliaryEffectSlots(1, puiAuxEffectSlot);
-	if (alGetError() == AL_NO_ERROR)
-		bReturn = AL_TRUE;
-
-	return bReturn;
-}
-
-ALboolean Audio::Core::Engine::CreateEffect(ALuint *puiEffect, ALenum eEffectType)
-{
-	ALboolean bReturn = AL_FALSE;
-
-	if (puiEffect)
-	{
-		// Clear AL Error State
-		alGetError();
-
-		// Generate an Effect
-		alGenEffects(1, puiEffect);
-		if (alGetError() == AL_NO_ERROR)
-		{
-
-			// Set the Effect Type
-			alEffecti(*puiEffect, AL_EFFECT_TYPE, eEffectType);
-			if (alGetError() == AL_NO_ERROR)
-				bReturn = AL_TRUE;
-			else
-				alDeleteEffects(1, puiEffect);
-		}
-	}
-
-	return bReturn;
-}
-
-ALboolean Audio::Core::Engine::SetEFXEAXReverbProperties(EFXEAXREVERBPROPERTIES *pEFXEAXReverb, ALuint uiEffect)
-{
-	ALboolean bReturn = AL_FALSE;
-
-	if (pEFXEAXReverb)
-	{
-		// Clear AL Error code
-		alGetError();
-
-		alEffectf(uiEffect, AL_EAXREVERB_DENSITY, pEFXEAXReverb->flDensity);
-		alEffectf(uiEffect, AL_EAXREVERB_DIFFUSION, pEFXEAXReverb->flDiffusion);
-		alEffectf(uiEffect, AL_EAXREVERB_GAIN, pEFXEAXReverb->flGain);
-		alEffectf(uiEffect, AL_EAXREVERB_GAINHF, pEFXEAXReverb->flGainHF);
-		alEffectf(uiEffect, AL_EAXREVERB_GAINLF, pEFXEAXReverb->flGainLF);
-		alEffectf(uiEffect, AL_EAXREVERB_DECAY_TIME, pEFXEAXReverb->flDecayTime);
-		alEffectf(uiEffect, AL_EAXREVERB_DECAY_HFRATIO, pEFXEAXReverb->flDecayHFRatio);
-		alEffectf(uiEffect, AL_EAXREVERB_DECAY_LFRATIO, pEFXEAXReverb->flDecayLFRatio);
-		alEffectf(uiEffect, AL_EAXREVERB_REFLECTIONS_GAIN, pEFXEAXReverb->flReflectionsGain);
-		alEffectf(uiEffect, AL_EAXREVERB_REFLECTIONS_DELAY, pEFXEAXReverb->flReflectionsDelay);
-		alEffectfv(uiEffect, AL_EAXREVERB_REFLECTIONS_PAN, pEFXEAXReverb->flReflectionsPan);
-		alEffectf(uiEffect, AL_EAXREVERB_LATE_REVERB_GAIN, pEFXEAXReverb->flLateReverbGain);
-		alEffectf(uiEffect, AL_EAXREVERB_LATE_REVERB_DELAY, pEFXEAXReverb->flLateReverbDelay);
-		alEffectfv(uiEffect, AL_EAXREVERB_LATE_REVERB_PAN, pEFXEAXReverb->flLateReverbPan);
-		alEffectf(uiEffect, AL_EAXREVERB_ECHO_TIME, pEFXEAXReverb->flEchoTime);
-		alEffectf(uiEffect, AL_EAXREVERB_ECHO_DEPTH, pEFXEAXReverb->flEchoDepth);
-		alEffectf(uiEffect, AL_EAXREVERB_MODULATION_TIME, pEFXEAXReverb->flModulationTime);
-		alEffectf(uiEffect, AL_EAXREVERB_MODULATION_DEPTH, pEFXEAXReverb->flModulationDepth);
-		alEffectf(uiEffect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, pEFXEAXReverb->flAirAbsorptionGainHF);
-		alEffectf(uiEffect, AL_EAXREVERB_HFREFERENCE, pEFXEAXReverb->flHFReference);
-		alEffectf(uiEffect, AL_EAXREVERB_LFREFERENCE, pEFXEAXReverb->flLFReference);
-		alEffectf(uiEffect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, pEFXEAXReverb->flRoomRolloffFactor);
-		alEffecti(uiEffect, AL_EAXREVERB_DECAY_HFLIMIT, pEFXEAXReverb->iDecayHFLimit);
-
-		ALenum erro = alGetError();
-
-		if (alGetError() == AL_NO_ERROR)
-			bReturn = AL_TRUE;
-	}
-
-	return bReturn;
-}
-
-// Extension Queries
-
-ALboolean Audio::Core::Engine::ALFWIsXRAMSupported()
-{
-	ALboolean bXRAM = AL_FALSE;
-	
-	if (alIsExtensionPresent("EAX-RAM") == AL_TRUE)
-	{
-		// Get X-RAM Function pointers
-		eaxSetBufferMode = (EAXSetBufferMode)alGetProcAddress("EAXSetBufferMode");
-		eaxGetBufferMode = (EAXGetBufferMode)alGetProcAddress("EAXGetBufferMode");
-
-		if (eaxSetBufferMode && eaxGetBufferMode)
-		{
-			eXRAMSize = alGetEnumValue("AL_EAX_RAM_SIZE");
-			eXRAMFree = alGetEnumValue("AL_EAX_RAM_FREE");
-			eXRAMAuto = alGetEnumValue("AL_STORAGE_AUTOMATIC");
-			eXRAMHardware = alGetEnumValue("AL_STORAGE_HARDWARE");
-			eXRAMAccessible = alGetEnumValue("AL_STORAGE_ACCESSIBLE");
-
-			if (eXRAMSize && eXRAMFree && eXRAMAuto && eXRAMHardware && eXRAMAccessible)
-				bXRAM = AL_TRUE;
-		}
-	}
-
-	return bXRAM;
-}
-
-ALboolean Audio::Core::Engine::ALFWIsEFXSupported()
-{
-	ALCdevice *pDevice = NULL;
-	ALCcontext *pContext = NULL;
-	ALboolean bEFXSupport = AL_FALSE;
-
-	pContext = alcGetCurrentContext();
-	pDevice = alcGetContextsDevice(pContext);
-
-	if (alcIsExtensionPresent(pDevice, (ALCchar*)ALC_EXT_EFX_NAME))
-	{
-		// Get function pointers
-		alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");
-		alDeleteEffects = (LPALDELETEEFFECTS )alGetProcAddress("alDeleteEffects");
-		alIsEffect = (LPALISEFFECT )alGetProcAddress("alIsEffect");
-		alEffecti = (LPALEFFECTI)alGetProcAddress("alEffecti");
-		alEffectiv = (LPALEFFECTIV)alGetProcAddress("alEffectiv");
-		alEffectf = (LPALEFFECTF)alGetProcAddress("alEffectf");
-		alEffectfv = (LPALEFFECTFV)alGetProcAddress("alEffectfv");
-		alGetEffecti = (LPALGETEFFECTI)alGetProcAddress("alGetEffecti");
-		alGetEffectiv = (LPALGETEFFECTIV)alGetProcAddress("alGetEffectiv");
-		alGetEffectf = (LPALGETEFFECTF)alGetProcAddress("alGetEffectf");
-		alGetEffectfv = (LPALGETEFFECTFV)alGetProcAddress("alGetEffectfv");
-		alGenFilters = (LPALGENFILTERS)alGetProcAddress("alGenFilters");
-		alDeleteFilters = (LPALDELETEFILTERS)alGetProcAddress("alDeleteFilters");
-		alIsFilter = (LPALISFILTER)alGetProcAddress("alIsFilter");
-		alFilteri = (LPALFILTERI)alGetProcAddress("alFilteri");
-		alFilteriv = (LPALFILTERIV)alGetProcAddress("alFilteriv");
-		alFilterf = (LPALFILTERF)alGetProcAddress("alFilterf");
-		alFilterfv = (LPALFILTERFV)alGetProcAddress("alFilterfv");
-		alGetFilteri = (LPALGETFILTERI )alGetProcAddress("alGetFilteri");
-		alGetFilteriv= (LPALGETFILTERIV )alGetProcAddress("alGetFilteriv");
-		alGetFilterf = (LPALGETFILTERF )alGetProcAddress("alGetFilterf");
-		alGetFilterfv= (LPALGETFILTERFV )alGetProcAddress("alGetFilterfv");
-		alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)alGetProcAddress("alGenAuxiliaryEffectSlots");
-		alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)alGetProcAddress("alDeleteAuxiliaryEffectSlots");
-		alIsAuxiliaryEffectSlot = (LPALISAUXILIARYEFFECTSLOT)alGetProcAddress("alIsAuxiliaryEffectSlot");
-		alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)alGetProcAddress("alAuxiliaryEffectSloti");
-		alAuxiliaryEffectSlotiv = (LPALAUXILIARYEFFECTSLOTIV)alGetProcAddress("alAuxiliaryEffectSlotiv");
-		alAuxiliaryEffectSlotf = (LPALAUXILIARYEFFECTSLOTF)alGetProcAddress("alAuxiliaryEffectSlotf");
-		alAuxiliaryEffectSlotfv = (LPALAUXILIARYEFFECTSLOTFV)alGetProcAddress("alAuxiliaryEffectSlotfv");
-		alGetAuxiliaryEffectSloti = (LPALGETAUXILIARYEFFECTSLOTI)alGetProcAddress("alGetAuxiliaryEffectSloti");
-		alGetAuxiliaryEffectSlotiv = (LPALGETAUXILIARYEFFECTSLOTIV)alGetProcAddress("alGetAuxiliaryEffectSlotiv");
-		alGetAuxiliaryEffectSlotf = (LPALGETAUXILIARYEFFECTSLOTF)alGetProcAddress("alGetAuxiliaryEffectSlotf");
-		alGetAuxiliaryEffectSlotfv = (LPALGETAUXILIARYEFFECTSLOTFV)alGetProcAddress("alGetAuxiliaryEffectSlotfv");
-
-		if (alGenEffects &&	alDeleteEffects && alIsEffect && alEffecti && alEffectiv &&	alEffectf &&
-			alEffectfv && alGetEffecti && alGetEffectiv && alGetEffectf && alGetEffectfv &&	alGenFilters &&
-			alDeleteFilters && alIsFilter && alFilteri && alFilteriv &&	alFilterf && alFilterfv &&
-			alGetFilteri &&	alGetFilteriv && alGetFilterf && alGetFilterfv && alGenAuxiliaryEffectSlots &&
-			alDeleteAuxiliaryEffectSlots &&	alIsAuxiliaryEffectSlot && alAuxiliaryEffectSloti &&
-			alAuxiliaryEffectSlotiv && alAuxiliaryEffectSlotf && alAuxiliaryEffectSlotfv &&
-			alGetAuxiliaryEffectSloti && alGetAuxiliaryEffectSlotiv && alGetAuxiliaryEffectSlotf &&
-			alGetAuxiliaryEffectSlotfv)
-			bEFXSupport = AL_TRUE;
-	}
-
-	return bEFXSupport;
-}
-#endif #ifdef USE_EAX_REVERB	
-#endif
-
-#ifndef USE_OPENAL
-HRESULT Audio::Core::Engine::CreatePrimarySoundBuffer(
-	CPrimarySound** ppPrimarySound, 
-	DWORD dwCreationFlags, 
-	GUID guid3DAlgorithm,
-	DWORD dwNotifyCount, 
-	DWORD dwNotifySize, 
-	HANDLE hNotifyEvent)
-{
-    HRESULT hr;
-
-    if( m_pDS == NULL )
-        return CO_E_NOTINITIALIZED;
-    if( ppPrimarySound == NULL || hNotifyEvent == NULL )
-        return E_INVALIDARG;
-
-    LPDIRECTSOUNDBUFFER pDSBuffer      = NULL;
-    DWORD               dwDSBufferSize = NULL;
-    DSBPOSITIONNOTIFY*  aPosNotify     = NULL; 
-    LPDIRECTSOUNDNOTIFY pDSNotify      = NULL;
-
-	// Figure out how big the DSound buffer should be 
-    dwDSBufferSize = dwNotifySize * dwNotifyCount;
-
-	WAVEFORMATEX wfx;
-	memset(&wfx, 0, sizeof(WAVEFORMATEX)); 
-	wfx.wFormatTag = WAVE_FORMAT_PCM; 
-	wfx.nChannels = 2; 
-	wfx.nSamplesPerSec = 48000; 
-	wfx.nBlockAlign = 4; 
-	wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign; 
-	wfx.wBitsPerSample = 16; 
-
-	// Set up the direct sound buffer.  Request the NOTIFY flag, so
-    // that we are notified as the sound buffer plays.  Note, that using this flag
-    // may limit the amount of hardware acceleration that can occur. 
-    DSBUFFERDESC dsbd;
-    ZeroMemory( &dsbd, sizeof(DSBUFFERDESC) );
-    dsbd.dwSize          = sizeof(DSBUFFERDESC);
-    dsbd.dwFlags         = dwCreationFlags | DSBCAPS_CTRLPOSITIONNOTIFY | DSBCAPS_GETCURRENTPOSITION2;
-    dsbd.dwBufferBytes   = dwDSBufferSize;
-    dsbd.guid3DAlgorithm = guid3DAlgorithm;
-	dsbd.lpwfxFormat     = &wfx; // m_pRenderer->GetWfxPtr();
-
-    if( FAILED( hr = m_pDS->CreateSoundBuffer( &dsbd, &pDSBuffer, NULL ) ) )
-    {
-        // If wave format isn't then it will return 
-        // either DSERR_BADFORMAT or E_INVALIDARG
-        if( hr == DSERR_BADFORMAT || hr == E_INVALIDARG )
-            return hr;//DXTRACE_ERR( TEXT("CreateSoundBuffer"), hr );
-
-        return hr;//DXTRACE_ERR( TEXT("CreateSoundBuffer"), hr );
-    }
-
-    // Create the notification events, so that we know when to fill
-    // the buffer as the sound plays. 
-    if( FAILED( hr = pDSBuffer->QueryInterface( IID_IDirectSoundNotify, 
-                                                (VOID**)&pDSNotify ) ) )
-    {
-        if( aPosNotify )
-			delete [] aPosNotify;
-
-        return hr;//DXTRACE_ERR( TEXT("QueryInterface"), hr );
-    }
-
-    aPosNotify = new DSBPOSITIONNOTIFY[ dwNotifyCount ];
-    if( aPosNotify == NULL )
-        return E_OUTOFMEMORY;
-
-    for( DWORD i = 0; i < dwNotifyCount; i++ )
-    {
-        aPosNotify[i].dwOffset     = (dwNotifySize * i) + dwNotifySize - 1;
-        aPosNotify[i].hEventNotify = hNotifyEvent;             
-    }
-    
-    // Tell DirectSound when to notify us. The notification will come in the from 
-    // of signaled events that are handled in WinMain()
-    if (FAILED(hr = pDSNotify->SetNotificationPositions(dwNotifyCount, aPosNotify )))
-    {
-        if( pDSNotify )
-		{
-			pDSNotify->Release();
-			pDSNotify = NULL;
-		}
-        if( aPosNotify )
-		{
-			delete [] aPosNotify;
-			aPosNotify = NULL;
-		}
-        return hr;//DXTRACE_ERR( TEXT("SetNotificationPositions"), hr );
-    }
-
-    if( pDSNotify )
-	{
-		pDSNotify->Release();
-		pDSNotify = NULL;
-	}
-    if( aPosNotify )
-	{
-		delete [] aPosNotify;
-		aPosNotify = NULL;
-	}
-
-	// Ensure the primary buffer is empty before we start
-	{
-		void *audioPtr1, *audioPtr2;
-		DWORD lockSize1, lockSize2;
-		
-		HRESULT hrLock = pDSBuffer->Lock(0, dwDSBufferSize, &audioPtr1, &lockSize1, &audioPtr2, &lockSize2, 0L);
-		
-		ZeroMemory(audioPtr1, lockSize1);
-		ZeroMemory(audioPtr2, lockSize2);
-
-		pDSBuffer->Unlock(audioPtr1, lockSize1, audioPtr2, lockSize2);
-	}
-
-    // Create the sound
-    *ppPrimarySound = new CPrimarySound( pDSBuffer, dwDSBufferSize, this, dwNotifySize );
-
-    return S_OK;
-}
-#endif // USE_OPENAL
 
 #ifdef AUDIO_OPTIMIZE_OFF
 #pragma optimize ("", on) // AUDIO_OPTIMIZE_OFF

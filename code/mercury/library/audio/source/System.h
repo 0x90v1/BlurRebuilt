@@ -205,6 +205,10 @@ namespace Audio
 		void SetSpeakerDistance( SpeakerOption eOption, F32 fDistance );
 		void SetSpeakerAngles( SpeakerConfig eMode, F32 fFrontLeft, F32 fFrontRight, F32 fSurroundLeft = 0.f, F32 fSurroundRight = 0.f, F32 fBackLeft = 0.f, F32 fBackRight = 0.f );
 		void SetSpeakerOption( SpeakerOption eOption );
+#ifdef PLATFORM_PC
+		//! [Blur2PC] T144: retail PC 0x0053aad0: restarts the output engine at uSampleRate (the audio quality option)
+		void SetOutputSampleRate( U32 uSampleRate );
+#endif
 
         //  render callback
         static void RenderCallback(void* pContext);

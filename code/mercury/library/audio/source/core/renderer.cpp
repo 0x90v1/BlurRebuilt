@@ -1982,7 +1982,9 @@ void Audio::Core::Renderer::Execute(void*)
 #endif
 
 #ifdef PLATFORM_PC
-	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	// [Blur2PC] T144: retail PC's renderer thread (0x00560000) raises its own priority to time-critical and
+	// leaves the process priority class alone
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 #endif
 
 	for (;;)
@@ -2221,6 +2223,9 @@ void Audio::Core::Renderer::Execute(void*)
 						//printf("sleeping\n");
 #ifndef PLATFORM_PS3
 						Sleep(1);
+#ifdef PLATFORM_PC
+						if (Audio::g_bQuitAllTasks) break;	// [Blur2PC] T144: retail PC 0x00560000
+#endif
 #else
 						if (g_bAudioEvent)
 							m_Event.Wait();
@@ -2244,7 +2249,11 @@ void Audio::Core::Renderer::Execute(void*)
 						)
 					{
 						//printf("[sleep]    read=%d, write=%d\n", m_sCurrRead, m_sNextWrite);
-#ifndef PLATFORM_PS3
+#if defined(PLATFORM_PC)
+						// [Blur2PC] T144: retail PC 0x00560000 yields and stops waiting on quit
+						SwitchToThread();
+						if (Audio::g_bQuitAllTasks) break;
+#elif !defined(PLATFORM_PS3)
 						Sleep(1);
 #else
 						if (g_bAudioEvent)
@@ -2700,11 +2709,12 @@ F32* Audio::Core::Renderer::ReverbFrameData(S32 sFrameNum, U32 uIndex)
 ////////////////////////////////////////////////////////////////////////////////
 //	GetNextFrame
 ////////////////////////////////////////////////////////////////////////////////
-void Audio::Core::Renderer::GetNextFrame(F32** pfSurroundLFE, F32** pfSurround, F32** pfStereo, F32** pfMono)
+bool Audio::Core::Renderer::GetNextFrame(F32** pfSurroundLFE, F32** pfSurround, F32** pfStereo, F32** pfMono)
 {
 	//Perf::BeginNamedEvent("GetNextFrame");
 
 	S32 sDiff = m_sNextWrite - m_sCurrRead;
+	bool bReady = true;	// [Blur2PC] T144
 
 	//	deal with buffer underrun: only inc read ptr if next frame is ready
 	if ((m_sNextWrite - 1) % m_uNumBuffers == m_sCurrRead % m_uNumBuffers)
@@ -2714,6 +2724,8 @@ void Audio::Core::Renderer::GetNextFrame(F32** pfSurroundLFE, F32** pfSurround, 
 
 		if (g_bClearDroppedFrames)
 			ClearFrame( m_sCurrRead % m_uNumBuffers );
+
+		bReady = false;	// [Blur2PC] T144
 	}
 	else
 	{
@@ -2729,6 +2741,8 @@ void Audio::Core::Renderer::GetNextFrame(F32** pfSurroundLFE, F32** pfSurround, 
 	*pfSurroundLFE = SurroundLFEFrameData(uCurrReadBuffer);
 
 	//Perf::EndNamedEvent();
+
+	return bReady;	// [Blur2PC] T144
 }
 
 ////////////////////////////////////////////////////////////////////////////////

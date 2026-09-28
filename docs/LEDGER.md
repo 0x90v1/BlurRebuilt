@@ -479,3 +479,15 @@ Verified: Release build 0 errors; the same queued race + WM_CLOSE exits with cod
 Blocked: none.
 Next: commit on blur1pc and merge up (blur1multi, blurx, blur1pcdx11) when the user asks; BlurX's exe has the crash until then.
 Files touched: code/amax/game/GameApp.cpp; docs.
+
+## 2026-09-27 20:45 — session Claude audio-latency — T144
+Did: user reported ~500 ms audio delay and a broken audio quality option, with a write-up about retail's DirectSound ring (rate/1500 x 256 frames). Measured our exe first (temporary probes): it ran the snapshot's OpenAL engine, which retail never shipped, at ~250 ms key-to-device. User chose a faithful port. Decompiled retail's PC audio output (engine 0x00538150 and 0x00546a90..0x00547920, DRM-relocated 0x020c5fb8/0x020c7299, renderer thread 0x00560000, quality handler 0x00c8c684, ProfileOptions 0x00b9e790..0x00b9ed00) and ported it: DirectSound engine and its debug values; 128-sample frames at a 24000 Hz Core rate with the output-rate pitch ratio in the 8 decoder paths; renderer loop details; System queue size; quality byte in ProfileOptions (save 1375, 1373/1374 converted); SystemSubsystem quality -> 24/36/48 kHz with Audio.System.AudioDetailLevel; retail's Options_Audio.lua quality row; OnShutdown engine stop. Facts: analysis.md "Audio output (PC)".
+Verified: Release build 0 errors; exe imports DSOUND.dll and no OpenAL32. Queued minimized runs from _work/run_lat (probes since removed): output starts at 24000 Hz with 16 buffers; quality high -> 48000/32, medium -> 36000/24; DirectSound queue 161-170 ms at each; trigger-to-buffer ~70 ms at low, ~30 ms at high; with NumberOfBuffersOverride + NumberOfBuffers 5 at high, a 26.7 ms buffer and 23-38 ms trigger-to-buffer. Options_Audio opened from Options: quality row selected with its help text, value 0, advanced index 7 (the list did not draw when opened by script). Not checked by ear: pitch at 36/48 kHz, surround layouts. Two of my runs started without their script (the file had not been written): one crashed at 4 s in PostFxEnvSettings::Set during front-end world creation (not audio), the other ran un-minimized for 300 s until game_slot stopped it. Delivered Blur1PC/_work/run/Amax.{exe,pdb} (SHA256 47EA693A7D038E870F9A42F5A79A15C8D9422BA8523B3F2E4D961D8091F3918E).
+Blocked: none.
+Next: the user listens (menus and a race at Low/Medium/High). For low latency: Audio.PC.Engine.NumberOfBuffersOverride = true and Audio.PC.Engine.NumberOfBuffers = 5 in <data folder>\User\debug_values.xml. On confirmation, commit on blur1pc (T144 files only) and merge up. If the PostFxEnvSettings::Set crash recurs, it needs its own task.
+Files touched: see the T144 board row; docs/{BOARD,analysis,LEDGER}.md; scratch _work/ghidra/audio_*, _work/run_lat.
+
+## 2026-09-27 21:00 — session Claude audio-latency — T144 committed
+Did: user confirmed the audio works; committed the T144 files on blur1pc and merged up.
+Blocked: none.
+Next: none for T144.

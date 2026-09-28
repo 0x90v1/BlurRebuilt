@@ -1994,6 +1994,19 @@ void	Audio::InterfaceController::SetSystemSpeakerDistance( U32 eOption, F32 fDis
 	System::Get()->SetSpeakerDistance( (Audio::ISystem::SpeakerOption) eOption, fDistance);
 }
 
+#ifdef PLATFORM_PC
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	SetSystemOutputSampleRate
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// [Blur2PC] T144: retail PC 0x00535ab0
+void	Audio::InterfaceController::SetSystemOutputSampleRate( U32 uSampleRate )
+{
+	System::Get()->SetOutputSampleRate( uSampleRate );
+}
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	SetSystemSpeakerAngles

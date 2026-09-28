@@ -87,7 +87,9 @@ namespace Audio
 			}
             inline void Stop() { m_bStarted = false; }
 
-			void GetNextFrame(F32** pfSurroundLFE, F32** pfSurround, F32** pfStereo, F32** pfMono);
+			// [Blur2PC] T144: returns false when the next frame is not rendered yet (retail PC 0x020c7299); the PC
+			// output engine waits for it. The other callers ignore the result.
+			bool GetNextFrame(F32** pfSurroundLFE, F32** pfSurround, F32** pfStereo, F32** pfMono);
 			void GetNextReverbFrame(F32** pfReverb, U32 uIndex);
 			//void GetNextReverbFrame2(F32** pfReverb);
 

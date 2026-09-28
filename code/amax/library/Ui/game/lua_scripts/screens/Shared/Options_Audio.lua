@@ -4,8 +4,14 @@ GUI =
 	carousel_branch = "Options",
 	
 	OutputSelection = -1,
+	-- [Blur2PC] T144: retail PC's Options_Audio.lua (decompiled from Blur.exe 1.2, _work/retail_lua) adds the audio
+	-- quality row at the top, so the output and advanced rows move down one (up again in a race, where quality
+	-- is hidden); mouse handling left out as in the other ported option screens
+	output_index = 6,
+	advanced_index = 7,
 
 	GetSelections = function()
+		UIGlobals.OptionsTable.quality		= UIButtons.GetSelection( GUI.AudioQualityId )	-- [Blur2PC] T144
 		UIGlobals.OptionsTable.fx_vol		= UIButtons.GetSelection( GUI.SoundEffectsId )
 		UIGlobals.OptionsTable.music_vol	= UIButtons.GetSelection( GUI.MusicId )
 		UIGlobals.OptionsTable.voice_vol	= UIButtons.GetSelection( GUI.VoiceId )
@@ -16,6 +22,7 @@ GUI =
 	end,
 	
 	SetSelections = function()
+		UIButtons.SetSelection( GUI.AudioQualityId, UIGlobals.OptionsTable.quality )	-- [Blur2PC] T144
 		UIButtons.SetSelection( GUI.SoundEffectsId, UIGlobals.OptionsTable.fx_vol )
 		UIButtons.SetSelection( GUI.MusicId, UIGlobals.OptionsTable.music_vol )
 		--UIButtons.SetSelection( GUI.VoiceId, UIGlobals.OptionsTable.voice_vol )
@@ -26,20 +33,15 @@ GUI =
 	end,
 	
 	HaveChangedSelections = function()
-		return ( GUI.StartingOptionsTable.fx_vol	~= UIButtons.GetSelection( GUI.SoundEffectsId ) or 
-				GUI.StartingOptionsTable.music_vol	~= UIButtons.GetSelection( GUI.MusicId ) or
-				--GUI.StartingOptionsTable.voice_vol	~= UIButtons.GetSelection( GUI.VoiceId ) or
-				GUI.StartingOptionsTable.menu_vol	~= UIButtons.GetSelection( GUI.MenuMusicId ) or
-				GUI.StartingOptionsTable.music_type	~= UIButtons.GetSelection( GUI.MusicModeId ) or 
-				GUI.StartingOptionsTable.dynamic	~= UIButtons.GetSelection( GUI.DynamicRangeId ) or
-				GUI.StartingOptionsTable.output		~= UIButtons.GetSelection( GUI.OutputId ) )
+		-- [Blur2PC] T144: retail compares the sound effects volume only
+		return ( GUI.StartingOptionsTable.fx_vol	~= UIButtons.GetSelection( GUI.SoundEffectsId ) )
 	end,
 	
 	UpdateInfoLine = function()
 		local selection = UIButtons.GetSelectionIndex( GUI.MessageListId )
 		if GUI.selection ~= selection then
 			GUI.selection = selection 
-			if selection == 6 then
+			if selection == GUI.advanced_index then
 				SetupInfoLine( UIText.INFO_A_SELECT, UIText.INFO_B_CANCEL, UIText.INFO_RESET_TO_DEFAULT )
 			else
 				SetupInfoLine(UIText.INFO_A_CONFIRM, UIText.INFO_B_CANCEL, UIText.INFO_RESET_TO_DEFAULT)
@@ -48,6 +50,7 @@ GUI =
 	end,
 	
 	bottom_help_text = {
+		UIText.CMN_HLP_AUDIO_QUALITY,	-- [Blur2PC] T144
 		UIText.CMN_HLP_AUDIO_SFX,
 		UIText.CMN_HLP_AUDIO_MUSIC,
 		UIText.CMN_HLP_AUDIO_MENU_MUSIC,
@@ -65,16 +68,16 @@ GUI =
 	CheckAdvancedOption = function()
 		-- Enable advanced audio options
 		if UIGlobals.OptionsTable.output == 1 then
-			UIButtons.SetNodeItemLocked( GUI.MessageListId, 6, false )
+			UIButtons.SetNodeItemLocked( GUI.MessageListId, GUI.advanced_index, false )
 			UIButtons.SetActive( GUI.AdvancedNodeId, true )
 		else
-			UIButtons.SetNodeItemLocked( GUI.MessageListId, 6, true )
+			UIButtons.SetNodeItemLocked( GUI.MessageListId, GUI.advanced_index, true )
 			UIButtons.SetActive( GUI.AdvancedNodeId, false)
 		end
 	end,
 	
 	UpdateAdvancedOption = function()
-		if UIButtons.GetSelectionIndex( GUI.MessageListId ) ~= 5 then
+		if UIButtons.GetSelectionIndex( GUI.MessageListId ) ~= GUI.output_index then
 			return
 		end
 		
@@ -94,6 +97,7 @@ function Init()
 	
 	GUI.MessageListId = SCUI.name_to_id[ "OptionsList" ]
 	
+	GUI.AudioQualityId	= SCUI.name_to_id[ "SDR_AudioQuality" ]	-- [Blur2PC] T144
 	GUI.SoundEffectsId	= SCUI.name_to_id[ "SDR_SoundEffects" ]
 	GUI.MusicId			= SCUI.name_to_id[ "SDR_Music" ]
 	GUI.VoiceId			= SCUI.name_to_id[ "SDR_Voice" ]
@@ -119,6 +123,17 @@ function Init()
 		end
 	end	
 	
+	-- [Blur2PC] T144: retail offers the audio quality outside a race only
+	if UIGlobals.IsIngame ~= true then
+		UIButtons.AddItem( GUI.AudioQualityId, 0, UIText.CMN_OPT_GRAPHICS_LOW, false )
+		UIButtons.AddItem( GUI.AudioQualityId, 1, UIText.CMN_OPT_GRAPHICS_MEDIUM, false )
+		UIButtons.AddItem( GUI.AudioQualityId, 2, UIText.CMN_OPT_GRAPHICS_HIGH, false )
+	else
+		GUI.output_index = 5
+		GUI.advanced_index = 6
+		UIButtons.SetActive( SCUI.name_to_id[ "Nde_AudioQuality" ], false )
+	end
+
 	UIButtons.AddItem( GUI.MusicModeId, 0, UIText.CMN_OFF, false )
 	UIButtons.AddItem( GUI.MusicModeId, 1, UIText.CMN_ON, false )
 
@@ -147,6 +162,12 @@ function PostInit()
 	local box_id, text_id = SetupSelectionBox( GUI.AdvancedNodeId, UIText.CMN_OPT_ADVANCED_AUDIO_OPTIONS, nil, nil, nil, nil, UIEnums.Justify.MiddleCentre )
 	UIButtons.ChangeScale( box_id, 1.4, 1.4 )
 	UIButtons.ChangePosition( box_id, 14, 1.5 ) -- cough
+	
+	-- [Blur2PC] T144: retail takes the hidden quality row out of the list in a race
+	if UIGlobals.IsIngame == true then
+		UIButtons.SetParent( SCUI.name_to_id[ "Nde_AudioQuality" ], nil )
+		UIButtons.SetSelection( GUI.MessageListId, 1 )
+	end
 	
 	UIButtons.NodeListScan( GUI.MessageListId )
 	local s = GetScreenOtions().selection
@@ -190,7 +211,7 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 		end
 	elseif message == UIEnums.Message.MenuNext and arg2 == true then
 		local selected = UIButtons.GetSelectionIndex( GUI.MessageListId )
-		if selected == 6 then
+		if selected == GUI.advanced_index then
 			PlaySfxNext()
 			GoScreen("Shared\\Options_AdvancedAudio.lua")
 		else

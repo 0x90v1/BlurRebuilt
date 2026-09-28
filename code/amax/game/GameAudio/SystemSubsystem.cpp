@@ -29,6 +29,10 @@
 #endif	//	AUDIO_OPTIMIZE_OFF
 
 Debug::Float g_MusicVolume("Audio.System.VolumeSettings.MusicVolume", 1,  Debug::Range(0.f, 1.f),Debug::Persist());
+#ifdef PLATFORM_PC
+// [Blur2PC] T144: retail PC 0x00e3d750; replaces the audio quality option when not -1
+Debug::Int g_AudioDetailLevel("Audio.System.AudioDetailLevel", -1, Debug::Range(-1, 2), Debug::Persist());
+#endif
 
 //-----------------------------------------------------------------------------
 // SystemSubsystem::SystemSubsystem
@@ -38,6 +42,9 @@ SystemSubsystem::SystemSubsystem()
 
 	m_showingOverlay = false;
 	m_disableSfxFades = false;
+#ifdef PLATFORM_PC
+	m_uAppliedAudioQuality = 0;	// [Blur2PC] T144: retail constructor 0x00c8d6e0
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -344,6 +351,29 @@ bool SystemSubsystem::ProcessCustomMessage(const U32 u32MessageId, U32 u32Data, 
 
 					U8 MusicType = profileOptions->mAudioMusicType;
 					Audio::InterfaceController::Get().SendMessageToSubsystem(Game::C_GameAudioLayer::eMusicSubsystem, MusicSubsystem::SetMusicType,MusicType );
+
+#ifdef PLATFORM_PC
+					// [Blur2PC] T144: retail PC (0x00c8c684) restarts the output engine at the rate of the audio
+					// quality option when it changes: low 24000 Hz, medium 36000 Hz, high 48000 Hz. The engine
+					// starts at 24000 Hz, which is also "last applied" at start. Retail looks the component up
+					// and never sets it.
+					Audio::InterfaceController::Get().LookupInstanceComponent(m_hSystemEntity, "UIOptions_PCQualitySetting");
+					m_uAudioQuality = profileOptions->mAudioQuality;
+					if (g_AudioDetailLevel != -1)
+						m_uAudioQuality = g_AudioDetailLevel;
+					if (m_uAudioQuality != m_uAppliedAudioQuality)
+					{
+						m_uAppliedAudioQuality = m_uAudioQuality;
+
+						U32 uSampleRate = 24000;
+						if (m_uAudioQuality == 1)
+							uSampleRate = 36000;
+						else if (m_uAudioQuality == 2)
+							uSampleRate = 48000;
+
+						Audio::InterfaceController::Get().SetSystemOutputSampleRate(uSampleRate);
+					}
+#endif
 
 					F32 RoomSize = 4; //in meters
 
