@@ -53,7 +53,7 @@ function Init()
 	UIGlobals.OptionsTable = nil -- [PR] #37781 - clear options in case we sign out
 	
 	AddSCUI_Elements()
-	SetupInfoLine()
+	SetupInfoLine( UIText.INFO_A_CONTINUE, UIText.INFO_QUIT_B )	-- [Blur2PC] retail Blur PC (T146)
 	
 	if UIGlobals.CurrentRegion == UIEnums.Region.NorthAmerica then
 		UIButtons.ChangeText( SCUI.name_to_id[ "LegalText" ], UIText.CMN_LEGAL_US )
@@ -317,7 +317,12 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 	
 	-- Handle each stage
 	if GUI.current_stage == GUI.STAGE_PRESS_START then
-		if (message == UIEnums.Message.MenuNext or message == UIEnums.Message.ButtonStart) and arg2 == true and UIScreen.IsContextActive( UIEnums.Context.LoadSave ) == false then
+		-- [Blur2PC] retail Blur PC (Blur.exe 1.2 bytecode, T146): back asks to quit the game, and only
+		-- MenuNext continues. Esc sends both MenuBack and ButtonStart on PC, so the snapshot's ButtonStart
+		-- test went forward on Esc.
+		if message == UIEnums.Message.MenuBack then
+			SetupCustomPopup( UIEnums.CustomPopups.KillApplication )
+		elseif message == UIEnums.Message.MenuNext and UIScreen.IsContextActive( UIEnums.Context.LoadSave ) == false then
 			UISystem.PlaySound( UIEnums.SoundEffect.Start )
 			UISystem.PlaySound( UIEnums.SoundEffect.GraphicStartFlyForward )
 			
@@ -333,6 +338,10 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 			
 			Amax.ChangeUiCamera( "Start1b", 8, 0 )
 
+			-- [Blur2PC] retail Blur PC: keyboard and mouse (LastInputDevice 0 and 1) load pad 0's profile
+			if UIGlobals.LastInputDevice < 2 then
+				arg1 = 0
+			end
 			StartProfileLoad( arg1 )
 
 			GUI.current_stage = GUI.STAGE_LOADING
@@ -381,7 +390,7 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 
 			end	
 			
-		elseif (message == UIEnums.Message.MenuNext or message == UIEnums.Message.ButtonStart) and arg2 == true then
+		elseif message == UIEnums.Message.MenuNext and arg2 == true then	-- [Blur2PC] retail Blur PC: no ButtonStart (T146)
 			if UIGlobals.ProfileState[ arg1 ] == UIEnums.Profile.PreLoad then
 				SetupCustomPopup( UIEnums.CustomPopups.ProfilePreLoad )
 				return
@@ -426,7 +435,7 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 			Amax.ChangeUiCamera( "Start1a", 1, 0 )
 			
 			GUI.current_stage = GUI.STAGE_PRESS_START
-			SetupInfoLine()
+			SetupInfoLine( UIText.INFO_A_CONTINUE, UIText.INFO_QUIT_B )	-- [Blur2PC] retail Blur PC (T146)
 			PlaySfxBack()
 			UISystem.PlaySound( UIEnums.SoundEffect.GraphicStartFlyBackward )
 			

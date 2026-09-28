@@ -656,6 +656,25 @@ static S32 SystemMessageNotSignedIn( lua_State* pState )
 	return 0;
 }
 
+// [Blur2PC] retail Blur PC (Blur.exe 1.2, T146): quit-to-desktop request. Name ours (no symbols); retail
+// keeps it at 0x01162f9c. Set by UISystem.SystemQuitGame, read by C_UiManager::Process.
+bool g_Blur2PCSystemQuitGame = false;
+
+// [Blur2PC] retail 0x00d5fda0: UISystem.SystemQuitGame( bool ), called by the KillApplication popup
+static int SystemQuitGame( lua_State* pState )
+{
+	if( !lua_isboolean( pState, 1 ) )
+	{
+		g_pUILua->StackDump( pState, "Quit Game - incorrect arguments" );
+		return 0;
+	}
+
+	if( lua_toboolean( pState, 1 ) )
+		g_Blur2PCSystemQuitGame = true;
+
+	return 0;
+}
+
 static int SystemTicks( lua_State* pState )
 {
 	double time = Time::GetPerformanceCounter() / 1000000.0;
@@ -697,6 +716,8 @@ static const luaL_reg system_lib[] = {
 	{"SystemMessageNotSignedIn",	SystemMessageNotSignedIn },
 
 	{"Ticks",						SystemTicks },
+
+	{"SystemQuitGame",				SystemQuitGame },	// [Blur2PC] retail Blur PC (T146)
 
 	{"Render",				Render },
 

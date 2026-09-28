@@ -246,6 +246,9 @@ public:
 
 	void								SetSchedulerGroup( int iGroup );
 	void								DeferredUpdate();
+
+	//! [Blur2PC] retail Blur PC (T146): UISystem.SystemQuitGame asked to close the game (C_GameApp::OnUpdate).
+	bool								Blur2PCQuitGameRequested() const						{ return m_Blur2PCQuitGame; }
 	void								LoadFrontendShapes();
 	void								FreeFrontendShapes();
 	void								FreeCommonShapes();
@@ -304,6 +307,7 @@ private:
 	C_TextureManager::C_ResourceIndex	m_Ps3InstallBundle;
 	C_TextureManager::C_ResourceIndex	m_SwitchBundle;
 	int									m_SchedulerGroup;
+	bool								m_Blur2PCQuitGame;	// [Blur2PC] retail Blur PC: C_UiManager + 0x124 (T146)
 
 	Btl::Vector< F32, Btl::VectorParameters_Array< 8 > >	m_AudioEq;
 

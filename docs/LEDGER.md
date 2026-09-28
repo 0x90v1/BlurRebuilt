@@ -498,3 +498,15 @@ Verified: fxc disassembly of both rebuilt shaders (ps_2_0 and ps_3_0) matches re
 Blocked: none.
 Next: none. User accepted; committed on blur1pc and merged up (blur1multi, blurx, blur1pcdx11).
 Files touched: code/mercury/library/graphics/effect/include/effect/shaders/postprocess/motionblur/psMotionBlur{DownsampleStencil,CopyStencil}.psh; docs/{BOARD,analysis,LEDGER}.md.
+
+## 2026-09-28 00:20 — session Claude title-quit — T146
+Did: user report: Esc on the title screen went forward; Esc on the Single/Multi selection flew the camera back and forth and returned to the selection; retail offers to quit on Esc / B. Cause: Esc is bound to Cancel and Start on PC, and the snapshot's StartScreen.lua treats ButtonStart as continue. Ported retail's StartScreen.lua stage handling (MenuBack -> KillApplication popup at the title, MenuNext only, retail info lines, LastInputDevice pad 0), the KillApplication popup, `UISystem.SystemQuitGame` (retail 0x00d5fda0), the latch in `C_UiManager::Process` (0x00c373b0) and the WM_CLOSE in `C_GameApp::OnUpdate` (0x0042e930 -> 0x008498d0). `quickrace.lua`'s `Blur2PC_PressStart` sends MenuNext. Facts: analysis.md "Quitting from the start screen".
+Verified: Release build 0 errors. Queued minimised run (`_work/run/scripts_t146/quit.txt`, retail PC data): Esc at the title opens the popup (type 204, stage 0; `popup.png`: "ALERT / Are you sure you want to quit?", Yes / No, info line Continue / Quit); Esc = No closes it and stays on the title; Enter reaches the mode select; Esc there returns to the title and it is still there 3.5 s later (`back.png`); Esc then Enter = Yes and the game exits with code 0 within 2 s (the script's 40 s fallback never ran). `pressstart.txt`: the automation's press-start path still reaches the mode select. Not checked: a physical gamepad's B (it sends MenuBack like Esc). Delivered `Blur1PC/_work/run/Amax.{exe,pdb}` 00:05; that build also contains other sessions' uncommitted edits in this worktree (AI_Amax.cpp, PCD3D9Device.cpp).
+Blocked: none.
+Next: user check on the title screen (Esc / B, and Esc on Single/Multi); on confirmation commit the T146 files on blur1pc and merge up (blur1multi, blurx, blur1pcdx11).
+Files touched: see the T146 board row; code/tools/blur2pc_automation/quickrace.lua; docs/{BOARD,analysis,LEDGER}.md; scratch _work/ghidra/{quitgame_*,quit_*,uiproc_callers.txt,uilayer_update.c,disp124.txt,scripts_quit/}, _work/run/scripts_t146.
+
+## 2026-09-28 00:40 — session Claude title-quit — T146 committed
+Did: user asked to commit. Corrected the analysis note on the mouse: retail's script tests `MouseClickInBox`, but the mouse does nothing on retail's start screen (user), so there is nothing to port. Committed the T146 files on blur1pc and merged up (blur1multi, blurx, blur1pcdx11).
+Blocked: none.
+Next: none for T146.

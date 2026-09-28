@@ -5905,6 +5905,23 @@ CustomPopup =
 								OptionsGraphics_RevertSettings()
 							end,
 		},
+
+		-- [Blur2PC] retail Blur PC (ported from the Blur.exe 1.2 bytecode, T146): Esc / B on the start
+		-- screen asks to quit; Yes closes the game window.
+		[UIEnums.CustomPopups.KillApplication] =
+		{
+			darken			= true,
+
+			title_text_ID	= UIText.POP_TITLE_ALERT,
+			message_text_ID	= UIText.POP_QUIT_MSG,
+
+			next_text_ID	= UIText.INFO_YES_A,
+			back_text_ID	= UIText.INFO_NO_B,
+
+			next_CB			= function()
+								UISystem.SystemQuitGame( true )
+							end,
+		},
 	},
 }
 
