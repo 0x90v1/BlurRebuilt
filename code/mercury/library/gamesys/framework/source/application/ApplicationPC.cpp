@@ -1361,6 +1361,12 @@ Display::E_Multisample C_Application::GetDisplayWindowMultisample() const
 	return m_pDisplayDevice->GetWindow(0)->m_Multisample;
 }
 
+// [Blur2PC] retail 0x008498d0 (name ours): close the game window, the same path as Alt+F4 (T146)
+void C_Application::Blur2PCCloseWindow()
+{
+	SendMessageA(m_Window.m_hWnd, WM_CLOSE, 0, 0);
+}
+
 // [Blur2PC] retail 0x0084a390: resize the display windows from the application's device parameters; their
 // targets follow at the next device reset (T089)
 void C_Application::ResizeDisplayWindows()

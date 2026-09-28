@@ -24,9 +24,9 @@ function Blur2PC_PressStartReady()
 		and UIScreen.IsPopupActive() == false
 end
 
--- presses start on pad 0 the way StartScreen.lua's FrameUpdate does for a pending game invite
+-- presses Confirm on pad 0 (retail's start screen continues on MenuNext only, T146)
 function Blur2PC_PressStart()
-	ContextTable[ UIEnums.Context.Main ].MessageUpdate( UIEnums.Message.ButtonStart, 0, true )
+	ContextTable[ UIEnums.Context.Main ].MessageUpdate( UIEnums.Message.MenuNext, 0, true )
 end
 
 -- true when the start screen has finished loading the profile and waits for the mode select

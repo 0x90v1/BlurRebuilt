@@ -374,6 +374,7 @@ UIEnums =
 		FriendDemandRemovedFriend				= 201,
 		FriendDemandNotFriend					= 202,
 		ConfirmVideoSettings					= 203,	-- [Blur2PC] retail Blur PC graphics options (retail value 225)
+		KillApplication							= 204,	-- [Blur2PC] retail Blur PC: quit to desktop from the start screen (T146)
 	},
 	
 	-- Racebook message system types

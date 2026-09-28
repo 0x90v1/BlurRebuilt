@@ -116,6 +116,9 @@ public:
 	//! Writes %APPDATA%\Bizarre Creations\<name>\settings.xml (retail 0x0084a050).
 	void SaveSettings();
 
+	//! [Blur2PC] retail 0x008498d0 (name ours): sends WM_CLOSE to the game window (T146).
+	void Blur2PCCloseWindow();
+
 protected:
 
 	//! Platform specific application initialise.

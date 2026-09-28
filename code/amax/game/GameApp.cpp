@@ -823,6 +823,15 @@ void C_GameApp::OnUpdate()
 		Advertising::Update(false);
 	}
 
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC (C_GameApp::OnUpdate, 0x0042e930, T146): the start screen's quit popup
+	// (UISystem.SystemQuitGame) closes the window
+	if (m_pUiLayer && m_pUiLayer->GetUiManager() && m_pUiLayer->GetUiManager()->Blur2PCQuitGameRequested())
+	{
+		Blur2PCCloseWindow();
+	}
+#endif
+
 #ifndef CFG_GOLD
 	if (g_DebugCrashGame)
 		*((DWORD*)0) = NULL;

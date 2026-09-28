@@ -628,6 +628,8 @@ LUALIB_API int luaopen_friend_demand(lua_State *pState);
 namespace UI 
 {
 
+extern bool g_Blur2PCSystemQuitGame;	// [Blur2PC] Lua_System.cpp (T146)
+
 // global colour repository - TODO
 //C_UiColourRepository gUIColourRepository;
 
@@ -743,6 +745,7 @@ public:
 // ---
 C_UiManager::C_UiManager( const U32 sInitParam ) : 
 	m_InitParam( (E_LaunchMode)sInitParam ),
+	m_Blur2PCQuitGame( false ),	// [Blur2PC] T146
 	m_bNormalNextButtonMapping( true ),
 	m_fInviteShowTime( 3.0f ),
 	m_fInviteTimer( 0.0f ),
@@ -2556,6 +2559,11 @@ void C_UiManager::Process( const Maths::C_TimeS& time )
 		Scheduler::AddTask(UiUpdateModule, this, 0, m_SchedulerGroup);
 
 	Game::C_FriendChallenges::Instance().Update();
+
+	// [Blur2PC] retail Blur PC (C_UiManager::Process, 0x00c373b0, T146): a UISystem.SystemQuitGame request
+	// is latched here and acted on by C_GameApp::OnUpdate
+	if( g_Blur2PCSystemQuitGame )
+		m_Blur2PCQuitGame = true;
 }
 
 #ifdef PLATFORM_PS3
