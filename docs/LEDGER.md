@@ -491,3 +491,10 @@ Files touched: see the T144 board row; docs/{BOARD,analysis,LEDGER}.md; scratch 
 Did: user confirmed the audio works; committed the T144 files on blur1pc and merged up.
 Blocked: none.
 Next: none for T144.
+
+## 2026-09-27 23:50 — session Claude mblur — T145
+Did: user report: the player car gets motion blur as it gains speed. Reproduced on Blur1PC (debug-menu race, throttle, 99 mph: rear bumper and taillights smeared). A temporary dump of the display window's mask texture showed the car in RGB (255) with alpha 0 everywhere; `psMotionBlurDownsampleStencil` read `.a` on PC, so the reduced motion-blur pass (running on PC since T107) masked nothing. Retail Blur.exe 1.2's compiled shader reads red (`mov oC0.w, r1.x`, file offset 0xc77c50/0xc77d74); retail's mask pass and `SetBlendMode`/`InvalidateState` match ours (no alpha write there either). Ported the red read in `psMotionBlurDownsampleStencil` and `abs(red)` in `psMotionBlurCopyStencil` (retail 0xc6f62c/0xc6f728) under `BLUR2PC`. Facts in analysis.md (T145).
+Verified: fxc disassembly of both rebuilt shaders (ps_2_0 and ps_3_0) matches retail's instruction for instruction. Release build 0 errors. Same scripted run (`_work/run/scripts_mblur/drive.txt`, queued, minimised): at 99 mph the car is sharp (plate readable) with the road and barriers still blurred (`fast.png`; before: `fast_before.png`). Delivered `Blur1PC/_work/run/Amax.{exe,pdb}` 23:44. Diagnostic code removed; `PCD3D9Device.cpp` is byte-identical to HEAD.
+Blocked: none.
+Next: none. User accepted; committed on blur1pc and merged up (blur1multi, blurx, blur1pcdx11).
+Files touched: code/mercury/library/graphics/effect/include/effect/shaders/postprocess/motionblur/psMotionBlur{DownsampleStencil,CopyStencil}.psh; docs/{BOARD,analysis,LEDGER}.md.
