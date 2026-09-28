@@ -96,6 +96,7 @@ set_target_properties(blur_shims PROPERTIES FOLDER "vendor")
 set(BLUR_SYSTEM_LIBS
     secur32 crypt32 ws2_32 dbghelp psapi winmm
     d3d9 dxguid dinput8 xinput
+    dsound    # [Blur2PC] T144: retail PC's audio output engine (engine_pc.cpp) is DirectSound
     ${BLUR_D3DX9_LIB}
     ${BLUR_OPENAL_LIB}
     blur_shims

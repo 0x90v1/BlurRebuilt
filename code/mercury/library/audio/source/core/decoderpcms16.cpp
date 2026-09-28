@@ -813,6 +813,9 @@ bool Audio::Core::MonoPCMS16Decoder::FillBuffer(F32* afData, const ProcessInfo& 
 
 	//  get subframe pitch
 	F32 fPitch = PCMS16Decoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+	fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 
 #ifdef PLATFORM_SPU
 	PrepareDmaTransfer(info.decoderDataInfo);
@@ -1092,6 +1095,9 @@ void Audio::Core::MonoPCMS16Decoder::SkipBuffer(const ProcessInfo& info)
 
     //  get subframe pitch
     F32 fPitch = PCMS16Decoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+    fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 
 	//	recalc filter coeffs, if req
 	PCMS16Decoder::UpdateFilterCoeffs(fPitch, info);
@@ -1174,6 +1180,9 @@ bool Audio::Core::StereoPCMS16Decoder::FillBuffer(F32* afData, const ProcessInfo
 
 	//  get subframe pitch
 	F32 fPitch = PCMS16Decoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+	fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 
 	//	recalc filter coeffs, if req
 	PCMS16Decoder::UpdateFilterCoeffs(fPitch, info);
@@ -1339,6 +1348,9 @@ void Audio::Core::StereoPCMS16Decoder::SkipBuffer(const ProcessInfo& info)
 
     //  get subframe pitch
     F32 fPitch = PCMS16Decoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+    fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 
 	//	recalc filter coeffs, if req
 	PCMS16Decoder::UpdateFilterCoeffs(fPitch, info);

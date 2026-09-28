@@ -51,13 +51,15 @@ const char* saveGameFilename = "debug_save.amax";
 
 #ifdef PLATFORM_PC
 // [Blur2PC] 1374: the profile options carry retail Blur PC's keyboard options (T103). 1373 saves still load.
-const int saveGameVersion = 1374; // Increment if anything saved has changed.
-static const int kPreviousSaveGameVersion = 1373;
+// [Blur2PC] 1375: and retail's audio quality byte (T144). 1373 and 1374 saves still load.
+const int saveGameVersion = 1375; // Increment if anything saved has changed.
+static const int kPreviousSaveGameVersion = 1374;
+static const int kOlderSaveGameVersion = 1373;
 static int s_LoadingSaveGameVersion = saveGameVersion;
 
 static bool IsLoadableSaveGameVersion( const int version )
 {
-	return version == saveGameVersion || version == kPreviousSaveGameVersion;
+	return version == saveGameVersion || version == kPreviousSaveGameVersion || version == kOlderSaveGameVersion;
 }
 
 const int GetLoadingSaveGameVersion()

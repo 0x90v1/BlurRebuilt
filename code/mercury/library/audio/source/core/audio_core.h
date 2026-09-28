@@ -157,11 +157,18 @@ namespace Audio
 	{
 #if defined(PLATFORM_PS3)
         const U32 uSampleRate = 48000;
+#elif defined(PLATFORM_PC)
+		// [Blur2PC] T144: retail Blur PC mixes at 24000 Hz in 128-sample frames, whatever the output rate:
+		// its sample-rate globals (0x0113f7ac/b0/b4/b8) are only ever set from 24000 (0x0053f660, 0x0053f6d0),
+		// its frame-length globals hold 128 and 1/128 (0x01028c40/44), and every renderer buffer is 128
+		// samples per channel (0x020c7299, 0x00560000). The output rate reaches the mix only through
+		// fOutputRateRatio below.
+        const U32 uSampleRate = 24000;
 #else
         const U32 uSampleRate = 48000;
 #endif
 #if defined(PLATFORM_PC)
-        const U32 uFrameLength = 512;
+        const U32 uFrameLength = 128;	// [Blur2PC] T144: retail PC (was 512)
 #else
         const U32 uFrameLength = 256;
 #endif //PLATFORM_PC
@@ -173,6 +180,17 @@ namespace Audio
 		extern const F32 fRcpFrameLength;
 
 		extern const F32 fRcpSampleRate;
+
+#if defined(PLATFORM_PC)
+		// [Blur2PC] T144: retail's uSampleRate / output sample rate (0x01028c3c). The decoders scale each voice's
+		// pitch by it (retail 0x00541f40, 0x00542190, 0x00542300, 0x005425a0, 0x00542a20, 0x0054337d,
+		// 0x00543520, 0x005439a0), so voices keep their pitch at any output rate.
+		extern F32 fOutputRateRatio;
+		//! [Blur2PC name] 0x0053f660: back to 1 (called when the output engine is created).
+		void ResetOutputSampleRate();
+		//! [Blur2PC name] 0x0053f6d0
+		void SetOutputSampleRate(U32 uOutputSampleRate);
+#endif
 
         extern U32 uFrameNum;
 

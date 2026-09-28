@@ -131,6 +131,11 @@ private:
 
 	bool	m_showingOverlay;
 	bool	m_disableSfxFades;
+#ifdef PLATFORM_PC
+	// [Blur2PC] T144: retail PC +0xa8c / +0xa90, the audio quality asked for and the one last applied
+	U32		m_uAudioQuality;
+	U32		m_uAppliedAudioQuality;
+#endif
 };
 
 #endif // MASTERSUBSYSTEM_H

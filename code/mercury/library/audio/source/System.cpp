@@ -23,6 +23,9 @@
 #ifdef _XBOX360
 #include <xtl.h>
 #endif // _XBOX360
+#ifdef PLATFORM_PC
+#include "core/engine_pc.h"	// [Blur2PC] T144
+#endif
 
 #ifdef AUDIO_OPTIMIZE_OFF
 #pragma optimize ("", off) // AUDIO_OPTIMIZE_OFF
@@ -266,6 +269,17 @@ void Audio::System::SetReverb(CellMSFXI3DL2Params* pSettings, U32 uIndex)
 //
 //	m_SystemState.m_fSpeakerDistance = m_fSpeakerDistances[ eMode ];
 //}
+
+#ifdef PLATFORM_PC
+////////////////////////////////////////////////////////////////////////////////
+//	SetOutputSampleRate
+////////////////////////////////////////////////////////////////////////////////
+// [Blur2PC] T144: retail PC 0x0053aad0
+void Audio::System::SetOutputSampleRate( U32 uSampleRate )
+{
+	Audio::Core::Engine::Instance().SetOutputSampleRate( uSampleRate );
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 //	SetSpeakerOption
@@ -608,7 +622,13 @@ Audio::System::System(Audio::ISystem::InitParams* pInitParams) : m_bPaused(false
 	m_ObjectManager.Init(pInitParams->uTempFrameBufferNumBytes, pInitParams->eDistributedUpdate, pInitParams->hPolicy, pInitParams->hGroup, pInitParams->hPolicyB/*, pInitParams->uInstanceStateDataBufferSize*/);
 
 	MEMORY_TRACKER_PUSH("Audio.SendQueue");
+#ifdef PLATFORM_PC
+	// [Blur2PC] T144: retail PC's System constructor (0x0054f9c0) passes the size as given; with retail's
+	// 128-sample frame QUEUE_SIZE_MULTIPLIER would be 0
+	m_Queue.Init(pInitParams->uMessageQueueNumBytes);
+#else
 	m_Queue.Init(pInitParams->uMessageQueueNumBytes * QUEUE_SIZE_MULTIPLIER);
+#endif
 	MEMORY_TRACKER_POP("Audio.SendQueue");
 
 	MEMORY_TRACKER_PUSH("Audio.ReceiveQueue");

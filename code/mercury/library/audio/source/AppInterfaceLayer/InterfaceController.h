@@ -187,6 +187,10 @@ namespace Audio
 		void 											SetSystemSpeakerDistance( U32 eOption, F32 fDistance );
 		void 											SetSystemSpeakerAngles( U32 eMode, F32 fFrontLeft, F32 fFrontRight, F32 fSurroundLeft = 0.f, F32 fSurroundRight = 0.f, F32 fBackLeft = 0.f, F32 fBackRight = 0.f );
 		void 											SetSystemSpeakerOption( U32 eOption );
+#ifdef PLATFORM_PC
+		//! [Blur2PC] T144: retail PC 0x00535ab0
+		void 											SetSystemOutputSampleRate( U32 uSampleRate );
+#endif
 
 	
 

@@ -634,6 +634,9 @@ bool Audio::Core::MonoADPCM4bitDecoder::FillBuffer(F32* afData, const ProcessInf
 
 	//  get subframe pitch
     F32 fPitch = ADPCM4bitDecoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+    fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 	//	recalc filter coeffs, if req
 //	ADPCM4bitDecoder::UpdateFilterCoeffs(fPitch, info);
 
@@ -765,6 +768,9 @@ void Audio::Core::MonoADPCM4bitDecoder::SkipBuffer(const ProcessInfo& info)
 #endif
 	//  get subframe pitch
     F32 fPitch = ADPCM4bitDecoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+    fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 
 	if(!m_baseState.bPaused)
 	{
@@ -846,6 +852,9 @@ bool Audio::Core::StereoADPCM4bitDecoder::FillBuffer(F32* afData, const ProcessI
 	
 	//  get subframe pitch
     F32 fPitch = ADPCM4bitDecoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+    fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 	//	recalc filter coeffs, if req
 //	ADPCM4bitDecoder::UpdateFilterCoeffs(fPitch, info);
 
@@ -982,6 +991,9 @@ void Audio::Core::StereoADPCM4bitDecoder::SkipBuffer(const ProcessInfo& info)
 #endif
 	//  get subframe pitch
     F32 fPitch = ADPCM4bitDecoder::GetSubFramePitch(info);
+#ifdef PLATFORM_PC
+    fPitch *= fOutputRateRatio;	// [Blur2PC] T144: retail scales by the output rate (see audio_core.h)
+#endif
 
 	if(!m_baseState.bPaused)
 	{

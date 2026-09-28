@@ -41,6 +41,21 @@ namespace Audio
         const F32 fFrameLength = (F32)uFrameLength;
 		const F32 fRcpFrameLength = 1.f / F32( uFrameLength );
 		const F32 fRcpSampleRate = 1.f / F32( uSampleRate );
+
+#if defined(PLATFORM_PC)
+		// [Blur2PC] T144: retail 0x01028c3c and its setters 0x0053f660 / 0x0053f6d0 (see audio_core.h)
+		F32 fOutputRateRatio = 1.f;
+
+		void ResetOutputSampleRate()
+		{
+			fOutputRateRatio = 1.f;
+		}
+
+		void SetOutputSampleRate(U32 uOutputSampleRate)
+		{
+			fOutputRateRatio = fSampleRate / (F32)uOutputSampleRate;
+		}
+#endif
 	} // namespace Core
 } // namespace Audio
 

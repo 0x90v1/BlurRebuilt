@@ -226,6 +226,9 @@ void ProfileOptions::Init()
 	mDefaultAutoPickup = 0;
 	mDefaultControlIndex = 0;
 	mDefaultCameraType = 0;
+#ifdef PLATFORM_PC
+	mDefaultAudioQuality = 0;			// [Blur2PC] T144: retail ProfileOptions::Init (0x00b9e790)
+#endif
 	mDefaultAudioSfxVolume = 7;			// Scale 0 -> 9
 	mDefaultAudioMusicType = 0;			// 0:Composed Soundtrack, 1:Licensed Soundtrack
 	mDefaultAudioMusicVolume = 7;			// Scale 0 -> 9
@@ -259,6 +262,9 @@ void ProfileOptions::Init()
 	mAutoPickup				= mDefaultAutoPickup;
 	mControlIndex			= mDefaultControlIndex;
 	mCameraType				= mDefaultCameraType;
+#ifdef PLATFORM_PC
+	mAudioQuality			= mDefaultAudioQuality;	// [Blur2PC] T144
+#endif
 	mAudioSfxVolume			= mDefaultAudioSfxVolume;
 	mAudioMusicType			= mDefaultAudioMusicType;
 	mAudioMusicVolume		= mDefaultAudioMusicVolume;
@@ -314,6 +320,29 @@ static const C_KeyName kKeyNames[] =
 	{ 123, "CMN_KEYS_RIGHT_ARROW" }, { 124, "CMN_KEYS_END" }, { 125, "CMN_KEYS_DOWN_ARROW" }, { 126, "CMN_KEYS_PAGE_DOWN" },
 	{ 127, "CMN_KEYS_INSERT" }, { 128, "CMN_KEYS_DELETE" },
 };
+
+// [Blur2PC] T144: retail's layout (0x00b9e790, 0x00b9e8e0) puts the quality bytes in what was padding, so
+// everything else keeps its offset
+static_assert( offsetof(ProfileOptions, mAudioQuality) == 0x04, "PROFILE_OPTIONS_QUALITY_OFFSET" );
+static_assert( offsetof(ProfileOptions, mGammaIndex) == 0x0f, "PROFILE_OPTIONS_GAMMA_OFFSET" );
+static_assert( offsetof(ProfileOptions, mAudioSpeakerAngleFL) == 0x10, "PROFILE_OPTIONS_SPEAKER_OFFSET" );
+static_assert( offsetof(ProfileOptions, mDefaultAudioQuality) == 0x24, "PROFILE_OPTIONS_DEFAULT_QUALITY_OFFSET" );
+static_assert( offsetof(ProfileOptions, mDefaultAudioSpeakerAngleFL) == 0x30, "PROFILE_OPTIONS_DEFAULT_SPEAKER_OFFSET" );
+
+// [Blur2PC] T144: a 1373/1374 save has the bytes from the SFX volume to the gamma index one place lower, in
+// both the options and their defaults; move them up and give quality its default
+void ProfileOptions::InsertAudioQualityIntoLegacyOptions()
+{
+	U8* pu8Options = (U8*)this;
+
+	memmove(pu8Options + offsetof(ProfileOptions, mAudioSfxVolume), pu8Options + offsetof(ProfileOptions, mAudioQuality),
+		offsetof(ProfileOptions, mGammaIndex) - offsetof(ProfileOptions, mAudioQuality));
+	memmove(pu8Options + offsetof(ProfileOptions, mDefaultAudioSfxVolume), pu8Options + offsetof(ProfileOptions, mDefaultAudioQuality),
+		offsetof(ProfileOptions, mDefaultGammaIndex) - offsetof(ProfileOptions, mDefaultAudioQuality));
+
+	mDefaultAudioQuality = 0;
+	mAudioQuality = mDefaultAudioQuality;
+}
 
 // Retail ProfileOptions::Init (0x00b9e790): not custom, the custom keys start as layout 0
 void ProfileOptions::InitKeyboard()
@@ -406,6 +435,9 @@ void ProfileOptions::SendToLua( lua_State* pState )
 
 	Lua::AddDataMember(pState,"ctrl_index", mControlIndex );
 	Lua::AddDataMember(pState,"camera_index", mCameraType );
+#ifdef PLATFORM_PC
+	Lua::AddDataMember(pState,"quality", mAudioQuality );	// [Blur2PC] T144: retail 0x00b9e8e0
+#endif
 
 	Lua::AddDataMember(pState,"fx_vol", mAudioSfxVolume );
 	Lua::AddDataMember(pState,"music_type", mAudioMusicType );
@@ -464,6 +496,9 @@ void ProfileOptions::GetFromLua( lua_State* pState )
 
 	Lua::GetDataMember(pState,"ctrl_index", mControlIndex, true );
 	Lua::GetDataMember(pState,"camera_index", mCameraType, true );
+#ifdef PLATFORM_PC
+	Lua::GetDataMember(pState,"quality", mAudioQuality, true );	// [Blur2PC] T144: retail 0x00b9eae0
+#endif
 
 	Lua::GetDataMember(pState,"fx_vol", mAudioSfxVolume, true );
 	Lua::GetDataMember(pState,"music_type", mAudioMusicType, true );
@@ -494,6 +529,9 @@ void ProfileOptions::SendDefaultsToLua( lua_State* pState )
 
 	Lua::AddDataMember(pState,"ctrl_index", mDefaultControlIndex );
 	Lua::AddDataMember(pState,"camera_index", mDefaultCameraType );
+#ifdef PLATFORM_PC
+	Lua::AddDataMember(pState,"quality", mDefaultAudioQuality );	// [Blur2PC] T144: retail 0x00b9ed00
+#endif
 
 	Lua::AddDataMember(pState,"fx_vol", mDefaultAudioSfxVolume );
 	Lua::AddDataMember(pState,"music_type", mDefaultAudioMusicType );
@@ -671,6 +709,11 @@ void C_GameProfile::Deserialise( Sys::BinaryDeserialiserAutoEndian& stream )
 	else
 #endif
 	in.Read( &mOptions, sizeof(ProfileOptions) );
+#ifdef PLATFORM_PC
+	// [Blur2PC] T144: saves before 1375 have no audio quality byte
+	if( GetLoadingSaveGameVersion() == 1373 || GetLoadingSaveGameVersion() == 1374 )
+		mOptions.InsertAudioQualityIntoLegacyOptions();
+#endif
 
 	int numHistory;
 	in >> numHistory;

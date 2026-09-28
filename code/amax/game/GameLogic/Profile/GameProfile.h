@@ -63,6 +63,8 @@ public:
 	void SendKeyboardToLua( lua_State* pState );
 	void GetKeyboardFromLua( lua_State* pState );
 	void InitKeyboard();
+	//! [Blur2PC] T144: fills the audio quality bytes of options read from a 1373/1374 save (see GameProfile.cpp)
+	void InsertAudioQualityIntoLegacyOptions();
 #endif
 
 	U8 mGameDifficulty;
@@ -71,6 +73,9 @@ public:
 	U8 mAutoPickup;
 	U8 mControlIndex;
 	U8 mCameraType;
+#ifdef PLATFORM_PC
+	U8 mAudioQuality;		// [Blur2PC] T144: retail PC +0x04, "quality" (0 low, 1 medium, 2 high)
+#endif
 	U8 mAudioSfxVolume;
 	U8 mAudioMusicType;
 	U8 mAudioMusicVolume;
@@ -94,6 +99,9 @@ public:
 	U8 mDefaultAutoPickup;
 	U8 mDefaultControlIndex;
 	U8 mDefaultCameraType;
+#ifdef PLATFORM_PC
+	U8 mDefaultAudioQuality;	// [Blur2PC] T144: retail PC +0x24
+#endif
 	U8 mDefaultAudioSfxVolume;
 	U8 mDefaultAudioMusicType;
 	U8 mDefaultAudioMusicVolume;

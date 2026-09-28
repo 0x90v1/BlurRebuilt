@@ -99,6 +99,9 @@ extern Debug::Bool g_debugSuperSpecialCutSceneVideoMode;
 namespace Audio
 {
 	extern bool g_bQuitAllTasks;
+#ifdef PLATFORM_PC
+	void ShutdownOutputEngine();	// [Blur2PC] T144 (engine_pc.cpp)
+#endif
 };
 
 Debug::Bool g_DebugUiBloomUpdateEnabled( "Test.BloomUpdateEnabled", true, Debug::Persist() );
@@ -684,6 +687,14 @@ void C_GameApp::OnShutdown()
 	SAFE_DELETE_PTR(m_pParticleTextures)
 
 	DestroyBootLayer();
+
+#ifdef PLATFORM_PC
+	// [Blur2PC] T144: retail PC's OnShutdown (0x0042f620) stops the audio output engine, tells the audio
+	// threads to quit and waits 750 ms before destroying the layers
+	Audio::ShutdownOutputEngine();
+	Audio::g_bQuitAllTasks = true;
+	Sleep(750);
+#endif
 
 	if(m_pSystemLayer)
 	{
