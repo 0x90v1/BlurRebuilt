@@ -107,7 +107,8 @@ namespace Actors
 			Game::Actors::C_VehicleLogicActor *pLogicActor = mpRaceLogicLayer->GetLogicVehicleActor(vehiclePosition.mVehicleIndex);
 			if(pLogicActor)
 			{
-				if(pLogicActor->GetIsInLastGaspMode() || !pLogicActor->CanHavePickUp(mPickupType, true))
+				// [Blur2PC] retail Blur PC (0x00b6e3d0): CanHavePickUp checks the free slots too
+				if(pLogicActor->GetIsInLastGaspMode() || !pLogicActor->CanHavePickUp(mPickupType))
 					return false;
 			}
 		}
