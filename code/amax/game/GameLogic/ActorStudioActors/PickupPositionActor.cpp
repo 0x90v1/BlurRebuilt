@@ -1226,9 +1226,8 @@ namespace Actors
 	{
 		Game::Actors::C_VehicleLogicActor *pLogicActor	= mpRaceLogicLayer->GetLogicVehicleActor(vehiclePosition.mVehicleIndex);
 
-		if(!pLogicActor->CanHavePickUp(mPickupType, false))
-			vehiclePosition.mAwardSfxOnly = true;
-
+		// [Blur2PC] retail Blur PC (0x00b52e10) awards without checking the slots again: CheckPickup has
+		// already refused a full carousel
 		AwardPickup(vehiclePosition, vehiclePosition.mAwardSfxOnly);		
 		SetRespawnTimer();
 
@@ -1340,7 +1339,9 @@ namespace Actors
 			}
 			else
 			{
-				bool canHave = g_debugOnlyDestroyPickUpIfCanHave && !pLogicActor->CanHavePickUp(mPickupType, true);
+				// [Blur2PC] retail Blur PC (0x00b51210): a full carousel leaves the pickup where it is, with
+				// no sound or effect (CanHavePickUp checks the free slots)
+				bool canHave = g_debugOnlyDestroyPickUpIfCanHave && !pLogicActor->CanHavePickUp(mPickupType);
 
 				if(!canHave)
 					pickedUp = true;

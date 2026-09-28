@@ -1584,9 +1584,11 @@ void C_VehicleLogicActor::CalcMaxHealth()
 
 // -------------------------------------------------------------------------------------------------
 
-bool C_VehicleLogicActor::CanHavePickUp(E_PICKUP_TYPE type, bool ignoreSlots) const
+// [Blur2PC] retail Blur PC (0x004390b0 -> 0x020c08f3) has no ignoreSlots argument: a full carousel always
+// refuses the pickup
+bool C_VehicleLogicActor::CanHavePickUp(E_PICKUP_TYPE type) const
 {
-	if(mPickupInfo.mPickupStore.Size() >= Game::C_Game::GetInstance()->GetLevelState().mCars[mVehicleIndex].mUpgrades.NumPickupSlots() && !ignoreSlots)
+	if(mPickupInfo.mPickupStore.Size() >= Game::C_Game::GetInstance()->GetLevelState().mCars[mVehicleIndex].mUpgrades.NumPickupSlots())
 		return false;
 
 	if(!mPickupsAllowed)

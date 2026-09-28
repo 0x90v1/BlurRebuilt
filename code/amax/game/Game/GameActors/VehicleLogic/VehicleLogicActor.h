@@ -162,7 +162,7 @@ public:
 
 	bool										GetToggledToAiControl() const	{return m_ToggledToAiControl; }
 
-	bool										CanHavePickUp(E_PICKUP_TYPE type, bool ignoreSlots) const;
+	bool										CanHavePickUp(E_PICKUP_TYPE type) const;	// [Blur2PC] retail signature (0x004390b0)
 
 	const Maths::HMat43&						GetWorldMatrix() const { return GetGraphicalActor(mVehicleIndex)->GetMatrix(); };
 	const Maths::HVec3&							GetVelocity() const { return GetGraphicalActor(mVehicleIndex)->GetVelocity(); };

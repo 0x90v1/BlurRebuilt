@@ -510,3 +510,11 @@ Files touched: see the T146 board row; code/tools/blur2pc_automation/quickrace.l
 Did: user asked to commit. Corrected the analysis note on the mouse: retail's script tests `MouseClickInBox`, but the mouse does nothing on retail's start screen (user), so there is nothing to port. Committed the T146 files on blur1pc and merged up (blur1multi, blurx, blur1pcdx11).
 Blocked: none.
 Next: none for T146.
+
+## 2026-09-28 00:45 — session Claude pickup-full — T147
+Did: user report: driving over a pickup with the carousel full played the pickup sound and animation; retail plays neither. Decompiled retail `CheckPickup` (0x00b51210), `GrantPickup` (0x00b52e10), the decoy `CheckPickup` (0x00b6e3d0) and `CanHavePickUp` (0x004390b0 -> 0x020c08f3): retail's `CanHavePickUp` has no `ignoreSlots` argument and always refuses a full carousel, and `GrantPickup` does not re-check. Ported: one-argument `CanHavePickUp`, its two callers, and `GrantPickup` without the effects-only flagging. Facts: analysis.md "Pickups with a full carousel".
+Verified: Release build 0 errors (`errsum.py`). Delivered `Blur1PC/_work/run/Amax.{exe,pdb}` 00:38. Not run in game: reaching a pickup with a full carousel needs driving, which the user does (memory: user drives handling tests).
+Blocked: none.
+User check on Blur1PC (2026-09-28): works as retail. Committed on blur1pc and merged up (blur1multi, blurx, blur1pcdx11).
+Next: none for Blur1PC.
+Files touched: code/amax/game/Game/GameActors/VehicleLogic/VehicleLogicActor.{h,cpp}, code/amax/game/GameLogic/ActorStudioActors/PickupPositionActor{,Decoy}.cpp, docs/{BOARD,analysis,LEDGER}.md; scratch _work/ghidra/t147/.
