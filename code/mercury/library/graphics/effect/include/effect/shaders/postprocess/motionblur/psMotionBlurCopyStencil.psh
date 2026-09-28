@@ -19,6 +19,9 @@ PS_OUTPUT main(PS_INPUT input)
 	
 #if defined(XB2)
 	float fStencil = tex2D(g_tDepthStencil, input.m_TexCoord).b;
+#elif defined(BLUR2PC)
+	// [Blur2PC] retail PC (Blur.exe 1.2, bytecode at file offsets 0xc6f62c ps_2_0 / 0xc6f728 ps_3_0) writes |red|
+	float fStencil = abs(tex2D(g_tDepthStencil, input.m_TexCoord).r);
 #else
 	float fStencil = tex2D(g_tDepthStencil, input.m_TexCoord).a;
 #endif
