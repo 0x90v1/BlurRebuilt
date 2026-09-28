@@ -518,3 +518,10 @@ Blocked: none.
 User check on Blur1PC (2026-09-28): works as retail. Committed on blur1pc and merged up (blur1multi, blurx, blur1pcdx11).
 Next: none for Blur1PC.
 Files touched: code/amax/game/Game/GameActors/VehicleLogic/VehicleLogicActor.{h,cpp}, code/amax/game/GameLogic/ActorStudioActors/PickupPositionActor{,Decoy}.cpp, docs/{BOARD,analysis,LEDGER}.md; scratch _work/ghidra/t147/.
+
+## 2026-09-28 10:55 — session Claude pickup-full — T147 delivery
+Did: rebuilt and delivered the phases above with the T147 merge: `Blur1Multi/_work/run/Amax.exe` 10:30 (its previous exe was from 2026-09-26 20:13, before T142-T146), `BlurX/_work/run/Amax.exe` 10:52 (the 10:25 exe predated the 10:29 merge).
+Verified: both builds 0 errors (`errsum.py`). User (2026-09-28): full-carousel behaviour correct on Blur1Multi and the pickup sound present on Blur1Multi and BlurX; BlurX still took pickups when full on the 10:25 exe, which did not contain T147.
+Blocked: none.
+Next: user check on the 10:52 BlurX exe. Blur1PCDX11 has the merge but its exe was not rebuilt.
+Files touched: docs/LEDGER.md.
