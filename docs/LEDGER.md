@@ -525,3 +525,10 @@ Verified: both builds 0 errors (`errsum.py`). User (2026-09-28): full-carousel b
 Blocked: none.
 Next: user check on the 10:52 BlurX exe. Blur1PCDX11 has the merge but its exe was not rebuilt.
 Files touched: docs/LEDGER.md.
+
+## 2026-09-29 18:35 - Codex context-efficiency - T176
+Did: applied the user-authorized context-efficiency patch to this phase worktree and the other active phase worktrees (blur1pc, blur1multi, blurx, blur1pcdx11). Reduced always-loaded AGENTS.md from about 22 KB to 6,054 bytes; preserved every original substantive section in docs/agent-reference/{layout,build,architecture,workflow}.md and added context.md. Added tools/agent_context.py for bounded task/ownership/ledger reads, saved-log excerpts, and recorded Codex token metrics. Global Codex limits: tool_output_token_limit=4000, model_auto_compact_token_limit=140000.
+Verified: all phase instruction links resolve; all original sections preserved; helper copies identical; all four context commands expose the requested task, ledger, and ownership within 8,000 characters. Exercised log neighbors/tail, missing-task rejection, malformed usage-event handling, token metrics, and small/default output caps. TOML parsed and installed Codex rendered a fresh prompt successfully. Only this patch's paths were edited; concurrent code work was not changed by this task. No game build/run required for documentation and read-only helper changes.
+Blocked: none for applying the patch. Worktree changes remain uncommitted under the project's commit-on-request rule; no branch merges or pushes performed. The untouched master/source snapshot was not modified.
+Next: reload instructions/configuration in new sessions, then compare recorded per-request tokens and same-session cumulative usage deltas for comparable completed tasks. Full logs remain on disk for any truncated excerpt. Commit these paths only when requested, preserving the existing branch ancestry and other work.
+Files touched: AGENTS.md; docs/agent-reference/; tools/agent_context.py; docs/{BOARD,LEDGER}.md. Global config: C:/Users/uKER/.codex/config.toml. Backups: C:/Users/uKER/.codex/tmp/context-efficiency-20260929-182911.
