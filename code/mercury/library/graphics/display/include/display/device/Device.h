@@ -12,7 +12,9 @@
 
 #include "Display/Device/DeviceDefines.h"
 
-#if defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11) // [Blur1PCDX11] Native game device.
+#include "Display/Device/D3D11/PCD3D11GameDevice.h"
+#elif defined(DEVICE_PS3GCM)
 #include "Display/Device/GCM/GCMDevice.h"
 #elif defined(DEVICE_PCD3D9)
 #include "Display/Device/D3D9/PCD3D9Device.h"
@@ -38,7 +40,9 @@ namespace Display
 
 class Context;
 
-#if defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11)
+class C_Device : public D3D11::C_PCD3D11GameDevice
+#elif defined(DEVICE_PS3GCM)
 class C_Device : public GCM::C_GCMDevice
 #elif defined(DEVICE_PCD3D9)
 class C_Device : public D3D9::C_PCD3D9Device

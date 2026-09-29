@@ -1,4 +1,7 @@
 #include "stdafx.h"
+#if defined(BLUR_USE_DX11)
+#include <system/debug/Blur2PCAutomation.h>
+#endif
 #include <system/time/scopedtimer.h>
 #include <OverlayFs/OverlayFs.h>
 #include <GameFs/GameHelpers.h>
@@ -1960,6 +1963,11 @@ void C_GameWorld::BeginFrame()
 		{
 			const Display::C_Texture2D* pPrepassDepth = m_pViewManager->m_pLightingPrepass->GetDepthTexture(pApp->GetSplitscreenView(viewIndex).m_ViewIndex);
 			Display::Device()->GetWindow(viewIndex)->m_pDepthTexture = g_MainPrepassEnable ? pPrepassDepth : &m_WindowDepthTexture;
+			#if defined(BLUR_USE_DX11)
+			static int dx11DepthLogCount = 0;
+			if (dx11DepthLogCount++ < 12)
+				Blur2PCAutomation::LogF("DX11 BeginFrame depth view=%d prepass=%d pPrepass=%p selected=%p", viewIndex, (int)g_MainPrepassEnable, pPrepassDepth, Display::Device()->GetWindow(viewIndex)->m_pDepthTexture);
+			#endif
 		}
 	}
 #endif

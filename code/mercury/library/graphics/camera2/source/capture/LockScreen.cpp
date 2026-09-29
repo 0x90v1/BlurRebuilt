@@ -25,7 +25,7 @@ static IDirect3DSurface9 *GetScreenSurface()
 }
 #endif
 
-#ifdef PLATFORM_PC
+#if defined(PLATFORM_PC) && !defined(BLUR_USE_DX11)
 // Get a PC screen surface and return it as a IDirect3DSurface9
 static IDirect3DSurface9 *GetScreenSurface()
 {
@@ -59,7 +59,53 @@ static IDirect3DSurface9 *GetScreenSurface()
 }
 #endif
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(BLUR_USE_DX11)
+// [Blur1PCDX11] Read the current back buffer through a D3D11 staging texture.
+static ID3D11Texture2D* Surface = nullptr;
+static ID3D11DeviceContext* s_LockContext = nullptr;
+
+static ID3D11Texture2D* GetScreenSurface()
+{
+	ID3D11Device* device = Display::Device()->GetD3DDevice();
+	const Display::C_Surface* colour = Display::Device()->GetBackBuffer().GetColourSurface();
+	if (!device || !colour || !colour->m_pd3dSurface) return nullptr;
+	ID3D11DeviceContext* context = nullptr;
+	device->GetImmediateContext(&context);
+	if (!context) return nullptr;
+	D3D11_TEXTURE2D_DESC desc = {};
+	colour->m_pd3dSurface->GetDesc(&desc);
+	ID3D11Texture2D* resolved = nullptr;
+	if (desc.SampleDesc.Count > 1)
+	{
+		D3D11_TEXTURE2D_DESC resolveDesc = desc;
+		resolveDesc.SampleDesc.Count = 1;
+		resolveDesc.SampleDesc.Quality = 0;
+		resolveDesc.BindFlags = 0;
+		resolveDesc.MiscFlags = 0;
+		if (FAILED(device->CreateTexture2D(&resolveDesc, nullptr, &resolved)))
+		{
+			context->Release();
+			return nullptr;
+		}
+		context->ResolveSubresource(resolved, 0, colour->m_pd3dSurface, 0, desc.Format);
+	}
+	D3D11_TEXTURE2D_DESC stagingDesc = desc;
+	stagingDesc.SampleDesc.Count = 1;
+	stagingDesc.SampleDesc.Quality = 0;
+	stagingDesc.Usage = D3D11_USAGE_STAGING;
+	stagingDesc.BindFlags = 0;
+	stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	stagingDesc.MiscFlags = 0;
+	ID3D11Texture2D* staging = nullptr;
+	if (SUCCEEDED(device->CreateTexture2D(&stagingDesc, nullptr, &staging)))
+		context->CopyResource(staging, resolved ? resolved : colour->m_pd3dSurface);
+	if (resolved) resolved->Release();
+	context->Release();
+	return staging;
+}
+#endif
+
+#if (defined(PLATFORM_XENON) || defined(PLATFORM_PC)) && !defined(BLUR_USE_DX11)
 static IDirect3DSurface9 *Surface = 0;
 
 S32 LockDx(IDirect3DSurface9 *surf, C_LockScreenInfo &info)
@@ -89,7 +135,28 @@ S32 LockDx(IDirect3DSurface9 *surf, C_LockScreenInfo &info)
 
 S32 LockScreen(C_LockScreenInfo& info)
 {
+#if defined(BLUR_USE_DX11)
+	Surface = GetScreenSurface();
+	if (!Surface) return 1;
+	Display::Device()->GetD3DDevice()->GetImmediateContext(&s_LockContext);
+	D3D11_MAPPED_SUBRESOURCE mapped = {};
+	if (!s_LockContext || FAILED(s_LockContext->Map(Surface, 0, D3D11_MAP_READ, 0, &mapped)))
+	{
+		if (s_LockContext) { s_LockContext->Release(); s_LockContext = nullptr; }
+		Surface->Release(); Surface = nullptr;
+		return 1;
+	}
+	D3D11_TEXTURE2D_DESC desc = {};
+	Surface->GetDesc(&desc);
+	info.bits = mapped.pData;
+	info.pitch = mapped.RowPitch;
+	info.format = D3DFMT_A8R8G8B8;
+	info.width = desc.Width;
+	info.height = desc.Height;
+	return 0;
+#endif
 #if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+	#if !defined(BLUR_USE_DX11)
 	Surface = GetScreenSurface();
 	if (Surface == 0)
 		return 1;
@@ -98,6 +165,7 @@ S32 LockScreen(C_LockScreenInfo& info)
 		return 0;
 	
 	return 0;
+	#endif
 #endif
 
 #ifdef PLATFORM_PS3
@@ -122,9 +190,20 @@ S32 LockScreen(C_LockScreenInfo& info)
 
 void UnlockScreen()
 {
+#if defined(BLUR_USE_DX11)
+	if (s_LockContext && Surface)
+	{
+		s_LockContext->Unmap(Surface, 0);
+		s_LockContext->Release();
+		Surface->Release();
+		s_LockContext = nullptr;
+		Surface = nullptr;
+	}
+#else
 #if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
 	Surface->UnlockRect();
 	Surface->Release();
+#endif
 #endif
 }
 

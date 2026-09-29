@@ -11,6 +11,10 @@
 #include "fx/DebugVariables.h"
 #include "fx/Technique.h"
 #include "fx/ShaderImpl.h"
+#if defined(BLUR_USE_DX11)
+#include "fx/NativeFX11.h"
+#include <system/debug/Blur2PCAutomation.h>
+#endif
 #include <btl/containers/vector.h>
 #include <Display/Device/DeviceTypesEnums.h>
 #include <Display/Context/Context.h>
@@ -397,6 +401,21 @@ void System::OnEffectLoad(Effect *pEffect)
 	}
 #endif
 
+#if defined(BLUR_USE_DX11)
+	{
+		static unsigned effectTraces = 0;
+		const char* effectName = pEffect->Name.Chars();
+		const bool vehicle = effectName && (strstr(effectName, "veh") != 0 || strstr(effectName, "Veh") != 0);
+		if (effectTraces++ < 40 || vehicle)
+		{
+			Blur2PCAutomation::LogF("DX11 FX techniques %s count=%d", pEffect->Name.Chars(), pEffect->Techniques.Size());
+			for (int t = 0; t < pEffect->Techniques.Size(); ++t)
+				Blur2PCAutomation::LogF("DX11 FX techniques %s [%d] %s", pEffect->Name.Chars(), t,
+					pEffect->Techniques[t].Name.Chars());
+		}
+	}
+#endif
+
 	// Bind all vertex and pixel shaders.
 	for (int i = 0; i < pEffect->Techniques.Size(); i++)
 	{
@@ -424,6 +443,42 @@ void System::OnEffectLoad(Effect *pEffect)
 			if (pPass->PixelShader.Microcode)
 				BindFunctionToParameters(pEffect, &pPass->PixelShader);
 
+#if defined(BLUR_USE_DX11)
+			// [Blur1PCDX11] FXB contains material metadata; FX5 supplies the native pass shaders.
+			for (int shaderType = 0; shaderType < 2; ++shaderType)
+			{
+				Function& function = shaderType ? pPass->VertexShader : pPass->PixelShader;
+				const E_ShaderType type = shaderType ? E_ShaderType_VertexShader : E_ShaderType_PixelShader;
+				unsigned byteCount = 0;
+				const void* bytecode = NativeFX11Shader(pEffect, i, j, type, &byteCount);
+				if (bytecode && byteCount)
+					function.pShader = CreateShader(const_cast<void*>(bytecode), byteCount, type);
+				else if (function.Microcode && function.cMicrocode)
+				{
+					// [Blur1PCDX11] The retail FXB has passes our recompiled FX5 does not; keep
+					// their D3D9 microcode on disk so the pass can be reconstructed.
+					static unsigned dumps = 0;
+					if (dumps++ < 40)
+					{
+						char path[MAX_PATH] = {};
+						sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\fxdump\\%s_%s_%d_%s.bin",
+							pEffect->Name.Chars(), pEffect->Techniques[i].Name.Chars(), j,
+							type == E_ShaderType_VertexShader ? "vs" : "ps");
+						FILE* file = nullptr;
+						if (fopen_s(&file, path, "wb") == 0)
+						{
+							fwrite(function.Microcode, 1, function.cMicrocode, file);
+							fclose(file);
+						}
+						Blur2PCAutomation::LogF("DX11 FX dump %s / %s pass=%d %s bytes=%u", pEffect->Name.Chars(),
+							pEffect->Techniques[i].Name.Chars(), j,
+							type == E_ShaderType_VertexShader ? "vs" : "ps", function.cMicrocode);
+					}
+				}
+				delete (U8*)function.Microcode;
+				function.Microcode = NULL;
+			}
+#else
 			if (pPass->VertexShader.Microcode)
 			{
 				pPass->VertexShader.pShader = CreateShader(pPass->VertexShader.Microcode, pPass->VertexShader.cMicrocode, E_ShaderType_VertexShader);
@@ -439,8 +494,9 @@ void System::OnEffectLoad(Effect *pEffect)
 				delete (U8*) pPass->PixelShader.Microcode;
 				pPass->PixelShader.Microcode = NULL;
 			}
-
-			DetermineVertexInputAttributes(&pPass->m_VtxAttrUsageFlags, (VertexShader*)pPass->VertexShader.pShader);
+#endif
+			if (pPass->VertexShader.pShader)
+				DetermineVertexInputAttributes(&pPass->m_VtxAttrUsageFlags, (VertexShader*)pPass->VertexShader.pShader);
 		}
 	}
 

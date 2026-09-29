@@ -20,8 +20,14 @@ struct PS_OUTPUT
 
 struct VS_OUTPUT
 {
+	#if defined(BLUR_DX11) // [Blur1PCDX11] D3D11 links stages by register; the full-screen vertex shader emits SV_Position last.
+
+    float2 m_TexCoord	: TEXCOORD0;
+    float4 m_Position	: SV_Position;
+	#else
     float4 m_Position	: POSITION;
     float2 m_TexCoord	: TEXCOORD0;
+	#endif
 };
 
 float ApplyMask(float2 vPosition)

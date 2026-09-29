@@ -1,0 +1,109 @@
+"""Compile the original Jam effect permutations into native FX5 bytecode."""
+
+from __future__ import annotations
+
+import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--top", required=True, type=Path)
+    parser.add_argument("--manifest", required=True, type=Path)
+    parser.add_argument("--fxc", required=True, type=Path)
+    parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--jobs", type=int, default=4)
+    parser.add_argument("--skip-existing", action="store_true")
+    args = parser.parse_args()
+
+    top = args.top.resolve()
+    output_root = args.out.resolve()
+    entries = json.loads(args.manifest.read_text(encoding="utf-8"))["effects"]
+    compiler = top / "code/tools/dx11_fxcompile/compile_fx.py"
+    include_dirs = [
+        top / "code/amax/game/Shaders",
+        top / "code/mercury/library/graphics/shader/include",
+        top / "code/mercury/library/graphics/shader/include/shader",
+        top / "code/mercury/library/graphics/vehicle/include",
+    ]
+    jobs: list[tuple[Path, Path, list[str]]] = []
+    for entry in entries:
+        source_relative = Path(entry["fx"])
+        source = top / source_relative
+        relative_output = source_relative.relative_to("Code")
+        for variant in entry["variants"]:
+            match = re.fullmatch(r"<([^>]*)>(.*)", variant)
+            if not match:
+                raise ValueError(f"unexpected Jam effect variant: {variant}")
+            suffix, flags = match.groups()
+            defines = re.findall(r"-D\s+([A-Za-z_]\w*)", flags)
+            name = relative_output.stem + suffix + ".fxo"
+            output = output_root / relative_output.parent / name
+            jobs.append((source, output, defines))
+
+    def compile_one(job: tuple[Path, Path, list[str]]) -> tuple[Path, int, str]:
+        source, output, defines = job
+        if args.skip_existing and output.is_file():
+            return output, 0, ""
+        command = [sys.executable, str(compiler), "--fxc", str(args.fxc),
+                   "--source", str(source), "--out", str(output)]
+        for directory in include_dirs:
+            command.extend(("--include", str(directory)))
+        for definition in defines:
+            command.extend(("--define", definition))
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                text=True, encoding="utf-8", errors="replace")
+        if result.returncode:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.with_suffix(".log").write_text(result.stdout, encoding="utf-8")
+        return output, result.returncode, result.stdout
+
+    succeeded = 0
+    failures: list[tuple[Path, str]] = []
+    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        futures = [pool.submit(compile_one, job) for job in jobs]
+        for future in as_completed(futures):
+            output, code, log = future.result()
+            if code == 0:
+                succeeded += 1
+            else:
+                line = next((line.strip() for line in log.splitlines()
+                             if "error X" in line or "Unrecognized state" in line or
+                             "failed to open" in line), "compiler exited without a diagnostic")
+                failures.append((output, line))
+    print(f"FX11 effects: {succeeded}/{len(jobs)} compiled, {len(failures)} failed")
+    for output, line in sorted(failures)[:40]:
+        print(f"{output.relative_to(output_root)}: {line}")
+    if not failures:
+        # The game asks for a compiled effect by its .fx filename. Keep the
+        # original Jam output names and resolve them to their authored source
+        # tree without depending on the directory order at runtime.
+        index: dict[str, Path] = {}
+        for _, output, _ in jobs:
+            key = output.stem.lower()
+            if key in index:
+                raise ValueError(f"ambiguous game effect variant: {output.stem}")
+            index[key] = output.relative_to(output_root)
+        (output_root / "effects.index").write_text(
+            "".join(f"{key}\t{path.as_posix()}\n" for key, path in sorted(index.items())),
+            encoding="utf-8",
+        )
+        samplers: list[str] = []
+        states: list[str] = []
+        for _, output, _ in jobs:
+            for line in output.with_suffix(".samplers").read_text(encoding="utf-8").splitlines():
+                samplers.append(f"{output.stem.lower()}\t{line}\n")
+            for line in output.with_suffix(".states").read_text(encoding="utf-8").splitlines():
+                states.append(f"{output.stem.lower()}\t{line}\n")
+        (output_root / "effects.samplers").write_text("".join(samplers), encoding="utf-8")
+        (output_root / "effects.states").write_text("".join(states), encoding="utf-8")
+    return 0 if not failures else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

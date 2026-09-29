@@ -20,6 +20,8 @@
 #include "Display2/Memory/GCMMemory.h"
 #elif DEVICE_D3D9_PC
 #include "Display2/Memory/PCD3D9Memory.h"
+#elif DEVICE_D3D11_PC
+#include "Display2/Memory/PCD3D11Memory.h" // [Blur1PCDX11] Native DX11 Display2 memory declarations.
 #endif
 
 #if !CFG_GOLD

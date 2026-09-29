@@ -171,17 +171,25 @@ void C_W32Movie::DestroyBink()
 
 bool C_W32Movie::CreateShaders()
 {
+	#if defined(BLUR_USE_DX11)
+	// [Blur1PCDX11] BinkOpen is a stub in phase one and returns null.
+	return true;
+	#else
 	if(!Create_Bink_shaders(Display::Device()->GetD3DDevice()))
 		return false;
 
 	return true;
+	#endif
 }
 
 void C_W32Movie::DestroyShaders()
 {
+	#if !defined(BLUR_USE_DX11)
 	Free_Bink_shaders();
+	#endif
 }
 
+#if !defined(BLUR_USE_DX11)
 S32 FindNextPowerOf2(const S32 n)
 {
 	S32 p2;
@@ -253,9 +261,13 @@ void ResetBinkFrameTexture(BINKFRAMETEXTURES& ft)
 	if(ft.Atexture)
 		ResetBinkTexture(ft.Atexture, 0);
 }
+#endif // BLUR_USE_DX11
 
 bool C_W32Movie::CreateTextures()
 {
+	#if defined(BLUR_USE_DX11)
+	return false; // The installed Bink stub cannot supply a decoded frame.
+	#else
 	if(!m_pBink)
 		return false;
 
@@ -282,16 +294,19 @@ bool C_W32Movie::CreateTextures()
 	m_BinkIsDirty = true;
 
 	return true;
+	#endif
 }
 
 void C_W32Movie::DestroyTextures()
 {
+	#if !defined(BLUR_USE_DX11)
 	if(!m_pBink)
 		return;
 
 	Display::Device()->Destroy(&m_RenderTexture);
 
 	Free_Bink_textures(Display::Device()->GetD3DDevice(), &m_BinkTextureSet);
+	#endif
 }
 
 void C_W32Movie::Rewind()
@@ -333,6 +348,9 @@ bool C_W32Movie::Update()
 
 void C_W32Movie::Render()
 {
+	#if defined(BLUR_USE_DX11)
+	return; // BinkOpen returns null with the phase-one SDK stub.
+	#else
 	#ifndef CFG_GOLD
 	if(g_debugMovieDisableRender)
 		return;
@@ -412,6 +430,7 @@ void C_W32Movie::Render()
 			m_BinkIsDirty = false;
 		}
 	}
+	#endif
 }
 
 void C_W32Movie::DebugRender(F32& x, F32& y, const F32 s)

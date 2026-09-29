@@ -179,7 +179,8 @@ void Draw()
 	dx += m_BiasX / (F32)viewport.GetW();
 	dy -= m_BiasY / (F32)viewport.GetW();
 
-	#ifndef PLATFORM_PS3
+	// [Blur1PCDX11] D3D11 puts pixel centres at half-integers, as PS3 does: no D3D9 half-pixel shift.
+	#if !defined(PLATFORM_PS3) && !defined(BLUR_USE_DX11)
 	MathsStorage::Float2 vHalfPixel;
 	if(g_debugQuadHalfPixelOffset)
 		vHalfPixel = MathsStorage::Float2(m_HalfPixelScaleX / (F32)viewport.GetW() + g_debugQuadHalfPixelX, m_HalfPixelScaleY / (F32)viewport.GetH() + g_debugQuadHalfPixelY);
@@ -417,7 +418,8 @@ void DrawPartScreen(F32 x1, F32 y1, F32 x2, F32 y2)
 {
 	Device()->SetVertexShader(&VertexShader_XY::m_VertexShader);
 		
-	#ifndef PLATFORM_PS3
+	// [Blur1PCDX11] D3D11 puts pixel centres at half-integers, as PS3 does: no D3D9 half-pixel shift.
+	#if !defined(PLATFORM_PS3) && !defined(BLUR_USE_DX11)
 	const C_Viewport& viewport = Device()->GetViewport();
 	MathsStorage::Float2 vHalfPixel;
 	if(g_debugQuadHalfPixelOffset)

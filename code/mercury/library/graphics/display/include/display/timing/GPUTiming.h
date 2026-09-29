@@ -72,7 +72,11 @@ public:
 	// assumes off Xenon)
 	static const U32							m_FrameCount = 4;
 	static const U32							m_PairCount = 8;
+	#if defined(BLUR_USE_DX11)
+	ID3D11Query*							m_pQueries[m_FrameCount][m_PairCount][2]; // [Blur1PCDX11] Native timestamp queries.
+	#else
 	IDirect3DQuery9*							m_pQueries[m_FrameCount][m_PairCount][2];
+	#endif
 	U32											m_PairsUsed[m_FrameCount];
 	U64											m_DisplayTime;
 	#endif

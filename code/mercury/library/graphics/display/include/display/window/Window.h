@@ -7,7 +7,9 @@
 
 #include "Display/Device/DeviceDefines.h"
 
-#if defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11) // [Blur1PCDX11] Native swap-chain window resource.
+#include "Display/Window/D3D11/D3D11Window.h"
+#elif defined(DEVICE_PS3GCM)
 #include "Display/Window/GCM/GCMWindow.h"
 #elif defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
 #include "Display/Window/D3D9/D3D9Window.h"

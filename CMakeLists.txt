@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(Blur1PC LANGUAGES C CXX)
+project(Blur1PCDX11 LANGUAGES C CXX)
 
 # One CMake project per phase branch (docs/decisions.md D16): this file is the
 # same on blur1pc, blur1multi and blurx except for the phase lines marked
@@ -19,6 +19,21 @@ set(BLUR_PROJECT ${CMAKE_SOURCE_DIR})
 # blur_common.cmake finds the shared _work/vendor through it.
 get_filename_component(BLUR_WORKSPACE ${CMAKE_SOURCE_DIR}/.. ABSOLUTE)
 
+# [Blur1PCDX11] Configure the native renderer alone before the full game's
+# generated shader/unity sources have been made in a new worktree.
+option(BLUR_DX11_ONLY "Build only the D3D11 device probe" OFF)
+if(BLUR_DX11_ONLY)
+    include(${BLUR_TOP}/cmake/dx11.cmake)
+    return()
+endif()
+
+# [Blur1PCDX11] Native renderer selection. Keep the D3D9 game build available
+# while the D3D11 Display and Display2 implementations are being ported.
+option(BLUR_USE_DX11 "Build Amax with the native Direct3D 11 backend" ON)
+if(BLUR_USE_DX11)
+    add_compile_definitions(BLUR_USE_DX11=1)
+endif()
+
 # ---- phase defines (each phase branch adds its own line here) ----------------
 
 include(${BLUR_TOP}/cmake/blur_common.cmake)
@@ -26,3 +41,7 @@ include(${BLUR_PROJECT}/cmake/targets.cmake)
 include(${BLUR_TOP}/cmake/overrides.cmake)
 
 # ---- phase additions (each phase branch includes its own cmake file here) ----
+include(${BLUR_TOP}/cmake/dx11.cmake)
+if(BLUR_USE_DX11)
+    target_link_libraries(Amax PRIVATE blur_dx11)
+endif()

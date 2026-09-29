@@ -1,6 +1,10 @@
 #ifndef __D3D9RINGBUFFER_H__
 #define __D3D9RINGBUFFER_H__
 
+#if defined(BLUR_USE_DX11) // [Blur1PCDX11] Legacy include path, native PC type.
+#include "Display/Memory/D3D11/D3D11RingBuffer.h"
+#else
+
 #include "display/memory/RingBufferAllocator.h"
 
 namespace Display
@@ -98,4 +102,5 @@ inline C_RingBuffer *RingBuffer()
 
 }
 
-#endif
+#endif // BLUR_USE_DX11
+#endif // __D3D9RINGBUFFER_H__

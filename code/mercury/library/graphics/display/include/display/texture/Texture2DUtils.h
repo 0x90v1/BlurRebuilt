@@ -8,7 +8,9 @@
 #include "Display/Texture/Texture2D.h"
 #include "Display/Texture/TextureUtils.h"
 
-#if defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11) // [Blur1PCDX11] Native PC texture stream loader.
+#include "Display/Texture/D3D11/D3D11TextureLoad.h"
+#elif defined(DEVICE_PS3GCM)
 #include "Display/Texture/GCM/GCMTextureLoad.h"
 #elif defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
 #include "Display/Texture/D3D9/D3D9TextureLoad.h"

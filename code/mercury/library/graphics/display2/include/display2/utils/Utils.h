@@ -7,7 +7,9 @@
 
 #include "Display2/Display2Defines.h"
 
-#if DEVICE_D3D9_PC
+#if DEVICE_D3D11_PC
+#include "Display2/Device/Device.h" // [Blur1PCDX11] Native resource types.
+#elif DEVICE_D3D9_PC
 #include "Display2/Utils/PCD3D9Utils.h"
 #elif DEVICE_XB2
 #include "Display2/Utils/XB2Utils.h"

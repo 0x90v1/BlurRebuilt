@@ -49,7 +49,9 @@ void C_Context::InvalidateState()
 
 void C_Context::BeginCommandBuffer(Display::C_CommandBuffer* pCommandBuffer)
 {
+	#if !defined(BLUR_USE_DX11)
 	m_pD3DCBDevice = m_Context.m_pd3dDevice;
+	#endif
 }
 
 void C_Context::EndCommandBuffer()

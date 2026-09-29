@@ -615,6 +615,19 @@ void I_HighDynamicRange::ResolveLuminance() const
 		Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Point);	
 		DisplayIntermediate(&m_LuminanceResolve, Display::E_TextureFilter_Point);
 		Resolve();
+		#elif defined(BLUR_USE_DX11) // [Blur1PCDX11] Native luminance resolve copy.
+		ID3D11Texture2D* source = m_AdaptedLuminances[iCurrentView]->GetSurface().m_pd3dSurface;
+		ID3D11Texture2D* destination = pLuminanceResolve->GetTexture()->GetGPUTexture2D();
+		if (source && destination)
+		{
+			ID3D11DeviceContext* context = nullptr;
+			Display::Device()->GetD3DDevice()->GetImmediateContext(&context);
+			if (context)
+			{
+				context->CopySubresourceRegion(destination, 0, 0, 0, 0, source, 0, nullptr);
+				context->Release();
+			}
+		}
 		#else
 		IDirect3DTexture9* pDstTexture = (IDirect3DTexture9*)pLuminanceResolve->GetTexture()->GetGPUTexture();
 		IDirect3DSurface9* pSrcSurface = m_AdaptedLuminances[iCurrentView]->GetSurface().m_pd3dSurface;

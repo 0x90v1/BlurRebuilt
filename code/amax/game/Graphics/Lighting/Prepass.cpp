@@ -1,4 +1,8 @@
 #include "stdafx.h"
+#if defined(BLUR_USE_DX11)
+#include <system/debug/Blur2PCAutomation.h>
+#include "Display/Utils/Screenshot.h"
+#endif
 #include "Graphics/Lighting/Prepass.h"
 #include "Deferred/Manager.h"
 #include "Framework/Application/ApplicationBase.h"
@@ -230,6 +234,25 @@ void C_LightingPrepass::End() const
 	}
 
 	m_pDeferredManager->End();
+	#if defined(BLUR_USE_DX11)
+	static bool dx11CapturedPrepass = false;
+	if (!dx11CapturedPrepass && Blur2PCAutomation::Get().active &&
+		Blur2PCAutomation::Now() > 5.0)
+	{
+		dx11CapturedPrepass = true;
+		char clearProbe[2] = {};
+		if (GetEnvironmentVariableA("BLUR_DX11_TEST_CLEAR", clearProbe, sizeof(clearProbe)) && clearProbe[0] == '1')
+			Display::Device()->Clear(Display::E_Clear_Colour, Maths::RGBA(255, 0, 255, 255));
+		const S32 viewIndex = Framework::C_ApplicationBase::GetInstance()->GetSplitscreenView().m_ViewIndex;
+		const Display::C_Texture2D* normal = m_pDeferredManager->GetColourTexture(viewIndex, 0);
+		if (normal && normal->GetGPUTexture2D())
+		{
+			char path[MAX_PATH];
+			sprintf_s(path, "%s\\prepass.tga", Blur2PCAutomation::Get().baseDir);
+			Display::TakeD3D11BackBufferScreenshot(path, const_cast<ID3D11Texture2D*>(normal->GetGPUTexture2D()));
+		}
+	}
+	#endif
 }
 
 void C_LightingPrepass::RenderLights1(const SceneGraph::C_VisiblePointLightList& visiblePointLights, const SceneGraph::C_VisibleSpotLightList& visibleSpotLights) const

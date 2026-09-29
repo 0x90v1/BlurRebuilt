@@ -5,6 +5,7 @@
 #include <System/Time/Time.h>
 #include <System/Memory/MemoryTracker.h>
 #include <Display2/Utils/Utils.h>
+#include <system/debug/Blur2PCAutomation.h>
 
 #ifdef CFG_ALLOW_OPTIMIZE_OFF
 //#pragma optimize( "", off ) // CFG_ALLOW_OPTIMIZE_OFF 
@@ -42,7 +43,14 @@ bool CreatePixelShaderFromFunc(const Util::C_String& name, const U32 flags, C_Pi
 	const Util::C_String& fileName = FormatString(name);
 	const Util::C_String& file = GetPixelShaderFile(fileName);
 
-	if(!Device()->CreatePixelShader(size, data, flags, pPixelShader))
+	const bool created = Device()->CreatePixelShader(size, data, flags, pPixelShader);
+	{
+		static unsigned traced = 0;
+		if (traced++ < 2000)
+			Blur2PCAutomation::LogF("DX11 built-in PS %s created=%u native=%p", fileName.Chars(), created,
+				pPixelShader->m_pd3dPixelShader);
+	}
+	if(!created)
 		return false;
 
 	#if TRACK_DISPLAY2_RESOURCES

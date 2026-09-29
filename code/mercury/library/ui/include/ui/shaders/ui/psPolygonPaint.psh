@@ -10,7 +10,11 @@ sampler2D	g_Texture0			: register(s0);
 
 struct PS_INPUT
 {
+	#if defined(BLUR_DX11) // [Blur1PCDX11] SM5 requires a float4 system position.
+	float4 Position				: SV_Position;
+	#else
 	float3 Position				: POSITION;
+	#endif
 	float4 Colour				: COLOR;
 	float2 TexCoord0			: TEXCOORD0;
 };

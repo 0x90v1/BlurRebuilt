@@ -7,7 +7,9 @@
 
 #include "Display2/Display2Defines.h"
 
-#if DEVICE_D3D9
+#if DEVICE_D3D11
+#include "Display2/Context/D3D11Context.h" // [Blur1PCDX11] Native context declarations.
+#elif DEVICE_D3D9
 #include "Display2/Context/D3D9Context.h"
 #elif DEVICE_GCM
 #include "Display2/Context/GCMContext.h"

@@ -7,7 +7,9 @@
 
 #include "Display/Device/DeviceDefines.h"
 
-#if defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11) // [Blur1PCDX11] Native query.
+#include "Display/Occlusion/D3D11/D3D11OcclusionQuery.h"
+#elif defined(DEVICE_PS3GCM)
 #include "Display/Occlusion/GCM/GCMOcclusionQuery.h"
 #elif defined(DEVICE_PS3GL)
 #include "Display/Occlusion/GL/GLOcclusionQuery.h"

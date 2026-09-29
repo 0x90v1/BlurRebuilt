@@ -7,7 +7,9 @@
 
 #include "Display/Device/DeviceDefines.h"
 
-#if defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11) // [Blur1PCDX11] Native DXGI manager.
+#include "Display/Manager/D3D11/D3D11Manager.h"
+#elif defined(DEVICE_PS3GCM)
 #include "Display/Manager/GCM/GCMManager.h"
 #elif defined(DEVICE_PCD3D9)
 #include "Display/Manager/D3D9/D3D9Manager.h"
@@ -26,7 +28,9 @@ namespace Display
 
 //! C_Manager
 
-#if defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11)
+class C_Manager : public D3D11::C_D3D11Manager
+#elif defined(DEVICE_PS3GCM)
 class C_Manager : public GCM::C_GCMManager
 #elif defined(DEVICE_PCD3D9)
 class C_Manager : public D3D9::C_D3D9Manager

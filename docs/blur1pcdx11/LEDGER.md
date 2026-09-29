@@ -52,3 +52,50 @@ Next: implement the Display2 D3D11 context/resource/device API and Display C_Dev
 Files touched: Blur1PCDX11 CMakeLists.txt, cmake/dx11.cmake, README.Blur1PCDX11.md, display device/d3d11/*, built-in shader variants, ui psPolygonPaint, code/tools/{dx11_fxcompile,dx11_shadercompile,dx11_probe}, code/vendor/fx11; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No commit.
 
 
+## 2026-09-29 — session Claude DX11 — T127
+
+Did: made the native D3D11 backend run `Amax` and hunted the black screen. Fixes: `ID3D11Multithread::SetMultithreadProtected` on the immediate context (the loading thread and the main thread both used it; the debug layer reported corruption and hardware removed the device); the vertex/pixel stage signature convention (vertex shaders emit interpolants first with `SV_Position` last, pixel shaders declare the same order and no position — applied to 24 built-in shaders under `#if defined(BLUR_DX11)`); `BindRenderTargets` no longer binds a depth view of a different size than the colour target; `C_PCD3D11GameDevice::RestoreWindow` follows the retail branch (quad onto the back buffer, copy onto any other surface) instead of always drawing the quad; the D3D11 info queue filters warnings and a vectored exception handler logs its messages before the crash handler; draws with no bound vertex shader are skipped instead of raising, and name the effect that failed. Found that the eight vehicle effects cannot be provided: the retail `.fxb`s ship ten techniques each (`MaterialPrepass`, the `NoDamage` and `LOD` variants) while the leaked `vehicle_common.h` declares five, so every vehicle pass fails with `ERROR_NOT_FOUND` and 64 draws a frame are dropped at the start screen. `System::OnEffectLoad` now dumps the retail microcode of those passes to `_work/build/fxdump/`.
+
+Verified: `Amax` builds with no errors and runs the start screen on retail PC data; the D3D11 debug layer over a full start-screen run reports zero linkage errors, zero thread-corruption messages and no information-queue exceptions (previously 150k linkage messages, a corruption message and a removed device). `Quad::DrawFullScreenColour` into the back buffer and into the window texture reads back magenta and cyan, proving the quad, target and readback paths. A D3D9 reference run (`Blur1PC/_work/run/Amax.exe`, same automation script) shows the start screen at 20 s for comparison. Screen is still black under DX11; only the block-compressed texture-upload alignment message remains.
+
+Blocked: the start screen renders nothing — the frame never reaches the back buffer, and the composite that should put it there has not been identified. Opening a debug race crashes in `UI::C_UiManager::LoadingTextureClone`. The vehicle effects need the shipped shader revision (not in the source tree) reconstructed from the dumped microcode.
+
+Next: dump and disassemble `_work/build/fxdump/veh_*_MaterialPrepass*` with D3DX (`D3DXDisassembleShader`) and reconstruct the missing vehicle techniques as HLSL under `BLUR_DX11`; separately, trace which pass is supposed to present the frame on the back buffer by instrumenting `Blur1PC`'s D3D9 device for one run and comparing its target bindings with the DX11 ones.
+
+Files touched: Blur1PCDX11 shader sources (24 files), display device `d3d11/{D3D11GameDeviceNative.cpp,PCD3D11GameDevice.cpp}`, `display/source/shader/{VertexShaderUtils.cpp,PixelShaderUtils.cpp}`, `fx/{NativeFX11.cpp,System.cpp}`, `fx/include/fx/NativeFX11.h`, `_work/run/{run_script.ps1,logcfg.xml}`, docs/blur1pcdx11/{analysis.md,LEDGER.md,BOARD.md}. No commit (user instruction).
+
+## 2026-09-29 (later) — session Claude DX11 — T127
+
+Did: got a debug race to run and isolated the black screen to one step. `Display2::CloneTexture2D` crashed on D3D11 (`memcpy` between two null CPU addresses) and the race's loading screen called it; it now copies on the GPU under `DEVICE_D3D11`. `C_PCD3D11GameDevice::RestoreWindow` follows the retail branch (quad onto the back buffer, copy onto any other surface). Counters added to the composition path: per race frame `RenderSplitscreenWithoutAA` binds the back buffer and `RestoreWindow` still takes the copy path, because a layer rebinds a post-process target through `BeginRenderSplitscreenWithoutAA` between the bind and the restore. The window render texture holds a complete frame (road, trees, HUD, tyre marks); the back buffer is black.
+
+Verified: a debug race (Right Ctrl on the start screen, Enter) reaches `Racing` and runs 20 s with zero debug-layer messages, zero rejected draws except the vehicle prepass, and a clean exit; `<shot>.window.tga` mean 104 against `<shot>.tga` (back buffer) mean 0. Build has no errors.
+
+Blocked: the back buffer prime. The D3D9 device has to be instrumented the same way and compared before changing the port, since retail takes the same branch and still shows the frame.
+
+Next: build the `BLUR_USE_DX11=OFF` configuration from this worktree into a second build directory with the bind trace in `display/source/device/d3d9/PCD3D9Device.cpp`, run the same race script, and compare the surface sequence with the DX11 one.
+
+Files touched: `display2/source/utils/Utils.cpp`, display device `d3d11/{D3D11GameDeviceNative.cpp,PCD3D11GameDevice.cpp}`, `ApplicationBase.cpp` (trace only), docs/blur1pcdx11/{analysis.md,LEDGER.md}. No commit (user instruction).
+
+## 2026-09-29 (3) — session Claude DX11 — T127
+
+Did: traced the presentation chain and found the fault's home. Retail presents in `I_PostProcess::DisplayFinal` (`E_Type_Final`): bind the back buffer, draw the last chain texture full screen, clear the manager's active flag; `C_Manager::End`'s own final quad is therefore dead when post-processing runs, which is why the earlier counters looked wrong. Disabling post-processing (`Graphics.Render.PostProcess.Enable=false` in the game's `debug_values.xml`, restored afterwards) makes the same race present: back buffer mean 44.8 against 0.0, window texture unchanged at 104. Removed the investigation-only traces afterwards (`postprocess/Manager.cpp` back to its original bytes, `ApplicationBase.cpp` phase log, the `SetColourSurface`/chain-source probes in the D3D11 device).
+
+Verified: race runs 20 s with zero debug-layer messages and a clean exit after the cleanup; `race2.tga.window.tga` mean 104.6 (the full frame) with `race2.tga` mean 0.0 (post-process on) and 44.8 (post-process off).
+
+Blocked: the post-process chain loses the frame between `Begin` and `DisplayFinal`. The vehicle `MaterialPrepass` hole is the white quad over the car.
+
+Next: capture the chain texture at each `I_PostProcess::DisplayIntermediate` to find the link that goes black; the chain's shaders are the post-process pair set already fixed for stage signatures, so check sampler/texture binding and the resolve/ping-pong of the chain render texture next.
+
+Files touched: `display2/source/utils/Utils.cpp`, display device `d3d11/{D3D11GameDeviceNative.cpp,PCD3D11GameDevice.cpp}`, docs/blur1pcdx11/{analysis.md,LEDGER.md,BOARD.md}; `postprocess/Manager.cpp` and `ApplicationBase.cpp` reverted to their previous state. No commit (user instruction).
+
+## 2026-09-29 (4) — session Claude DX11 — T127
+
+Did: committed the branch's uncommitted state and pushed `blur1pcdx11`, at the user's instruction. No source changes this session. T150's `CloneTexture2D` GPU copy went in on its own commit; everything else, including the T127 and T150 records in this file and on the board, went in on a T127 commit.
+
+Verified: `git status` before staging listed 97 modified tracked files and 109 untracked files, all inside the DX11 scope (display and display2 D3D11 backends, 24 built-in shader sources, `fx/NativeFX11`, `movie/w32/bink`, `code/tools/dx11_*`, `code/vendor/fx11`, `docs/blur1pcdx11`). Largest new file 199 KB, no binary among them, and the only secret-shaped string is `secrets.GITHUB_TOKEN` in Microsoft's own fx11 CI workflow. The tree still carries the T127/T149 investigation traces (`ApplicationBase.cpp`, `deferred/Manager.cpp`, `GameWorld.cpp`, `Lighting/Prepass.cpp`, `ModelResource.cpp`), all behind `#if defined(BLUR_USE_DX11)`.
+
+Blocked: unchanged — the post-process chain loses the frame, and the vehicle effects need the shipped techniques (T148 and T149 open).
+
+Next: as in the entry above — capture the chain texture at each `I_PostProcess::DisplayIntermediate`; `deferred/Manager.cpp` `GetColourTexture` is already instrumented for it.
+
+Files touched: docs/blur1pcdx11/LEDGER.md.

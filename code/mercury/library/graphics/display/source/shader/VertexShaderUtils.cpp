@@ -4,6 +4,7 @@
 #include "Display/Device/Device.h"
 #include <System/Time/Time.h>
 #include <Display2/Utils/Utils.h>
+#include <system/debug/Blur2PCAutomation.h>
 
 #ifdef CFG_ALLOW_OPTIMIZE_OFF
 //#pragma optimize( "", off ) // CFG_ALLOW_OPTIMIZE_OFF 
@@ -41,7 +42,14 @@ bool CreateVertexShaderFromFunc(const Util::C_String& name, const U32 flags, C_V
 	const Util::C_String& fileName = FormatString(name);
 	const Util::C_String& file = GetVertexShaderFile(fileName);
 
-	if(!Device()->CreateVertexShader(size, data, flags, pVertexShader))
+	const bool created = Device()->CreateVertexShader(size, data, flags, pVertexShader);
+	{
+		static unsigned traced = 0;
+		if (traced++ < 2000)
+			Blur2PCAutomation::LogF("DX11 built-in VS %s created=%u native=%p", fileName.Chars(), created,
+				pVertexShader->m_pd3dVertexShader);
+	}
+	if(!created)
 		return false;
 
 	#if TRACK_DISPLAY2_RESOURCES

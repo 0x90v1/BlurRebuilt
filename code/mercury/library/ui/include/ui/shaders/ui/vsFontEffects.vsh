@@ -13,12 +13,21 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
+	#if defined(BLUR_DX11) // [Blur1PCDX11] D3D11 links stages by register: interpolants from zero, SV_Position last.
+	float4 Colour				: COLOR0;
+	float4 MyWorldPosition		: TEXCOORD3;
+	float2 TexCoord0			: TEXCOORD0;
+	float2 TexCoord1			: TEXCOORD1;
+	float2 TexCoord2			: TEXCOORD2;
+	float4 Position				: SV_Position;
+	#else
 	float4 Position				: POSITION;
 	float4 Colour				: COLOR0;
 	float4 MyWorldPosition		: TEXCOORD3;
 	float2 TexCoord0			: TEXCOORD0;
 	float2 TexCoord1			: TEXCOORD1;
 	float2 TexCoord2			: TEXCOORD2;
+	#endif
 };
 
 VS_OUTPUT main(VS_INPUT IN)

@@ -1,4 +1,7 @@
 #include "FrameworkPch.h"
+#if defined(BLUR_USE_DX11)
+#include <system/debug/Blur2PCAutomation.h>
+#endif
 #include "Framework/Application/ApplicationBase.h"
 #include "Framework/Application/CaptureService.h"
 #include "Framework/Application/CoreSystems.h"
@@ -1410,6 +1413,11 @@ void C_ApplicationBase::ScheduleSplitscreen()
 		Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
 		Render::SetGlobalColourBuffer(pWindow->GetColourTexture());
 		Render::SetGlobalDepthStencilBuffer(pWindow->GetDepthStencilTexture());
+		#if defined(BLUR_USE_DX11)
+		static int dx11ScheduleDepthLogCount = 0;
+		if (dx11ScheduleDepthLogCount++ < 12)
+			Blur2PCAutomation::LogF("DX11 Schedule depth view=%d colour=%p depth=%p", viewIndex, pWindow->GetColourTexture(), pWindow->GetDepthStencilTexture());
+		#endif
 		#ifdef PLATFORM_PC
 		Render::SetGlobalStencilBuffer(pWindow->GetMaskTexture());	// [Blur2PC] retail Blur PC (0x0084de00, 0x006a1970)
 		#endif

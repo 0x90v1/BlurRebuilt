@@ -1,6 +1,11 @@
 #include "stdafx.h"
 #include "Display/Utils/Screenshot.h"
 #include "Display/Device/Device.h"
+#include <system/debug/Blur2PCAutomation.h>
+#if defined(BLUR_USE_DX11)
+#include <d3d11sdklayers.h>
+#include <vector>
+#endif
 
 enum E_DisplayScreenShot
 {
@@ -19,6 +24,134 @@ Debug::Enum<E_DisplayScreenShot> g_debugDisplayScreenshotMode("Graphics.Render.S
 
 namespace Display
 {
+
+#if defined(BLUR_USE_DX11)
+// [Blur1PCDX11] Copy the current D3D11 target to CPU memory and write TGA.
+static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* source)
+{
+	if (!source) return;
+	ID3D11Device* device = Display::Device()->GetD3DDevice();
+	if (!device) return;
+	ID3D11DeviceContext* context = nullptr;
+	device->GetImmediateContext(&context);
+	if (!context) return;
+	D3D11_TEXTURE2D_DESC desc = {};
+	source->GetDesc(&desc);
+	Blur2PCAutomation::LogF("DX11 shot %s %ux%u fmt=%u samples=%u", path.Chars(),
+		desc.Width, desc.Height, static_cast<unsigned>(desc.Format), desc.SampleDesc.Count);
+	if (desc.Format != DXGI_FORMAT_B8G8R8A8_UNORM &&
+		desc.Format != DXGI_FORMAT_B8G8R8A8_UNORM_SRGB &&
+		desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM &&
+		desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
+		desc.Format != DXGI_FORMAT_R32_FLOAT)
+	{
+		context->Release();
+		return;
+	}
+	ID3D11Texture2D* resolved = nullptr;
+	if (desc.SampleDesc.Count > 1)
+	{
+		D3D11_TEXTURE2D_DESC resolveDesc = desc;
+		resolveDesc.SampleDesc.Count = 1;
+		resolveDesc.SampleDesc.Quality = 0;
+		resolveDesc.BindFlags = 0;
+		resolveDesc.MiscFlags = 0;
+		if (FAILED(device->CreateTexture2D(&resolveDesc, nullptr, &resolved)))
+		{
+			Blur2PCAutomation::LogF("DX11 shot resolve texture failed");
+			context->Release();
+			return;
+		}
+		context->ResolveSubresource(resolved, 0, source, 0, desc.Format);
+	}
+	D3D11_TEXTURE2D_DESC stagingDesc = desc;
+	stagingDesc.SampleDesc.Count = 1;
+	stagingDesc.SampleDesc.Quality = 0;
+	stagingDesc.Usage = D3D11_USAGE_STAGING;
+	stagingDesc.BindFlags = 0;
+	stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	stagingDesc.MiscFlags = 0;
+	ID3D11Texture2D* staging = nullptr;
+	const HRESULT stagingResult = device->CreateTexture2D(&stagingDesc, nullptr, &staging);
+	if (SUCCEEDED(stagingResult))
+	{
+		context->CopyResource(staging, resolved ? resolved : source);
+		D3D11_MAPPED_SUBRESOURCE mapped = {};
+		if (SUCCEEDED(context->Map(staging, 0, D3D11_MAP_READ, 0, &mapped)))
+		{
+			FILE* file = nullptr;
+			fopen_s(&file, path.Chars(), "wb");
+			if (!file) Blur2PCAutomation::LogF("DX11 shot file open failed");
+			if (file)
+			{
+				U8 header[18] = {};
+				header[2] = 2;
+				header[12] = static_cast<U8>(desc.Width);
+				header[13] = static_cast<U8>(desc.Width >> 8);
+				header[14] = static_cast<U8>(desc.Height);
+				header[15] = static_cast<U8>(desc.Height >> 8);
+				header[16] = 32;
+				header[17] = 0x28; // Top-left origin, eight alpha bits.
+				fwrite(header, 1, sizeof(header), file);
+				const bool rgba = desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+					desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+				for (U32 y = 0; y < desc.Height; ++y)
+				{
+					const U8* row = static_cast<const U8*>(mapped.pData) + y * mapped.RowPitch;
+					for (U32 x = 0; x < desc.Width; ++x)
+					{
+						const U8* pixel = row + x * 4;
+						U8 bgra[4] = { pixel[rgba ? 2 : 0], pixel[1],
+							pixel[rgba ? 0 : 2], pixel[3] };
+						if (desc.Format == DXGI_FORMAT_R32_FLOAT)
+						{
+							const F32 value = *reinterpret_cast<const F32*>(pixel);
+							const U8 grey = static_cast<U8>(Maths::Clamp(value, 0.0f, 1.0f) * 255.0f);
+							bgra[0] = bgra[1] = bgra[2] = grey;
+							bgra[3] = 255;
+						}
+						fwrite(bgra, 1, 4, file);
+					}
+				}
+				fclose(file);
+				Blur2PCAutomation::LogF("DX11 shot written");
+			}
+			context->Unmap(staging, 0);
+		}
+		staging->Release();
+	}
+	else
+	{
+		Blur2PCAutomation::LogF("DX11 shot staging failed %08x, removed reason %08x",
+			static_cast<unsigned>(stagingResult), static_cast<unsigned>(device->GetDeviceRemovedReason()));
+		ID3D11InfoQueue* queue = nullptr;
+		if (SUCCEEDED(device->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&queue))))
+		{
+			const UINT64 count = queue->GetNumStoredMessages();
+			Blur2PCAutomation::LogF("DX11 validation messages: %llu", count);
+			for (UINT64 i = count > 25 ? count - 25 : 0; i < count; ++i)
+			{
+				SIZE_T size = 0;
+				queue->GetMessage(i, nullptr, &size);
+				std::vector<U8> bytes(size);
+				D3D11_MESSAGE* message = reinterpret_cast<D3D11_MESSAGE*>(bytes.data());
+				if (SUCCEEDED(queue->GetMessage(i, message, &size)))
+					Blur2PCAutomation::LogF("DX11 %u: %s", static_cast<unsigned>(message->Severity),
+						message->pDescription);
+			}
+			queue->Release();
+		}
+	}
+	if (resolved) resolved->Release();
+	context->Release();
+}
+
+void TakeD3D11BackBufferScreenshot(const char* fileName, ID3D11Texture2D* source)
+{
+	if (fileName && source)
+		SaveNativeTargetAsTGA(Sys::C_FilePath(fileName), source);
+}
+#endif
 
 void SaveAsTGA(const Sys::C_FilePath& fileName, const S32 width, const S32 height, const U8* pData)
 {
@@ -104,7 +237,9 @@ void TakeScreenshot(const Sys::C_FilePath& fileName, const C_Surface* pSurface)
 	const Sys::C_FilePath filePath = 
 		Sys::GetDefaultFileSystem()->GetWorkingDirectory() + "/" + fileName;
 	
-#ifdef PLATFORM_PC
+#if defined(BLUR_USE_DX11)
+	SaveNativeTargetAsTGA(filePath, pSurface->m_pd3dSurface);
+#elif defined(PLATFORM_PC)
 	const HRESULT hr = D3DXSaveSurfaceToFile(
 		filePath.Chars(),
 		D3DXIFF_TGA,
@@ -141,7 +276,28 @@ void TakeScreenshot(const Sys::C_FilePath fileName)
 	if(!DeviceExists())
 		return;
 	
-	#if defined(GRAPHICS_D3D9)
+	#if defined(GRAPHICS_D3D11) // [Blur1PCDX11] Capture the native back buffer.
+	{
+		const Sys::C_FilePath path = Sys::GetDefaultFileSystem()->GetWorkingDirectory() + "/" + fileName;
+		ID3D11Device* device = Display::Device()->GetD3DDevice();
+		ID3D11DeviceContext* context = nullptr;
+		device->GetImmediateContext(&context);
+		ID3D11RenderTargetView* target = nullptr;
+		context->OMGetRenderTargets(1, &target, nullptr);
+		if (target)
+		{
+			ID3D11Resource* resource = nullptr;
+			target->GetResource(&resource);
+			ID3D11Texture2D* texture = nullptr;
+			if (resource) resource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&texture);
+			SaveNativeTargetAsTGA(path, texture);
+			if (texture) texture->Release();
+			if (resource) resource->Release();
+			target->Release();
+		}
+		context->Release();
+	}
+	#elif defined(GRAPHICS_D3D9)
 	{
 		const Util::C_String filePath = 
 			(Sys::GetDefaultFileSystem()->GetWorkingDirectory() + "/" + fileName).Chars();

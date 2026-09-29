@@ -8,8 +8,13 @@ float4		g_PolygonColour						: register( CCV_POLYGON_COLOUR );
 
 struct VS_INPUT
 {
+	#if defined(BLUR_DX11) // [Blur1PCDX11] Match the native SHORT2/UBYTE4 declaration.
+	int2 Position				: POSITION;
+	uint4 Normal				: COLOR0;
+	#else
 	float2 Position				: POSITION;
 	float4 Normal				: COLOR0;
+	#endif
 };
 
 struct VS_OUTPUT
@@ -23,10 +28,11 @@ VS_OUTPUT main( VS_INPUT IN )
 {
 	VS_OUTPUT OUT = (VS_OUTPUT)0;
 
-	IN.Position = IN.Position * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
-	IN.Normal.xy = (IN.Normal.xy - float2(127.0f, 127.0f)) * float2(1.0f / 127.0f, 1.0f / 127.0f);
+	float2 position = float2(IN.Position) * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
+	float4 normal = float4(IN.Normal);
+	normal.xy = (normal.xy - float2(127.0f, 127.0f)) * float2(1.0f / 127.0f, 1.0f / 127.0f);
 
-	float4 newPos = float4( IN.Position.xy, 0.0f, 1.0f );
+	float4 newPos = float4( position.xy, 0.0f, 1.0f );
 	float4 pos = mul( newPos, g_PolygonTransform );
 	
 	// **** THIS IS ALL TEMP
@@ -46,22 +52,22 @@ VS_OUTPUT main( VS_INPUT IN )
 	// *** END OF TEMP
 
 	// transform the vector too
-	float2 v = mul( float3( IN.Normal.xy, 0.0f ), (float4x3)g_PolygonTransform ).xy;
+	float2 v = mul( float3( normal.xy, 0.0f ), (float4x3)g_PolygonTransform ).xy;
 	v = normalize( v + 0.00001f ); // Temp bodge so we don't normalise a zero y component
 
 #ifdef _FINNED_OUTER_
-	v.x *= IN.Normal.w;
-	v.y *= IN.Normal.w;
+	v.x *= normal.w;
+	v.y *= normal.w;
 #endif
 
-	pos.xy += ( v * outline_size * length( IN.Normal.xy ) );
+	pos.xy += ( v * outline_size * length( normal.xy ) );
 	
 	OUT.MyWorldPosition = pos;
 	
 	OUT.Position = mul( OUT.MyWorldPosition, g_UiTransform );
 
 	OUT.Colour = g_PolygonColour;
-	OUT.Colour.a *= IN.Normal.z;
+	OUT.Colour.a *= normal.z;
 	
 	return OUT;
 }

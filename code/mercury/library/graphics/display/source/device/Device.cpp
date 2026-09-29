@@ -111,7 +111,7 @@ C_VertexDeclaration* C_Device::CreateVertexDeclaration(const C_VertexElement* pV
 
 	U32 vertexElementCount = 0;
 	const C_VertexElement* pVertexElement = pVertexElements;
-	#if DEVICE_D3D9
+	#if DEVICE_D3D9 || defined(DEVICE_PCD3D11) // [Blur1PCDX11] PC vertex declarations end with stream 0xff.
 	while(pVertexElement->GetStream() != 0xFF)
 	#else
 	while(pVertexElement->GetStream() != E_Stream_Count)

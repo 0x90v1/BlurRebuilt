@@ -15,6 +15,9 @@ namespace FX { const void *GetDefaultVertexTextureFor(const void *pTexture); }	/
 #include "fx/DebugVariables.h"
 #endif
 #include "fx/ShaderImpl.h"
+#if defined(BLUR_USE_DX11)
+#include "fx/NativeFX11.h"
+#endif
 #include <Btl/Utility/hash.h>
 
 namespace FX
@@ -301,14 +304,18 @@ void Context::SetTextureParameterImmediate(ImmediateParameter param, const void 
 
 	if (iHandle2 != (U32)-1)
 	{
+#if !defined(BLUR_USE_DX11)
 		m_pDisplay->SetTexture(iHandle2, FetchTexture(pTexture));
 		SetSamplerState(iHandle2, iSamplerState);
+#endif
 		FxStatistics::Instance().SetTexture();
 	}
 	if (iHandle1 != (U32)-1)
 	{
+#if !defined(BLUR_USE_DX11)
 		m_pDisplay->SetVertexTexture(iHandle1, FetchTexture(GetDefaultVertexTextureFor(pTexture)));	// [Blur2PC]
 		SetVertexSamplerState(iHandle1, iSamplerState);
+#endif
 		FxStatistics::Instance().SetTexture();
 	}
 	if (iDoCopy)
@@ -318,6 +325,11 @@ void Context::SetTextureParameterImmediate(ImmediateParameter param, const void 
 		FxStatistics::Instance().CopyParameter(pParam->Name);
 #endif
 	}
+#if defined(BLUR_USE_DX11)
+	if (m_pCurrentEffect && m_pCurrentPass)
+		NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
+			pParam->Name.Chars(), &pTexture, 0, true);
+#endif
 }
 
 /// set a parameter value during Begin-End pass
@@ -337,6 +349,12 @@ void Context::SetParameterImmediate(ImmediateParameter param, const void *pData)
 		BIZ_ASSERT(iOffset != 0xffffff);	// this function doesn't support setting non-shared texture parameters. use SetTextureParameterImmediate instead
 		pSampler = (nglFXParam_Sampler*)&m_SharedParameterData[iOffset];
 		pSampler->Texture = *(U32*)pData;
+#if defined(BLUR_USE_DX11)
+		if (m_pCurrentEffect && m_pCurrentPass)
+			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
+				pParam->Name.Chars(), pData, 0, true);
+		return;
+#endif
 
 #if !CFG_SPEED && !PLATFORM_SPU
 		if (pSampler->Texture == NULL)
@@ -394,6 +412,11 @@ void Context::SetParameterImmediate(ImmediateParameter param, const void *pData)
 #endif
 			XMemCpy(&m_SharedParameterData[iOffset], pData, iSize*16);
 		}
+#if defined(BLUR_USE_DX11)
+		if (m_pCurrentEffect && m_pCurrentPass)
+			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
+				pParam->Name.Chars(), pData, iSize * 16, false);
+#endif
 	}
 }
 
@@ -1352,6 +1375,10 @@ void Context::BeginPass(Effect* pEffect, U32 iTechnique)
 
 	m_pCurrentEffect = pEffect;
 	m_iCurrentTechnique = iTechnique;
+#if defined(BLUR_USE_DX11)
+	// [Blur1PCDX11] FXB supplies parameters and pass choice; FX5 owns the native pipeline.
+	NativeFX11Apply(pEffect, pPass, iTechnique, &m_Sources[0]);
+#endif
 }
 
 /// cleanup after BeginPass

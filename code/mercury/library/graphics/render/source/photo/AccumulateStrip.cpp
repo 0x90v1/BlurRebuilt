@@ -30,6 +30,9 @@ C_AccumulateStrip::C_AccumulateStrip() : I_Renderer("PhotoAccumulate")
 	memset(m_Jitter, 0, sizeof(m_Jitter));
 	m_Viewport = new C_Viewport;
 	m_PlainSurface = 0;
+	#if defined(BLUR_USE_DX11)
+	m_LockContext = 0;
+	#endif
 	m_CurrentJitter = 0.f;
 }
 
@@ -294,6 +297,39 @@ void C_AccumulateStrip::ScreenToStrip(S32 top, S32 height)
 	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
 
 	S32 width  = backBuffer.GetWidth();
+	#if defined(BLUR_USE_DX11)
+	ID3D11Texture2D* source = backBuffer.GetColourSurface()->m_pd3dSurface;
+	ID3D11Texture2D* destination = m_ScreenStrip->GetSurface().m_pd3dSurface;
+	if (!source || !destination) return;
+	ID3D11Device* device = Display::Device()->GetD3DDevice();
+	ID3D11DeviceContext* context = nullptr;
+	device->GetImmediateContext(&context);
+	if (!context) return;
+	D3D11_TEXTURE2D_DESC sourceDesc = {};
+	source->GetDesc(&sourceDesc);
+	ID3D11Texture2D* resolved = nullptr;
+	if (sourceDesc.SampleDesc.Count > 1)
+	{
+		D3D11_TEXTURE2D_DESC desc = sourceDesc;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.BindFlags = 0;
+		desc.MiscFlags = 0;
+		if (SUCCEEDED(device->CreateTexture2D(&desc, nullptr, &resolved)))
+		{
+			context->ResolveSubresource(resolved, 0, source, 0, sourceDesc.Format);
+			source = resolved;
+		}
+	}
+	if (sourceDesc.SampleDesc.Count == 1 || resolved)
+	{
+		const D3D11_BOX region = { 0, static_cast<UINT>(top), 0,
+			static_cast<UINT>(width), static_cast<UINT>(top + height), 1 };
+		context->CopySubresourceRegion(destination, 0, 0, 0, 0, source, 0, &region);
+	}
+	if (resolved) resolved->Release();
+	context->Release();
+	#else
 	RECT src = {0, top, width, top + height};
 
 	Display::Device()->GetD3DDevice()->StretchRect
@@ -302,6 +338,7 @@ void C_AccumulateStrip::ScreenToStrip(S32 top, S32 height)
 		m_ScreenStrip->GetSurface().m_pd3dSurface, 0,
 		D3DTEXF_NONE
 	);
+	#endif
 #endif
 }
 
@@ -408,6 +445,36 @@ bool C_AccumulateStrip::LockBitmap(unsigned char*& retBits, S32& retPitch, S32& 
 	retHeight = texture->GetHeight(0);
 
 #ifdef PLATFORM_PC
+	#if defined(BLUR_USE_DX11)
+	ID3D11Texture2D* source = texture->GetGPUTexture2D();
+	if (!source) return false;
+	D3D11_TEXTURE2D_DESC desc = {};
+	source->GetDesc(&desc);
+	if (desc.Format != DXGI_FORMAT_B8G8R8A8_UNORM || desc.SampleDesc.Count != 1)
+		return false;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Usage = D3D11_USAGE_STAGING;
+	desc.BindFlags = 0;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+	ID3D11Device* device = Device()->GetD3DDevice();
+	if (FAILED(device->CreateTexture2D(&desc, nullptr, &m_PlainSurface)))
+		return false;
+	device->GetImmediateContext(&m_LockContext);
+	if (!m_LockContext) { m_PlainSurface->Release(); m_PlainSurface = 0; return false; }
+	m_LockContext->CopySubresourceRegion(m_PlainSurface, 0, 0, 0, 0, source, 0, nullptr);
+	D3D11_MAPPED_SUBRESOURCE mapped = {};
+	if (FAILED(m_LockContext->Map(m_PlainSurface, 0, D3D11_MAP_READ_WRITE, 0, &mapped)))
+	{
+		m_LockContext->Release(); m_LockContext = 0;
+		m_PlainSurface->Release(); m_PlainSurface = 0;
+		return false;
+	}
+	retBits = static_cast<unsigned char*>(mapped.pData);
+	retPitch = mapped.RowPitch;
+	retFormat = D3DFMT_A8R8G8B8;
+	#else
 	Device()->GetD3DDevice()->CreateOffscreenPlainSurface(retWidth, retHeight, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &m_PlainSurface, 0);
 	if (!m_PlainSurface)
 		return false;
@@ -433,6 +500,7 @@ bool C_AccumulateStrip::LockBitmap(unsigned char*& retBits, S32& retPitch, S32& 
 	retBits = (unsigned char*)rect.pBits;
 	retPitch = rect.Pitch;
 	retFormat = D3DFMT_A8R8G8B8;
+	#endif
 
 #else
 	Display::C_LockedRect rect = texture->Lock(0);
@@ -451,6 +519,20 @@ bool C_AccumulateStrip::LockBitmap(unsigned char*& retBits, S32& retPitch, S32& 
 void C_AccumulateStrip::UnlockBitmap()
 {
 #ifdef PLATFORM_PC
+	#if defined(BLUR_USE_DX11)
+	if (m_PlainSurface && m_LockContext)
+	{
+		m_LockContext->Unmap(m_PlainSurface, 0);
+		Display::C_Texture2D* texture = GetTexture();
+		if (texture && texture->GetGPUTexture2D())
+			m_LockContext->CopySubresourceRegion(texture->GetGPUTexture2D(), 0,
+				0, 0, 0, m_PlainSurface, 0, nullptr);
+		m_LockContext->Release();
+		m_PlainSurface->Release();
+		m_LockContext = 0;
+		m_PlainSurface = 0;
+	}
+	#else
 	if (m_PlainSurface)
 	{
 		m_PlainSurface->UnlockRect();
@@ -472,6 +554,7 @@ void C_AccumulateStrip::UnlockBitmap()
 		m_PlainSurface->Release();
 	}
 	m_PlainSurface = 0;
+	#endif
 #else
 	Display::C_Texture2D* texture = GetTexture();
 	if (texture)

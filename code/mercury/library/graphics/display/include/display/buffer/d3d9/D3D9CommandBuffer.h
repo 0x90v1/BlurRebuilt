@@ -1,6 +1,10 @@
 #ifndef DISPLAY_BUFFER_D3D9_D3D9_COMMAND_BUFFER_H
 #define DISPLAY_BUFFER_D3D9_D3D9_COMMAND_BUFFER_H
 
+#if defined(BLUR_USE_DX11) // [Blur1PCDX11] Legacy include path, native PC type.
+#include "Display/Buffer/D3D11/D3D11CommandBuffer.h"
+#else
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -68,4 +72,5 @@ protected:
 
 #include "Display/Buffer/D3D9/D3D9CommandBuffer.inl"
 
+#endif // BLUR_USE_DX11
 #endif // DISPLAY_BUFFER_D3D9_D3D9_COMMAND_BUFFER_H

@@ -1,0 +1,402 @@
+// [Blur1PCDX11] Verifies actual D3D11 device creation, shaders, draw and readback.
+#include "Display/Device/D3D11/D3D11Device.h"
+#include "Display/Device/D3D11/D3D11Effect.h"
+#include "Display/Device/D3D11/D3D11EffectLibrary.h"
+#include "Display/Device/D3D11/D3D11InputLayout.h"
+#include "Display/Device/D3D11/D3D11States.h"
+#include <cstdio>
+#include <string>
+
+int main()
+{
+    Display::D3D11::C_D3D11Device device;
+    HRESULT result = device.Initialise();
+    if (FAILED(result)) return 1;
+    UINT packedColourSupport = 0;
+    result = device.Device()->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM,
+                                                  &packedColourSupport);
+    if (FAILED(result)) return 1;
+    std::printf("BGRA packed vertex colour input: %s\n",
+                (packedColourSupport & D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER) ?
+                "supported" : "requires native upload conversion");
+
+    const unsigned char volumeTexels[32] = {
+        0, 0, 0, 255, 32, 0, 0, 255, 64, 0, 0, 255, 96, 0, 0, 255,
+        128, 0, 0, 255, 160, 0, 0, 255, 192, 0, 0, 255, 224, 0, 0, 255
+    };
+    const void* volumeMips[] = { volumeTexels };
+    const UINT volumeSizes[] = { sizeof(volumeTexels) };
+    Microsoft::WRL::ComPtr<ID3D11Texture3D> volumeTexture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> volumeView;
+    result = device.CreateTexture3DFromPCData(2, 2, 2, 1, D3DFMT_A8R8G8B8,
+                                               volumeMips, volumeSizes,
+                                               volumeTexture, volumeView);
+    if (FAILED(result)) return 1;
+    D3D11_SHADER_RESOURCE_VIEW_DESC volumeViewDesc = {};
+    volumeView->GetDesc(&volumeViewDesc);
+    if (volumeViewDesc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE3D) return 1;
+
+    const unsigned char cubeFaces[6][4] = {
+        { 255, 0, 0, 255 }, { 0, 255, 0, 255 }, { 0, 0, 255, 255 },
+        { 255, 255, 0, 255 }, { 255, 0, 255, 255 }, { 0, 255, 255, 255 }
+    };
+    const void* cubeMips[6] = { cubeFaces[0], cubeFaces[1], cubeFaces[2],
+                                 cubeFaces[3], cubeFaces[4], cubeFaces[5] };
+    const UINT cubeSizes[6] = { 4, 4, 4, 4, 4, 4 };
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> cubeTexture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cubeView;
+    result = device.CreateTextureCubeFromPCData(1, 1, D3DFMT_A8R8G8B8,
+                                                 cubeMips, cubeSizes, cubeTexture,
+                                                 cubeView);
+    if (FAILED(result)) return 1;
+    D3D11_SHADER_RESOURCE_VIEW_DESC cubeViewDesc = {};
+    cubeView->GetDesc(&cubeViewDesc);
+    if (cubeViewDesc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURECUBE) return 1;
+
+    Display::D3D11::C_D3D11EffectLibrary effectLibrary;
+    result = effectLibrary.Open(L"_work/build/gen/fx11/effects");
+    if (FAILED(result) || effectLibrary.EffectCount() != 1254) return 9;
+    std::string failedEffect;
+    result = effectLibrary.PreloadAll(device.Device(), &failedEffect);
+    if (FAILED(result))
+    {
+        std::fprintf(stderr, "FX11 effect %s failed to load: 0x%08lx\n",
+                     failedEffect.c_str(), static_cast<unsigned long>(result));
+        return 9;
+    }
+    Display::D3D11::C_D3D11Effect* gameEffect = nullptr;
+    result = effectLibrary.Get(device.Device(), "ScreenFacingSprite.fx", &gameEffect);
+    if (FAILED(result) || !gameEffect) return 9;
+    const void* materialSignature = nullptr;
+    SIZE_T materialSignatureBytes = 0;
+    result = gameEffect->GetPassInputSignature("Material", 0,
+                                               &materialSignature, &materialSignatureBytes);
+    if (FAILED(result) || !materialSignatureBytes) return 9;
+    std::printf("FX11 indexed %zu game effects; Material pass has %zu input-signature bytes\n",
+                effectLibrary.EffectCount(), materialSignatureBytes);
+    Display::D3D11::C_D3D11Effect* stateEffect = nullptr;
+    result = effectLibrary.Get(device.Device(), "MeshEffect.fx", &stateEffect);
+    if (FAILED(result) || !stateEffect ||
+        FAILED(stateEffect->Apply("Material", 0, device.Context()))) return 9;
+    Microsoft::WRL::ComPtr<ID3D11BlendState> gameBlend;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> gameDepth;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> gameRaster;
+    FLOAT blendFactor[4] = {};
+    UINT sampleMask = 0, stencilRef = 0;
+    device.Context()->OMGetBlendState(&gameBlend, blendFactor, &sampleMask);
+    device.Context()->OMGetDepthStencilState(&gameDepth, &stencilRef);
+    device.Context()->RSGetState(&gameRaster);
+    if (!gameBlend || !gameDepth || !gameRaster) return 9;
+    D3D11_BLEND_DESC blendDesc = {};
+    D3D11_DEPTH_STENCIL_DESC depthDesc = {};
+    D3D11_RASTERIZER_DESC rasterDesc = {};
+    gameBlend->GetDesc(&blendDesc);
+    gameDepth->GetDesc(&depthDesc);
+    gameRaster->GetDesc(&rasterDesc);
+    if (!blendDesc.RenderTarget[0].BlendEnable ||
+        blendDesc.RenderTarget[0].SrcBlend != D3D11_BLEND_ONE ||
+        blendDesc.RenderTarget[0].DestBlend != D3D11_BLEND_INV_SRC_ALPHA ||
+        depthDesc.DepthWriteMask != D3D11_DEPTH_WRITE_MASK_ZERO ||
+        rasterDesc.CullMode != D3D11_CULL_NONE) return 9;
+    device.Context()->ClearState();
+    Display::D3D11::C_D3D11Effect* alphaEffect = nullptr;
+    result = effectLibrary.Get(device.Device(), "AutoScrollFade.fx", &alphaEffect);
+    if (FAILED(result) || !alphaEffect) return 9;
+    const void* alphaBytecode = nullptr;
+    SIZE_T alphaBytes = 0;
+    result = alphaEffect->GetPassPixelShaderBytecode("Material", 0,
+                                                     &alphaBytecode, &alphaBytes);
+    Microsoft::WRL::ComPtr<ID3DBlob> alphaAssembly;
+    if (SUCCEEDED(result)) result = D3DDisassemble(alphaBytecode, alphaBytes, 0,
+                                                    nullptr, &alphaAssembly);
+    if (FAILED(result) || !alphaAssembly ||
+        std::string(static_cast<const char*>(alphaAssembly->GetBufferPointer()),
+                    alphaAssembly->GetBufferSize()).find("discard") == std::string::npos)
+        return 9;
+    if (SUCCEEDED(result)) result = device.CreateOffscreenTarget(64, 64);
+    if (FAILED(result)) return 10;
+
+    // Draw through an FX5 pass compiled from the game's authored material.
+    const float identity[16] = { 1, 0, 0, 0, 0, 1, 0, 0,
+                                 0, 0, 1, 0, 0, 0, 0, 1 };
+    const char* matrixNames[] = { "g_mWorld", "g_mView", "g_mViewProj", "g_mProj" };
+    for (const char* name : matrixNames)
+    {
+        if (gameEffect->HasParameter(name))
+        {
+            result = gameEffect->SetRawParameter(name, identity, sizeof(identity));
+            if (FAILED(result)) return 10;
+        }
+    }
+    if (gameEffect->HasParameter("g_lodFade"))
+    {
+        const float fade[4] = { 1, 1, 1, 1 };
+        result = gameEffect->SetRawParameter("g_lodFade", fade, sizeof(fade));
+        if (FAILED(result)) return 10;
+    }
+    const unsigned char whiteBGRA[4] = { 255, 255, 255, 255 };
+    const void* whiteMip[] = { whiteBGRA };
+    const UINT whiteMipSize[] = { sizeof(whiteBGRA) };
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> whiteTexture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> whiteView;
+    bool materialAlbedoSRGB = false;
+    result = effectLibrary.TextureUsesSRGB("ScreenFacingSprite.fx", "g_tAlbedo",
+                                            &materialAlbedoSRGB);
+    if (FAILED(result) || !materialAlbedoSRGB) return 10;
+    result = device.CreateTexture2DFromPCData(1, 1, 1, D3DFMT_A8R8G8B8,
+                                              whiteMip, whiteMipSize,
+                                              whiteTexture, whiteView,
+                                              materialAlbedoSRGB);
+    if (FAILED(result)) return 10;
+    if (FAILED(gameEffect->SetTexture("g_tAlbedo", whiteView.Get()))) return 10;
+
+    const D3DVERTEXELEMENT9 materialElements[] = {
+        { 0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+        { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
+        { 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+        { 0, 32, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+        { 0, 48, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 3 }
+    };
+    struct MaterialVertex { float x, y, z, nx, ny, nz, u, v, r, g, b, a, px, py; };
+    const MaterialVertex materialVertices[] = {
+        { 0, 0.8f, 0.2f, 0, 0, 1, 0.5f, 0, 1, 1, 1, 1, 0, 0 },
+        { 0.8f, -0.8f, 0.2f, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0 },
+        { -0.8f, -0.8f, 0.2f, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0 }
+    };
+    const unsigned short materialIndices[] = { 0, 1, 2 };
+    Microsoft::WRL::ComPtr<ID3D11Buffer> materialVB, materialIB;
+    result = device.CreateVertexBuffer(sizeof(materialVertices), materialVertices, false,
+                                       materialVB);
+    if (SUCCEEDED(result)) result = device.CreateIndexBuffer(
+        sizeof(materialIndices), materialIndices, false, materialIB);
+    if (FAILED(result)) return 10;
+    D3D11_RASTERIZER_DESC materialRaster = {};
+    if (!Display::D3D11::MakeRasterizerDesc(D3DFILL_SOLID, D3DCULL_NONE, false,
+                                           &materialRaster)) return 10;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> materialRasterState;
+    result = device.Device()->CreateRasterizerState(&materialRaster, &materialRasterState);
+    if (FAILED(result)) return 10;
+    const float materialClear[4] = { 0, 0, 0, 1 };
+    device.Context()->ClearRenderTargetView(device.RenderTargetView(), materialClear);
+    device.Context()->ClearDepthStencilView(device.DepthStencilView(),
+        D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+    ID3D11RenderTargetView* materialTarget = device.RenderTargetView();
+    device.Context()->OMSetRenderTargets(1, &materialTarget, device.DepthStencilView());
+    D3D11_VIEWPORT materialViewport = { 0, 0, 64, 64, 0, 1 };
+    device.Context()->RSSetViewports(1, &materialViewport);
+    device.Context()->RSSetState(materialRasterState.Get());
+    result = device.DrawGameEffectIndexed(*gameEffect, "Material", 0,
+                                          materialElements, 5, materialVB.Get(),
+                                          sizeof(MaterialVertex), materialIB.Get(),
+                                          DXGI_FORMAT_R16_UINT, 3);
+    if (FAILED(result) || device.InputLayoutCount() != 1) return 10;
+    result = device.DrawGameEffectIndexed(*gameEffect, "Material", 0,
+                                          materialElements, 5, materialVB.Get(),
+                                          sizeof(MaterialVertex), materialIB.Get(),
+                                          DXGI_FORMAT_R16_UINT, 3);
+    if (FAILED(result) || device.InputLayoutCount() != 1) return 10;
+    ID3D11SamplerState* boundSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT] = {};
+    device.Context()->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,
+                                    boundSamplers);
+    bool linearSamplerBound = false;
+    for (ID3D11SamplerState* bound : boundSamplers)
+    {
+        if (bound)
+        {
+            D3D11_SAMPLER_DESC samplerDesc = {};
+            bound->GetDesc(&samplerDesc);
+            linearSamplerBound |= samplerDesc.Filter == D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+            bound->Release();
+        }
+    }
+    if (!linearSamplerBound) return 10;
+    unsigned char materialPixel[4] = {};
+    result = device.ReadPixel(32, 32, materialPixel);
+    device.Context()->ClearState();
+    if (FAILED(result)) return 10;
+    std::printf("FX11 material draw center RGBA %u %u %u %u\n",
+                materialPixel[0], materialPixel[1], materialPixel[2], materialPixel[3]);
+    if (materialPixel[0] < 200 || materialPixel[1] < 200 || materialPixel[2] < 200)
+        return 10;
+
+    if (SUCCEEDED(result)) result = device.DrawProbeTriangle(
+        L"_work/build/gen/dx11_builtins/display/vsBasicRenderColoured2D.cso",
+        L"_work/build/gen/dx11_builtins/display/psBasicRenderColoured.cso");
+    unsigned char pixel[4] = {};
+    if (SUCCEEDED(result)) result = device.ReadPixel(32, 32, pixel);
+    unsigned char corner[4] = {};
+    if (SUCCEEDED(result)) result = device.ReadPixel(2, 2, corner);
+    if (FAILED(result))
+    {
+        std::fprintf(stderr, "D3D11 probe failed: HRESULT 0x%08lx\n", static_cast<unsigned long>(result));
+        return 1;
+    }
+    std::printf("D3D11 feature level 0x%x, %s device; center RGBA %u %u %u %u; corner RGBA %u %u %u %u\n",
+                static_cast<unsigned>(device.FeatureLevel()),
+                device.DriverType() == D3D_DRIVER_TYPE_HARDWARE ? "hardware" : "WARP",
+                pixel[0], pixel[1], pixel[2], pixel[3], corner[0], corner[1], corner[2], corner[3]);
+    // The center must contain the triangle, rather than the cleared background.
+    if (!(pixel[3] == 255 && pixel[0] > 20 && pixel[1] > 20 && pixel[2] > 20 &&
+          corner[0] == 5 && corner[1] == 10 && corner[2] == 20 && corner[3] == 255))
+        return 2;
+
+    const unsigned char texel[4] = { 20, 150, 200, 255 };
+    result = device.DrawTexturedQuad(
+        L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+        L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso",
+        texel);
+    if (SUCCEEDED(result)) result = device.ReadPixel(32, 32, pixel);
+    if (FAILED(result) || pixel[0] != texel[0] || pixel[1] != texel[1] ||
+        pixel[2] != texel[2] || pixel[3] != texel[3])
+    {
+        std::fprintf(stderr, "D3D11 texture path failed: HRESULT 0x%08lx, pixel %u %u %u %u\n",
+                     static_cast<unsigned long>(result), pixel[0], pixel[1], pixel[2], pixel[3]);
+        return 5;
+    }
+    const unsigned char srgbTexel[4] = { 128, 128, 128, 255 };
+    result = device.DrawTexturedQuad(
+        L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+        L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso",
+        srgbTexel, true);
+    if (SUCCEEDED(result)) result = device.ReadPixel(32, 32, pixel);
+    if (FAILED(result) || pixel[0] < 54 || pixel[0] > 56 ||
+        pixel[1] < 54 || pixel[1] > 56 || pixel[2] < 54 || pixel[2] > 56)
+    {
+        std::fprintf(stderr, "D3D11 sRGB decode failed: 0x%08lx, pixel %u %u %u %u\n",
+                     static_cast<unsigned long>(result), pixel[0], pixel[1],
+                     pixel[2], pixel[3]);
+        return 5;
+    }
+    const unsigned char bc1Block[8] = { 0x00, 0xf8, 0, 0, 0, 0, 0, 0 };
+    const unsigned char bc2Block[16] = {
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0x00, 0xf8, 0, 0, 0, 0, 0, 0
+    };
+    const unsigned char bc3Block[16] = {
+        0xff, 0, 0, 0, 0, 0, 0, 0,
+        0x00, 0xf8, 0, 0, 0, 0, 0, 0
+    };
+    const struct { D3DFORMAT format; const void* bytes; UINT size; } bcCases[] = {
+        { D3DFMT_DXT1, bc1Block, sizeof(bc1Block) },
+        { D3DFMT_DXT3, bc2Block, sizeof(bc2Block) },
+        { D3DFMT_DXT5, bc3Block, sizeof(bc3Block) }
+    };
+    for (const auto& bc : bcCases)
+    {
+        const void* mip[] = { bc.bytes };
+        const UINT size[] = { bc.size };
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> compressedTexture;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> compressedView;
+        result = device.CreateTexture2DFromPCData(4, 4, 1, bc.format, mip, size,
+                                                   compressedTexture, compressedView);
+        if (SUCCEEDED(result)) result = device.DrawTexturedQuadView(
+            L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+            L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso",
+            compressedView.Get());
+        if (SUCCEEDED(result)) result = device.ReadPixel(32, 32, pixel);
+        if (FAILED(result) || pixel[0] != 255 || pixel[1] != 0 ||
+            pixel[2] != 0 || pixel[3] != 255) return 5;
+    }
+
+    // Draw with the engine's 3D shader and named world/view-projection matrices.
+    const float world[16] = { 1, 0, 0, 0, 0, 1, 0, 0,
+                              0, 0, 1, 0, 0, 0, 0, 1 };
+    const float viewProj[16] = { 1, 0, 0, 0, 0, 1, 0, 0,
+                                 0, 0, 1, 0, 0.65f, 0, 0, 1 };
+    struct Vertex3D { float x, y, z, r, g, b, a; };
+    const Vertex3D triangle[] = {
+        {  0,     0.7f, 0.3f, 0.8f, 0.1f, 0.2f, 1 },
+        { -0.25f,-0.5f, 0.3f, 0.8f, 0.1f, 0.2f, 1 },
+        {  0.25f,-0.5f, 0.3f, 0.8f, 0.1f, 0.2f, 1 }
+    };
+    const unsigned short triangleIndices[] = { 0, 1, 2 };
+    result = device.DrawColoured3D(
+        L"_work/build/gen/dx11_builtins/display/vsBasicRenderColoured3D.cso",
+        L"_work/build/gen/dx11_builtins/display/psBasicRenderColoured.cso",
+        world, viewProj, triangle, sizeof(triangle), sizeof(Vertex3D),
+        triangleIndices, 3);
+    unsigned char translated[4] = {};
+    if (SUCCEEDED(result)) result = device.ReadPixel(52, 32, translated);
+    if (SUCCEEDED(result)) result = device.ReadPixel(32, 32, pixel);
+    if (FAILED(result) || translated[0] < 150 || translated[1] < 15 ||
+        translated[2] < 30 || pixel[0] != 5 || pixel[1] != 10 || pixel[2] != 20)
+    {
+        std::fprintf(stderr, "D3D11 3D matrices failed: HRESULT 0x%08lx, translated %u %u %u %u, center %u %u %u %u\n",
+                     static_cast<unsigned long>(result), translated[0], translated[1],
+                     translated[2], translated[3], pixel[0], pixel[1], pixel[2], pixel[3]);
+        return 6;
+    }
+
+    // Exercise the render-target/depth views used for game postprocessing.
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> msColor, resolvedColor, msDepth;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> msTarget, resolvedTarget;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> msColorView, resolvedView, depthView;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> msDepthTarget;
+    result = device.CreateRenderTexture2D(64, 64, 1, 4, DXGI_FORMAT_R8G8B8A8_UNORM,
+                                          msColor, msTarget, msColorView);
+    if (SUCCEEDED(result)) result = device.CreateRenderTexture2D(
+        64, 64, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM,
+        resolvedColor, resolvedTarget, resolvedView);
+    if (SUCCEEDED(result)) result = device.CreateDepthTexture2D(
+        64, 64, 4, msDepth, msDepthTarget, depthView);
+    if (FAILED(result))
+    {
+        std::fprintf(stderr, "D3D11 render/depth texture creation failed: 0x%08lx\n",
+                     static_cast<unsigned long>(result));
+        return 7;
+    }
+    const float resolveColour[4] = { 0.25f, 0.5f, 0.75f, 1.f };
+    device.Context()->ClearRenderTargetView(msTarget.Get(), resolveColour);
+    device.Context()->ClearDepthStencilView(msDepthTarget.Get(),
+                                             D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+    device.Context()->ResolveSubresource(resolvedColor.Get(), 0, msColor.Get(), 0,
+                                         DXGI_FORMAT_R8G8B8A8_UNORM);
+    D3D11_TEXTURE2D_DESC stagingDesc = {};
+    resolvedColor->GetDesc(&stagingDesc);
+    stagingDesc.Usage = D3D11_USAGE_STAGING;
+    stagingDesc.BindFlags = 0;
+    stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> staging;
+    result = device.Device()->CreateTexture2D(&stagingDesc, nullptr, &staging);
+    if (SUCCEEDED(result)) device.Context()->CopyResource(staging.Get(), resolvedColor.Get());
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    if (SUCCEEDED(result)) result = device.Context()->Map(staging.Get(), 0, D3D11_MAP_READ,
+                                                          0, &mapped);
+    if (SUCCEEDED(result))
+    {
+        const unsigned char* sample = static_cast<const unsigned char*>(mapped.pData) +
+                                      32 * mapped.RowPitch + 32 * 4;
+        const bool rightColour = sample[0] >= 63 && sample[0] <= 65 &&
+                                 sample[1] >= 127 && sample[1] <= 129 &&
+                                 sample[2] >= 190 && sample[2] <= 192 &&
+                                 sample[3] == 255;
+        device.Context()->Unmap(staging.Get(), 0);
+        if (!rightColour) return 8;
+    }
+    if (FAILED(result)) return 8;
+
+    // Exercise the DXGI presentation and resize path without launching Amax.
+    HWND window = CreateWindowExW(0, L"STATIC", L"Blur DX11 probe", WS_OVERLAPPEDWINDOW,
+                                  0, 0, 64, 64, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    if (!window) return 3;
+    result = device.CreateWindowTarget(window, 64, 64);
+    if (SUCCEEDED(result)) result = device.DrawProbeTriangle(
+        L"_work/build/gen/dx11_builtins/display/vsBasicRenderColoured2D.cso",
+        L"_work/build/gen/dx11_builtins/display/psBasicRenderColoured.cso");
+    if (SUCCEEDED(result)) result = device.ReadPixel(32, 32, pixel);
+    if (SUCCEEDED(result)) result = device.Present(0);
+    if (SUCCEEDED(result)) result = device.ResizeWindowTarget(128, 96);
+    if (SUCCEEDED(result)) result = device.DrawProbeTriangle(
+        L"_work/build/gen/dx11_builtins/display/vsBasicRenderColoured2D.cso",
+        L"_work/build/gen/dx11_builtins/display/psBasicRenderColoured.cso");
+    if (SUCCEEDED(result)) result = device.ReadPixel(64, 48, pixel);
+    if (SUCCEEDED(result)) result = device.Present(0);
+    DestroyWindow(window);
+    if (FAILED(result) || pixel[0] < 20 || pixel[1] < 20 || pixel[2] < 20)
+    {
+        std::fprintf(stderr, "DXGI window path failed: HRESULT 0x%08lx\n", static_cast<unsigned long>(result));
+        return 4;
+    }
+    std::puts("DXGI swap chain create, present and resize passed");
+    return 0;
+}

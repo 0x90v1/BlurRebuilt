@@ -15,8 +15,14 @@ struct PS_OUTPUT
 
 struct VS_OUTPUT
 {
+	#if defined(BLUR_DX11) // [Blur1PCDX11] D3D11 links stages by register; the full-screen vertex shader emits SV_Position last.
+
+    float2 uv		: TEXCOORD0;
+    float4 position	: SV_Position;
+	#else
     float4 position	: POSITION;		//Pixel position (world-view-proj space)  
     float2 uv		: TEXCOORD0;
+	#endif
 };
 
 PS_OUTPUT main(VS_OUTPUT input)

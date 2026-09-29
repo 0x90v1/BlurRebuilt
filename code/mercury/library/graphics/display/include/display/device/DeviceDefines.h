@@ -38,7 +38,11 @@
 	#endif
 	#define SHADERS_CG
 #elif defined(PLATFORM_PC)
-	#if !defined(GRAPHICS_D3D9) && !defined(GRAPHICS_GL)
+	#if defined(BLUR_USE_DX11) // [Blur1PCDX11] Select the native PC backend.
+		#define GRAPHICS_D3D11
+		#define SHADERS_HLSL
+		#define DEVICE_PCD3D11
+	#elif !defined(GRAPHICS_D3D9) && !defined(GRAPHICS_GL)
 		#if 1
 			#define GRAPHICS_D3D9
 			#define SHADERS_HLSL

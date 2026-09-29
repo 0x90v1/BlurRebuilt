@@ -15,6 +15,9 @@ sampler2D	g_Texture2			: register(s2); // piping texture
 struct PS_INPUT
 {
 	float4 Colour				: COLOR;
+	#if defined(BLUR_DX11) // [Blur1PCDX11] D3D11 links stages by register; keep the slot the vertex shader writes.
+	float4 MyWorldPosition		: TEXCOORD3;
+	#endif
 	float2 TexCoord0			: TEXCOORD0;
 	float2 TexCoord1			: TEXCOORD1;
 	float2 TexCoord2			: TEXCOORD2;

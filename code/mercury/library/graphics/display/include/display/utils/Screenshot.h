@@ -13,6 +13,11 @@ namespace Display
 void TakeScreenshot(const Sys::C_FilePath& fileName, const C_Surface* pSurface);
 void TakeScreenshot(const Sys::C_FilePath& fileName);
 
+#if defined(BLUR_USE_DX11)
+// [Blur1PCDX11] Capture the swap-chain image during automated, minimized runs.
+void TakeD3D11BackBufferScreenshot(const char* fileName, ID3D11Texture2D* source);
+#endif
+
 }; // namespace Display
 
 #endif // DISPLAY_UTILS_SCREENSHOT_H

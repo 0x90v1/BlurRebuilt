@@ -1160,7 +1160,22 @@ void C_MainView::RenderPrepass1(C_View& gameView)
 	// Since the depth texture (m_pDepthTexture) is set as RenderTarget #1, we cannot safely use it as an input texture, so
 	// we must reset the appropriate target...
 	
+	 #if defined(BLUR_USE_DX11) // [Blur1PCDX11] Keep MRT slot 0 and unbind slot 1 natively.
+	 ID3D11DeviceContext* context = nullptr;
+	 Display::Device()->GetD3DDevice()->GetImmediateContext(&context);
+	 if (context)
+	 {
+		 ID3D11RenderTargetView* colour = nullptr;
+		 ID3D11DepthStencilView* depth = nullptr;
+		 context->OMGetRenderTargets(1, &colour, &depth);
+		 context->OMSetRenderTargets(1, &colour, depth);
+		 if (colour) colour->Release();
+		 if (depth) depth->Release();
+		 context->Release();
+	 }
+	 #else
 	 Display::Device()->GetD3DDevice()->SetRenderTarget(1,NULL);
+	 #endif
 
 	 // We also need to unbind any other textures used as render targets...
 	 //  - DX release will not report a problem but results are undefined.

@@ -1,4 +1,7 @@
 #include "stdafx.h"
+#if defined(BLUR_USE_DX11)
+#include <system/debug/Blur2PCAutomation.h>
+#endif
 #include "Deferred/Manager.h"
 
 Debug::Bool	g_Tiled_Override_Deferred_Colour	("Graphics.Render.Resolution.Tiled_Override_Deferred_Colour",	false);
@@ -375,6 +378,9 @@ bool C_Manager::OnCreate()
 bool C_Manager::OnCreateVolatile()
 {
 	RESOURCE_MEMORY_ID("Deferred::C_Manager");
+	#if defined(BLUR_USE_DX11)
+	Blur2PCAutomation::LogF("DX11 Deferred OnCreateVolatile views=%d", m_Views.Size());
+	#endif
 	
 	MEMORY_TRACKER_PUSH("graphics.renderers.deferred");
 	if (!CreateRenderTargets())
@@ -484,6 +490,9 @@ void C_Manager::ClearRenderTargetSetups()
 
 bool C_Manager::AddView(const U32 iWidth, const U32 iHeight, const S32 iIndex, const S32 iRenderTargetIndex)
 {
+	#if defined(BLUR_USE_DX11)
+	Blur2PCAutomation::LogF("DX11 Deferred AddView index=%d setup=%d size=%ux%u", iIndex, iRenderTargetIndex, iWidth, iHeight);
+	#endif
 	m_Views.PushBack();
 	m_Views.Back().iWidth				= iWidth;
 	m_Views.Back().iHeight				= iHeight;
@@ -587,6 +596,11 @@ const Display::C_Surface* C_Manager::GetDepthStencilSurface(const S32 iViewIndex
 
 const Display::C_Texture2D* C_Manager::GetColourTexture(const S32 iViewIndex, const S32 iColourIndex)
 {
+	#if defined(BLUR_USE_DX11)
+	static int dx11DeferredGetLogCount = 0;
+	if (dx11DeferredGetLogCount++ < 16)
+		Blur2PCAutomation::LogF("DX11 Deferred GetColour view=%d colour=%d views=%d", iViewIndex, iColourIndex, m_Views.Size());
+	#endif
 	const S32 iMappedIndex = m_ViewMapping[iViewIndex];
 	const C_View& view = m_Views[iMappedIndex];
 	if (view.renderTextures[iColourIndex])
@@ -858,6 +872,9 @@ bool C_Manager::CreateRenderTargets()
 
 		const S32 iSetupIndex = m_SetupMapping[view.iRenderTargetIndex];
 		const C_RenderTargetSetup& setup = m_Setups[iSetupIndex];
+		#if defined(BLUR_USE_DX11)
+		Blur2PCAutomation::LogF("DX11 Deferred CreateRT view=%d setup=%d fmt0=%d fmt1=%d depth=%d", view.iIndex, iSetupIndex, setup.eColourFormat[0], setup.eColourFormat[1], setup.eDepthStencilFormat);
+		#endif
 
 		for (S32 i = 0; i < 4; ++i)
 		{
@@ -868,6 +885,9 @@ bool C_Manager::CreateRenderTargets()
   
 				if (!Display::Device()->CreateRenderTexture2D(view.iWidth, view.iHeight, 1, Display::E_Usage_Colour, setup.eColourFormat[i], setup.eMultisample, 0, pRenderTexture))
 				{
+					#if defined(BLUR_USE_DX11)
+					Blur2PCAutomation::LogF("DX11 Deferred CreateRT failed view=%d slot=%d", view.iIndex, i);
+					#endif
 					Display::Device()->ReleaseThreadOwnership();
 					return false;
 				}
@@ -888,6 +908,9 @@ bool C_Manager::CreateRenderTargets()
 			Display::C_Surface* pSurface = new Display::C_Surface;
 			if (!Display::Device()->CreateDepthStencilSurface(view.iWidth, view.iHeight, Display::E_Usage_DepthStencil | Display::E_Usage_Indirect, setup.eDepthStencilFormat, setup.eMultisample, 0, pSurface))
 			{
+				#if defined(BLUR_USE_DX11)
+				Blur2PCAutomation::LogF("DX11 Deferred depth surface failed view=%d format=%d", view.iIndex, setup.eDepthStencilFormat);
+				#endif
 				Display::Device()->ReleaseThreadOwnership();
 				return false;
 			}
@@ -900,6 +923,9 @@ bool C_Manager::CreateRenderTargets()
 			Display::C_Texture2D* pTexture2D = new Display::C_Texture2D;
 			if (!Display::Device()->CreateTexture2D(view.iWidth, view.iHeight, 1, Display::E_Usage_Video, setup.eDepthStencilFormat, pTexture2D))
 			{
+				#if defined(BLUR_USE_DX11)
+				Blur2PCAutomation::LogF("DX11 Deferred depth texture failed view=%d format=%d", view.iIndex, setup.eDepthStencilFormat);
+				#endif
 				Display::Device()->ReleaseThreadOwnership();
 				return false;
 			}

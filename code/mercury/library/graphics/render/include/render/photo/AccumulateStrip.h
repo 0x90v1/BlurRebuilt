@@ -45,7 +45,12 @@ private:
 	F32 m_Jitter[256];
 	C_Viewport* m_Viewport;
 	C_PixelShaderParameter m_AdjustParam;
+	#if defined(BLUR_USE_DX11)
+	ID3D11Texture2D* m_PlainSurface; // [Blur1PCDX11] CPU staging copy of the photo.
+	ID3D11DeviceContext* m_LockContext;
+	#else
 	IDirect3DSurface9* m_PlainSurface;
+	#endif
 	F32 m_CurrentJitter;
 
 	void SetRenderTarget(C_RenderTexture2D* tex, S32 x = 0, S32 y = 0, S32 w = 0, S32 h = 0);

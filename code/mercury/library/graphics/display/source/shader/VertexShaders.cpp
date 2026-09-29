@@ -22,7 +22,7 @@ void CreateVertexShaders()
 {
 	RESOURCE_MEMORY_ID("DisplayShaders");
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11]
 	CreateVertexShaderFromFunc("Shaders/vsDefault_XY", 0, &VertexShader_XY::m_VertexShader, REF_SHADER(vsDefault_XY));
 	CreateVertexShaderFromFunc("Shaders/vsDefault_XYVertexColour", 0, &VertexShader_XY::m_VertexShaderVertexColour, REF_SHADER(vsDefault_XYVertexColour));
 #endif
@@ -30,7 +30,7 @@ void CreateVertexShaders()
 
 void DestroyVertexShaders()
 {
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11]
 	Display::Device()->Destroy(&VertexShader_XY::m_VertexShader);
 	Display::Device()->Destroy(&VertexShader_XY::m_VertexShaderVertexColour);
 #endif
