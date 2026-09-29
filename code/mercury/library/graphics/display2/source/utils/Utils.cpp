@@ -969,6 +969,24 @@ bool CloneTexture2D(C_Texture* pSrc, C_Texture* pDst)
 		pSrc->UnlockRect2D(level);
 		pDst->UnlockRect2D(level);
 	}
+#elif defined(DEVICE_D3D11)
+	// [Blur1PCDX11] D3D11 textures have no CPU address; clone them on the GPU.
+	ID3D11Texture2D* pSrcTexture = pSrc->GetGPUTexture2D();
+	ID3D11Texture2D* pDstTexture = pDst->GetGPUTexture2D();
+	if(!pSrcTexture || !pDstTexture)
+		return false;
+	ID3D11Device* pDevice = nullptr;
+	pSrcTexture->GetDevice(&pDevice);
+	ID3D11DeviceContext* pContext = nullptr;
+	if(pDevice)
+	{
+		pDevice->GetImmediateContext(&pContext);
+		pDevice->Release();
+	}
+	if(!pContext)
+		return false;
+	pContext->CopyResource(pDstTexture, pSrcTexture);
+	pContext->Release();
 #else
 	memcpy(pDst->GetAddress(), pSrc->GetAddress(), pDst->GetSize());
 
