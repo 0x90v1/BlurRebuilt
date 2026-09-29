@@ -8,8 +8,6 @@
 #include "Display/Device/D3D11/D3D11EffectLibrary.h"
 #include <system/debug/Blur2PCAutomation.h>
 #include <limits>
-#include <set>
-#include <string>
 
 namespace FX {
 
@@ -59,14 +57,6 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
 {
     // [Blur1PCDX11] FX sampler values are GPUTexture pointers (Display2: ID3D11Resource), as D3D9's were IDirect3DBaseTexture9.
     const char* name = g_effects.TextureForSampler(effect->Name.Chars(), sampler);
-    {
-        static std::set<std::string> seen;
-        char key[256];
-        sprintf_s(key, "%s|%s|%d", effect->Name.Chars(), sampler, texture != nullptr);
-        if (seen.size() < 300 && seen.insert(key).second)
-            Blur2PCAutomation::LogF("DX11 FX bind texture %s sampler=%s name=%s texture=%p", effect->Name.Chars(),
-                sampler, name ? name : "(none)", texture);
-    }
     if (!name) return;
     ID3D11ShaderResourceView* view = nullptr;
     if (texture)
@@ -133,9 +123,6 @@ void BindFunction(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
             ? binding.Name : effect->Parameters[binding.ParameterIdx].Name.Chars();
         if (!name || !name[0]) continue;
         const U8* data = static_cast<const U8*>(sources[binding.Source]) + binding.Offset;
-        { static unsigned traced = 0; if (traced++ < 60)
-            Blur2PCAutomation::LogF("DX11 FX binding %s / %s type=%u source=%u count=%u", effect->Name.Chars(), name,
-                static_cast<unsigned>(binding.Type), static_cast<unsigned>(binding.Source), static_cast<unsigned>(binding.Count)); }
         if (binding.Type == NGLFX_BIND_SAMPLER)
         {
             const auto* sampler = reinterpret_cast<const nglFXParam_Sampler*>(data);

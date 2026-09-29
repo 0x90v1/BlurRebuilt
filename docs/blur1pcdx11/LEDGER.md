@@ -99,3 +99,15 @@ Blocked: unchanged — the post-process chain loses the frame, and the vehicle e
 Next: as in the entry above — capture the chain texture at each `I_PostProcess::DisplayIntermediate`; `deferred/Manager.cpp` `GetColourTexture` is already instrumented for it.
 
 Files touched: docs/blur1pcdx11/LEDGER.md.
+
+## 2026-09-29 (4) — session Claude DX11 — T127, T149
+
+Did: found and fixed the four faults that kept the DX11 build from presenting (analysis.md, "four faults between the renderer and the screen"): built-in shaders got their textures in the wrong registers (sampler-to-texture register map from reflection in `D3D11GameDeviceNative.cpp`); `C_D3D11GameDevice::Unbind` cleared the whole pipeline (now a port of the D3D9 function); the FX11 bridge read FX texture values as `Display::C_Texture*` when they are `ID3D11Resource*`, and could not resolve texture parameter names (`NativeFX11.cpp`, `D3D11EffectLibrary`); `Display::Quad` applied D3D9's half-pixel shift (now skipped under `BLUR_USE_DX11`, as the engine does on PS3). Added a one-frame draw trace (`BLUR_DX11_TRACE_AT`, `BLUR_DX11_TRACE_PX`, per-draw debug messages with `BLUR_DX11_DEBUG=1`) and `_work/run/run_slot.ps1` (runs an automation script through `tools/game_slot.ps1`). Delivered `_work/run/Amax.exe`.
+
+Verified: builds with no errors. Start screen (`scripts/start.txt`): back buffer mean RGB 28/47/73; showroom street, lights and all UI present, matching the D3D9 reference except the car body. Debug race (`scripts/race.txt`): reaches Racing, runs 18 s, clean exit; HUD, mirror, minimap, buildings and far road present. Before this session both back buffers were mean 0.
+
+Blocked: none for presenting. Open rendering faults: the car body (T148), the near road rendering white in the race (`Road / MaterialLights` output; input not identified), no sRGB decode on texture reads.
+
+Next: trace `Road / MaterialLights` at (0.70, 0.83) of a race frame with each of its textures replaced in turn by a black view (or disassemble the FX11 pass and dump its constant buffer) to find the input that whitens it; then sRGB (TYPELESS texture creation plus `_SRGB` views where `SetTextureGamma` or `effects.samplers` asks for them).
+
+Files touched: display device `d3d11/{D3D11GameDeviceNative.cpp,D3D11GameDevice.cpp,PCD3D11GameDevice.cpp,D3D11EffectLibrary.cpp}`, `display/include/display/device/d3d11/D3D11EffectLibrary.h`, `display/source/render/Render.cpp`, `fx/source/NativeFX11.cpp`, `_work/run/{run_slot.ps1,scripts/race.txt,scripts/start.txt}`, docs/blur1pcdx11/{analysis.md,LEDGER.md,BOARD.md}. No commit (user instruction).

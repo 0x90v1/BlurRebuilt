@@ -367,7 +367,15 @@ void TraceDraw(ID3D11Device* device, ID3D11DeviceContext* context, const NativeS
         ComPtr<ID3D11Texture2D> staging;
         if (SUCCEEDED(device->CreateTexture2D(&one, nullptr, &staging)))
         {
-            D3D11_BOX box = { desc.Width / 2, desc.Height / 2, 0, desc.Width / 2 + 1, desc.Height / 2 + 1, 1 };
+            static float fx = -1.f, fy = 0.5f;
+            if (fx < 0.f)
+            {
+                char value[32] = {}; fx = 0.5f;
+                if (GetEnvironmentVariableA("BLUR_DX11_TRACE_PX", value, sizeof(value))) sscanf_s(value, "%f,%f", &fx, &fy);
+            }
+            const UINT px = (std::min)(desc.Width - 1, static_cast<UINT>(desc.Width * fx));
+            const UINT py = (std::min)(desc.Height - 1, static_cast<UINT>(desc.Height * fy));
+            D3D11_BOX box = { px, py, 0, px + 1, py + 1, 1 };
             context->CopySubresourceRegion(staging.Get(), 0, 0, 0, 0, texture.Get(), 0, &box);
             D3D11_MAPPED_SUBRESOURCE mapped = {};
             if (SUCCEEDED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped)) && mapped.pData)
