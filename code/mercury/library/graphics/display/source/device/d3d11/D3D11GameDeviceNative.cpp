@@ -3,6 +3,7 @@
 #include "Display/Device/D3D11/PCD3D11GameDevice.h"
 #include "Display/Device/D3D11/D3D11InputLayout.h"
 #include "Display/Device/D3D11/D3D11States.h"
+#include "Display/Device/D3D11/D3D11Formats.h"
 #include <map>
 #include <array>
 #include <wrl/client.h>
@@ -258,6 +259,9 @@ void ApplySampler(C_D3D11GameDevice* device, U32 slot, bool vertex)
 {
     auto context = Context(device->GetD3DDevice()); if (!context || slot >= (vertex ? 4U : 16U)) return;
     D3D11_SAMPLER_DESC& desc = vertex ? State(device).vertexSampler[slot] : State(device).sampler[slot];
+    // [Blur2PC] D3D9 MIPFILTER=NONE samples mip zero even when minifying.
+    const auto mip = vertex ? device->m_VertexSampler[slot].m_FilterMip : device->m_Sampler[slot].m_FilterMip;
+    desc.MaxLOD = mip == E_TextureFilter_None ? 0.f : D3D11_FLOAT32_MAX;
     ComPtr<ID3D11SamplerState> state;
     if (SUCCEEDED(device->GetD3DDevice()->CreateSamplerState(&desc, &state)))
     { ID3D11SamplerState* raw = state.Get(); if (vertex) context->VSSetSamplers(slot, 1, &raw); else context->PSSetSamplers(slot, 1, &raw); }
@@ -266,6 +270,9 @@ void BindConstants(C_D3D11GameDevice* device, bool vertex)
 {
     auto context = Context(device->GetD3DDevice()); if (!context) return;
     NativeState& state = State(device);
+    // [Blur1PCDX11] FX11 owns its reflected constant buffers. Legacy register
+    // writes may update the cache, but must not replace those buffers on the GPU.
+    if (state.nativeFXActive) return;
     auto& buffer = vertex ? state.vertexConstants : state.pixelConstants;
     bool& dirty = vertex ? state.vertexDirty : state.pixelDirty;
     float* data = vertex ? state.vertexData : state.pixelData;
@@ -317,7 +324,7 @@ void BindRenderTargets(C_D3D11GameDevice* game)
         D3D11_TEXTURE2D_DESC td = {};
         surface->m_pd3dSurface->GetDesc(&td);
         D3D11_RENDER_TARGET_VIEW_DESC vd = {};
-        vd.Format = td.Format;
+        vd.Format = GetLinearFormat(td.Format);
         if (td.SampleDesc.Count > 1) vd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
         else if (td.ArraySize > 1)
         {
@@ -633,9 +640,14 @@ void C_D3D11GameDevice::ReportTextureStats(const char* tag, ID3D11Resource* reso
 void C_D3D11GameDevice::SetTexture(U32 slot, const C_Texture* texture)
 {
     if (slot >= E_Sampler_Count) return;
-    m_Sampler[slot].m_pTexture = texture; auto context = Context(m_pd3dDevice); if (!context) return;
-    ID3D11Resource* sampled = texture ? texture->m_pd3dTexture : nullptr;
-    if (texture && texture->m_pd3dTexture)
+    m_Sampler[slot].m_pTexture = texture;
+    SetNativeTexture(slot, texture ? texture->m_pd3dTexture : nullptr);
+}
+void C_D3D11GameDevice::SetNativeTexture(U32 slot, ID3D11Resource* sampled)
+{
+    if (slot >= E_Sampler_Count) return;
+    auto context = Context(m_pd3dDevice); if (!context) return;
+    if (sampled)
     {
         ID3D11RenderTargetView* targets[4] = {};
         context->OMGetRenderTargets(4, targets, nullptr);
@@ -682,7 +694,7 @@ void C_D3D11GameDevice::SetTexture(U32 slot, const C_Texture* texture)
     ComPtr<ID3D11ShaderResourceView> view;
     if (sampled)
     {
-        const HRESULT viewResult = m_pd3dDevice->CreateShaderResourceView(sampled, nullptr, &view);
+        const HRESULT viewResult = CreateTextureView(m_pd3dDevice, sampled, m_Sampler[slot].m_Gamma == E_Bool_True, &view);
         if (FAILED(viewResult) && Blur2PCAutomation::Now() > 20.0)
         {
             static unsigned failures = 0;
@@ -702,10 +714,16 @@ void C_D3D11GameDevice::SetTexture(U32 slot, const C_Texture* texture)
 void C_D3D11GameDevice::SetVertexTexture(U32 slot, const C_Texture* texture)
 {
     if (slot >= E_VertexSampler_Count) return;
-    m_VertexSampler[slot].m_pTexture = texture; auto context = Context(m_pd3dDevice); if (!context) return;
+    m_VertexSampler[slot].m_pTexture = texture;
+    SetNativeVertexTexture(slot, texture ? texture->m_pd3dTexture : nullptr);
+}
+void C_D3D11GameDevice::SetNativeVertexTexture(U32 slot, ID3D11Resource* texture)
+{
+    if (slot >= E_VertexSampler_Count) return;
+    auto context = Context(m_pd3dDevice); if (!context) return;
     ComPtr<ID3D11ShaderResourceView> view;
-    if (texture && texture->m_pd3dTexture)
-        m_pd3dDevice->CreateShaderResourceView(texture->m_pd3dTexture, nullptr, &view);
+    if (texture)
+        CreateTextureView(m_pd3dDevice, texture, m_VertexSampler[slot].m_Gamma == E_Bool_True, &view);
     NativeState& state = State(this);
     state.vertexViews[slot] = view;
     S32 target = static_cast<S32>(slot);
@@ -1220,9 +1238,20 @@ void C_D3D11GameDevice::SetTextureBorderColour(U32 slot, U32 colour)
   d.BorderColor[3] = ((colour >> 24) & 255) / 255.f; ApplySampler(this,slot,false); }
 void C_D3D11GameDevice::SetTextureLodBias(U32 slot, S8 bias)
 { if (slot >= E_Sampler_Count) return; m_Sampler[slot].m_LodBias = bias;
-  State(this).sampler[slot].MipLODBias = static_cast<float>(bias); ApplySampler(this,slot,false); }
+  // [Blur2PC] Display2 encodes the PC mip bias in sixteenths (D3D9Functions.inl).
+  State(this).sampler[slot].MipLODBias = static_cast<float>(bias) / 16.f; ApplySampler(this,slot,false); }
 void C_D3D11GameDevice::SetTextureGamma(U32 slot, E_Bool value)
-{ if (slot >= E_Sampler_Count) return; m_Sampler[slot].m_Gamma = value; }
+{
+    if (slot >= E_Sampler_Count) return;
+    // [Blur1PCDX11] Match the PC sampler override and allow gamma to change
+    // after the texture was bound, without requiring another SetTexture call.
+    if (m_ForceTextureGamma != E_Bool_Default) value = m_ForceTextureGamma;
+    if (m_Sampler[slot].m_Gamma == value) return;
+    m_Sampler[slot].m_Gamma = value;
+    ComPtr<ID3D11Resource> resource;
+    if (State(this).pixelViews[slot]) State(this).pixelViews[slot]->GetResource(&resource);
+    if (resource) SetNativeTexture(slot, resource.Get());
+}
 void C_D3D11GameDevice::SetVertexTextureAddressU(U32 slot, E_TextureAddress value)
 { if (slot >= E_VertexSampler_Count) return; m_VertexSampler[slot].m_AddressU = value;
   State(this).vertexSampler[slot].AddressU = Address(value); ApplySampler(this, slot, true); }
@@ -1257,7 +1286,18 @@ void C_D3D11GameDevice::SetVertexTextureBorderColour(U32 slot, U32 colour)
   d.BorderColor[3] = ((colour >> 24) & 255) / 255.f; ApplySampler(this,slot,true); }
 void C_D3D11GameDevice::SetVertexTextureLodBias(U32 slot, S8 bias)
 { if (slot >= E_VertexSampler_Count) return; m_VertexSampler[slot].m_LodBias = bias;
-  State(this).vertexSampler[slot].MipLODBias = static_cast<float>(bias); ApplySampler(this,slot,true); }
+  // [Blur2PC] Same Display2 encoding for vertex texture samplers.
+  State(this).vertexSampler[slot].MipLODBias = static_cast<float>(bias) / 16.f; ApplySampler(this,slot,true); }
 void C_D3D11GameDevice::SetVertexTextureGamma(U32 slot, E_Bool value)
-{ if (slot >= E_VertexSampler_Count) return; m_VertexSampler[slot].m_Gamma = value; }
+{
+    if (slot >= E_VertexSampler_Count) return;
+    // [Blur1PCDX11] Match the PC sampler override and allow gamma to change
+    // after the texture was bound, without requiring another SetTexture call.
+    if (m_ForceTextureGamma != E_Bool_Default) value = m_ForceTextureGamma;
+    if (m_VertexSampler[slot].m_Gamma == value) return;
+    m_VertexSampler[slot].m_Gamma = value;
+    ComPtr<ID3D11Resource> resource;
+    if (State(this).vertexViews[slot]) State(this).vertexViews[slot]->GetResource(&resource);
+    if (resource) SetNativeVertexTexture(slot, resource.Get());
+}
 } }

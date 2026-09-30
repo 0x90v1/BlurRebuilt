@@ -39,6 +39,10 @@ struct S_StagingLock
 	ID3D11DeviceContext* context;
 	UINT subresource;
 	bool write;
+	D3DFORMAT pcFormat;
+	UINT width, height, depth;
+	D3D11_MAPPED_SUBRESOURCE nativeMap;
+	std::vector<U8> pcBytes;
 };
 using S_StagingKey = std::pair<const ID3D11Resource*, UINT>;
 std::map<S_StagingKey, S_StagingLock> g_stagingLocks;
@@ -75,6 +79,7 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 	resource->GetType(&dimension);
 	ID3D11Resource* staging = nullptr;
 	HRESULT hr = E_FAIL;
+	UINT width = 0, height = 1, depth = 1;
 	if (dimension == D3D11_RESOURCE_DIMENSION_BUFFER)
 	{
 		D3D11_BUFFER_DESC desc;
@@ -94,8 +99,10 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 		const UINT mip = subresource % desc.MipLevels;
 		desc.Width = std::max(1U, desc.Width >> mip);
 		desc.Height = std::max(1U, desc.Height >> mip);
-		if (desc.Format == DXGI_FORMAT_BC1_UNORM || desc.Format == DXGI_FORMAT_BC2_UNORM ||
-			desc.Format == DXGI_FORMAT_BC3_UNORM)
+		width = desc.Width; height = desc.Height;
+		const Display2::E_TextureFormat pcFormat = Display2::D3D11PCFormat(desc.Format);
+		if (pcFormat == Display2::E_TextureFormat_DXT1 || pcFormat == Display2::E_TextureFormat_DXT3 ||
+			pcFormat == Display2::E_TextureFormat_DXT5)
 		{
 			// [Blur1PCDX11] A standalone staging mip needs whole BC blocks.
 			desc.Width = (desc.Width + 3) & ~3U;
@@ -124,6 +131,7 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 		desc.Width = std::max(1U, desc.Width >> subresource);
 		desc.Height = std::max(1U, desc.Height >> subresource);
 		desc.Depth = std::max(1U, desc.Depth >> subresource);
+		width = desc.Width; height = desc.Height; depth = desc.Depth;
 		desc.MipLevels = 1;
 		desc.Usage = D3D11_USAGE_STAGING;
 		desc.BindFlags = 0;
@@ -149,7 +157,24 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 		else
 			context->CopyResource(staging, resource);
 		hr = TryMapStaging(context, staging, mapped);
-		if (SUCCEEDED(hr)) g_stagingLocks[key] = {staging, context, subresource, write};
+		if (SUCCEEDED(hr))
+		{
+			S_StagingLock& held = g_stagingLocks[key];
+			held = {};
+			held.staging = staging; held.context = context; held.subresource = subresource; held.write = write;
+			held.pcFormat = Display2::D3D11TextureFormats::GetPCFormat(resource);
+			held.width = width; held.height = height; held.depth = depth; held.nativeMap = mapped;
+			DXGI_FORMAT storage;
+			unsigned pcBytes, nativeBytes;
+			if (Display2::D3D11TextureFormats::LuminanceLayout(held.pcFormat,&storage,&pcBytes,&nativeBytes))
+			{
+				const UINT row = width*pcBytes, slice = row*height;
+				held.pcBytes.resize(static_cast<size_t>(slice)*depth);
+				Display2::D3D11TextureFormats::ConvertLuminance(held.pcFormat,width,height,depth,
+					mapped.pData,mapped.RowPitch,mapped.DepthPitch,held.pcBytes.data(),row,slice,false);
+				mapped.pData = held.pcBytes.data(); mapped.RowPitch = row; mapped.DepthPitch = slice;
+			}
+		}
 		else
 		{
 			static unsigned traced = 0;
@@ -172,7 +197,14 @@ void UnlockStagingResource(ID3D11Resource* resource, UINT subresource)
 	std::lock_guard<std::mutex> guard(g_stagingMutex);
 	auto it = g_stagingLocks.find(S_StagingKey(resource, subresource));
 	if (it == g_stagingLocks.end()) return;
-	const S_StagingLock lock = it->second;
+	const S_StagingLock& lock = it->second;
+	if (lock.write && !lock.pcBytes.empty())
+	{
+		const UINT row = static_cast<UINT>(lock.pcBytes.size())/lock.height/lock.depth;
+		Display2::D3D11TextureFormats::ConvertLuminance(lock.pcFormat,lock.width,lock.height,lock.depth,
+			lock.pcBytes.data(),row,row*lock.height,lock.nativeMap.pData,
+			lock.nativeMap.RowPitch,lock.nativeMap.DepthPitch,true);
+	}
 	lock.context->Unmap(lock.staging, 0);
 	if (lock.write)
 	{

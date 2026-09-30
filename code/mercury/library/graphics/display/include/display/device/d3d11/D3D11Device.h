@@ -34,7 +34,8 @@ public:
                              const unsigned char rgba[4], bool srgb = false);
     HRESULT DrawTexturedQuadView(const wchar_t* vertexShaderPath,
                                  const wchar_t* pixelShaderPath,
-                                 ID3D11ShaderResourceView* view);
+                                 ID3D11ShaderResourceView* view,
+                                 D3DTEXTUREFILTERTYPE filter = D3DTEXF_POINT);
     HRESULT DrawGameEffectIndexed(C_D3D11Effect& effect, const char* technique,
                                   UINT pass, const D3DVERTEXELEMENT9* elements,
                                   UINT elementCount, ID3D11Buffer* vertices,

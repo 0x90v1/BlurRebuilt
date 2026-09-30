@@ -3,6 +3,7 @@
 #include "Display/Device/D3D11/D3D11InputLayout.h"
 #include "Display/Device/D3D11/D3D11Constants.h"
 #include "Display/Device/D3D11/D3D11States.h"
+#include "Display2/Device/D3D11TextureFormats.h"
 
 #include <d3dcompiler.h>
 #include <d3d11sdklayers.h>
@@ -247,10 +248,8 @@ HRESULT C_D3D11Device::CreateTexture2DFromPCData(
     if (layout.m_Format == DXGI_FORMAT_D16_UNORM ||
         layout.m_Format == DXGI_FORMAT_D24_UNORM_S8_UINT)
         return E_INVALIDARG; // Depth data needs a depth-stencil resource/view.
-    const DXGI_FORMAT viewFormat = srgb ? GetSRGBFormat(layout.m_Format) : layout.m_Format;
-    if (viewFormat == DXGI_FORMAT_UNKNOWN) return E_NOTIMPL;
-
     std::vector<D3D11_SUBRESOURCE_DATA> initial(levels);
+    std::vector<std::vector<unsigned char>> converted(levels);
     UINT mipWidth = width, mipHeight = height;
     for (UINT level = 0; level < levels; ++level)
     {
@@ -259,9 +258,7 @@ HRESULT C_D3D11Device::CreateTexture2DFromPCData(
         const UINT pitch = columns * layout.m_BlockBytes;
         const UINT size = pitch * rows;
         if (!mipData[level] || mipSizes[level] < size) return E_INVALIDARG;
-        initial[level].pSysMem = mipData[level];
-        initial[level].SysMemPitch = pitch;
-        initial[level].SysMemSlicePitch = size;
+        PreparePCTextureData(format,mipWidth,mipHeight,1,mipData[level],pitch,size,converted[level],initial[level]);
         mipWidth = mipWidth > 1 ? mipWidth / 2 : 1;
         mipHeight = mipHeight > 1 ? mipHeight / 2 : 1;
     }
@@ -273,13 +270,15 @@ HRESULT C_D3D11Device::CreateTexture2DFromPCData(
     desc.Height = height;
     desc.MipLevels = levels;
     desc.ArraySize = 1;
-    desc.Format = viewFormat;
+    desc.Format = GetPCTextureResourceFormat(format);
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     HRESULT result = m_Device->CreateTexture2D(&desc, initial.data(), &texture);
     if (FAILED(result)) return result;
-    result = m_Device->CreateShaderResourceView(texture.Get(), nullptr, &view);
+    result = Display2::D3D11TextureFormats::SetPCFormat(texture.Get(),format);
+    if (FAILED(result)) { texture.Reset(); return result; }
+    result = CreateTextureView(m_Device.Get(), texture.Get(), srgb, &view);
     if (FAILED(result)) texture.Reset();
     return result;
 }
@@ -299,6 +298,7 @@ HRESULT C_D3D11Device::CreateTexture3DFromPCData(
         return E_NOTIMPL;
 
     std::vector<D3D11_SUBRESOURCE_DATA> initial(levels);
+    std::vector<std::vector<unsigned char>> converted(levels);
     UINT mipWidth = width, mipHeight = height, mipDepth = depth;
     for (UINT level = 0; level < levels; ++level)
     {
@@ -307,9 +307,8 @@ HRESULT C_D3D11Device::CreateTexture3DFromPCData(
         const UINT64 total = slicePitch * mipDepth;
         if (!mipData[level] || rowPitch > UINT_MAX || slicePitch > UINT_MAX ||
             total > mipSizes[level]) return E_INVALIDARG;
-        initial[level].pSysMem = mipData[level];
-        initial[level].SysMemPitch = static_cast<UINT>(rowPitch);
-        initial[level].SysMemSlicePitch = static_cast<UINT>(slicePitch);
+        PreparePCTextureData(format,mipWidth,mipHeight,mipDepth,mipData[level],
+            static_cast<UINT>(rowPitch),static_cast<UINT>(slicePitch),converted[level],initial[level]);
         mipWidth = mipWidth > 1 ? mipWidth / 2 : 1;
         mipHeight = mipHeight > 1 ? mipHeight / 2 : 1;
         mipDepth = mipDepth > 1 ? mipDepth / 2 : 1;
@@ -322,12 +321,14 @@ HRESULT C_D3D11Device::CreateTexture3DFromPCData(
     desc.Height = height;
     desc.Depth = depth;
     desc.MipLevels = levels;
-    desc.Format = layout.m_Format;
+    desc.Format = GetPCTextureResourceFormat(format);
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     HRESULT result = m_Device->CreateTexture3D(&desc, initial.data(), &texture);
     if (FAILED(result)) return result;
-    result = m_Device->CreateShaderResourceView(texture.Get(), nullptr, &view);
+    result = Display2::D3D11TextureFormats::SetPCFormat(texture.Get(),format);
+    if (FAILED(result)) { texture.Reset(); return result; }
+    result = CreateTextureView(m_Device.Get(), texture.Get(), false, &view);
     if (FAILED(result)) texture.Reset();
     return result;
 }
@@ -343,10 +344,8 @@ HRESULT C_D3D11Device::CreateTextureCubeFromPCData(
     C_FormatLayout layout;
     if (!GetFormatLayout(format, &layout) || layout.m_Format == DXGI_FORMAT_D16_UNORM ||
         layout.m_Format == DXGI_FORMAT_D24_UNORM_S8_UINT) return E_NOTIMPL;
-    const DXGI_FORMAT viewFormat = srgb ? GetSRGBFormat(layout.m_Format) : layout.m_Format;
-    if (viewFormat == DXGI_FORMAT_UNKNOWN) return E_NOTIMPL;
-
     std::vector<D3D11_SUBRESOURCE_DATA> initial(6 * levels);
+    std::vector<std::vector<unsigned char>> converted(6 * levels);
     for (UINT face = 0; face < 6; ++face)
     {
         UINT mipEdge = edge;
@@ -361,9 +360,8 @@ HRESULT C_D3D11Device::CreateTextureCubeFromPCData(
             const UINT64 size = pitch * rows;
             if (!faceMipData[subresource] || pitch > UINT_MAX ||
                 size > faceMipSizes[subresource]) return E_INVALIDARG;
-            initial[subresource].pSysMem = faceMipData[subresource];
-            initial[subresource].SysMemPitch = static_cast<UINT>(pitch);
-            initial[subresource].SysMemSlicePitch = static_cast<UINT>(size);
+            PreparePCTextureData(format,mipEdge,mipEdge,1,faceMipData[subresource],
+                static_cast<UINT>(pitch),static_cast<UINT>(size),converted[subresource],initial[subresource]);
             mipEdge = mipEdge > 1 ? mipEdge / 2 : 1;
         }
     }
@@ -375,14 +373,16 @@ HRESULT C_D3D11Device::CreateTextureCubeFromPCData(
     desc.Height = edge;
     desc.MipLevels = levels;
     desc.ArraySize = 6;
-    desc.Format = viewFormat;
+    desc.Format = GetPCTextureResourceFormat(format);
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
     HRESULT result = m_Device->CreateTexture2D(&desc, initial.data(), &texture);
     if (FAILED(result)) return result;
-    result = m_Device->CreateShaderResourceView(texture.Get(), nullptr, &view);
+    result = Display2::D3D11TextureFormats::SetPCFormat(texture.Get(),format);
+    if (FAILED(result)) { texture.Reset(); return result; }
+    result = CreateTextureView(m_Device.Get(), texture.Get(), srgb, &view);
     if (FAILED(result)) texture.Reset();
     return result;
 }
@@ -624,7 +624,8 @@ HRESULT C_D3D11Device::DrawTexturedQuad(const wchar_t* vertexShaderPath,
 
 HRESULT C_D3D11Device::DrawTexturedQuadView(const wchar_t* vertexShaderPath,
                                              const wchar_t* pixelShaderPath,
-                                             ID3D11ShaderResourceView* view)
+                                               ID3D11ShaderResourceView* view,
+                                               D3DTEXTUREFILTERTYPE filter)
 {
     if (!m_Device || !m_Context || !m_TargetView || !m_DepthView ||
         !vertexShaderPath || !pixelShaderPath || !view)
@@ -685,7 +686,7 @@ HRESULT C_D3D11Device::DrawTexturedQuadView(const wchar_t* vertexShaderPath,
     if (FAILED(result)) return result;
 
     D3D11_SAMPLER_DESC samplerDesc = {};
-    if (!MakeSamplerDesc(D3DTEXF_POINT, D3DTEXF_POINT, D3DTEXF_POINT,
+    if (!MakeSamplerDesc(filter, filter, filter,
                          D3DTADDRESS_CLAMP, D3DTADDRESS_CLAMP, D3DTADDRESS_CLAMP,
                          1, &samplerDesc)) return E_INVALIDARG;
     Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler;
@@ -732,7 +733,9 @@ HRESULT C_D3D11Device::DrawGameEffectIndexed(
         return E_INVALIDARG;
     const void* signature = nullptr;
     SIZE_T signatureBytes = 0;
-    HRESULT result = effect.GetPassInputSignature(technique, pass,
+    // [Blur1PCDX11] CreateGameInputLayout reflects the shader's inputs; an
+    // isolated IA signature cannot be passed to D3DReflect.
+    HRESULT result = effect.GetPassVertexShaderBytecode(technique, pass,
                                                   &signature, &signatureBytes);
     if (FAILED(result)) return result;
     std::string layoutKey(static_cast<const char*>(signature), signatureBytes);

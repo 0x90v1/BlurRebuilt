@@ -3,6 +3,7 @@
 #include "Display/Texture/D3D11/D3D11TextureLoad.h"
 #include "Display/Texture/TextureDesc.h"
 #include "Display/Device/D3D11/D3D11Formats.h"
+#include "Display2/Device/D3D11TextureFormats.h"
 #include "Display/Device/Device.h"
 #include <system/serialise/C_MemoryStream.h>
 #include <vector>
@@ -61,7 +62,7 @@ S32 CreateTexture2D(C_Texture2D* texture, Sys::I_BinaryStream* stream)
         (source.Height + layout.m_BlockHeight - 1) / layout.m_BlockHeight * layout.m_BlockHeight : source.Height;
     desc.MipLevels = source.Levels;
     desc.ArraySize = source.Type == 5 ? 6 : 1;
-    desc.Format = layout.m_Format;
+    desc.Format = D3D11::GetPCTextureResourceFormat(static_cast<D3DFORMAT>(source.Format));
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -70,6 +71,8 @@ S32 CreateTexture2D(C_Texture2D* texture, Sys::I_BinaryStream* stream)
     ID3D11Device* device = Device()->GetD3DDevice();
     if (!device || FAILED(device->CreateTexture2D(&desc, nullptr, &native)))
         return 0;
+    if (FAILED(Display2::D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(source.Format))))
+    { native->Release(); return 0; }
     if (texture->m_pd3dTexture) texture->m_pd3dTexture->Release();
     texture->m_pd3dTexture = native;
     const U32 total = TotalBytes(source, layout);
@@ -110,9 +113,13 @@ void LoadTextureData2D(C_Texture2D* texture, Sys::I_BinaryStream* stream, int si
             reader.Read(data.data(), bytes);
             const U32 rowPitch = std::max<U32>(1, (width + layout.m_BlockWidth - 1) / layout.m_BlockWidth)
                 * layout.m_BlockBytes;
+            std::vector<U8> converted;
+            D3D11_SUBRESOURCE_DATA upload = {};
+            D3D11::PreparePCTextureData(static_cast<D3DFORMAT>(texture->GetFormat()),width,height,1,
+                data.data(),rowPitch,bytes,converted,upload);
             context->UpdateSubresource(native,
                 D3D11CalcSubresource(mip, face, desc.MipLevels), nullptr,
-                data.data(), rowPitch, bytes);
+                upload.pSysMem,upload.SysMemPitch,upload.SysMemSlicePitch);
             consumed += bytes;
         }
     context->Release();
@@ -177,6 +184,8 @@ void CloneTexture2D(C_Texture2D* destination, const C_Texture2D* source,
     desc.MipLevels = levels;
     ID3D11Texture2D* native = nullptr;
     if (FAILED(Device()->GetD3DDevice()->CreateTexture2D(&desc, nullptr, &native))) return;
+    if (FAILED(Display2::D3D11TextureFormats::SetPCFormat(native,
+        static_cast<D3DFORMAT>(source->GetFormat())))) { native->Release(); return; }
     if (destination->m_pd3dTexture) destination->m_pd3dTexture->Release();
     destination->m_pd3dTexture = native;
     destination->SetSize(size);

@@ -35,7 +35,8 @@ bool MakeSamplerDesc(D3DTEXTUREFILTERTYPE minFilter,
                      D3DTEXTUREFILTERTYPE mipFilter,
                      D3DTEXTUREADDRESS addressU, D3DTEXTUREADDRESS addressV,
                      D3DTEXTUREADDRESS addressW, UINT maxAnisotropy,
-                     D3D11_SAMPLER_DESC* result);
+                     D3D11_SAMPLER_DESC* result,
+                     UINT borderColour = 0, int encodedLodBias = 0);
 
 } }
 

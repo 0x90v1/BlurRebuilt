@@ -65,6 +65,10 @@ HRESULT C_D3D11EffectLibrary::Open(const wchar_t* rootPath)
         effect->second.textureSRGB[texture] = srgb;
         effect->second.samplerTextures[sampler] = line.substr(b + 1, c - b - 1);
         effect->second.textureNames[texture] = line.substr(b + 1, c - b - 1);
+        // [Blur2PC] Preserve HLSL spelling for live FX sampler overrides.
+        const std::string samplerName = line.substr(a + 1, b - a - 1);
+        effect->second.samplerNames[sampler] = samplerName;
+        effect->second.textureSamplers[texture].push_back(samplerName);
     }
     return samplers.bad() ? E_FAIL : S_OK;
 }
@@ -80,6 +84,35 @@ const char* C_D3D11EffectLibrary::TextureForSampler(const char* gameEffectName,
     // [Blur1PCDX11] Function bindings and shared parameters name the texture (g_tAlbedo), not its sampler.
     const auto texture = effect->second.textureNames.find(key);
     return texture == effect->second.textureNames.end() ? nullptr : texture->second.c_str();
+}
+
+HRESULT C_D3D11EffectLibrary::SetTextureSampler(ID3D11Device* device,
+                                                const char* gameEffectName,
+                                                const char* samplerOrTexture,
+                                                ID3D11SamplerState* state)
+{
+    if (!samplerOrTexture || !state) return E_INVALIDARG;
+    C_D3D11Effect* native = nullptr;
+    HRESULT hr = Get(device, gameEffectName, &native);
+    if (FAILED(hr)) return hr;
+    const auto found = m_Effects.find(EffectKey(gameEffectName));
+    const C_Entry& entry = found->second;
+    const std::string key = EffectKey(samplerOrTexture);
+    const auto sampler = entry.samplerNames.find(key);
+    if (sampler != entry.samplerNames.end())
+        return native->HasParameter(sampler->second.c_str()) ?
+            native->SetSampler(sampler->second.c_str(), state) : S_FALSE;
+    const auto texture = entry.textureSamplers.find(key);
+    if (texture == entry.textureSamplers.end()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
+    // [Blur2PC] Shared/function bindings use texture names. Update each active
+    // sampler of that texture, including vertex samplers; unused ones vanish.
+    for (const std::string& name : texture->second)
+    {
+        if (!native->HasParameter(name.c_str())) continue;
+        hr = native->SetSampler(name.c_str(), state);
+        if (FAILED(hr)) return hr;
+    }
+    return S_OK;
 }
 
 HRESULT C_D3D11EffectLibrary::TextureUsesSRGB(const char* gameEffectName,

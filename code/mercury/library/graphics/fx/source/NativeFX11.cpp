@@ -4,10 +4,15 @@
 #include "fx/effect.h"
 #include "fx/Shaders.h"
 #include "fx/Shared.h"
+#include "fx/SamplerStates.h"
 #include "Display/Device/Device.h"
 #include "Display/Device/D3D11/D3D11EffectLibrary.h"
+#include "Display/Device/D3D11/D3D11Formats.h"
+#include "Display/Device/D3D11/D3D11States.h"
 #include <system/debug/Blur2PCAutomation.h>
 #include <limits>
+#include <unordered_map>
+#include <wrl/client.h>
 
 namespace FX {
 
@@ -20,6 +25,9 @@ namespace {
 Display::D3D11::C_D3D11EffectLibrary g_effects;
 bool g_opened = false;
 unsigned g_failures = 0;
+// [Blur2PC] Cache immutable descriptors, not IDs: SamplerStateManager::Clear
+// may reuse an ID for another state. These objects share the FX library device.
+std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> g_samplers;
 
 Display::D3D11::C_D3D11Effect* Find(const Effect* effect)
 {
@@ -55,19 +63,79 @@ int PassIndex(const Effect* effect, const Pass* pass, int technique)
 }
 
 void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
-                 const char* sampler, ID3D11Resource* texture)
+                 const char* sampler, ID3D11Resource* texture, const char* technique,
+                 int samplerState, bool immediate = false)
 {
     // [Blur1PCDX11] FX sampler values are GPUTexture pointers (Display2: ID3D11Resource), as D3D9's were IDirect3DBaseTexture9.
     const char* name = g_effects.TextureForSampler(effect->Name.Chars(), sampler);
+    if (getenv("BLUR_DX11_TRACE_SCENE") && Blur2PCAutomation::Now() > 21 &&
+        strstr(sampler, "DamageVolume"))
+    {
+        static unsigned tracedDamageVolume = 0;
+        if (tracedDamageVolume++ < 12)
+            Blur2PCAutomation::LogF("DX11 FX damage binding %s / %s lookup=%s resource=%p",
+                effect->Name.Chars(), sampler, name ? name : "<missing>", texture);
+    }
     if (!name) return;
     // [Blur1PCDX11] Every recovered vehicle damage-volume sampler is a
     // vertex sampler. Match FxContext's PC default substitution: its 2D
     // default becomes the initialized zero float volume, preserving type.
     if (strcmp(name, "g_sVehicleDamageVolumeTexture") == 0)
         texture = reinterpret_cast<ID3D11Resource*>(const_cast<void*>(GetDefaultVertexTextureFor(texture)));
+    const Display::C_SamplerState& live = *g_SamplerStateMgr.GetSamplerState(samplerState);
+    D3D11_SAMPLER_DESC desc = {};
+    // [Blur2PC] PC Context_Base only applies Display2 sampler fields. Its
+    // MaxAnisotropy override is Xenon-only, so retain the PC device default 1.
+    HRESULT samplerResult = Display::D3D11::MakeSamplerDesc(
+        static_cast<D3DTEXTUREFILTERTYPE>(live.m_TextureFilterMin),
+        static_cast<D3DTEXTUREFILTERTYPE>(live.m_TextureFilterMag),
+        static_cast<D3DTEXTUREFILTERTYPE>(live.m_TextureFilterMip),
+        static_cast<D3DTEXTUREADDRESS>(live.m_TextureAddressU),
+        static_cast<D3DTEXTUREADDRESS>(live.m_TextureAddressV),
+        static_cast<D3DTEXTUREADDRESS>(live.m_TextureAddressW), 1, &desc,
+        live.m_TextureBorderColour, live.m_TextureLodBias) ? S_OK : E_INVALIDARG;
+    if (SUCCEEDED(samplerResult))
+    {
+        const std::string key(reinterpret_cast<const char*>(&desc), sizeof(desc));
+        auto& state = g_samplers[key];
+        if (!state) samplerResult = Display::Device()->GetD3DDevice()->CreateSamplerState(&desc, &state);
+        if (SUCCEEDED(samplerResult))
+            samplerResult = g_effects.SetTextureSampler(Display::Device()->GetD3DDevice(),
+                effect->Name.Chars(), sampler, state.Get());
+    }
+    if (FAILED(samplerResult)) { static unsigned failures = 0; if (failures++ < 24)
+        Blur2PCAutomation::LogF("DX11 FX sampler binding failed %s / %s result=%08x",
+            effect->Name.Chars(), sampler, static_cast<unsigned>(samplerResult)); }
     ID3D11ShaderResourceView* view = nullptr;
     if (texture)
-        Display::Device()->GetD3DDevice()->CreateShaderResourceView(texture, nullptr, &view);
+    {
+        // [Blur2PC] The PC FX path binds the current parameter's sampler state,
+        // including immediate overrides; compiled metadata only describes its default.
+        bool srgb = live.m_TextureGamma == Display2::E_Bool_True;
+        const Display::E_Bool forced = Display::Device()->GetForceTextureGamma();
+        if (forced != Display::E_Bool_Default) srgb = forced == Display::E_Bool_True;
+        const HRESULT result = Display::D3D11::CreateTextureView(
+            Display::Device()->GetD3DDevice(), texture, srgb, &view);
+        static const bool traceGamma = getenv("BLUR_DX11_TRACE_TEXTURE_GAMMA") != nullptr;
+        if (traceGamma)
+        {
+            bool authored = false;
+            const HRESULT metadata = g_effects.TextureUsesSRGB(effect->Name.Chars(), name, &authored);
+            static unsigned counts[4] = {};
+            const unsigned category = (immediate ? 2U : 0U) + (SUCCEEDED(metadata) && authored != srgb ? 1U : 0U);
+            if (counts[category]++ < 12)
+            {
+                D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+                if (view) view->GetDesc(&desc);
+                Blur2PCAutomation::LogF("DX11 FX gamma %s / %s immediate=%u state=%d authored=%u live=%u forced=%u view=%u result=%08x",
+                    effect->Name.Chars(), name, immediate, samplerState, authored, srgb,
+                    static_cast<unsigned>(forced), static_cast<unsigned>(desc.Format), static_cast<unsigned>(result));
+            }
+        }
+        if (FAILED(result)) { static unsigned failures = 0; if (failures++ < 24)
+            Blur2PCAutomation::LogF("DX11 FX texture view failed %s / %s srgb=%u result=%08x",
+                effect->Name.Chars(), name, srgb, static_cast<unsigned>(result)); }
+    }
     const HRESULT result = native->SetTexture(name, view);
     if (FAILED(result)) { static unsigned failures = 0; if (failures++ < 24)
         Blur2PCAutomation::LogF("DX11 FX texture binding failed %s / %s result=%08x", effect->Name.Chars(), name, static_cast<unsigned>(result)); }
@@ -75,7 +143,7 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
 }
 
 void BindSharedParameters(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
-                          void* const* sources)
+                          void* const* sources, const char* technique)
 {
     if (!sources[NGLFX_BIND_SHARED] || g_SharedEffect.ParameterData.Size() == 0) return;
     const uintptr_t base = reinterpret_cast<uintptr_t>(&g_SharedEffect.ParameterData[0]);
@@ -106,7 +174,7 @@ void BindSharedParameters(const Effect* effect, Display::D3D11::C_D3D11Effect* n
         {
             const auto* sampler = reinterpret_cast<const nglFXParam_Sampler*>(data);
             BindTexture(effect, native, parameter.Name.Chars(),
-                        reinterpret_cast<ID3D11Resource*>(sampler->Texture));
+                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), technique, sampler->iSamplerState);
         }
         else
         {
@@ -119,7 +187,7 @@ void BindSharedParameters(const Effect* effect, Display::D3D11::C_D3D11Effect* n
 }
 
 void BindFunction(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
-                  const Function& function, void* const* sources)
+                  const Function& function, void* const* sources, const char* technique)
 {
     for (int i = 0; i < function.Bindings.Size(); ++i)
     {
@@ -134,7 +202,7 @@ void BindFunction(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
         {
             const auto* sampler = reinterpret_cast<const nglFXParam_Sampler*>(data);
             BindTexture(effect, native, name,
-                        reinterpret_cast<ID3D11Resource*>(sampler->Texture));
+                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), technique, sampler->iSamplerState);
         }
         else if (binding.Count)
         {
@@ -189,9 +257,10 @@ bool NativeFX11Apply(const Effect* effect, const Pass* pass, int technique,
     auto* native = Find(effect);
     const int index = PassIndex(effect, pass, technique);
     if (!native || index < 0 || !sources) return false;
-    BindSharedParameters(effect, native, sources);
-    BindFunction(effect, native, pass->VertexShader, sources);
-    BindFunction(effect, native, pass->PixelShader, sources);
+    const char* techniqueName = effect->Techniques[technique].Name.Chars();
+    BindSharedParameters(effect, native, sources, techniqueName);
+    BindFunction(effect, native, pass->VertexShader, sources, techniqueName);
+    BindFunction(effect, native, pass->PixelShader, sources, techniqueName);
     ID3D11DeviceContext* context = nullptr;
     Display::Device()->GetD3DDevice()->GetImmediateContext(&context);
     if (!context) return false;
@@ -226,14 +295,16 @@ const char* NativeFX11CurrentPass()
 
 bool NativeFX11SetImmediate(const Effect* effect, const Pass* pass, int technique,
                             const char* parameter, const void* value, unsigned bytes,
-                            bool texture)
+                            bool texture, int samplerState)
 {
     auto* native = Find(effect);
     const int index = PassIndex(effect, pass, technique);
     if (!native || index < 0 || !parameter || !value) return false;
+    if (texture && samplerState < 0) return false;
     if (texture)
         BindTexture(effect, native, parameter,
-                    *reinterpret_cast<ID3D11Resource* const*>(value));
+                    *reinterpret_cast<ID3D11Resource* const*>(value), effect->Techniques[technique].Name.Chars(),
+                    samplerState, true);
     else
         native->SetRawParameter(parameter, value, bytes);
     ID3D11DeviceContext* context = nullptr;

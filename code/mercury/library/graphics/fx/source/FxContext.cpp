@@ -77,10 +77,18 @@ ImmediateParameter GetImmediateParameter(const I_Effect *pEffect, Parameter *pPa
 		}
 		else
 		{
+#if defined(BLUR_USE_DX11)
+			// [Blur1PCDX11] D3D9's global c-registers retain streamed values even
+			// when no shared parameter conflicts. Each FX11 effect has its own
+			// reflected buffers; retain every shared immediate value so a later
+			// BeginPass can seed those buffers instead of resetting them to zero.
+			iDoCopy = 1;
+#else
 			if (pUsage)
 				iDoCopy = g_SharedEffect.DoesSharedParameterConflict(iIdx, pUsage)?1:0;
 			else
 				iDoCopy = 1;
+#endif
 			iImmOffset = iIdx + FX_SYSTEM_MAX_LOCAL_PARAMETERS;
 			iOffset = (U32*)pParam->Data - &g_SharedEffect.ParameterData[0];
 		}
@@ -328,7 +336,7 @@ void Context::SetTextureParameterImmediate(ImmediateParameter param, const void 
 #if defined(BLUR_USE_DX11)
 	if (m_pCurrentEffect && m_pCurrentPass)
 		NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
-			pParam->Name.Chars(), &pTexture, 0, true);
+			pParam->Name.Chars(), &pTexture, 0, true, iSamplerState);
 #endif
 }
 
@@ -352,7 +360,7 @@ void Context::SetParameterImmediate(ImmediateParameter param, const void *pData)
 #if defined(BLUR_USE_DX11)
 		if (m_pCurrentEffect && m_pCurrentPass)
 			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
-				pParam->Name.Chars(), pData, 0, true);
+				pParam->Name.Chars(), pData, 0, true, pSampler->iSamplerState);
 		return;
 #endif
 
@@ -868,6 +876,13 @@ void Context::ApplyBinding(SharedParameter *pBinding)
 			}
 		}
 #endif
+		#if defined(BLUR_USE_DX11)
+		// [Blur1PCDX11] Shared groups can change after BeginPass. FX9 handles
+		// are not the registers of the recompiled FX11 pass; update by parameter name.
+		if (m_pCurrentEffect && m_pCurrentPass)
+			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
+				pParam->Name.Chars(), &param->Texture, 0, true, param->iSamplerState);
+		#else
 		if (type == E_SPGResource_Texture)
 		{
 			// Set texture.
@@ -878,16 +893,23 @@ void Context::ApplyBinding(SharedParameter *pBinding)
 			// Set vertex texture
 			SetVertexTexture(handle, param);
 		}
+		#endif
 
 		pImm->iHandle[iShaderType] = handle;
 	}
 	else
 	{
 		F32* src = (F32*)((size_t)m_Sources[NGLFX_BIND_SHARED] + pBinding->Offset);
+		#if defined(BLUR_USE_DX11)
+		if (m_pCurrentEffect && m_pCurrentPass)
+			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
+				pParam->Name.Chars(), src, pBinding->Size * 16U, false);
+		#else
 		if (type == E_SPGResource_VertexConstant)
 			m_pDisplay->SetVertexShaderConstantF(handle, src, pBinding->Size);
 		else
 			m_pDisplay->SetPixelShaderConstantF(handle, src, pBinding->Size);
+		#endif
 
 		pImm->iHandle[iShaderType] = handle;
 	}

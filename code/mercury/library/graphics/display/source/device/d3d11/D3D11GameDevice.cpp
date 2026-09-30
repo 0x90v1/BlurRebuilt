@@ -309,6 +309,9 @@ const S32 C_D3D11GameDevice::AddWindow(const Maths::C_Rect& windowCoords)
 	return m_Windows.Size()-1;
 }
 
+const E_Bool C_D3D11GameDevice::GetForceTextureGamma() const
+{ return m_ForceTextureGamma; }
+
 void C_D3D11GameDevice::SetForceTextureGamma(const E_Bool forceTextureGamma)
 {
 	BIZ_ASSERT(forceTextureGamma == E_Bool_False || forceTextureGamma == E_Bool_True || forceTextureGamma == E_Bool_Default);

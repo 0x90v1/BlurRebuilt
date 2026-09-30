@@ -229,3 +229,15 @@ Blocked: none; colour/paint stability and intermittent volume-lock crash remain 
 Next: inspect live colour-correction setting in the queued native capture; recover the settings mechanism before proposing a colour fix. T127 remains active.
 
 Files touched: native D3D11States helper and selected game-device stencil paths, dx11_probe selected GPU stencil check, phase analysis/board/ledger.
+
+## 2026-09-30 08:55 — session Codex visual diagnosis — T127
+
+Did: commit the verified PC luminance, per-sampler gamma and live sampler contract, with shared/immediate FX updates and prevention of legacy constants overwriting FX11 buffers. Preserve serialized/locked PC bytes while using expanded native luminance storage. Correct the probe's explicit fstream dependency, committed Get interface calls and effect-count threshold. Found in / Belongs to Blur1PCDX11.
+
+Verified: indexed-source MSVC compilation passes 14 translation units; indexed probe links and queued hardware/WARP runs exit0, including 58 luminance samples, 48 exact round trips, 24 gamma transitions and eleven live samplers each. D3D9 reference passes23. Current standard Release visual_colour_setting_build exit0/errsum0 and delivered; queued race exits0. Both GPU lookup volume readbacks match all131072 PC upload bytes. CPU/GPU colour rows agree; live colour correction enabled; nonidentity correction directions agree with PC at different strengths.
+
+Blocked: none. Matching the active timed post effect remains unverified; paint stability and intermittent volume-lock crash remain open.
+
+Next: compare paint luminance/exposure inputs at the bright and dark draws before final composition; recover the first differing upstream mechanism. T127 remains active.
+
+Files touched: native display/device/context/texture format and sampler paths, Display2 luminance resource/lock transport, FX shared/immediate binding, owned probe sources/headers and CMake reference target, phase docs.

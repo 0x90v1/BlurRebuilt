@@ -36,7 +36,7 @@ static bool CheckRoadPrepass(Display::D3D11::C_D3D11Device& device,
         if (key.compare(0,5,"road_") != 0 || key.find('@') != std::string::npos ||
             key.size()<3 || key.compare(key.size()-3,3,"_nw") != 0) continue;
         Display::D3D11::C_D3D11Effect* effect = nullptr;
-        if (FAILED(library.Get(device.Device(),key.c_str(),&effect,"MaterialPrepass"))) return false;
+        if (FAILED(library.Get(device.Device(),key.c_str(),&effect))) return false;
         const void* bytes = nullptr; SIZE_T size = 0;
         ComPtr<ID3D11InputLayout> layout;
         if (FAILED(effect->GetPassVertexShaderBytecode("MaterialPrepass",0,&bytes,&size)) ||

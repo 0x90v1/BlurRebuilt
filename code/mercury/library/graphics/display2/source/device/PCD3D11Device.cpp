@@ -166,15 +166,17 @@ DXGI_FORMAT NativeFormat(E_TextureFormat format)
 {
     switch (static_cast<D3DFORMAT>(format))
     {
-    case D3DFMT_A8R8G8B8: return DXGI_FORMAT_B8G8R8A8_UNORM;
-    case D3DFMT_X8R8G8B8: return DXGI_FORMAT_B8G8R8X8_UNORM;
-    case D3DFMT_DXT1: return DXGI_FORMAT_BC1_UNORM;
-    case D3DFMT_DXT3: return DXGI_FORMAT_BC2_UNORM;
-    case D3DFMT_DXT5: return DXGI_FORMAT_BC3_UNORM;
-    case D3DFMT_L8: return DXGI_FORMAT_R8_UNORM;
+    // [Blur1PCDX11] PC colour resources support linear and sRGB sampler views.
+    case D3DFMT_A8B8G8R8: return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+    case D3DFMT_A8R8G8B8: return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+    case D3DFMT_X8R8G8B8: return DXGI_FORMAT_B8G8R8X8_TYPELESS;
+    case D3DFMT_DXT1: return DXGI_FORMAT_BC1_TYPELESS;
+    case D3DFMT_DXT3: return DXGI_FORMAT_BC2_TYPELESS;
+    case D3DFMT_DXT5: return DXGI_FORMAT_BC3_TYPELESS;
+    case D3DFMT_L8: return DXGI_FORMAT_R8G8B8A8_TYPELESS;
     case D3DFMT_A8: return DXGI_FORMAT_A8_UNORM;
-    case D3DFMT_A8L8: return DXGI_FORMAT_R8G8_UNORM;
-    case D3DFMT_L16: return DXGI_FORMAT_R16_UNORM;
+    case D3DFMT_A8L8: return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+    case D3DFMT_L16: return DXGI_FORMAT_R16G16B16A16_UNORM;
     case D3DFMT_R16F: return DXGI_FORMAT_R16_FLOAT;
     case D3DFMT_R32F: return DXGI_FORMAT_R32_FLOAT;
     case D3DFMT_G16R16: return DXGI_FORMAT_R16G16_UNORM;
@@ -195,8 +197,8 @@ bool C_Device::CreateTexture2D(U32 width, U32 height, U32 levels, U32 flags,
     const DXGI_FORMAT nativeFormat = NativeFormat(format);
     if (nativeFormat == DXGI_FORMAT_UNKNOWN) return false;
     D3D11_TEXTURE2D_DESC desc = {};
-    const bool blockCompressed = nativeFormat == DXGI_FORMAT_BC1_UNORM ||
-        nativeFormat == DXGI_FORMAT_BC2_UNORM || nativeFormat == DXGI_FORMAT_BC3_UNORM;
+    const bool blockCompressed = nativeFormat == DXGI_FORMAT_BC1_TYPELESS ||
+        nativeFormat == DXGI_FORMAT_BC2_TYPELESS || nativeFormat == DXGI_FORMAT_BC3_TYPELESS;
     // [Blur1PCDX11] D3D11 requires BC resource dimensions in four-pixel blocks.
     // Retail D3D9 assets include standalone 1x1 and 2x2 BC textures.
     desc.Width = blockCompressed ? ((width + 3) & ~3U) : width;
@@ -213,6 +215,7 @@ bool C_Device::CreateTexture2D(U32 width, U32 height, U32 levels, U32 flags,
     if (flags & E_Flags_DepthStencil) desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     ID3D11Texture2D* native = nullptr;
     if (FAILED(m_pd3dDevice->CreateTexture2D(&desc, nullptr, &native))) return false;
+    if (FAILED(D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(format)))) { native->Release(); return false; }
     texture->m_pd3dTexture = native;
     texture->SetFlags(flags);
     texture->SetSize(GetTexture2DSize(width, height, desc.MipLevels, flags, format));
@@ -229,6 +232,7 @@ bool C_Device::CreateTexture3D(U32 width, U32 height, U32 depth, U32 levels, U32
     desc.Usage = D3D11_USAGE_DEFAULT; desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     ID3D11Texture3D* native = nullptr;
     if (desc.Format == DXGI_FORMAT_UNKNOWN || FAILED(m_pd3dDevice->CreateTexture3D(&desc, nullptr, &native))) return false;
+    if (FAILED(D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(format)))) { native->Release(); return false; }
     texture->m_pd3dTexture = native; texture->SetFlags(flags);
     texture->SetSize(GetTexture3DSize(width, height, depth, desc.MipLevels, flags, format));
     return true;
@@ -240,8 +244,8 @@ bool C_Device::CreateTextureCube(U32 width, U32 levels, U32 flags, E_TextureForm
     if (!m_pd3dDevice || !texture || texture->IsCreated()) return false;
     D3D11_TEXTURE2D_DESC desc = {};
     const DXGI_FORMAT nativeFormat = NativeFormat(format);
-    const bool blockCompressed = nativeFormat == DXGI_FORMAT_BC1_UNORM ||
-        nativeFormat == DXGI_FORMAT_BC2_UNORM || nativeFormat == DXGI_FORMAT_BC3_UNORM;
+    const bool blockCompressed = nativeFormat == DXGI_FORMAT_BC1_TYPELESS ||
+        nativeFormat == DXGI_FORMAT_BC2_TYPELESS || nativeFormat == DXGI_FORMAT_BC3_TYPELESS;
     desc.Width = desc.Height = blockCompressed ? ((width + 3) & ~3U) : width;
     desc.MipLevels = levels ? levels : 1;
     desc.ArraySize = 6; desc.Format = NativeFormat(format); desc.SampleDesc.Count = 1;
@@ -250,6 +254,7 @@ bool C_Device::CreateTextureCube(U32 width, U32 levels, U32 flags, E_TextureForm
     if (flags & E_Flags_Colour) desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
     ID3D11Texture2D* native = nullptr;
     if (desc.Format == DXGI_FORMAT_UNKNOWN || FAILED(m_pd3dDevice->CreateTexture2D(&desc, nullptr, &native))) return false;
+    if (FAILED(D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(format)))) { native->Release(); return false; }
     texture->m_pd3dTexture = native; texture->SetFlags(flags);
     texture->SetSize(GetTexture2DSize(width, width, desc.MipLevels, flags, format) * 6);
     return true;
@@ -276,6 +281,8 @@ bool C_Device::CreateSurface(U32 width, U32 height, U32 flags, E_SurfaceFormat f
     desc.BindFlags = (flags & E_Flags_DepthStencil) ? D3D11_BIND_DEPTH_STENCIL : D3D11_BIND_RENDER_TARGET;
     if (desc.Format == DXGI_FORMAT_UNKNOWN ||
         FAILED(m_pd3dDevice->CreateTexture2D(&desc, nullptr, &surface->m_pd3dSurface))) return false;
+    if (FAILED(D3D11TextureFormats::SetPCFormat(surface->m_pd3dSurface,static_cast<D3DFORMAT>(format))))
+    { surface->m_pd3dSurface->Release(); surface->m_pd3dSurface = nullptr; return false; }
     surface->SetFlags(flags);
     return true;
 }

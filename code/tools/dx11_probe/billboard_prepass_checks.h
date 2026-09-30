@@ -37,7 +37,7 @@ static bool CheckBillboardPrepass(Display::D3D11::C_D3D11Device& device,
         if ((key.compare(0,9,"billboard") != 0 && key.compare(0,16,"foliagebillboard") != 0) ||
             key.compare(0,18,"billboardsizelimit") == 0 || key.find('@') != std::string::npos) continue;
         Display::D3D11::C_D3D11Effect* effect = nullptr;
-        if (FAILED(library.Get(device.Device(),key.c_str(),&effect,"MaterialPrepass"))) return false;
+        if (FAILED(library.Get(device.Device(),key.c_str(),&effect))) return false;
         const void* bytes = nullptr; SIZE_T size = 0;
         ComPtr<ID3D11InputLayout> layout;
         if (FAILED(effect->GetPassVertexShaderBytecode("MaterialPrepass",0,&bytes,&size)) ||

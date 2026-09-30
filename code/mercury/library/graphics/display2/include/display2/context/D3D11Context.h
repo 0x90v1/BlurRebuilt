@@ -15,6 +15,7 @@
 #include <d3d11.h>
 #include <dxgi.h>
 #include <vector>
+#include "Display2/Device/D3D11TextureFormats.h"
 
 namespace Display2
 {

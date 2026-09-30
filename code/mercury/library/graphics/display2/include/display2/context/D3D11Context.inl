@@ -547,12 +547,12 @@ inline E_TextureFormat D3D11PCFormat(DXGI_FORMAT format)
 {
     switch (format)
     {
-    case DXGI_FORMAT_B8G8R8A8_UNORM: case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return E_TextureFormat_A8R8G8B8;
-    case DXGI_FORMAT_B8G8R8X8_UNORM: case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB: return E_TextureFormat_X8R8G8B8;
-    case DXGI_FORMAT_R8G8B8A8_UNORM: case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return E_TextureFormat_A8B8G8R8;
-    case DXGI_FORMAT_BC1_UNORM: case DXGI_FORMAT_BC1_UNORM_SRGB: return E_TextureFormat_DXT1;
-    case DXGI_FORMAT_BC2_UNORM: case DXGI_FORMAT_BC2_UNORM_SRGB: return E_TextureFormat_DXT3;
-    case DXGI_FORMAT_BC3_UNORM: case DXGI_FORMAT_BC3_UNORM_SRGB: return E_TextureFormat_DXT5;
+    case DXGI_FORMAT_B8G8R8A8_TYPELESS: case DXGI_FORMAT_B8G8R8A8_UNORM: case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return E_TextureFormat_A8R8G8B8;
+    case DXGI_FORMAT_B8G8R8X8_TYPELESS: case DXGI_FORMAT_B8G8R8X8_UNORM: case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB: return E_TextureFormat_X8R8G8B8;
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS: case DXGI_FORMAT_R8G8B8A8_UNORM: case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return E_TextureFormat_A8B8G8R8;
+    case DXGI_FORMAT_BC1_TYPELESS: case DXGI_FORMAT_BC1_UNORM: case DXGI_FORMAT_BC1_UNORM_SRGB: return E_TextureFormat_DXT1;
+    case DXGI_FORMAT_BC2_TYPELESS: case DXGI_FORMAT_BC2_UNORM: case DXGI_FORMAT_BC2_UNORM_SRGB: return E_TextureFormat_DXT3;
+    case DXGI_FORMAT_BC3_TYPELESS: case DXGI_FORMAT_BC3_UNORM: case DXGI_FORMAT_BC3_UNORM_SRGB: return E_TextureFormat_DXT5;
     case DXGI_FORMAT_R8_UNORM: return E_TextureFormat_L8;
     case DXGI_FORMAT_A8_UNORM: return E_TextureFormat_A8;
     case DXGI_FORMAT_R8G8_UNORM: return E_TextureFormat_A8L8;
@@ -625,6 +625,8 @@ INLINE E_SurfaceFormat C_Surface::GetFormat() const
 {
 	if(!IsCreated())
 		return E_SurfaceFormat_Unknown;
+	const D3DFORMAT original = D3D11TextureFormats::GetPCFormat(m_pd3dSurface);
+	if (original != D3DFMT_UNKNOWN) return static_cast<E_SurfaceFormat>(original);
 
 	D3D11_TEXTURE2D_DESC desc;
 	((GPUSurface*)GetGPUSurface())->GetDesc(&desc);
@@ -779,6 +781,8 @@ INLINE U32 C_Texture::GetDepth(const U32 level) const
 INLINE E_TextureFormat C_Texture::GetFormat() const
 {
     if (!IsCreated()) return E_TextureFormat_Unknown;
+    const D3DFORMAT original = D3D11TextureFormats::GetPCFormat(m_pd3dTexture);
+    if (original != D3DFMT_UNKNOWN) return static_cast<E_TextureFormat>(original);
     if (GetType() == E_TextureType_3D)
     {
         D3D11_TEXTURE3D_DESC desc = {};

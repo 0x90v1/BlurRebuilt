@@ -13,7 +13,7 @@ bool NativeFX11Apply(const Effect* effect, const Pass* pass, int technique,
                      void* const* sources);
 bool NativeFX11SetImmediate(const Effect* effect, const Pass* pass, int technique,
                             const char* parameter, const void* value, unsigned bytes,
-                            bool texture);
+                            bool texture, int samplerState = -1);
 
 // [Blur1PCDX11] Name of the effect/technique whose apply last returned an error, for draw diagnostics.
 const char* NativeFX11LastError();

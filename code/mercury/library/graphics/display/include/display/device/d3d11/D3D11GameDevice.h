@@ -149,6 +149,7 @@ public:
 	
 	// Pixel shader samples
 	void SetTexture(const U32 sampler, const C_Texture* pTexture);
+	void SetNativeTexture(U32 sampler, ID3D11Resource* texture);
 	void SetTextureAddressU(const U32 sampler, E_TextureAddress addressU);
 	void SetTextureAddressV(const U32 sampler, E_TextureAddress addressV);
 	void SetTextureAddressW(const U32 sampler, E_TextureAddress addressW);
@@ -163,6 +164,7 @@ public:
 
 	// Vertex shader samplers
 	void SetVertexTexture(const U32 sampler, const C_Texture* pTexture);
+	void SetNativeVertexTexture(U32 sampler, ID3D11Resource* texture);
 	void SetVertexTextureAddressU(const U32 sampler, E_TextureAddress addressU);
 	void SetVertexTextureAddressV(const U32 sampler, E_TextureAddress addressV);
 	void SetVertexTextureAddressW(const U32 sampler, E_TextureAddress addressW);

@@ -128,7 +128,8 @@ target_sources(blur_dx11 PRIVATE
     ${BLUR_TOP}/code/mercury/library/graphics/display/source/device/d3d11/D3D11Effect.cpp
     ${BLUR_TOP}/code/mercury/library/graphics/display/source/device/d3d11/D3D11EffectLibrary.cpp)
 target_include_directories(blur_dx11 PUBLIC
-    ${BLUR_TOP}/code/mercury/library/graphics/display/include)
+    ${BLUR_TOP}/code/mercury/library/graphics/display/include
+    ${BLUR_TOP}/code/mercury/library/graphics/display2/include)
 target_compile_features(blur_dx11 PRIVATE cxx_std_17)
 target_link_libraries(blur_dx11 PUBLIC d3d11 dxgi d3dcompiler blur_fx11)
 set_target_properties(blur_dx11 PROPERTIES FOLDER "dx11")
@@ -202,3 +203,11 @@ target_compile_features(dx11_probe PRIVATE cxx_std_17)
 target_link_libraries(dx11_probe PRIVATE blur_dx11 blur_fx11)
 add_dependencies(dx11_probe dx11_shaders_all dx11_fx_all)
 set_target_properties(dx11_probe PROPERTIES FOLDER "dx11")
+
+# [Blur1PCDX11] Isolated reference probe for legacy texel semantics. This is
+# deliberately separate from blur_dx11 and the game's native-only link graph.
+add_executable(d3d9_sampling_reference
+    ${BLUR_TOP}/code/tools/dx11_probe/d3d9_sampling_reference.cpp)
+target_compile_features(d3d9_sampling_reference PRIVATE cxx_std_17)
+target_link_libraries(d3d9_sampling_reference PRIVATE d3d9 d3dcompiler)
+set_target_properties(d3d9_sampling_reference PROPERTIES FOLDER "dx11")

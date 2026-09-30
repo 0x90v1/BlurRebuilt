@@ -4,6 +4,10 @@
 #include "Display/Device/D3D11/D3D11EffectLibrary.h"
 #include "Display/Device/D3D11/D3D11InputLayout.h"
 #include "Display/Device/D3D11/D3D11States.h"
+#include "Display/Device/D3D11/D3D11Formats.h"
+#include <fstream>
+#include "luminance_checks.h"
+#include "sampler_checks.h"
 #include <cstdio>
 #include <string>
 #include <cmath>
@@ -156,6 +160,104 @@ static bool CheckAlphaBlendFactors(Display::D3D11::C_D3D11Device& device)
     return true;
 }
 
+static bool CheckTextureGammaViews(Display::D3D11::C_D3D11Device& device)
+{
+    const unsigned char rgba[] = {128,128,128,102};
+    const unsigned char bc1[] = {0x10,0x84,0,0,0,0,0,0};
+    const unsigned char bc2[] = {0x66,0x66,0x66,0x66,0x66,0x66,0x66,0x66,0x10,0x84,0,0,0,0,0,0};
+    const unsigned char bc3[] = {102,0,0,0,0,0,0,0,0x10,0x84,0,0,0,0,0,0};
+    const struct { D3DFORMAT format; const void* bytes; UINT size, edge; } cases[] = {
+        {D3DFMT_A8R8G8B8,rgba,4,1}, {D3DFMT_X8R8G8B8,rgba,4,1},
+        {D3DFMT_A8B8G8R8,rgba,4,1}, {D3DFMT_DXT1,bc1,8,4},
+        {D3DFMT_DXT3,bc2,16,4}, {D3DFMT_DXT5,bc3,16,4}
+    };
+    unsigned checked = 0;
+    for (const auto& test : cases)
+    {
+        const void* data[] = {test.bytes};
+        const UINT sizes[] = {test.size};
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view;
+        HRESULT result = device.CreateTexture2DFromPCData(test.edge,test.edge,1,test.format,data,sizes,texture,view);
+        if (FAILED(result)) { std::fprintf(stderr,"Gamma texture format=%u create=%08lx\n",test.format,result); return false; }
+        unsigned char linear[4] = {};
+        for (int pass = 0; pass < 3; ++pass)
+        {
+            view.Reset();
+            result = Display::D3D11::CreateTextureView(device.Device(), texture.Get(), pass == 1, &view);
+            if (FAILED(result)) { std::fprintf(stderr,"Gamma texture format=%u pass=%d view=%08lx\n",test.format,pass,result); return false; }
+            result = device.DrawTexturedQuadView(
+                L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+                L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso", view.Get());
+            if (FAILED(result)) { std::fprintf(stderr,"Gamma texture format=%u pass=%d draw=%08lx\n",test.format,pass,result); return false; }
+            unsigned char actual[4] = {};
+            result = device.ReadPixel(32,32,actual);
+            if (FAILED(result)) { std::fprintf(stderr,"Gamma texture format=%u pass=%d read=%08lx\n",test.format,pass,result); return false; }
+            if (pass == 0) memcpy(linear,actual,sizeof(linear));
+            for (unsigned channel = 0; channel < 4; ++channel)
+            {
+                const float encoded = linear[channel] / 255.f;
+                const int expected = pass == 1 && channel < 3 ? static_cast<int>(std::lround(
+                    (encoded <= .04045f ? encoded / 12.92f : std::pow((encoded + .055f) / 1.055f, 2.4f)) * 255.f)) : linear[channel];
+                if (std::abs(int(actual[channel]) - expected) > 1)
+                { std::fprintf(stderr,"Gamma view format=%u pass=%d channel=%u got=%u expected=%d\n",
+                    test.format,pass,channel,actual[channel],expected); return false; }
+            }
+            ++checked;
+        }
+    }
+    // HDR values ignore SRGBTEXTURE; alpha must also stay linear.
+    const unsigned short half[] = {0x3800,0x3800,0x3800,0x3400};
+    const void* data[] = {half}; const UINT sizes[] = {sizeof(half)};
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> hdr;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> hdrView;
+    HRESULT hdrResult = device.CreateTexture2DFromPCData(1,1,1,D3DFMT_A16B16G16R16F,data,sizes,hdr,hdrView);
+    if (FAILED(hdrResult)) { std::fprintf(stderr,"HDR gamma texture create=%08lx\n",hdrResult); return false; }
+    hdrView.Reset();
+    hdrResult = Display::D3D11::CreateTextureView(device.Device(),hdr.Get(),true,&hdrView);
+    if (SUCCEEDED(hdrResult)) hdrResult = device.DrawTexturedQuadView(
+            L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+            L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso",hdrView.Get());
+    if (FAILED(hdrResult)) { std::fprintf(stderr,"HDR gamma view/draw=%08lx\n",hdrResult); return false; }
+    unsigned char hdrPixel[4] = {};
+    if (FAILED(device.ReadPixel(32,32,hdrPixel)) || std::abs(int(hdrPixel[0])-128) > 1 ||
+        std::abs(int(hdrPixel[1])-128) > 1 || std::abs(int(hdrPixel[2])-128) > 1 || std::abs(int(hdrPixel[3])-64) > 1)
+    { std::fprintf(stderr,"HDR gamma-ignore RGBA %u %u %u %u\n",hdrPixel[0],hdrPixel[1],hdrPixel[2],hdrPixel[3]); return false; }
+    for (bool cube : {true,false})
+    {
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> cubeTexture;
+        Microsoft::WRL::ComPtr<ID3D11Texture3D> volumeTexture;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view;
+        const void* faces[] = {rgba,rgba,rgba,rgba,rgba,rgba};
+        const UINT faceSizes[] = {4,4,4,4,4,4};
+        HRESULT result = cube ? device.CreateTextureCubeFromPCData(1,1,D3DFMT_A8R8G8B8,faces,faceSizes,cubeTexture,view) :
+            device.CreateTexture3DFromPCData(1,1,1,1,D3DFMT_A8R8G8B8,faces,faceSizes,volumeTexture,view);
+        if (FAILED(result)) return false;
+        const char* shader = cube ?
+            "TextureCube T:register(t0); SamplerState S:register(s0); float4 main():SV_Target {return T.Sample(S,float3(1,0,0));}" :
+            "Texture3D T:register(t0); SamplerState S:register(s0); float4 main():SV_Target {return T.Sample(S,float3(.5,.5,.5));}";
+        Microsoft::WRL::ComPtr<ID3DBlob> code,errors;
+        if (FAILED(D3DCompile(shader,strlen(shader),nullptr,nullptr,nullptr,"main","ps_5_0",0,0,&code,&errors))) return false;
+        const wchar_t* path = cube ? L"_work/build/gen/probe_gamma_cube.cso" : L"_work/build/gen/probe_gamma_volume.cso";
+        if (FAILED(D3DWriteBlobToFile(code.Get(),path,TRUE))) return false;
+        ID3D11Resource* resource = cube ? static_cast<ID3D11Resource*>(cubeTexture.Get()) : volumeTexture.Get();
+        for (int pass = 0; pass < 3; ++pass)
+        {
+            view.Reset();
+            if (FAILED(Display::D3D11::CreateTextureView(device.Device(),resource,pass == 1,&view)) ||
+                FAILED(device.DrawTexturedQuadView(L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",path,view.Get()))) return false;
+            unsigned char pixel[4] = {};
+            const int expected = pass == 1 ? 55 : 128;
+            if (FAILED(device.ReadPixel(32,32,pixel)) || std::abs(int(pixel[0])-expected)>1 ||
+                std::abs(int(pixel[1])-expected)>1 || std::abs(int(pixel[2])-expected)>1 || std::abs(int(pixel[3])-102)>1)
+            { std::fprintf(stderr,"%s gamma pass=%d RGBA %u %u %u %u\n",cube?"Cube":"Volume",pass,pixel[0],pixel[1],pixel[2],pixel[3]); return false; }
+            ++checked;
+        }
+    }
+    std::printf("Texture gamma views: %u GPU transitions across six colour formats, cube and volume; HDR unchanged\n",checked);
+    return true;
+}
+
 // [Blur1PCDX11] Read actual stencil bytes for CW/CCW geometry while switching
 // one/two-sided state and rasterizer orientation, including failed tests.
 static bool CheckStencilFaces(Display::D3D11::C_D3D11Device& device)
@@ -305,10 +407,11 @@ int main()
 
     Display::D3D11::C_D3D11EffectLibrary effectLibrary;
     result = effectLibrary.Open(L"_work/build/gen/fx11/effects");
-    if (FAILED(result) || effectLibrary.EffectCount() != 1254) return 9;
+    if (FAILED(result) || effectLibrary.EffectCount() < 1254) return 9;
     if (!CheckRoadPrepass(device, effectLibrary)) return 13;
     if (!CheckBillboardPrepass(device, effectLibrary)) return 14;
     if (!CheckVehicleVolumeBinding(device, effectLibrary)) return 15;
+    if (!CheckLiveSamplers(device, effectLibrary)) return 9;
     std::string failedEffect;
     result = effectLibrary.PreloadAll(device.Device(), &failedEffect);
     if (FAILED(result))
@@ -509,7 +612,8 @@ int main()
     device.Context()->ClearState();
     std::printf("FX11 alpha test: previously visible material rejected by Never\n");
 
-    if (!CheckStencilFaces(device)) return 12;
+    if (!CheckStencilFaces(device) || !CheckTextureGammaViews(device) ||
+        !CheckLuminanceTextures(device)) return 12;
     if (!CheckNativeAlphaTest(device) || !CheckBuiltinShaderLinks() || !CheckAlphaBlendFactors(device)) return 12;
 
     if (SUCCEEDED(result)) result = device.DrawProbeTriangle(

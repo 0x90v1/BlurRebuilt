@@ -189,7 +189,8 @@ bool MakeRasterizerDesc(D3DFILLMODE fill, D3DCULL cull, bool scissor,
 bool MakeSamplerDesc(D3DTEXTUREFILTERTYPE minFilter, D3DTEXTUREFILTERTYPE magFilter,
                      D3DTEXTUREFILTERTYPE mipFilter, D3DTEXTUREADDRESS addressU,
                      D3DTEXTUREADDRESS addressV, D3DTEXTUREADDRESS addressW,
-                     UINT maxAnisotropy, D3D11_SAMPLER_DESC* result)
+                     UINT maxAnisotropy, D3D11_SAMPLER_DESC* result,
+                     UINT borderColour, int encodedLodBias)
 {
     if (!result) return false;
     D3D11_SAMPLER_DESC desc = {};
@@ -216,6 +217,13 @@ bool MakeSamplerDesc(D3DTEXTUREFILTERTYPE minFilter, D3DTEXTUREFILTERTYPE magFil
                                              (mipLinear ? 0x01 : 0));
         desc.MaxAnisotropy = 1;
     }
+    // [Blur2PC] PC Display2 sends its signed bias to D3D9 as bias / 128 * 8.
+    // Border colour is the original D3DCOLOR ARGB value, independent of SRGB.
+    desc.MipLODBias = static_cast<float>(encodedLodBias) / 16.f;
+    desc.BorderColor[0] = ((borderColour >> 16) & 255) / 255.f;
+    desc.BorderColor[1] = ((borderColour >> 8) & 255) / 255.f;
+    desc.BorderColor[2] = (borderColour & 255) / 255.f;
+    desc.BorderColor[3] = ((borderColour >> 24) & 255) / 255.f;
     desc.MinLOD = 0.f;
     desc.MaxLOD = mipFilter == D3DTEXF_NONE ? 0.f : D3D11_FLOAT32_MAX;
     desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;

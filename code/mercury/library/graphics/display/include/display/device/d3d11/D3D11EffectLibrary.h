@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace Display { namespace D3D11 {
 
@@ -18,6 +19,8 @@ public:
     HRESULT TextureUsesSRGB(const char* gameEffectName, const char* textureParameter,
                             bool* srgb) const;
     const char* TextureForSampler(const char* gameEffectName, const char* samplerName) const;
+    HRESULT SetTextureSampler(ID3D11Device* device, const char* gameEffectName,
+                              const char* samplerOrTexture, ID3D11SamplerState* state);
     HRESULT PreloadAll(ID3D11Device* device, std::string* failedName = nullptr);
     size_t EffectCount() const { return m_Effects.size(); }
 
@@ -29,6 +32,8 @@ private:
         std::unordered_map<std::string, bool> textureSRGB;
         std::unordered_map<std::string, std::string> samplerTextures;
         std::unordered_map<std::string, std::string> textureNames;
+        std::unordered_map<std::string, std::string> samplerNames;
+        std::unordered_map<std::string, std::vector<std::string>> textureSamplers;
     };
     std::unordered_map<std::string, C_Entry> m_Effects;
 };

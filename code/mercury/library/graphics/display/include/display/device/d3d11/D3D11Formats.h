@@ -2,7 +2,9 @@
 #define DISPLAY_DEVICE_D3D11_FORMATS_H
 
 #include <d3d9.h>
+#include <d3d11.h>
 #include <dxgiformat.h>
+#include <vector>
 
 namespace Display { namespace D3D11 {
 
@@ -14,10 +16,20 @@ struct C_FormatLayout
     unsigned m_BlockBytes;
 };
 
-// [Blur1PCDX11] Map the PC asset's D3D9 texel layout to native DXGI storage.
-// Return false for layouts that need conversion rather than silently changing data.
+// [Blur1PCDX11] Describe serialized PC bytes; native luminance storage is
+// selected separately and never changes the serializer's byte/pitch authority.
 bool GetFormatLayout(D3DFORMAT source, C_FormatLayout* layout);
+// Serialized/locked bytes keep their PC layout; GPU luminance storage expands.
+DXGI_FORMAT GetPCTextureResourceFormat(D3DFORMAT source);
+void PreparePCTextureData(D3DFORMAT source, unsigned width, unsigned height, unsigned depth,
+                         const void* bytes, unsigned rowPitch, unsigned slicePitch,
+                         std::vector<unsigned char>& converted, D3D11_SUBRESOURCE_DATA& data);
 DXGI_FORMAT GetSRGBFormat(DXGI_FORMAT linearFormat);
+// [Blur1PCDX11] PC gamma is per sampler, so colour storage supports both views.
+DXGI_FORMAT GetTextureResourceFormat(DXGI_FORMAT format);
+DXGI_FORMAT GetLinearFormat(DXGI_FORMAT format);
+HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
+                          bool srgb, ID3D11ShaderResourceView** view);
 
 } }
 
