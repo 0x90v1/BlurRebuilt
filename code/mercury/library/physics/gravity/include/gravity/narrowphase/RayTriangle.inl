@@ -60,8 +60,8 @@ namespace Collision
 		const HVec3 range(high - low);
 		const Maths::HVec3 rayStart(ray.m_start);
 		const Maths::HVec3 rayDirection(ray.m_Direction);
-		const Maths::VBool vDoubleSided(Maths::MakeVBool(ray.m_bDoubleSided));
-		const Maths::Scalar_Bool doubleSided((Maths::Scalar_Bool&)vDoubleSided);
+		// [Blur2PC] Construct the full-width mask; scalar VBool is only one byte.
+		const Maths::Scalar_Bool doubleSided(ray.m_bDoubleSided);
 		const Maths::HF32 maxCosAngle(ray.m_MaxCosAngle);
 
 		for(U32 i=0; i<numTris; ++i)
@@ -136,8 +136,8 @@ namespace Collision
 		const HVec3 rayEnd(ray.m_result.m_contact);
 		const Maths::C_Normal rayDirection(ray.m_Direction);
 		//const Maths::Scalar_Bool doubleSided(ray.m_bDoubleSided ? Maths::Constants<Maths::Scalar_Bool>::True() : Maths::Constants<Maths::Scalar_Bool>::False());
-		const Maths::VBool vDoubleSided(Maths::MakeVBool(ray.m_bDoubleSided));
-		const Maths::Scalar_Bool doubleSided((Maths::Scalar_Bool&)vDoubleSided);
+		// [Blur2PC] Construct the full-width mask; scalar VBool is only one byte.
+		const Maths::Scalar_Bool doubleSided(ray.m_bDoubleSided);
 		const Maths::HF32 maxCosAngle(ray.m_MaxCosAngle);
 
 		for(U32 i=0; i<numTris; ++i)
@@ -263,8 +263,8 @@ namespace Collision
 		const Maths::HVec3 rayStart(ray.m_start);
 		const Maths::HVec3 rayEnd(ray.m_end);
 		const Maths::HVec3 rayDirection(ray.m_Direction);
-		const Maths::VBool vDoubleSided(Maths::MakeVBool(ray.m_bDoubleSided));
-		const Maths::Scalar_Bool doubleSided((Maths::Scalar_Bool&)vDoubleSided);
+		// [Blur2PC] Construct the full-width mask; scalar VBool is only one byte.
+		const Maths::Scalar_Bool doubleSided(ray.m_bDoubleSided);
 		const Maths::HF32 maxCosAngle(ray.m_MaxCosAngle);
 
 		const HVec3 range(high - low);
@@ -327,8 +327,8 @@ namespace Collision
 		const Maths::HVec3 rayStart(ray.m_start);
 		const Maths::HVec3 rayEnd(ray.m_end);
 		const Maths::HVec3 rayDirection(ray.m_Direction);
-		const Maths::VBool vDoubleSided(Maths::MakeVBool(ray.m_bDoubleSided));
-		const Maths::Scalar_Bool doubleSided((Maths::Scalar_Bool&)vDoubleSided);
+		// [Blur2PC] Construct the full-width mask; scalar VBool is only one byte.
+		const Maths::Scalar_Bool doubleSided(ray.m_bDoubleSided);
 		const Maths::HF32 maxCosAngle(ray.m_MaxCosAngle);
 
 		const HVec3 range(high - low);
@@ -397,8 +397,8 @@ namespace Collision
 		const HVec3 range(high - low);
 		const Maths::HVec3 radius(ray.m_Radius + Maths::Constants<Maths::HF32>::Epsilon());
 		const Maths::HF32 epsilon(Maths::Constants<Maths::HF32>::Epsilon());
-		const Maths::VBool vDoubleSided(Maths::MakeVBool(ray.m_bDoubleSided));
-		const Maths::Scalar_Bool doubleSided((Maths::Scalar_Bool&)vDoubleSided);
+		// [Blur2PC] Construct the full-width mask; scalar VBool is only one byte.
+		const Maths::Scalar_Bool doubleSided(ray.m_bDoubleSided);
 		const Maths::HF32 rayRadius(ray.m_Radius);
 		const Maths::HF32 maxCosAngle(ray.m_MaxCosAngle);
 		const Maths::HVec3 rayStart(ray.m_start);
@@ -492,8 +492,8 @@ namespace Collision
 		const Maths::HF32 epsilon(Maths::Constants<Maths::HF32>::Epsilon());
 
 		const Maths::HMat33 rotation(matrix.Rotation());
-		const Maths::VBool vDoubleSided(Maths::MakeVBool(ray.m_bDoubleSided));
-		const Maths::Scalar_Bool doubleSided((Maths::Scalar_Bool&)vDoubleSided);
+		// [Blur2PC] Construct the full-width mask; scalar VBool is only one byte.
+		const Maths::Scalar_Bool doubleSided(ray.m_bDoubleSided);
 		const Maths::C_Normal rayDirection(ray.m_Direction);
 		const Maths::HVec3 rayStart(ray.m_start);
 		const Maths::HVec3 rayEnd(ray.m_end);

@@ -570,3 +570,12 @@ Delivery: all four phases' standard _work/run/Amax.exe and Amax.pdb hashes match
 
 Blocked: none.
 Next: none for T177. User accepted and requested commit/propagation; all higher branches contain the fix and their standard deliveries include it. Approval evidence: _work/t177/corrected/showroom.png. Full build logs: each rebuilt phase's _work/t177/propagation_build.log.
+
+## 2026-09-30 — Codex Business Bay — T186 base correction verified; propagation awaits commit authorization
+Did: reproduced false one-sided mask becoming true in the base executable on retail PC Brighton collision data; restored canonical bool-to-Scalar_Bool construction in six ray triangle query variants. Kept physics equations/geometry/reset operations unchanged. Removed all temporary base query telemetry. Shared Xbox-disassembly authority is recorded in the owning higher-phase analysis.
+Verified: standard Release build errsum0; diff check; scalar mask truth/canonical-width checks exit0; clean base Q-drive exits0/45s, stable70mph video. Delivered base standard Amax.exe/PDB, hashes match build outputs (analysis / _work/t186/base_delivery.txt).
+Blocker: existing AGENTS/workflow permits commit only when requested and requires lower fixes to reach higher phases through merges. No commit has been requested; no commit, merge or push performed.
+Exact next step: obtain authorization to commit only T186's RayTriangle.inl and owning phase docs, merge blur1pc -> blur1multi -> blurx and blur1pc -> blur1pcdx11 preserving other changes, regenerate/build/deliver each phase, then queue Nov10 Business Bay through BlurX's standard launcher and hold Q beyond the wall/reset window. BlurX remains pending propagation and verification.
+
+## 2026-09-30 — Codex Business Bay — T186 propagation resumed
+User: requested the fix in BlurX for testing. Proceeding with the isolated base commit and required merges as the necessary propagation step; no push. Base correction/build/delivery remain verified as above. Exact next step: merge through all higher phases, standard builds/delivery, then Nov10 Business Bay with Q held past the original failure interval.
