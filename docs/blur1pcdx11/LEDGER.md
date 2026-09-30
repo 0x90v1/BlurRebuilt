@@ -241,3 +241,15 @@ Blocked: none. Matching the active timed post effect remains unverified; paint s
 Next: compare paint luminance/exposure inputs at the bright and dark draws before final composition; recover the first differing upstream mechanism. T127 remains active.
 
 Files touched: native display/device/context/texture format and sampler paths, Display2 luminance resource/lock transport, FX shared/immediate binding, owned probe sources/headers and CMake reference target, phase docs.
+
+## 2026-09-30 09:31 — session Codex visual diagnosis — T127
+
+Did: isolated the entire bright/dark paint difference to live RearLightColour, using identical-input GPU replay and opt-in CPU upload evidence. Supersedes earlier paint/getter instability claims; no production workaround or shader tuning. Found in / Belongs to Blur1PCDX11 for native diagnostics; upstream reverse-light launch state remains unclassified.
+
+Verified: private actual-mesh/material replay reproduces both RGBA outputs by changing only row7; hardware/WARP agree within one RGB byte. CPU shared upload and GPU agree at zero and .1 in two fresh combined scene captures. Queued runs exit0. Standard Release visual_rear_light_cpu_all_build exit0/errsum0; standard executable/PDB/effects delivered.
+
+Blocked: none. Active timed post effect and neutral-launch reverse-light state are not matched; intermittent volume-lock crash remains open.
+
+Next: compare protected final-composition textures and reflection/road output against PC at matching rear-light state. T127 remains active.
+
+Files touched: NativeFX11.cpp opt-in CPU diagnostic; phase analysis/board/ledger. Private replay and capture harness stay under ignored _work/.

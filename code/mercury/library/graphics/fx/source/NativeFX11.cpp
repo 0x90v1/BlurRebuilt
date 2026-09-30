@@ -142,6 +142,21 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
     if (view) view->Release();
 }
 
+// [Blur1PCDX11] Opt-in CPU evidence for vehicle-light state; never changes it.
+void TraceVehicleParameter(const Effect* effect, const char* name, const void* data,
+                           unsigned bytes, const char* source)
+{
+    if (!getenv("BLUR_DX11_TRACE_VEHICLE") || !name || !data || bytes < 128 ||
+        strcmp(name, "g_VehicleVtxParams") ||
+        Blur2PCAutomation::Now() < 21 || Blur2PCAutomation::Now() >= 22) return;
+    static unsigned vehicleInputs = 0;
+    if (vehicleInputs++ >= 64) return;
+    const F32* floats = reinterpret_cast<const F32*>(data);
+    Blur2PCAutomation::LogF("DX11 vehicle CPU %s / %s source=%s world=%.6f %.6f %.6f rear=%.6f %.6f %.6f %.6f",
+        effect->Name.Chars(), name, source, floats[9], floats[10], floats[11],
+        floats[28], floats[29], floats[30], floats[31]);
+}
+
 void BindSharedParameters(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
                           void* const* sources, const char* technique)
 {
@@ -178,6 +193,7 @@ void BindSharedParameters(const Effect* effect, Display::D3D11::C_D3D11Effect* n
         }
         else
         {
+            TraceVehicleParameter(effect, parameter.Name.Chars(), data, parameter.Size * sizeof(U32), "shared");
             const HRESULT result = native->SetRawParameter(parameter.Name.Chars(), data,
                 static_cast<UINT>(parameter.Size) * sizeof(U32));
             if (FAILED(result)) { static unsigned failures = 0; if (failures++ < 20)
@@ -226,6 +242,7 @@ void BindFunction(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
                     effect->Name.Chars(), name, binding.Count, binding.Source, binding.Offset,
                     floats[0], floats[1], floats[2], floats[3]);
             }
+            TraceVehicleParameter(effect, name, data, binding.Count * 16U, "function");
             const HRESULT result = native->SetRawParameter(name, data, binding.Count * 16U);
             if (FAILED(result)) { static unsigned failures = 0; if (failures++ < 24)
                 Blur2PCAutomation::LogF("DX11 FX parameter binding failed %s / %s result=%08x", effect->Name.Chars(), name, static_cast<unsigned>(result)); }
@@ -306,7 +323,10 @@ bool NativeFX11SetImmediate(const Effect* effect, const Pass* pass, int techniqu
                     *reinterpret_cast<ID3D11Resource* const*>(value), effect->Techniques[technique].Name.Chars(),
                     samplerState, true);
     else
+    {
+        TraceVehicleParameter(effect, parameter, value, bytes, "immediate");
         native->SetRawParameter(parameter, value, bytes);
+    }
     ID3D11DeviceContext* context = nullptr;
     Display::Device()->GetD3DDevice()->GetImmediateContext(&context);
     if (!context) return false;
