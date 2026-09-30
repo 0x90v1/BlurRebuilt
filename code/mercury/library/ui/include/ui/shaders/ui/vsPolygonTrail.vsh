@@ -20,8 +20,16 @@ float4		g_WaveSettings						: register( CCV_POLYGON_WAVE );
 
 struct VS_INPUT
 {
+	#if defined(BLUR_DX11) // [Blur1PCDX11] Numerically convert PC SHORT2 fetches.
+	int2 Position                : POSITION;
+	#else
 	float2 Position				: POSITION;
+	#endif
+	#if defined(BLUR_DX11) // [Blur1PCDX11] The PC declaration also packs UV as SHORT2.
+	int2 TexCoord0               : TEXCOORD0;
+	#else
 	float2 TexCoord0			: TEXCOORD0;
+	#endif
 	float4 Normal				: NORMAL;
 };
 
@@ -44,13 +52,15 @@ struct VS_OUTPUT
 VS_OUTPUT main( VS_INPUT IN )
 {
 	VS_OUTPUT OUT = (VS_OUTPUT)0;
+	float2 position = float2(IN.Position);
+	float2 texCoord = float2(IN.TexCoord0);
 
-	float4 pos = float4( IN.Position.xy, 0.0f, 1.0f );
+	float4 pos = float4( position.xy, 0.0f, 1.0f );
 	
 	IN.Normal = normalize( IN.Normal );
 
-	pos.x += ( sin( ( IN.TexCoord0.x * g_Frequency ) + g_Time ) * g_Intensity ) * abs( IN.Normal.x );
-	pos.y += ( sin( ( IN.TexCoord0.x * g_Frequency ) + g_Time ) * g_Intensity ) * abs( IN.Normal.y );
+	pos.x += ( sin( ( texCoord.x * g_Frequency ) + g_Time ) * g_Intensity ) * abs( IN.Normal.x );
+	pos.y += ( sin( ( texCoord.x * g_Frequency ) + g_Time ) * g_Intensity ) * abs( IN.Normal.y );
 
 	/*
 	pos.y += sin( ( pos.x * g_Frequency ) + g_Time ) * g_Intensity;
@@ -60,7 +70,7 @@ VS_OUTPUT main( VS_INPUT IN )
 
 	// Pass to the pixel shader
 	OUT.Position = mul( mul( pos, g_PolygonTransform ), g_UiTransform );
-	OUT.TexCoord0 = g_TextureVector.xy + (IN.TexCoord0 * g_TextureVector.zw);
+	OUT.TexCoord0 = g_TextureVector.xy + (texCoord * g_TextureVector.zw);
 	OUT.Colour = g_PolygonColour;
 	
 	return OUT;

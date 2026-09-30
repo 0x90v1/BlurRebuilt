@@ -13,6 +13,7 @@
 #include "polygon_font_checks.h"
 #include "road_prepass_checks.h"
 #include "billboard_prepass_checks.h"
+#include "polygon_packed_checks.h"
 
 // [Blur1PCDX11] D3D11 stage linkage requires register/component agreement,
 // even when the original D3D9 stages shared matching semantic names.
@@ -144,6 +145,7 @@ int main()
     HRESULT result = device.Initialise();
     if (FAILED(result)) return 1;
     if (!CheckPackedPolygonFont(device)) return 10;
+    if (!CheckPackedPolygonShaders(device)) return 15;
     UINT packedColourSupport = 0;
     result = device.Device()->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM,
                                                   &packedColourSupport);

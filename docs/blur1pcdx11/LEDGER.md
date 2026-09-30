@@ -174,3 +174,13 @@ Verified: sequential standard/probe rebuilds succeed; hardware and WARP pass eig
 Blocked: none. Full parity remains T127. The new stroke GPU capture reproduces NaN positions/UVs before conversion; UI repair verification follows.
 
 Next: commit the billboard repair; finish hardware/WARP verification and deliver the packed stroke/trail/gradient/multiply conversions, then compare the resulting race UI with PC.
+
+## 2026-09-30 05:15 — session Codex visual diagnosis — T127
+
+Did: restored numeric SHORT2 input conversion for stroke/trail/gradient/multiply while preserving each pristine PC shader's coordinate and UV math. Billboard zero-depth repair committed as4a847184. Found in / Belongs to Blur1PCDX11.
+
+Verified: captured actual stroke failure before repair (NaN/incorrect UV), then 88 output components pass hardware/WARP across all four paths. Full probes, standard Release and probe build pass; standard exe/PDB and regenerated shaders/effects delivered, hashes match. Queued minimized race exits0 with clean debug/missing-shader logs. Inspected final race and PC reference; empty purple power-up boxes match PC, while contact shadow needs a targeted check.
+
+Blocked: none. Broader visual parity remains in progress; screenshot comparison alone does not establish a shadow fault mechanism.
+
+Next: commit packed UI repair, trace native screen-blob shadow draw2809 resources/constants/output and recover its corresponding loaded D3D9 shader/state. Preserve accepted rendering decisions.

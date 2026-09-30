@@ -8,8 +8,16 @@ float4		g_TextureVector						: register( CCV_POLYGON_TEXTURE_VECTOR );
 
 struct VS_INPUT
 {
+	#if defined(BLUR_DX11) // [Blur1PCDX11] Numerically convert PC SHORT2 fetches.
+	int2 Position                : POSITION;
+	#else
 	float2 Position				: POSITION;
+	#endif
+	#if defined(BLUR_DX11) // [Blur1PCDX11] The PC declaration also packs UV as SHORT2.
+	int2 TexCoord0               : TEXCOORD0;
+	#else
 	float2 TexCoord0			: TEXCOORD0;
+	#endif
 };
 
 struct VS_OUTPUT
@@ -32,13 +40,13 @@ VS_OUTPUT main( VS_INPUT IN )
 {
 	VS_OUTPUT OUT = (VS_OUTPUT)0;
 
-	IN.Position = IN.Position * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
-	IN.TexCoord0 = IN.TexCoord0 * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
+	float2 position = float2(IN.Position) * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
+	float2 texCoord = float2(IN.TexCoord0) * float2(1.0f / 32767.0f, 1.0f / 32767.0f);
 
-	float4 newPos = float4( IN.Position.xy, 0.0f, 1.0f );
+	float4 newPos = float4( position.xy, 0.0f, 1.0f );
 	float4 pos = mul( newPos, g_PolygonTransform );
 	
-	OUT.TexCoord0 = g_TextureVector.xy + (IN.TexCoord0 * g_TextureVector.zw);
+	OUT.TexCoord0 = g_TextureVector.xy + (texCoord * g_TextureVector.zw);
 
 	OUT.MyWorldPosition = pos;
 	

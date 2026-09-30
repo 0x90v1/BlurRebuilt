@@ -132,3 +132,15 @@ A standalone D3D9 GPU reference verifies the same rcp/mul sequence: 0*rcp(0) ret
 Eight actual GPU depth checks across all four compiled billboard variants and clip w=1/2 pass on hardware and WARP, along with the prior full probe suite (`foliage_depth/{hardware,warp}.log`). Initial concurrent effect generation conflicted and failed; it is superseded by sequential standard rebuild `visual_billboard_depth_rebuild.txt` (1254/1254 FX effects, 693/693 built-ins, errsum0) and `foliage_depth/probe_rebuild.log` (exit0). Do not use the earlier build/probe logs as validation.
 
 The rebuilt standard executable/effects were delivered, then a minimized queued race exited zero with no severe debug or missing-VS diagnostics. The final depth readback has zero nonfinite pixels, selected draw217 writes zero, and negative vehicle coverage remains 5.13%. Captures/readback are `billboard_depth_final/race_final.png`, `headlight.png`, `depth.bin`; the final race was visually inspected. Remaining packed UI stroke/trail/gradient/multiply paths are being tested separately.
+
+### T127: packed stroke, trail, gradient and multiply inputs (2026-09-30)
+
+Found in / Belongs to **Blur1PCDX11**. The pristine UI renderer declares SHORT2 positions for all four paths and SHORT2 UVs for stroke/trail. The native shaders retained float inputs, repeating the font bit-reinterpretation fault. Before repair the actual stroke VS captured through stream output produces NaN clip/world positions and incorrect UVs (`foliage_depth/ui_before.log`, expected exit15).
+
+Native-only signed integer input signatures now perform numerical float conversion before the original arithmetic. Stroke keeps its original 1/32767 position/UV scaling; trail, gradient and multiply keep raw PC numeric coordinates. The trail's omitted NORMAL retains the PC default (0,0,0,1), without a guessed normal or wave modification. Gradient/multiply matrices and colour math remain unchanged.
+
+The actual four shaders are captured through GPU stream output with both positive/negative coordinates, nontrivial UV scale/offset and colour/multiply constants. Hardware and WARP each pass 88 output-component checks, including clip/world position, colour, UV and the trail default-normal case. Full prior probes pass as well (`packed_ui_final/{hardware,warp}.log`). Standard Release `visual_packed_ui_build.txt` and probe build exit0/errsum0; built-in blobs were regenerated. Standard exe/PDB and effects delivered; minimized DebugRb race exits0 with clean diagnostics. `packed_ui_final/race_final.png` was inspected alongside the preserved current PC `dx9_race_compare/race_final.tga`. The purple empty power-up outlines are also present in PC and are not a missing-icon fault. A remaining qualitative difference is weaker shadow beneath the car; captures differ in resolution and elapsed animation, so shadow bindings/output require targeted comparison before changing code.
+
+Delivered hashes match the standard outputs:
+Amax.exe: `7ba1cf55f6cab66362d1b459f5364405d708a4285b40c36fcbf7d73eb21bb76e`
+Amax.pdb: `20bf8db32a2c5cbaf9a36dd3568efe5f514fdc5210e75d5cccd4744905dd2d92`
