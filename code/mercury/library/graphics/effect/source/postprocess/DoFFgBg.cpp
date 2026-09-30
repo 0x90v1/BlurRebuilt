@@ -221,9 +221,9 @@ void C_DoFFgBg::SetDepthOfField(const S32 iViewIndex, const F32 fNearStartDistan
 
 void C_DoFFgBg::Display() const
 {
-#if !defined(PLATFORM_PC)
+	// [Blur2PC] Retail PC (Blur.exe 1.2, 0x00659be0) runs this pass with the
+	// same enable checks; the snapshot's PC guard made the return unconditional.
 	if(!m_Manager.Enabled() || !m_bEnabled)
-#endif
 		return;
 	if(!g_debugDepthOfField)
 		return;

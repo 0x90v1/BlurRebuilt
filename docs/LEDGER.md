@@ -532,3 +532,27 @@ Verified: all phase instruction links resolve; all original sections preserved; 
 Blocked: none for applying the patch. Worktree changes remain uncommitted under the project's commit-on-request rule; no branch merges or pushes performed. The untouched master/source snapshot was not modified.
 Next: reload instructions/configuration in new sessions, then compare recorded per-request tokens and same-session cumulative usage deltas for comparable completed tasks. Full logs remain on disk for any truncated excerpt. Commit these paths only when requested, preserving the existing branch ancestry and other work.
 Files touched: AGENTS.md; docs/agent-reference/; tools/agent_context.py; docs/{BOARD,LEDGER}.md. Global config: C:/Users/uKER/.codex/config.toml. Backups: C:/Users/uKER/.codex/tmp/context-efficiency-20260929-182911.
+
+
+## 2026-09-29 22:45 - Codex showroom-effects - T177
+Did: restored retail PC's DoF pass enable checks, then corrected the signed-depth decode exposed by the user's report that the car was blurred. Shared PC depth reads now use the magnitude, as retail DoF, atmospheric-scattering, volumetric-fog, reduced-motion-blur and depth-reduction shaders do. Camera focus values unchanged. Recorded recovered mechanisms, shader comparisons, related-effect audit and its limits in analysis.md. Found in / belongs to Blur1PC, reproduced on retail PC data.
+Verified: standard tools/build.sh Release build has zero errors; regenerated built-in shaders (693 SM3 ok, 0 failed). Retail SM3 DoF combine/near-CoC and atmospheric-scattering/volumetric-fog instructions match; other compared shaders retain compiler scheduling/register differences. Queued minimized title test: sharp car with strongly blurred background, `_work/t177/corrected/showroom.png`. Queued debug-menu Brighton drive: 84 mph, sharp player car, clean exit 0/no timeout; compressed `_work/t177/drive_corrected/drive.mp4`, still `drive.png`. The guard-only screenshot `_work/t177/after/showroom.png` is the rejected intermediate result, not approval evidence.
+Delivery: standard `_work/build/vs/Release/Amax.exe` and `Amax.pdb` copied to `_work/run/` after checking the delivered executable was not running; built/delivered hashes match. EXE SHA256 `6500C2B8EE3D0CEE3DDD7F92871BE9A95D2429F65B13FD9DB993A83410C12BF3`; PDB SHA256 `1F3BF4806A7161A46D131DEAC3DE5FB1603E17AC3594C6038C779FA67AF02BF9`.
+Blocked: none for implementation/build/delivery. Visual parity beyond the tested showroom and Brighton run is unverified; an unused/default-PC-unconfirmed Sixteenth depth shader discrepancy is recorded in analysis.md.
+Next: user visual review of the corrected showroom screenshot and delivered Blur1PC executable. No commit or push requested/performed; propagation to higher phases follows a user-requested commit. Other sessions' work preserved.
+Files touched: code/mercury/library/graphics/effect/source/postprocess/DoFFgBg.cpp; code/mercury/library/graphics/render/include/render/shaders/psCommon.h; docs/{BOARD,analysis,LEDGER}.md. Generated/scratch artifacts: `_work/build/gen/`, `_work/t177/`, `_work/ghidra/t177_*`.
+
+
+## 2026-09-29 - Codex showroom-effects - T177 parameter follow-up
+Did: answered the user's question about other scene/camera parameters by tracing authored showroom FOV/transform/focus, aperture-derived DoF, environment selection/application and post-FX/HDR parameter setters through their consumers. Recorded exact source-comparison scope and remaining retail-parity limits in analysis.md.
+Verified: showroom camera, camera system, environment block construction, post-FX settings and HDR environment settings are byte-identical to pristine. Colour matrix/LUT, grain, vignette/tunnel, exposure/bloom and flare/feedback fields have connected consumers. Prior retail DoF/fog shader and post-process pass evidence remains valid. No new confirmed defect, engine edit or build/delivery change.
+Blocked: none for the requested status audit; exhaustive runtime/retail value parity has not been established.
+Next: visual review of the delivered T177 fix; if a particular scene effect differs, compare that active parameter/shader against retail before changing it. Board remains review. Verification screenshot: `_work/t177/corrected/showroom.png`.
+Files touched: docs/{analysis,LEDGER}.md.
+
+
+## 2026-09-29 - Codex showroom-effects - T177 accepted / commit
+Did: user accepted the corrected DoF and parameter audit and explicitly requested commit and propagation. Prepared only the T177 engine changes, analysis and board/ledger entries for commit; preserved other sessions' pending work.
+Verified: prior zero-error Release build, delivered matching executable/symbol hashes, showroom screenshot and 84 mph driving verification remain valid; no source change since those checks.
+Blocked: none.
+Next: merge blur1pc into blur1multi, then blur1multi into blurx, and blur1pc into blur1pcdx11; regenerate/build each phase and deliver its standard executable/symbols. No push requested.
