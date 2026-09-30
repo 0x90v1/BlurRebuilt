@@ -142,3 +142,15 @@ Blocked: none for build/delivery. Broader visual parity, the unreproduced damage
 Next: recover and verify the live sampler filter/address/border/LOD contract from pristine PC source. FX11 currently binds live gamma but retains compiled sampler defaults for the other properties. Distinguish Display2's encoded LOD bias from the old Display device API; preserve the actual PC anisotropy behavior. Add GPU sampling checks before claiming a fix. Task remains active.
 
 Files touched: dx11_fxcompile/compile_fx.py, fx/FxContext.cpp, dx11_probe/main.cpp, README and phase docs; ignored reference captures/build/runtime logs. Other sessions' pending changes preserved.
+
+## 2026-09-30 03:56 — session Codex visual diagnosis — T127
+
+Did: repaired packed polygon-font inputs using native int2/uint4 followed by the numeric conversion performed by D3D9. Pristine UI declarations/storage establish the contract. GPU capture before repair proves NaN positions and zero alpha; after repair both hardware and WARP return all expected values. Found in / Belongs to Blur1PCDX11. No lower source changes or push.
+
+Verified: standard Release errsum0 (`visual_packed_font_build.txt`), full hardware/WARP probes pass. Queued minimized DebugRb race exits zero with clean debug/missing-shader logs. Inspected `race_packed_font_final.png` confirms the large white position numeral is restored. Standard exe/PDB delivered, hashes match Release outputs: exe `7FF617DA6DF045A2D100B5E5DFB52C6166B8CF7B53EC8FFF1D9D9150C66A8580`, PDB `6BC17EC01B8E482280D6EF8145F43FB9862F389BF9954922CAFBC6BFE7682F7D`.
+
+Blocked: none for this repair. Broader lighting parity, remaining packed UI paths, intermittent damage-volume crash and uncaptured variants remain open.
+
+Next: inspect packed stroke/trail declarations and shaders for the same conversion fault; compare actual native/D3D9 road and vehicle lighting draws from retained race traces. Task active.
+
+Files touched: UI vsPolygonFont.vsh, dx11_probe main.cpp/new polygon_font_checks.h, phase analysis/ledger; ignored build/probe/runtime capture files.

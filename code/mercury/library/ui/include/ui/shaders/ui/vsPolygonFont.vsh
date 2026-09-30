@@ -36,8 +36,24 @@ struct VS_OUTPUT
 	float4 Position				: POSITION;
 };
 
-VS_OUTPUT main( VS_INPUT IN )
+#if defined(BLUR_DX11)
+// [Blur2PC][Blur1PCDX11] The PC declaration is SHORT2/UBYTE4. D3D9
+// converts these to float; native integer fetch requires a numeric cast.
+struct VS_PACKED_INPUT
 {
+	int2 Position : POSITION;
+	uint4 Vector : COLOR0;
+};
+VS_OUTPUT main( VS_PACKED_INPUT packed )
+#else
+VS_OUTPUT main( VS_INPUT IN )
+#endif
+{
+#if defined(BLUR_DX11)
+	VS_INPUT IN;
+	IN.Position = float2(packed.Position);
+	IN.Vector = float4(packed.Vector);
+#endif
 	VS_OUTPUT OUT = (VS_OUTPUT)0;
 
 	IN.Position = IN.Position * float2(1.0f / 32767.0f, 1.0f / 32767.0f);	
