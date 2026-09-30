@@ -330,7 +330,8 @@ bool C_ParticleManager::CreateShaders()
 {
 	RESOURCE_MEMORY_ID("DynamicEffect");
 
-#if (defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM))
+// [Blur2PC] Run the existing PC shader initialization on the native DX11 backend.
+#if (defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM))
 
 	// no point lights
 	{

@@ -43,7 +43,8 @@ bool C_OcclusionQueryRender::OnCreate()
 {
 	RESOURCE_MEMORY_ID("OcclusionQuery");
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+// [Blur2PC] The native DX11 backend also creates these PC built-in shaders.
+#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
 	if (!CreateVertexShaderFromFunc("Shaders/vsOcclusion", 0, &m_VertexShader, REF_SHADER(vsOcclusion)))
 		return false;
 	if (!CreatePixelShaderFromFunc("Shaders/psOcclusion", 0, &m_PixelShader, REF_SHADER(psOcclusion)))

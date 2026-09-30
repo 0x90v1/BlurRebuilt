@@ -205,3 +205,15 @@ Verified: all98 recovered volume-using effects pass alias/reflection checks; thr
 Blocked: none. Restored binding/default does not resolve or establish full vehicle paint parity.
 
 Next: commit the volume binding/default repair, then compare environment cube-map mip levels and actual material outputs. Keep broader T127 active.
+
+## 2026-09-30 08:27 — session Codex visual diagnosis — T127
+
+Did: committed the verified native occlusion/particle initialization repair: enable the existing pristine PC setup for DEVICE_PCD3D11 and extend shader linkage checks to the affected stages. Found in / Belongs to Blur1PCDX11.
+
+Verified: hardware and WARP pass all 147 built-in shader interface pairs. Standard Release visual_colour_matrix_build exit0/errsum0, delivered executable/PDB/effects. Queued minimized race colour_matrix_trace exits0 without missing vertex shaders or rejected draws. The colour matrix reflects register2/count4 and current CPU/GPU values agree; the earlier identity result remains unexplained.
+
+Blocked: none; intermittent volume-lock crash and stable paint brightness parity remain open.
+
+Next: consume the latest ordinary baseline, compare the current frame with the PC reference, and recover the first stable differing mechanism. T127 remains active.
+
+Files touched: OcclusionQuery.cpp, particle Manager.cpp, dx11_probe/main.cpp selected linkage additions, phase analysis/board/ledger.

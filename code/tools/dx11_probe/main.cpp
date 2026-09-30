@@ -33,6 +33,22 @@ static bool CheckBuiltinShaderLinks()
     for (const wchar_t* prefix : {L"deferred/psDynamicLightsPrepass", L"deferred/psDynamicLightsPrepass2xMSAA"})
         for (unsigned count = 1; count <= 8; ++count)
             pairs.emplace_back(L"deferred/vsDynamicLightsPrepass", std::wstring(prefix) + std::to_wstring(count));
+    // [Blur1PCDX11] These shaders must link once the PC initialization also runs on DX11.
+    pairs.emplace_back(L"display/vsOcclusion", L"display/psOcclusion");
+    const std::pair<const wchar_t*, const wchar_t*> particlePairs[] = {
+        {L"vsParticle", L"psParticle"}, {L"vsParticle", L"psParticleA8"},
+        {L"vsParticle2D", L"psParticle"}, {L"vsParticle2D", L"psParticleA8"},
+        {L"vsParticleUVW", L"psParticle"}, {L"vsParticleUVW", L"psParticleA8"},
+        {L"vsParticleNdotL", L"psParticle"}, {L"vsParticleNdotL", L"psParticleA8"},
+        {L"vsParticleNormalMap", L"psParticleNormalMap"},
+        {L"vsParticleSoft", L"psParticleSoft"}, {L"vsParticleSoft", L"psParticleSoftA8"},
+        {L"vsParticleDecal", L"psParticleDecal"}, {L"vsParticlePointSprite", L"psParticlePointSprite"}
+    };
+    for (const auto& pair : particlePairs)
+        for (const wchar_t* lights : {L"", L"PointLights"})
+            for (const wchar_t* fog : {L"", L"HeightFog", L"HDR", L"HDRU32"})
+                pairs.emplace_back(std::wstring(L"dynamic/") + pair.first + lights,
+                    std::wstring(L"dynamic/") + pair.second + fog);
     for (const auto& pair : pairs)
     {
         Microsoft::WRL::ComPtr<ID3DBlob> vb, pb;
