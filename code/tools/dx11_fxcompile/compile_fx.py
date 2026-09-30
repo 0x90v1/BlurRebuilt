@@ -38,7 +38,7 @@ def main() -> int:
         if not re.fullmatch(r"[A-Za-z_]\w*", definition):
             parser.error(f"invalid effect define: {definition}")
         command.append(f"/D{definition}=1")
-    command.extend(("/DPLATFORM_PC=1", "/DBUILD_CONFIG_SPEED=1",
+    command.extend(("/DPLATFORM_PC=1", "/DBLUR_DX11=1", "/DBUILD_CONFIG_SPEED=1",
                     "/Dvs_3_0=vs_5_0", "/Dps_3_0=ps_5_0",
                     str(args.source.resolve())))
     if subprocess.run(command).returncode != 0:

@@ -177,6 +177,11 @@ struct C_VertexOutput
 struct C_VertexPrepassOutput
 {
 	float4	m_vPosition		: POSITION;
+#if defined(BLUR_DX11) && defined(NO_WORLDNORMAL) && defined(ENABLE_PREPASS_DEPTHTEXTURE)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] The PC road prepass carries
+	// clip z/w separately from the normal (D3D9 race trace draw 7047254).
+	float4 m_vDepth : TEXCOORD3;
+#endif
 #if !defined(NO_WORLDNORMAL)
 	float4	m_vTexCoord		: TEXCOORD0;
 #else
@@ -217,7 +222,7 @@ C_VertexOutput RoadSurfaceVS(in C_VertexInput input)
 	vtxData	= EvaluateWorldPosition(vtxData, input);
 
 	C_VertexOutput output = (C_VertexOutput) 0;
-	output.m_vPosition		= mul(vtxData.m_vPosition, g_mViewProj); 
+	output.m_vPosition		= mul(vtxData.m_vPosition, g_mViewProj);
 #if defined(ENABLE_NORMAL)
 	output.m_vNormal.xyz	= vtxData.m_vNormal.xyz;
 #endif
@@ -261,7 +266,10 @@ C_VertexPrepassOutput RoadSurfacePrepassVS(in C_VertexInput input)
 	vtxData	= EvaluateWorldPosition(vtxData, input);
 
 	C_VertexPrepassOutput output = (C_VertexPrepassOutput) 0;
-	output.m_vPosition		= mul(vtxData.m_vPosition, g_mViewProj); 
+	output.m_vPosition		= mul(vtxData.m_vPosition, g_mViewProj);
+#if defined(BLUR_DX11) && defined(NO_WORLDNORMAL) && defined(ENABLE_PREPASS_DEPTHTEXTURE)
+	output.m_vDepth = float4(0.0f, 0.0f, output.m_vPosition.zw);
+#endif
 #if defined(NO_WORLDNORMAL)
 	output.m_vNormal.xyz	= vtxData.m_vNormal.xyz;
 #if defined(ENABLE_PREPASS_VIEWDEPTH)

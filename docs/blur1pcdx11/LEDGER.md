@@ -154,3 +154,13 @@ Blocked: none for this repair. Broader lighting parity, remaining packed UI path
 Next: inspect packed stroke/trail declarations and shaders for the same conversion fault; compare actual native/D3D9 road and vehicle lighting draws from retained race traces. Task active.
 
 Files touched: UI vsPolygonFont.vsh, dx11_probe main.cpp/new polygon_font_checks.h, phase analysis/ledger; ignored build/probe/runtime capture files.
+
+## 2026-09-30 04:42 — session Codex visual diagnosis — T127
+
+Did: recovered the retail road prepass depth interpolant from actual D3D9 draw 7047254 and repaired the native NO_WORLDNORMAL path. Added 128 GPU depth checks across 64 road permutations. Found in / Belongs to Blur1PCDX11; no lower-phase source changed.
+
+Verified: standard Release and probe builds have zero errors; full hardware/WARP probes pass. Standard exe/PDB and regenerated effects delivered to _work/run with matching hashes. Minimized queued race exits zero, no severe D3D11 diagnostics. Per-draw depth and inspected headlight/final race captures confirm removal of the corrupt road wedge and restoration of headlight wash. Logs/captures: _work/build/road_depth_final and road_depth_{hardware,warp}.log.
+
+Blocked: none. T127 remains in progress; remaining NaN depth pixels, packed UI and broader parity are unverified.
+
+Next: commit this verified repair, isolate the first writer of a remaining NaN depth pixel, then verify packed stroke/trail inputs against the PC source.

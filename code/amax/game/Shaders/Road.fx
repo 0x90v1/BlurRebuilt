@@ -187,6 +187,10 @@ C_PixelOutput RoadSurfacePrepassPS(in C_VertexPrepassOutput vtxData)
 #if defined(ENABLE_PREPASS_DEPTHTEXTURE)
     	#if !defined(NO_WORLDNORMAL)
 			output.m_fDepth = mul( vtxData.m_vTexCoord.z,  1 / vtxData.m_vTexCoord.w );
+		#elif defined(BLUR_DX11)
+			// [Blur2PC][Blur1PCDX11][retail-recovered] The retail shader
+			// divides the separate clip-depth interpolant, not normal.z.
+			output.m_fDepth = vtxData.m_vDepth.z / vtxData.m_vDepth.w;
 		#else
 			normalize(vtxData.m_vNormal.xyz);
 			output.m_fDepth = vtxData.m_vNormal.z;
