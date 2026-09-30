@@ -156,3 +156,19 @@ Standard Release `visual_shadow_matrix_build.txt` exits0/errsum0; regenerated ou
 Delivered hashes:
 Amax.exe: `f90059f5cf2b8d545f654975f3e5ae3ebf525e022aa72ded486be6e539e83a97`
 Amax.pdb: `8844da053dcdcc0e66a62b740c7e5cbf7a148d42253be43b990a7bfbf3c23774`
+
+
+### T127 — vehicle paint input comparison, 2026-09-30
+
+Reflected pixel-span repair committed as `1df3e064`. The race paint draw uses recovered `veh_Paint_a_b_c_LN / MaterialAlphaLuminance`; PC reference draw7057314 binds the same shipped shader. Evidence lives in `_work/build/paint_lighting_trace` (raw inputs preserved under `inputs/`) and `dx9_race_trace/paint_state.json`.
+
+All five LightingInfo rows match PC, as do the packed VehicleVtxParams layout and local SH lighting coefficients apart from small simulation-time differences. Paint lookup texels match exactly. The six light-environment cube faces differ by at most one byte/channel; vehicle environment cube, dent and scratch textures likewise differ by at most one byte/channel (BC1 decode rounding). Actual IA type8 is D3DDECLTYPE_UBYTE4N and type16 is FLOAT16_4: these normals/colours are normalized float inputs, not UINT inputs. No packed-normal repair is justified.
+
+Found in / Belongs to **Blur1PCDX11**. The native damage-volume resource was null while PC binds a volume at vertex sampler0 (D3D9 stage257; stage256 is the displacement-map sampler). The shipped FX resource name is `g_sVehicleDamageVolumeTexture3d`, whereas recovered HLSL metadata uses the authored `g_sVehicleDamageVolumeTexture`. Native reflection rejected the shared parameter before binding; native metadata also rejected this exact alias. `D3D11EffectNames.h` now supplies one exact canonical mapping to both reflection and metadata lookup, without changing any shader formula or texture values.
+
+After that mapping alone, the bound resource was the 1x1 2D default (BGRA, all zero). Actual PC trace call1216 creates its vertex default as a 1x1x1 A32B32G32R32F volume. `FxContext.cpp` calls the existing `GetDefaultVertexTextureFor` helper for vertex sampler bindings; native FX had bypassed that step. Native vehicle-volume binding now uses the same helper, preserving the PC's initialized zero volume. The delivered GPU binding is format2 / dimension8 (R32G32B32A32_FLOAT / Texture3D), replacing the incorrect format87 / dimension4 (BGRA / Texture2D). Evidence includes `before_default_volume.log`, `pc_texture_creates.txt` and `vehicle_volume_final/native.log`.
+
+Standard Release `visual_vehicle_volume_default_build.txt` exits0/errsum0. Probe builds pass; all98 recovered effects using the volume pass the exact alias/reflection checks, and the actual paint VS correctly outputs twice the sampled alpha for three synthetic volume values on hardware and WARP. Queued minimized race exits0 with clean severe/missing-VS diagnostics. Standard executable, PDB and effects are delivered; Release hashes match. Actual paint brightness still differs from PC; this repair restores the missing binding/default mechanism and does not establish complete paint parity. Next compare environment-map mip levels and actual material outputs.
+
+Delivered Amax.exe: `202f1bbd71e826fb1353df4034c618bbea3723a506c389477b3590f8b2514510`
+Delivered Amax.pdb: `e2239cb5c90201406f2832773554acfc0c8cd8d3e945524143f8ae1dca03c5f9`

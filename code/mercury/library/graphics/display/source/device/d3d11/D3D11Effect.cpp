@@ -1,4 +1,5 @@
 #include "Display/Device/D3D11/D3D11Effect.h"
+#include "Display/Device/D3D11/D3D11EffectNames.h"
 
 #include <cstdio>
 #include <algorithm>
@@ -32,14 +33,14 @@ HRESULT C_D3D11Effect::LoadFile(ID3D11Device* device, const wchar_t* path)
 bool C_D3D11Effect::HasParameter(const char* name) const
 {
     if (!m_Effect || !name) return false;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(name);
+    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
     return variable && variable->IsValid();
 }
 
 HRESULT C_D3D11Effect::SetRawParameter(const char* name, const void* data, UINT bytes)
 {
     if (!m_Effect || !name || !data || !bytes) return E_INVALIDARG;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(name);
+    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     D3DX11_EFFECT_TYPE_DESC type = {};
     if (FAILED(variable->GetType()->GetDesc(&type))) return E_FAIL;
@@ -49,7 +50,7 @@ HRESULT C_D3D11Effect::SetRawParameter(const char* name, const void* data, UINT 
 HRESULT C_D3D11Effect::SetTexture(const char* name, ID3D11ShaderResourceView* view)
 {
     if (!m_Effect || !name) return E_INVALIDARG;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(name);
+    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     ID3DX11EffectShaderResourceVariable* resource = variable->AsShaderResource();
     if (!resource || !resource->IsValid()) return E_INVALIDARG;
@@ -59,7 +60,7 @@ HRESULT C_D3D11Effect::SetTexture(const char* name, ID3D11ShaderResourceView* vi
 HRESULT C_D3D11Effect::SetSampler(const char* name, ID3D11SamplerState* sampler)
 {
     if (!m_Effect || !name) return E_INVALIDARG;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(name);
+    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     ID3DX11EffectSamplerVariable* state = variable->AsSampler();
     if (!state || !state->IsValid()) return E_INVALIDARG;

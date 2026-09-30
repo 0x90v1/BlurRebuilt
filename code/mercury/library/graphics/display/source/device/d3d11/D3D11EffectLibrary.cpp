@@ -1,4 +1,5 @@
 #include "Display/Device/D3D11/D3D11EffectLibrary.h"
+#include "Display/Device/D3D11/D3D11EffectNames.h"
 
 #include <algorithm>
 #include <cctype>
@@ -11,7 +12,7 @@ namespace {
 std::string EffectKey(const char* name)
 {
     if (!name) return {};
-    std::string key(name);
+    std::string key(NativeEffectParameterName(name));
     const size_t slash = key.find_last_of("/\\");
     if (slash != std::string::npos) key.erase(0, slash + 1);
     const size_t dot = key.find_last_of('.');

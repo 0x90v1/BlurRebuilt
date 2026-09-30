@@ -194,3 +194,14 @@ Verified: before/after actual GPU matrix binding, matching shadow/stencil textur
 Blocked: none. Full vehicle/reflection and rendering parity remains T127.
 
 Next: commit the reflected-span repair, then compare the corrected race against PC for the next reproducible visual discrepancy. Keep diagnostic captures separate from delivered output.
+
+
+## 2026-09-30 06:20 — session Codex visual diagnosis — T127
+
+Did: committed reflected pixel-span repair1df3e064. Compared race paint constants, packed inputs and texture contents against actual PC draw7057314. Repaired the retail damage-volume name alias in native reflection/metadata and restored PC's existing vertex-default volume substitution. Found in / Belongs to Blur1PCDX11.
+
+Verified: all98 recovered volume-using effects pass alias/reflection checks; three actual paint VS volume-alpha samples pass hardware/WARP. Standard Release exits0/errsum0; probe builds/full runs pass. Standard exe/PDB/effects delivered, hashes match; minimized queued race exits0 with clean severe/missing-VS diagnostics and actual GPU volume binding now R32G32B32A32_FLOAT / Texture3D. Evidence: paint_lighting_trace and vehicle_volume_final. Paint texture exact; cube/dent/scratch mip0 comparisons within one byte/channel; lighting constants match closely.
+
+Blocked: none. Restored binding/default does not resolve or establish full vehicle paint parity.
+
+Next: commit the volume binding/default repair, then compare environment cube-map mip levels and actual material outputs. Keep broader T127 active.

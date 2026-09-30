@@ -11,6 +11,8 @@
 
 namespace FX {
 
+const void* GetDefaultVertexTextureFor(const void* texture); // System.cpp, PC FX mechanism
+
 static char g_fx11LastError[256] = {};
 static char g_fx11CurrentPass[256] = {};
 
@@ -58,6 +60,11 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
     // [Blur1PCDX11] FX sampler values are GPUTexture pointers (Display2: ID3D11Resource), as D3D9's were IDirect3DBaseTexture9.
     const char* name = g_effects.TextureForSampler(effect->Name.Chars(), sampler);
     if (!name) return;
+    // [Blur1PCDX11] Every recovered vehicle damage-volume sampler is a
+    // vertex sampler. Match FxContext's PC default substitution: its 2D
+    // default becomes the initialized zero float volume, preserving type.
+    if (strcmp(name, "g_sVehicleDamageVolumeTexture") == 0)
+        texture = reinterpret_cast<ID3D11Resource*>(const_cast<void*>(GetDefaultVertexTextureFor(texture)));
     ID3D11ShaderResourceView* view = nullptr;
     if (texture)
         Display::Device()->GetD3DDevice()->CreateShaderResourceView(texture, nullptr, &view);

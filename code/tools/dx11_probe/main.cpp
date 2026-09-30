@@ -14,6 +14,7 @@
 #include "road_prepass_checks.h"
 #include "billboard_prepass_checks.h"
 #include "polygon_packed_checks.h"
+#include "vehicle_volume_checks.h"
 
 // [Blur1PCDX11] D3D11 stage linkage requires register/component agreement,
 // even when the original D3D9 stages shared matching semantic names.
@@ -192,6 +193,7 @@ int main()
     if (FAILED(result) || effectLibrary.EffectCount() != 1254) return 9;
     if (!CheckRoadPrepass(device, effectLibrary)) return 13;
     if (!CheckBillboardPrepass(device, effectLibrary)) return 14;
+    if (!CheckVehicleVolumeBinding(device, effectLibrary)) return 15;
     std::string failedEffect;
     result = effectLibrary.PreloadAll(device.Device(), &failedEffect);
     if (FAILED(result))
