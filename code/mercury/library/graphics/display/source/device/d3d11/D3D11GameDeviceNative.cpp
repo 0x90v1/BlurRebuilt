@@ -34,6 +34,8 @@ struct NativeState
     float pixelData[256 * 4] = {};
     bool vertexDirty = true, pixelDirty = true;
     bool nativeFXActive = false;
+    // [Blur1PCDX11] depth.FrontFace/BackFace retain the PC CW/CCW banks.
+    bool stencilTwoSided = false, stencilTriangles = true;
     UINT stencilRef = 0xff;
     const C_Surface* colourSurfaces[4] = {};
     const C_Surface* depthSurface = nullptr;
@@ -227,9 +229,22 @@ void ApplyBlend(C_D3D11GameDevice* device)
 void ApplyDepth(C_D3D11GameDevice* device)
 {
     auto context = Context(device->GetD3DDevice()); if (!context) return;
+    const NativeState& cached = State(device);
+    D3D11_DEPTH_STENCIL_DESC desc = cached.depth;
+    ResolveStencilFaces(desc, cached.stencilTwoSided,
+                        cached.raster.FrontCounterClockwise != FALSE, cached.stencilTriangles);
     ComPtr<ID3D11DepthStencilState> state;
-    if (SUCCEEDED(device->GetD3DDevice()->CreateDepthStencilState(&State(device).depth, &state)))
+    if (SUCCEEDED(device->GetD3DDevice()->CreateDepthStencilState(&desc, &state)))
         context->OMSetDepthStencilState(state.Get(), State(device).stencilRef);
+}
+void SetStencilTopology(C_D3D11GameDevice* device, D3D11_PRIMITIVE_TOPOLOGY topology)
+{
+    NativeState& state = State(device);
+    const bool triangles = topology == D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST ||
+                           topology == D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+    if (state.stencilTriangles == triangles) return;
+    state.stencilTriangles = triangles;
+    if (state.stencilTwoSided) ApplyDepth(device);
 }
 void ApplyRaster(C_D3D11GameDevice* device)
 {
@@ -237,6 +252,7 @@ void ApplyRaster(C_D3D11GameDevice* device)
     ComPtr<ID3D11RasterizerState> state;
     if (SUCCEEDED(device->GetD3DDevice()->CreateRasterizerState(&State(device).raster, &state)))
         context->RSSetState(state.Get());
+    if (State(device).stencilTwoSided) ApplyDepth(device);
 }
 void ApplySampler(C_D3D11GameDevice* device, U32 slot, bool vertex)
 {
@@ -712,6 +728,7 @@ void C_D3D11GameDevice::SetPixelShaderParameters(const C_PixelShader* shader)
 { BindConstants(this, false); }
 void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count)
 { auto context = Context(m_pd3dDevice); if (!context) return; context->IASetPrimitiveTopology(Topology(type));
+  SetStencilTopology(this, Topology(type));
   ComPtr<ID3D11VertexShader> bound; context->VSGetShader(&bound, nullptr, nullptr);
   if (!bound) { static unsigned missing = 0; if (missing++ < 64)
       Blur2PCAutomation::LogF("DX11 draw without VS caller=%p lastFX=%s", _ReturnAddress(), FX::NativeFX11LastError()); return; }
@@ -744,6 +761,7 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
   TraceDraw(m_pd3dDevice, context.Get(), State(this), count, false); }
 void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32 start, U32 count)
 { auto context = Context(m_pd3dDevice); if (!context) return; context->IASetPrimitiveTopology(Topology(type));
+  SetStencilTopology(this, Topology(type));
   ComPtr<ID3D11VertexShader> bound; context->VSGetShader(&bound, nullptr, nullptr);
   if (!bound) { static unsigned missing = 0; if (missing++ < 64)
       Blur2PCAutomation::LogF("DX11 indexed draw without VS caller=%p lastFX=%s", _ReturnAddress(), FX::NativeFX11LastError()); return; }
@@ -1153,7 +1171,7 @@ void C_D3D11GameDevice::SetStencilMask(U32 value)
 void C_D3D11GameDevice::SetStencilWriteMask(U32 value)
 { State(this).depth.StencilWriteMask = value; ApplyDepth(this); }
 void C_D3D11GameDevice::SetStencilCcwEnable(E_Bool value)
-{ State(this).depth.BackFace = State(this).depth.FrontFace; ApplyDepth(this); }
+{ State(this).stencilTwoSided = value == E_Bool_True; ApplyDepth(this); }
 void C_D3D11GameDevice::SetStencilCcwFail(E_StencilOp value)
 { State(this).depth.BackFace.StencilFailOp = StencilOp(value); ApplyDepth(this); }
 void C_D3D11GameDevice::SetStencilCcwDepthFail(E_StencilOp value)
@@ -1162,9 +1180,11 @@ void C_D3D11GameDevice::SetStencilCcwPass(E_StencilOp value)
 { State(this).depth.BackFace.StencilPassOp = StencilOp(value); ApplyDepth(this); }
 void C_D3D11GameDevice::SetStencilCcwFunc(E_CmpFunc value)
 { State(this).depth.BackFace.StencilFunc = Compare(value); ApplyDepth(this); }
-void C_D3D11GameDevice::SetStencilCcwRef(S32 value) { SetStencilRef(value); }
-void C_D3D11GameDevice::SetStencilCcwMask(U32 value) { SetStencilMask(value); }
-void C_D3D11GameDevice::SetStencilCcwWriteMask(U32 value) { SetStencilWriteMask(value); }
+// [Blur1PCDX11] PC has one reference/read-mask/write-mask shared by both banks.
+// The pristine PC CCW setters are no-ops, not writes to that shared state.
+void C_D3D11GameDevice::SetStencilCcwRef(S32) {}
+void C_D3D11GameDevice::SetStencilCcwMask(U32) {}
+void C_D3D11GameDevice::SetStencilCcwWriteMask(U32) {}
 void C_D3D11GameDevice::SetPresentInterval(E_PresentInterval value) { m_PresentInterval = value; }
 void C_D3D11GameDevice::SetTextureAddressU(U32 slot, E_TextureAddress value)
 { if (slot >= E_Sampler_Count) return; m_Sampler[slot].m_AddressU = value;

@@ -125,6 +125,20 @@ bool MakeBlendDesc(D3DBLEND source, D3DBLEND destination, D3DBLENDOP operation,
     return true;
 }
 
+void ResolveStencilFaces(D3D11_DEPTH_STENCIL_DESC& desc, bool twoSided,
+                         bool frontCounterClockwise, bool triangles)
+{
+    // [Blur1PCDX11] D3D9 ignores the CCW bank for one-sided stencil, lines
+    // and points. Keep the stored banks intact when producing a GPU state.
+    if (!twoSided || !triangles) desc.BackFace = desc.FrontFace;
+    else if (frontCounterClockwise)
+    {
+        const D3D11_DEPTH_STENCILOP_DESC clockwise = desc.FrontFace;
+        desc.FrontFace = desc.BackFace;
+        desc.BackFace = clockwise;
+    }
+}
+
 bool MakeDepthStencilDesc(bool depthEnabled, bool depthWrite, D3DCMPFUNC depthFunction,
                           bool stencilEnabled, D3DCMPFUNC stencilFunction,
                           D3DSTENCILOP stencilFail, D3DSTENCILOP depthFail,

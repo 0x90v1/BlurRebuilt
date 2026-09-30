@@ -217,3 +217,15 @@ Blocked: none; intermittent volume-lock crash and stable paint brightness parity
 Next: consume the latest ordinary baseline, compare the current frame with the PC reference, and recover the first stable differing mechanism. T127 remains active.
 
 Files touched: OcclusionQuery.cpp, particle Manager.cpp, dx11_probe/main.cpp selected linkage additions, phase analysis/board/ledger.
+
+## 2026-09-30 08:38 — session Codex visual diagnosis — T127
+
+Did: committed the verified PC stencil contract: retain CW/CCW banks and the two-sided enable flag, map bank orientation using the rasterizer, apply one-sided state to both faces and retain PC CCW reference/mask no-ops. Found in / Belongs to Blur1PCDX11.
+
+Verified: pristine D3D9Device.inl comparison; hardware/WARP stencil_probe logs each pass 24 GPU stencil-byte cases. Standard Release visual_lut_capture_build exit0/errsum0 and delivered. Queued colour_lut_trace exits0. Current GPU LUT matches the PC's entire 131072-byte upload; current CPU/GPU colour matrix is identity again, so its variability precedes GPU upload and remains unresolved.
+
+Blocked: none; colour/paint stability and intermittent volume-lock crash remain open.
+
+Next: inspect live colour-correction setting in the queued native capture; recover the settings mechanism before proposing a colour fix. T127 remains active.
+
+Files touched: native D3D11States helper and selected game-device stencil paths, dx11_probe selected GPU stencil check, phase analysis/board/ledger.

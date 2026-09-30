@@ -156,6 +156,105 @@ static bool CheckAlphaBlendFactors(Display::D3D11::C_D3D11Device& device)
     return true;
 }
 
+// [Blur1PCDX11] Read actual stencil bytes for CW/CCW geometry while switching
+// one/two-sided state and rasterizer orientation, including failed tests.
+static bool CheckStencilFaces(Display::D3D11::C_D3D11Device& device)
+{
+    using Microsoft::WRL::ComPtr;
+    auto* gpu = device.Device(); auto* context = device.Context();
+    const char source[] =
+        "float4 VS(uint i:SV_VertexID):SV_Position {"
+        "float2 p[6]={float2(-.9,-.9),float2(-.9,.9),float2(-.1,-.9),"
+        "float2(.1,-.9),float2(.9,-.9),float2(.1,.9)}; return float4(p[i],.5,1); }"
+        "float4 PS():SV_Target { return 1; }";
+    ComPtr<ID3DBlob> vsCode, psCode;
+    if (FAILED(D3DCompile(source,sizeof(source)-1,nullptr,nullptr,nullptr,"VS","vs_5_0",0,0,&vsCode,nullptr)) ||
+        FAILED(D3DCompile(source,sizeof(source)-1,nullptr,nullptr,nullptr,"PS","ps_5_0",0,0,&psCode,nullptr))) return false;
+    ComPtr<ID3D11VertexShader> vs; ComPtr<ID3D11PixelShader> ps;
+    if (FAILED(gpu->CreateVertexShader(vsCode->GetBufferPointer(),vsCode->GetBufferSize(),nullptr,&vs)) ||
+        FAILED(gpu->CreatePixelShader(psCode->GetBufferPointer(),psCode->GetBufferSize(),nullptr,&ps))) return false;
+    D3D11_TEXTURE2D_DESC td = {};
+    td.Width=16; td.Height=8; td.MipLevels=td.ArraySize=td.SampleDesc.Count=1;
+    td.Format=DXGI_FORMAT_R24G8_TYPELESS; td.BindFlags=D3D11_BIND_DEPTH_STENCIL;
+    ComPtr<ID3D11Texture2D> depth, staging, colour;
+    if (FAILED(gpu->CreateTexture2D(&td,nullptr,&depth))) return false;
+    td.Usage=D3D11_USAGE_STAGING; td.BindFlags=0; td.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+    if (FAILED(gpu->CreateTexture2D(&td,nullptr,&staging))) return false;
+    td.Format=DXGI_FORMAT_R8G8B8A8_UNORM; td.Usage=D3D11_USAGE_DEFAULT;
+    td.BindFlags=D3D11_BIND_RENDER_TARGET; td.CPUAccessFlags=0;
+    if (FAILED(gpu->CreateTexture2D(&td,nullptr,&colour))) return false;
+    ComPtr<ID3D11RenderTargetView> rtv;
+    ComPtr<ID3D11DepthStencilView> dsv;
+    D3D11_DEPTH_STENCIL_VIEW_DESC vd = {};
+    vd.Format=DXGI_FORMAT_D24_UNORM_S8_UINT; vd.ViewDimension=D3D11_DSV_DIMENSION_TEXTURE2D;
+    if (FAILED(gpu->CreateDepthStencilView(depth.Get(),&vd,&dsv)) ||
+        FAILED(gpu->CreateRenderTargetView(colour.Get(),nullptr,&rtv))) return false;
+    ComPtr<ID3D11RenderTargetView> oldRT;
+    ComPtr<ID3D11DepthStencilView> oldDS;
+    ComPtr<ID3D11DepthStencilState> oldDepth;
+    ComPtr<ID3D11RasterizerState> oldRaster;
+    ComPtr<ID3D11VertexShader> oldVS; ComPtr<ID3D11PixelShader> oldPS;
+    ComPtr<ID3D11InputLayout> oldLayout;
+    UINT oldRef=0, viewportCount=1; D3D11_VIEWPORT oldViewport = {};
+    D3D11_PRIMITIVE_TOPOLOGY oldTopology;
+    context->OMGetRenderTargets(1,&oldRT,&oldDS); context->OMGetDepthStencilState(&oldDepth,&oldRef);
+    context->RSGetState(&oldRaster); context->RSGetViewports(&viewportCount,&oldViewport);
+    context->VSGetShader(&oldVS,nullptr,nullptr); context->PSGetShader(&oldPS,nullptr,nullptr);
+    context->IAGetInputLayout(&oldLayout); context->IAGetPrimitiveTopology(&oldTopology);
+    ID3D11RenderTargetView* target=rtv.Get(); context->OMSetRenderTargets(1,&target,dsv.Get());
+    const D3D11_VIEWPORT viewport = {0,0,16,8,0,1}; context->RSSetViewports(1,&viewport);
+    context->VSSetShader(vs.Get(),nullptr,0); context->PSSetShader(ps.Get(),nullptr,0);
+    context->IASetInputLayout(nullptr); context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    const unsigned expected[6][2] = {{3,3},{3,8},{0,0},{6,8},{248,6},{7,7}};
+    unsigned checks=0;
+    for (unsigned orientation=0; orientation<2; ++orientation)
+    {
+        D3D11_RASTERIZER_DESC raster = {};
+        raster.FillMode=D3D11_FILL_SOLID; raster.CullMode=D3D11_CULL_NONE;
+        raster.DepthClipEnable=TRUE; raster.FrontCounterClockwise=orientation;
+        ComPtr<ID3D11RasterizerState> rs;
+        if (FAILED(gpu->CreateRasterizerState(&raster,&rs))) return false;
+        context->RSSetState(rs.Get());
+        for (unsigned test=0; test<6; ++test)
+        {
+            D3D11_DEPTH_STENCIL_DESC desc = {};
+            desc.DepthEnable=test==4; desc.DepthFunc=D3D11_COMPARISON_NEVER;
+            desc.StencilEnable=test!=5; desc.StencilReadMask=desc.StencilWriteMask=255;
+            desc.FrontFace={D3D11_STENCIL_OP_DECR_SAT,D3D11_STENCIL_OP_INVERT,
+                test==2 ? D3D11_STENCIL_OP_ZERO : D3D11_STENCIL_OP_REPLACE,
+                test==3 ? D3D11_COMPARISON_NEVER : D3D11_COMPARISON_ALWAYS};
+            desc.BackFace={D3D11_STENCIL_OP_KEEP,D3D11_STENCIL_OP_DECR_SAT,
+                D3D11_STENCIL_OP_INCR_SAT,D3D11_COMPARISON_ALWAYS};
+            Display::D3D11::ResolveStencilFaces(desc,test!=0 && test!=2,orientation!=0);
+            ComPtr<ID3D11DepthStencilState> state;
+            if (FAILED(gpu->CreateDepthStencilState(&desc,&state))) return false;
+            context->OMSetDepthStencilState(state.Get(),3);
+            context->ClearDepthStencilView(dsv.Get(),D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL,.5f,7);
+            context->Draw(6,0);
+            context->CopyResource(staging.Get(),depth.Get());
+            D3D11_MAPPED_SUBRESOURCE mapped = {};
+            if (FAILED(context->Map(staging.Get(),0,D3D11_MAP_READ,0,&mapped))) return false;
+            const auto* row=reinterpret_cast<const UINT*>(static_cast<const unsigned char*>(mapped.pData)+5*mapped.RowPitch);
+            const unsigned actual[] = {row[2]>>24,row[10]>>24};
+            context->Unmap(staging.Get(),0);
+            for (unsigned face=0; face<2; ++face,++checks)
+                if (actual[face]!=expected[test][face])
+                {
+                    std::fprintf(stderr,"Stencil orientation=%u test=%u face=%u: %u expected %u\n",
+                        orientation,test,face,actual[face],expected[test][face]);
+                    return false;
+                }
+        }
+    }
+    target=oldRT.Get(); context->OMSetRenderTargets(1,&target,oldDS.Get());
+    context->OMSetDepthStencilState(oldDepth.Get(),oldRef); context->RSSetState(oldRaster.Get());
+    context->RSSetViewports(viewportCount,&oldViewport);
+    context->VSSetShader(oldVS.Get(),nullptr,0); context->PSSetShader(oldPS.Get(),nullptr,0);
+    context->IASetInputLayout(oldLayout.Get()); context->IASetPrimitiveTopology(oldTopology);
+    std::printf("PC stencil faces: %u GPU checks passed (one/two-sided, winding, stencil/depth failures)\n",checks);
+    return true;
+}
+
 int main()
 {
     Display::D3D11::C_D3D11Device device;
@@ -410,6 +509,7 @@ int main()
     device.Context()->ClearState();
     std::printf("FX11 alpha test: previously visible material rejected by Never\n");
 
+    if (!CheckStencilFaces(device)) return 12;
     if (!CheckNativeAlphaTest(device) || !CheckBuiltinShaderLinks() || !CheckAlphaBlendFactors(device)) return 12;
 
     if (SUCCEEDED(result)) result = device.DrawProbeTriangle(
