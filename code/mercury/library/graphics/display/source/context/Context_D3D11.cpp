@@ -77,7 +77,7 @@ void C_ContextD3D11::SetVertexTexture(U32 sampler, const void* texture)
     context->Release();
 }
 
-void C_ContextD3D11::SetAlphaTestFunc(E_CmpFunc) {}
+void C_ContextD3D11::SetAlphaTestFunc(E_CmpFunc func) { Device()->SetAlphaTestFunc(func); }
 void C_ContextD3D11::SetBlendHighPrecisionEnable(E_Bool) {}
 void* C_ContextD3D11::BeginVertices(E_PrimitiveType, U32, U32,
                                     const C_VertexDeclaration*) { return nullptr; }

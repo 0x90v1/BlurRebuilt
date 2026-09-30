@@ -6,6 +6,10 @@ sampler2D	g_Texture0			: register(s0);
 struct PS_INPUT
 {
 	float4 Colour				: COLOR0;
+#if defined(BLUR_DX11)
+	// [Blur2PC] Preserve the TEXCOORD register emitted before uv by vsMultiTexture.
+	float4 MyWorldPosition		: TEXCOORD3;
+#endif
 	float2 uv					: TEXCOORD0;
 };
 

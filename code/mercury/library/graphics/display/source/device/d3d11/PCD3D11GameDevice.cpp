@@ -19,8 +19,9 @@ ID3D11Device* g_ExceptionDevice = nullptr;
 LONG CALLBACK LogNativeException(EXCEPTION_POINTERS* info)
 {
     if (!g_ExceptionDevice || !info || !info->ExceptionRecord) return EXCEPTION_CONTINUE_SEARCH;
-    static UINT64 cursor = 0;
-    static unsigned reported = 0;
+    // [Blur1PCDX11] Report distinct failures; one repeating shader pair must
+    // not consume the diagnostic budget before the race starts rendering.
+    static std::vector<std::string> reported;
     ID3D11DeviceContext* context = nullptr;
     g_ExceptionDevice->GetImmediateContext(&context);
     ID3D11VertexShader* vertex = nullptr;
@@ -30,7 +31,7 @@ LONG CALLBACK LogNativeException(EXCEPTION_POINTERS* info)
     if (SUCCEEDED(g_ExceptionDevice->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&queue))) && queue)
     {
         const UINT64 count = queue->GetNumStoredMessages();
-        for (; cursor < count && reported < 40; ++cursor)
+        for (UINT64 cursor = 0; cursor < count && reported.size() < 40; ++cursor)
         {
             SIZE_T size = 0;
             queue->GetMessage(cursor, nullptr, &size);
@@ -38,13 +39,19 @@ LONG CALLBACK LogNativeException(EXCEPTION_POINTERS* info)
             D3D11_MESSAGE* message = reinterpret_cast<D3D11_MESSAGE*>(bytes.data());
             if (SUCCEEDED(queue->GetMessage(cursor, message, &size)))
             {
+                char prefix[80] = {};
+                sprintf_s(prefix, "%p/%p/%u/", vertex, pixel, static_cast<unsigned>(message->ID));
+                const std::string key = std::string(prefix) + message->pDescription;
+                bool duplicate = false;
+                for (const auto& previous : reported) duplicate |= previous == key;
+                if (duplicate) continue;
                 Blur2PCAutomation::LogF("DX11 queued sev=%u id=%d VS=%p PS=%p: %s",
                     static_cast<unsigned>(message->Severity), static_cast<int>(message->ID),
                     vertex, pixel, message->pDescription);
-                ++reported;
+                reported.push_back(key);
             }
         }
-        if (reported < 40) { queue->ClearStoredMessages(); cursor = 0; }
+        queue->ClearStoredMessages();
         queue->Release();
     }
     if (context) { if (vertex) vertex->Release(); if (pixel) pixel->Release(); context->Release(); }

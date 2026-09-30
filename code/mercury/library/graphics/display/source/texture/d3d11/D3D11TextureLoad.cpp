@@ -94,6 +94,9 @@ void LoadTextureData2D(C_Texture2D* texture, Sys::I_BinaryStream* stream, int si
     for (U32 face = 0; face < desc.ArraySize; ++face)
         for (U32 mip = 0; mip < desc.MipLevels; ++mip)
         {
+            // [Blur1PCDX11] Streaming supplies only the newly loaded top mips;
+            // the existing mip tail has already been copied from the old texture.
+            if (consumed == static_cast<U32>(size)) break;
             const U32 width = std::max<U32>(1, desc.Width >> mip);
             const U32 height = std::max<U32>(1, desc.Height >> mip);
             const U32 bytes = MipBytes(width, height, layout);
@@ -144,17 +147,21 @@ void CopyTextureData2D(C_Texture2D* destination, const C_Texture2D* source)
         d.ArraySize == s.ArraySize && d.Format == s.Format)
         context->CopyResource(dst, src);
     else if (d.Format == s.Format)
+    {
+        // [Blur1PCDX11] Match PCCopySurfaces: preserve the common mip tail
+        // when streaming grows or shrinks a texture, rather than cropping mip 0
+        // into mip 0 of a differently sized resource.
+        const U32 sourceFirst = s.MipLevels > d.MipLevels ? s.MipLevels - d.MipLevels : 0;
+        const U32 destinationFirst = d.MipLevels > s.MipLevels ? d.MipLevels - s.MipLevels : 0;
         for (U32 face = 0; face < std::min(d.ArraySize, s.ArraySize); ++face)
             for (U32 mip = 0; mip < std::min(d.MipLevels, s.MipLevels); ++mip)
             {
-                const U32 width = std::min(std::max<U32>(1, d.Width >> mip),
-                                           std::max<U32>(1, s.Width >> mip));
-                const U32 height = std::min(std::max<U32>(1, d.Height >> mip),
-                                            std::max<U32>(1, s.Height >> mip));
-                const D3D11_BOX box = { 0, 0, 0, width, height, 1 };
-                context->CopySubresourceRegion(dst, D3D11CalcSubresource(mip, face, d.MipLevels),
-                    0, 0, 0, src, D3D11CalcSubresource(mip, face, s.MipLevels), &box);
+                context->CopySubresourceRegion(dst,
+                    D3D11CalcSubresource(mip + destinationFirst, face, d.MipLevels),
+                    0, 0, 0, src,
+                    D3D11CalcSubresource(mip + sourceFirst, face, s.MipLevels), nullptr);
             }
+    }
     context->Release();
 }
 

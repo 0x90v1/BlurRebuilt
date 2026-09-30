@@ -21,6 +21,10 @@ sampler3D	g_tVolume		: register(s2);
 
 struct PS_INPUT
 {
+#if defined(BLUR_DX11)
+	// [Blur2PC] Match vsSpotlightPrepass's position before its screen coordinates.
+	float4 m_Position : SV_Position;
+#endif
 	float4	m_Screen	: TEXCOORD0;
 };
 

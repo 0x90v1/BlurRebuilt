@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "Display/Device/D3D11/PCD3D11GameDevice.h"
 #include "Display/Device/D3D11/D3D11InputLayout.h"
+#include "Display/Device/D3D11/D3D11States.h"
 #include <map>
 #include <array>
 #include <wrl/client.h>
@@ -25,6 +26,10 @@ struct NativeState
     D3D11_SAMPLER_DESC vertexSampler[4] = {};
     ComPtr<ID3D11Buffer> vertexConstants;
     ComPtr<ID3D11Buffer> pixelConstants;
+    // [Blur1PCDX11] Fixed-function PC alpha test, consumed by native PS exits.
+    ComPtr<ID3D11Buffer> alphaConstants;
+    struct { UINT enabled = 0, function = 8; float reference = 0; UINT padding = 0; } alpha;
+    bool alphaDirty = true;
     float vertexData[256 * 4] = {};
     float pixelData[256 * 4] = {};
     bool vertexDirty = true, pixelDirty = true;
@@ -260,6 +265,26 @@ void BindConstants(C_D3D11GameDevice* device, bool vertex)
     for (auto& slot : raw) slot = buffer.Get();
     if (vertex) context->VSSetConstantBuffers(0, 8, raw);
     else context->PSSetConstantBuffers(0, 8, raw);
+}
+void BindAlphaTest(C_D3D11GameDevice* device)
+{
+    auto context = Context(device->GetD3DDevice()); if (!context) return;
+    NativeState& state = State(device);
+    if (!state.alphaConstants)
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = sizeof(state.alpha);
+        desc.Usage = D3D11_USAGE_DEFAULT; desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        if (FAILED(device->GetD3DDevice()->CreateBuffer(&desc, nullptr, &state.alphaConstants))) return;
+    }
+    if (state.alphaDirty)
+    {
+        context->UpdateSubresource(state.alphaConstants.Get(), 0, nullptr, &state.alpha, 0, 0);
+        state.alphaDirty = false;
+    }
+    // [Blur1PCDX11] Apply after FX11, which owns the other shader buffers.
+    ID3D11Buffer* buffer = state.alphaConstants.Get();
+    context->PSSetConstantBuffers(13, 1, &buffer);
 }
 void BindRenderTargets(C_D3D11GameDevice* game)
 {
@@ -811,6 +836,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
   {
       static bool nativeCaptured = false;
       if (!nativeCaptured)
+  BindAlphaTest(this);
       {
           nativeCaptured = true;
           ComPtr<ID3D11RenderTargetView> rtv;
@@ -925,6 +951,7 @@ void C_D3D11GameDevice::SetViewport(const C_Viewport& viewport)
     m_Viewport = viewport; auto context = Context(m_pd3dDevice); if (!context) return;
     D3D11_VIEWPORT native = {};
     native.TopLeftX = static_cast<F32>(viewport.GetX()); native.TopLeftY = static_cast<F32>(viewport.GetY());
+  BindAlphaTest(this);
     native.Width = static_cast<F32>(viewport.GetW()); native.Height = static_cast<F32>(viewport.GetH());
     native.MinDepth = viewport.GetMinZ(); native.MaxDepth = viewport.GetMaxZ();
     context->RSSetViewports(1, &native);
@@ -1001,9 +1028,12 @@ C_FrontBuffer::~C_FrontBuffer() {}
 C_RenderTarget::C_RenderTarget() : m_pColourSurface(nullptr), m_pDepthStencilSurface(nullptr) {}
 C_RenderTarget::~C_RenderTarget() {}
 
-void C_D3D11GameDevice::SetAlphaTestEnable(E_Bool value) { m_AlphaTestEnable = value; }
-void C_D3D11GameDevice::SetAlphaTestFunc(E_CmpFunc value) { m_AlphaTestFunc = value; }
-void C_D3D11GameDevice::SetAlphaTestRef(U32 value) { m_AlphaTestRef = value; }
+void C_D3D11GameDevice::SetAlphaTestEnable(E_Bool value)
+{ m_AlphaTestEnable = value; State(this).alpha.enabled = value == E_Bool_True; State(this).alphaDirty = true; }
+void C_D3D11GameDevice::SetAlphaTestFunc(E_CmpFunc value)
+{ m_AlphaTestFunc = value; State(this).alpha.function = Compare(value); State(this).alphaDirty = true; }
+void C_D3D11GameDevice::SetAlphaTestRef(U32 value)
+{ m_AlphaTestRef = value; State(this).alpha.reference = (value & 255) / 255.0f; State(this).alphaDirty = true; }
 void C_D3D11GameDevice::SetAlphaToMaskEnable(E_Bool value)
 { m_AlphaToMaskEnable = value; State(this).blend.AlphaToCoverageEnable = value == E_Bool_True; ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlend(E_Blend src, E_Blend dst, E_BlendOp op,
@@ -1013,13 +1043,13 @@ void C_D3D11GameDevice::SetBlend(E_Blend src, E_Blend dst, E_BlendOp op,
     m_BlendSrcAlpha = srcAlpha; m_BlendDstAlpha = dstAlpha; m_BlendOpAlpha = opAlpha;
     auto& rt = State(this).blend.RenderTarget[0];
     rt.SrcBlend = Blend(src); rt.DestBlend = Blend(dst); rt.BlendOp = BlendOp(op);
-    rt.SrcBlendAlpha = Blend(srcAlpha); rt.DestBlendAlpha = Blend(dstAlpha); rt.BlendOpAlpha = BlendOp(opAlpha);
+    rt.SrcBlendAlpha = AlphaBlendFactor(Blend(srcAlpha)); rt.DestBlendAlpha = AlphaBlendFactor(Blend(dstAlpha)); rt.BlendOpAlpha = BlendOp(opAlpha);
     ApplyBlend(this);
 }
 void C_D3D11GameDevice::SetBlendDst(E_Blend value)
 { m_BlendDst = value; State(this).blend.RenderTarget[0].DestBlend = Blend(value); ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlendDstAlpha(E_Blend value)
-{ m_BlendDstAlpha = value; State(this).blend.RenderTarget[0].DestBlendAlpha = Blend(value); ApplyBlend(this); }
+{ m_BlendDstAlpha = value; State(this).blend.RenderTarget[0].DestBlendAlpha = AlphaBlendFactor(Blend(value)); ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlendEnable(E_Bool value)
 { m_BlendEnable = value; State(this).blend.RenderTarget[0].BlendEnable = value == E_Bool_True; ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlendOp(E_BlendOp value)
@@ -1029,7 +1059,7 @@ void C_D3D11GameDevice::SetBlendOpAlpha(E_BlendOp value)
 void C_D3D11GameDevice::SetBlendSrc(E_Blend value)
 { m_BlendSrc = value; State(this).blend.RenderTarget[0].SrcBlend = Blend(value); ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlendSrcAlpha(E_Blend value)
-{ m_BlendSrcAlpha = value; State(this).blend.RenderTarget[0].SrcBlendAlpha = Blend(value); ApplyBlend(this); }
+{ m_BlendSrcAlpha = value; State(this).blend.RenderTarget[0].SrcBlendAlpha = AlphaBlendFactor(Blend(value)); ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlendHighPrecisionEnable(E_Bool value) { m_BlendHighPrecisionEnable = value; }
 void C_D3D11GameDevice::SetColourWriteEnable(U32 value)
 { if (value == E_ColourWriteEnable_Default) value = m_ColourWriteEnableDefault;
@@ -1052,7 +1082,9 @@ void C_D3D11GameDevice::SetCullModeFlip(bool value)
 void C_D3D11GameDevice::SetDepthBias(F32 value)
 { m_DepthBias = value; State(this).raster.DepthBias = static_cast<INT>(value * 0x1000000); ApplyRaster(this); }
 void C_D3D11GameDevice::SetDepthEnable(E_Bool value)
-{ m_DepthEnable = value; State(this).depth.DepthEnable = value == E_Bool_True; ApplyDepth(this); }
+{ // [Blur1PCDX11] Resolve the engine default exactly as the PC D3D9 device does.
+  if (value == E_Bool_Default) value = m_DepthEnableDefault;
+  m_DepthEnable = value; State(this).depth.DepthEnable = value == E_Bool_True; ApplyDepth(this); }
 void C_D3D11GameDevice::SetDepthFlip(bool comparison, bool viewport)
 {
     if (comparison != m_DepthCmpFlip || (comparison && viewport) != m_DepthViewportFlip)
@@ -1072,7 +1104,9 @@ void C_D3D11GameDevice::SetDepthFunc(E_CmpFunc value)
 void C_D3D11GameDevice::SetDepthWriteEnable(E_Bool value)
 { m_DepthWriteEnable = value; State(this).depth.DepthWriteMask = value == E_Bool_True ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO; ApplyDepth(this); }
 void C_D3D11GameDevice::SetFillMode(E_FillMode value)
-{ m_FillMode = value; State(this).raster.FillMode = value == E_FillMode_Wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID; ApplyRaster(this); }
+{ // [Blur1PCDX11] Preserve the device's selected default, including wireframe.
+  if (value == E_FillMode_Default) value = m_FillModeDefault;
+  m_FillMode = value; State(this).raster.FillMode = value == E_FillMode_Wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID; ApplyRaster(this); }
 void C_D3D11GameDevice::SetPointSpriteEnable(E_Bool value) { m_PointSpriteEnable = value; }
 void C_D3D11GameDevice::SetScissorTest(E_Bool value)
 { State(this).raster.ScissorEnable = value == E_Bool_True; ApplyRaster(this); }

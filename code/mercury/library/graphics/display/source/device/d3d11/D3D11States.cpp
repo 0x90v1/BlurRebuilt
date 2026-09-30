@@ -88,6 +88,21 @@ bool Address(D3DTEXTUREADDRESS source, D3D11_TEXTURE_ADDRESS_MODE* result)
 }
 }
 
+D3D11_BLEND AlphaBlendFactor(D3D11_BLEND factor)
+{
+    // [Blur1PCDX11] D3D9 colour factors contain an alpha component. D3D11
+    // rejects *_COLOR in the alpha equation; select that exact component.
+    switch (factor)
+    {
+    case D3D11_BLEND_SRC_COLOR: return D3D11_BLEND_SRC_ALPHA;
+    case D3D11_BLEND_INV_SRC_COLOR: return D3D11_BLEND_INV_SRC_ALPHA;
+    case D3D11_BLEND_DEST_COLOR: return D3D11_BLEND_DEST_ALPHA;
+    case D3D11_BLEND_INV_DEST_COLOR: return D3D11_BLEND_INV_DEST_ALPHA;
+    case D3D11_BLEND_SRC_ALPHA_SAT: return D3D11_BLEND_ONE;
+    default: return factor;
+    }
+}
+
 bool MakeBlendDesc(D3DBLEND source, D3DBLEND destination, D3DBLENDOP operation,
                    D3DBLEND sourceAlpha, D3DBLEND destinationAlpha,
                    D3DBLENDOP alphaOperation, bool enabled, UINT8 writeMask,
@@ -101,6 +116,8 @@ bool MakeBlendDesc(D3DBLEND source, D3DBLEND destination, D3DBLENDOP operation,
         !Blend(destinationAlpha, &target.DestBlendAlpha) ||
         !BlendOp(alphaOperation, &target.BlendOpAlpha)) return false;
     target.BlendEnable = enabled ? TRUE : FALSE;
+    target.SrcBlendAlpha = AlphaBlendFactor(target.SrcBlendAlpha);
+    target.DestBlendAlpha = AlphaBlendFactor(target.DestBlendAlpha);
     target.RenderTargetWriteMask = writeMask & D3D11_COLOR_WRITE_ENABLE_ALL;
     D3D11_BLEND_DESC desc = {};
     desc.RenderTarget[0] = target;

@@ -8,6 +8,9 @@
 
 namespace Display { namespace D3D11 {
 
+// [Blur1PCDX11] Select the alpha component of a PC RGBA blend factor.
+D3D11_BLEND AlphaBlendFactor(D3D11_BLEND factor);
+
 bool MakeBlendDesc(D3DBLEND source, D3DBLEND destination, D3DBLENDOP operation,
                    D3DBLEND sourceAlpha, D3DBLEND destinationAlpha,
                    D3DBLENDOP alphaOperation, bool enabled, UINT8 writeMask,

@@ -12,6 +12,10 @@ import argparse
 from pathlib import Path
 import re
 import subprocess
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dx11_shadercompile"))
+from alpha_test import inject_effect_alpha_test
 
 
 def main() -> int:
@@ -71,6 +75,11 @@ def main() -> int:
             f"\t{filter_name}\n"
         )
         body = re.sub(r"(?m)^\s*(?:MinFilter|MagFilter|MipFilter|SRGBTEXTURE)\s*=\s*[^;]+;", "", body)
+        # FX9 defaults to wrapping texture coordinates. FX11's legacy sampler
+        # syntax defaults to CLAMP, so preserve each omitted PC address mode.
+        for axis in "UVW":
+            if "address" + axis.lower() not in values:
+                body += f"\nAddress{axis} = WRAP;"
         return (f"sampler {match[1]} = sampler_state {{{body}\n"
                 f"Filter = {filter_name};\n}}")
 
@@ -143,45 +152,7 @@ def main() -> int:
         return f"pass {match[1]} {{{body}\n{' '.join(calls)}\n}}"
 
     source = pass_block.sub(convert_pass, source)
-    alpha_states = [line.split("\t") for line in state_records
-                    if "\tAlphaTestEnable\tTRUE\n" in line]
-    if alpha_states:
-        alpha_refs = {fields[3].strip() for fields in
-                      (line.split("\t") for line in state_records)
-                      if fields[2] == "AlphaRef"}
-        if len(alpha_refs) > 1:
-            raise ValueError(f"mixed alpha test references in {args.source}")
-        alpha_ref = float(next(iter(alpha_refs), "0"))
-        if not 0 <= alpha_ref <= 255:
-            raise ValueError(f"invalid alpha test reference in {args.source}: {alpha_ref}")
-        threshold = (alpha_ref + 0.5) / 255.0
-        pixel_entries = set(re.findall(
-            r"SetPixelShader\(CompileShader\(ps_5_0,\s*([A-Za-z_]\w*)\(\)\)\)",
-            source))
-        for entry in pixel_entries:
-            declaration = re.search(
-                r"\bC_PixelOutput\s+" + re.escape(entry) + r"\s*\([^)]*\)\s*\{",
-                source,
-            )
-            if not declaration:
-                raise ValueError(f"alpha-tested pixel entry needs porting: {entry}")
-            start = declaration.end() - 1
-            depth = 1
-            end = start + 1
-            while depth and end < len(source):
-                depth += (source[end] == "{") - (source[end] == "}")
-                end += 1
-            if depth:
-                raise ValueError(f"unterminated pixel entry: {entry}")
-            body = source[start:end]
-            body, replacements = re.subn(
-                r"\breturn\s+output\s*;",
-                f"clip(output.m_vColour.a - {threshold:.9f}f); return output;",
-                body,
-            )
-            if not replacements:
-                raise ValueError(f"alpha-tested pixel entry has no output return: {entry}")
-            source = source[:start] + body + source[end:]
+    source = inject_effect_alpha_test(source)
     output.with_suffix(".states").write_text("".join(state_records), encoding="utf-8")
     source = "".join(native_states) + source
     transformed.write_text(source, encoding="utf-8")

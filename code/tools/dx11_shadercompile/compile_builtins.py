@@ -9,6 +9,8 @@ from pathlib import Path
 import re
 import subprocess
 
+from alpha_test import inject_alpha_test
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -89,6 +91,8 @@ def main() -> int:
                                   for declaration, register in members) + "\n};\n"
                     )
                 text = "".join(buffers) + text
+            if stage == "ps":
+                text = inject_alpha_test(text, {"main"})
             transformed.write_text(text, encoding="utf-8")
             result = subprocess.run(
                 [str(args.fxc), "/nologo", "/T", f"{stage}_5_0", "/E", "main",

@@ -54,6 +54,7 @@ add_custom_command(OUTPUT ${_dx11_fx_stamp}
     DEPENDS ${_dx11_fx_manifest} ${_dx11_fx_sources} ${_dx11_fx_includes}
         ${BLUR_TOP}/code/tools/dx11_fxcompile/compile_fx.py
         ${BLUR_TOP}/code/tools/dx11_fxcompile/compile_manifest.py
+        ${BLUR_TOP}/code/tools/dx11_shadercompile/alpha_test.py
     VERBATIM)
 add_custom_target(dx11_fx_all DEPENDS ${_dx11_fx_stamp})
 set_target_properties(dx11_fx_all PROPERTIES FOLDER "dx11")
@@ -101,6 +102,7 @@ add_custom_command(OUTPUT ${_dx11_builtin_report}
         --out ${BLUR_TOP}/_work/build/gen/dx11_builtins --jobs 4
     DEPENDS ${_dx11_builtin_manifest} ${_dx11_builtin_sources}
         ${BLUR_TOP}/code/tools/dx11_shadercompile/compile_builtins.py
+        ${BLUR_TOP}/code/tools/dx11_shadercompile/alpha_test.py
     VERBATIM)
 add_custom_target(dx11_shaders_all DEPENDS ${_dx11_builtin_report})
 add_dependencies(dx11_shaders_all dx11_shader_headers)

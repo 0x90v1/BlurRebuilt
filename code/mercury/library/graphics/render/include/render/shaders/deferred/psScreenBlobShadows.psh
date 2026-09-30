@@ -13,6 +13,11 @@ sampler2D	g_tStencil		: register(s2);
 
 struct PS_INPUT
 {
+#if defined(BLUR_DX11)
+	// [Blur2PC] DX11 links stage registers as well as semantics. Match the
+	// position output preceding TEXCOORD0 in vsScreenBlobShadows.
+	float4 m_Position : SV_Position;
+#endif
 	real4	m_Screen	: TEXCOORD0;
 };
 

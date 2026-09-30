@@ -6,6 +6,134 @@
 #include "Display/Device/D3D11/D3D11States.h"
 #include <cstdio>
 #include <string>
+#include <cmath>
+#include <vector>
+#include <d3dcompiler.h>
+#include <d3d11shader.h>
+
+// [Blur1PCDX11] D3D11 stage linkage requires register/component agreement,
+// even when the original D3D9 stages shared matching semantic names.
+static bool CheckBuiltinShaderLinks()
+{
+    std::vector<std::pair<std::wstring, std::wstring>> pairs;
+    for (const wchar_t* suffix : {L"", L"R", L"G", L"B", L"A", L"HDR"})
+        pairs.emplace_back(L"render/vsScreenBlobShadows", std::wstring(L"render/psScreenBlobShadows") + suffix);
+    pairs.emplace_back(L"ui/vsMultiTexture1", L"ui/psAMLoading");
+    for (const wchar_t* suffix : {L"", L"Projected", L"Volume"})
+        pairs.emplace_back(L"deferred/vsSpotlightPrepass", std::wstring(L"deferred/psSpotlightPrepass") + suffix);
+    for (unsigned count = 1; count <= 8; ++count)
+        for (const wchar_t* suffix : {L"", L"HDR"})
+            pairs.emplace_back(L"dropshadows/vsDropShadowsViewNormal",
+                L"dropshadows/psDropShadowsViewNormal" + std::to_wstring(count) + suffix);
+    for (const wchar_t* prefix : {L"deferred/psDynamicLightsPrepass", L"deferred/psDynamicLightsPrepass2xMSAA"})
+        for (unsigned count = 1; count <= 8; ++count)
+            pairs.emplace_back(L"deferred/vsDynamicLightsPrepass", std::wstring(prefix) + std::to_wstring(count));
+    for (const auto& pair : pairs)
+    {
+        Microsoft::WRL::ComPtr<ID3DBlob> vb, pb;
+        const std::wstring root = L"_work/build/gen/dx11_builtins/";
+        if (FAILED(D3DReadFileToBlob((root + pair.first + L".cso").c_str(), &vb)) ||
+            FAILED(D3DReadFileToBlob((root + pair.second + L".cso").c_str(), &pb))) return false;
+        Microsoft::WRL::ComPtr<ID3D11ShaderReflection> vs, ps;
+        if (FAILED(D3DReflect(vb->GetBufferPointer(), vb->GetBufferSize(), IID_PPV_ARGS(&vs))) ||
+            FAILED(D3DReflect(pb->GetBufferPointer(), pb->GetBufferSize(), IID_PPV_ARGS(&ps)))) return false;
+        D3D11_SHADER_DESC vd = {}, pd = {};
+        vs->GetDesc(&vd); ps->GetDesc(&pd);
+        for (UINT i = 0; i < pd.InputParameters; ++i)
+        {
+            D3D11_SIGNATURE_PARAMETER_DESC input = {};
+            ps->GetInputParameterDesc(i, &input);
+            if (!input.ReadWriteMask) continue;
+            bool matched = false;
+            for (UINT j = 0; j < vd.OutputParameters; ++j)
+            {
+                D3D11_SIGNATURE_PARAMETER_DESC output = {};
+                vs->GetOutputParameterDesc(j, &output);
+                if (_stricmp(input.SemanticName, output.SemanticName) == 0 &&
+                    input.SemanticIndex == output.SemanticIndex && input.Register == output.Register &&
+                    input.ComponentType == output.ComponentType &&
+                    (output.Mask & input.ReadWriteMask) == input.ReadWriteMask) matched = true;
+            }
+            if (!matched)
+            {
+                std::fprintf(stderr, "Shader linkage failed: %ls / %ls, %s%u register %u\n",
+                    pair.first.c_str(), pair.second.c_str(), input.SemanticName, input.SemanticIndex, input.Register);
+                return false;
+            }
+        }
+    }
+    std::printf("Built-in shader linkage: %zu stage pairs checked\n", pairs.size());
+    return true;
+}
+
+static bool CheckNativeAlphaTest(Display::D3D11::C_D3D11Device& device)
+{
+    struct AlphaState { UINT enabled, function; float reference; UINT padding; };
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = sizeof(AlphaState);
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
+    if (FAILED(device.Device()->CreateBuffer(&desc, nullptr, &buffer))) return false;
+    const unsigned char alphas[] = {0, 127, 128, 129, 255};
+    const unsigned expectedMasks[] = {0x00, 0x03, 0x04, 0x07, 0x18, 0x1b, 0x1c, 0x1f, 0x1f};
+    for (UINT test = 0; test < 9; ++test)
+        for (UINT pixel = 0; pixel < 5; ++pixel)
+        {
+            const AlphaState state = {test == 8 ? 0U : 1U, test == 8 ? 1U : test + 1, 128.f / 255.f, 0};
+            device.Context()->UpdateSubresource(buffer.Get(), 0, nullptr, &state, 0, 0);
+            ID3D11Buffer* raw = buffer.Get();
+            device.Context()->PSSetConstantBuffers(13, 1, &raw);
+            const unsigned char texel[] = {200, 150, 20, alphas[pixel]};
+            const HRESULT hr = device.DrawTexturedQuad(
+                L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+                L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso", texel);
+            unsigned char rgba[4] = {};
+            if (FAILED(hr) || FAILED(device.ReadPixel(32, 32, rgba))) return false;
+            const bool expected = (expectedMasks[test] & (1U << pixel)) != 0;
+            if (rgba[0] != (expected ? 200 : 0))
+            {
+                std::fprintf(stderr, "Alpha test failed: enabled=%u func=%u alpha=%u red=%u expectedPass=%u\n",
+                    state.enabled, state.function, alphas[pixel], rgba[0], expected);
+                return false;
+            }
+        }
+    std::printf("Native alpha test: 45 GPU pixel checks passed (all comparisons, threshold, disabled)\n");
+    return true;
+}
+
+static bool CheckAlphaBlendFactors(Display::D3D11::C_D3D11Device& device)
+{
+    const D3DBLEND factors[] = {D3DBLEND_SRCCOLOR, D3DBLEND_INVSRCCOLOR,
+        D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR, D3DBLEND_SRCALPHASAT};
+    const unsigned char expected[][4] = {{157,39,10,64}, {43,61,40,64},
+        {0,0,0,128}, {200,100,50,0}, {0,0,0,128}};
+    const unsigned char texel[] = {200,100,50,128};
+    for (unsigned test = 0; test < 5; ++test)
+    {
+        D3D11_BLEND_DESC desc = {};
+        if (!Display::D3D11::MakeBlendDesc(factors[test], D3DBLEND_ZERO, D3DBLENDOP_ADD,
+            factors[test], D3DBLEND_ZERO, D3DBLENDOP_ADD, true, 15, &desc)) return false;
+        Microsoft::WRL::ComPtr<ID3D11BlendState> blend;
+        if (FAILED(device.Device()->CreateBlendState(&desc, &blend))) return false;
+        const float scale[] = {1,1,1,1};
+        device.Context()->OMSetBlendState(blend.Get(), scale, 0xffffffff);
+        if (FAILED(device.DrawTexturedQuad(
+            L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+            L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso", texel))) return false;
+        unsigned char actual[4] = {};
+        if (FAILED(device.ReadPixel(32, 32, actual))) return false;
+        for (unsigned channel = 0; channel < 4; ++channel)
+            if (std::abs(int(actual[channel]) - int(expected[test][channel])) > 1)
+            {
+                std::fprintf(stderr, "Blend factor %u channel %u: %u expected %u\n",
+                    factors[test], channel, actual[channel], expected[test][channel]);
+                return false;
+            }
+    }
+    std::puts("PC alpha blend factors: 5 GPU RGBA checks passed");
+    return true;
+}
 
 int main()
 {
@@ -218,6 +346,23 @@ int main()
                 materialPixel[0], materialPixel[1], materialPixel[2], materialPixel[3]);
     if (materialPixel[0] < 200 || materialPixel[1] < 200 || materialPixel[2] < 200)
         return 10;
+
+    // The same generated exit must run for FX11 effects, not just built-ins.
+    const UINT alphaEnabled = 1, alphaNever = D3D11_COMPARISON_NEVER;
+    if (FAILED(gameEffect->SetRawParameter("BlurPCAlphaEnabled", &alphaEnabled, sizeof(alphaEnabled))) ||
+        FAILED(gameEffect->SetRawParameter("BlurPCAlphaFunction", &alphaNever, sizeof(alphaNever)))) return 12;
+    device.Context()->ClearRenderTargetView(device.RenderTargetView(), materialClear);
+    device.Context()->ClearDepthStencilView(device.DepthStencilView(), D3D11_CLEAR_DEPTH, 1.f, 0);
+    device.Context()->OMSetRenderTargets(1, &materialTarget, device.DepthStencilView());
+    device.Context()->RSSetViewports(1, &materialViewport);
+    device.Context()->RSSetState(materialRasterState.Get());
+    result = device.DrawGameEffectIndexed(*gameEffect, "Material", 0,
+        materialElements, 5, materialVB.Get(), sizeof(MaterialVertex), materialIB.Get(), DXGI_FORMAT_R16_UINT, 3);
+    if (FAILED(result) || FAILED(device.ReadPixel(32, 32, materialPixel)) || materialPixel[0] != 0) return 12;
+    device.Context()->ClearState();
+    std::printf("FX11 alpha test: previously visible material rejected by Never\n");
+
+    if (!CheckNativeAlphaTest(device) || !CheckBuiltinShaderLinks() || !CheckAlphaBlendFactors(device)) return 12;
 
     if (SUCCEEDED(result)) result = device.DrawProbeTriangle(
         L"_work/build/gen/dx11_builtins/display/vsBasicRenderColoured2D.cso",

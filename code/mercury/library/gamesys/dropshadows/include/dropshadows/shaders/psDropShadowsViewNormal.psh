@@ -15,6 +15,10 @@ sampler2D	g_tNormalDepth	: register(s1);
 
 struct PS_INPUT
 {
+#if defined(BLUR_DX11)
+	// [Blur2PC] Preserve the position register emitted by vsDropShadowsViewNormal.
+	float4 m_Position : SV_Position;
+#endif
 	float2	m_TexCoord	: TEXCOORD0;
 	float3	m_Scale		: TEXCOORD1;
 };
