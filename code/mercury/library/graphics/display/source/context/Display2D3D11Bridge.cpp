@@ -73,10 +73,20 @@ HRESULT C_ContextNoCheckNoTrack::SetPixelShaderConstantF(U32 start,const F32* da
 {Game()->SetPixelShaderConstantF(start,data,count);return S_OK;}
 HRESULT C_ContextNoCheckNoTrack::SetVertexShaderConstantF(U32 start,const F32* data,U32 count)
 {Game()->SetVertexShaderConstantF(start,data,count);return S_OK;}
-HRESULT C_ContextNoCheckNoTrack::SetPixelShaderParamF(const C_PixelShaderParam& param,const F32* data,U32 count)
-{Game()->SetPixelShaderConstantF(param.m_RegisterIndex,data,count);return S_OK;}
-HRESULT C_ContextNoCheckNoTrack::SetPixelShaderParamArrayF(const C_PixelShaderParam& param,const F32* data,U32 count)
-{Game()->SetPixelShaderConstantF(param.m_RegisterIndex,data,count);return S_OK;}
+// [Blur1PCDX11] D3D9 uploads the reflected parameter span, including matrix
+// arrays. The optional caller count defaults to one and is not the span.
+HRESULT C_ContextNoCheckNoTrack::SetPixelShaderParamF(const C_PixelShaderParam& param,const F32* data,U32)
+{
+    if (param.m_RegisterIndex == UINT_MAX || !param.m_RegisterCount) return E_FAIL;
+    Game()->SetPixelShaderConstantF(param.m_RegisterIndex,data,param.m_RegisterCount);
+    return S_OK;
+}
+HRESULT C_ContextNoCheckNoTrack::SetPixelShaderParamArrayF(const C_PixelShaderParam& param,const F32* data,U32)
+{
+    if (param.m_RegisterIndex == UINT_MAX || !param.m_RegisterCount) return E_FAIL;
+    Game()->SetPixelShaderConstantF(param.m_RegisterIndex,data,param.m_RegisterCount);
+    return S_OK;
+}
 HRESULT C_ContextNoCheckNoTrack::SetPointSpriteEnable(E_Bool value)
 {Game()->SetPointSpriteEnable(static_cast<Display::E_Bool>(value));return S_OK;}
 HRESULT C_ContextNoCheckNoTrack::SetStencilEnable(E_Bool value)

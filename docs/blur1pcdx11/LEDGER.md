@@ -184,3 +184,13 @@ Verified: captured actual stroke failure before repair (NaN/incorrect UV), then 
 Blocked: none. Broader visual parity remains in progress; screenshot comparison alone does not establish a shadow fault mechanism.
 
 Next: commit packed UI repair, trace native screen-blob shadow draw2809 resources/constants/output and recover its corresponding loaded D3D9 shader/state. Preserve accepted rendering decisions.
+
+## 2026-09-30 05:35 — session Codex visual diagnosis — T127
+
+Did: committed packed UI repair16f389a2; recovered actual PC screen-shadow draw7068883 and isolated native inputs. Fixed pixel parameter/array uploads to use the complete reflected span, faithfully following pristine D3D9. Found in / Belongs to Blur1PCDX11.
+
+Verified: before/after actual GPU matrix binding, matching shadow/stencil texture contents, restored contact shadow in inspected final capture. Standard Release exits0/errsum0; standard exe/PDB/effects delivered, hashes match; queued minimized race exits0 and severe/missing-shader diagnostics are clean. Logs/captures: blob_shadow_before, blob_shadow_trace and blob_shadow_final.
+
+Blocked: none. Full vehicle/reflection and rendering parity remains T127.
+
+Next: commit the reflected-span repair, then compare the corrected race against PC for the next reproducible visual discrepancy. Keep diagnostic captures separate from delivered output.

@@ -144,3 +144,15 @@ The actual four shaders are captured through GPU stream output with both positiv
 Delivered hashes match the standard outputs:
 Amax.exe: `7ba1cf55f6cab66362d1b459f5364405d708a4285b40c36fcbf7d73eb21bb76e`
 Amax.pdb: `20bf8db32a2c5cbaf9a36dd3568efe5f514fdc5210e75d5cccd4744905dd2d92`
+
+### T127: complete reflected pixel-parameter uploads (2026-09-30)
+
+Found in / Belongs to **Blur1PCDX11**. The contact-shadow texture and stencil mask closely match actual D3D9 draw7068883: 256x256 red-channel shadow peaks at189 and covers10.90%; car stencil covers10.77% PC/10.72% native. Recovered loaded shader assembly is `blob_shadow_trace/pc_{vertex,pixel}.txt` and matches the current PC shadow formula. The native GPU projection matrix instead retains a previous draw's rows: its last row is (.52275,.13551,-.37077,1), whereas the actual PC matrix ends (.10570,-.07989,1.16752,.00025).
+
+`Display2D3D11Bridge.cpp` incorrectly used the optional caller count (default1) for both SetPixelShaderParamF and SetPixelShaderParamArrayF. Pristine `display2/context/D3D9Functions.inl` uses the reflected handle's m_RegisterCount and rejects invalid/empty handles. The native bridge now follows that exact mechanism. This repairs matrix uploads without tuning the shadow intensity, projection, textures or material shader. A shader-variable selector in the existing opt-in diagnostic handles changing draw ordinals; the first capture selected a Racification draw and is superseded by the variable-selected evidence.
+
+Standard Release `visual_shadow_matrix_build.txt` exits0/errsum0; regenerated outputs succeed. Standard exe/PDB and effects are delivered and hashes match. The queued minimized race (`blob_shadow_final/slot.log`) exits0 with clean severe/missing-VS diagnostics. Actual shadow GPU last row is now (.10584,-.07997,1.15801,.00025), matching PC's projection structure while camera animation differs slightly. `blob_shadow_final/{shadow,race_final}.png` shows the restored dark contact shadow beneath the rear bumper. Before-state evidence is protected under `blob_shadow_before/`. This integration check exercises the actual bridge and bound shader; no surrogate shader or shadow approximation was used.
+
+Delivered hashes:
+Amax.exe: `f90059f5cf2b8d545f654975f3e5ae3ebf525e022aa72ded486be6e539e83a97`
+Amax.pdb: `8844da053dcdcc0e66a62b740c7e5cbf7a148d42253be43b990a7bfbf3c23774`
