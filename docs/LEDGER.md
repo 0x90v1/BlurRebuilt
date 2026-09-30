@@ -556,3 +556,17 @@ Did: user accepted the corrected DoF and parameter audit and explicitly requeste
 Verified: prior zero-error Release build, delivered matching executable/symbol hashes, showroom screenshot and 84 mph driving verification remain valid; no source change since those checks.
 Blocked: none.
 Next: merge blur1pc into blur1multi, then blur1multi into blurx, and blur1pc into blur1pcdx11; regenerate/build each phase and deliver its standard executable/symbols. No push requested.
+
+
+## 2026-09-29 - Codex showroom-effects - T177 committed and propagated
+Did: committed T177 as cce47ae2 on blur1pc; merged into blur1multi (19d89153), then blurx (a3fe4133), and blur1pcdx11 (e56a2134). Verified ancestor relationships and exact committed contents of both engine files in all three higher branches. No push.
+Verified: standard tools/build.sh Release builds in Blur1Multi, BlurX and Blur1PCDX11 report zero error lines; generated headers and built-in shaders regenerated in each worktree. DX11 native built-ins report 693 succeeded, zero failures; all 4,913 indexed runtime effect binaries and index/metadata verified against the build outputs after delivery. No source-list additions in this merge; generated targets have no textual diff attributable to T177. Higher-phase runtime visual parity was not re-tested; the accepted base showroom screenshot and 84 mph race remain the visual evidence.
+Delivery: all four phases' standard _work/run/Amax.exe and Amax.pdb hashes match their own _work/build/vs/Release outputs. Waited for running delivered game processes before copying. BlurX's first copy encountered a temporary build-output lock; the successful retry's hashes matched.
+
+- Blur1PC: EXE SHA256 6500c2b8ee3d0cee3ddd7f92871be9a95d2429f65b13fd9db993a83410c12bf3; PDB SHA256 1f3bf4806a7161a46d131deac3de5fb1603e17ac3594c6038c779fa67af02bf9.
+- Blur1Multi: EXE SHA256 64797a959e2bf354259e7630358d8d29512420ce323d865121ad12a8ab7238f8; PDB SHA256 01736f8a9a68641c4aa2b8f1158b6d9bd2bbda83b21b11ab08d44c9cdbe1e8ee.
+- BlurX: EXE SHA256 73fb49a2e179db245b0a3205e462ea50f711c132c6a7e3b897e0cd222fb426e2; PDB SHA256 2a9d345d08e4ab8c0e4f73a7673019c452ce2d6ecf00eeb607c1c3ab3c879c18.
+- Blur1PCDX11: EXE SHA256 c821c584b03e513b051b2c6558e3da92882c8dd4224b4e3f3fc4d266c3b381ea; PDB SHA256 62809bd0a3dc3e0c31a933a11044aa7c3bd75fbefac0c5b318a7c25ee6e03d65.
+
+Blocked: none.
+Next: none for T177. User accepted and requested commit/propagation; all higher branches contain the fix and their standard deliveries include it. Approval evidence: _work/t177/corrected/showroom.png. Full build logs: each rebuilt phase's _work/t177/propagation_build.log.
