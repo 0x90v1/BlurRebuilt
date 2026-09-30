@@ -202,30 +202,52 @@ int main()
     if (FAILED(result) || !materialSignatureBytes) return 9;
     std::printf("FX11 indexed %zu game effects; Material pass has %zu input-signature bytes\n",
                 effectLibrary.EffectCount(), materialSignatureBytes);
-    Display::D3D11::C_D3D11Effect* stateEffect = nullptr;
-    result = effectLibrary.Get(device.Device(), "MeshEffect.fx", &stateEffect);
-    if (FAILED(result) || !stateEffect ||
-        FAILED(stateEffect->Apply("Material", 0, device.Context()))) return 9;
+    // [Blur1PCDX11] FXB/render stages own fixed-function state. Reapplying FX11
+    // for immediate parameters must preserve reverse depth, stencil, blend
+    // masks/factors and raster overrides, even for authored ZWriteEnable passes.
     Microsoft::WRL::ComPtr<ID3D11BlendState> gameBlend;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> gameDepth;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> gameRaster;
-    FLOAT blendFactor[4] = {};
-    UINT sampleMask = 0, stencilRef = 0;
-    device.Context()->OMGetBlendState(&gameBlend, blendFactor, &sampleMask);
-    device.Context()->OMGetDepthStencilState(&gameDepth, &stencilRef);
-    device.Context()->RSGetState(&gameRaster);
-    if (!gameBlend || !gameDepth || !gameRaster) return 9;
     D3D11_BLEND_DESC blendDesc = {};
     D3D11_DEPTH_STENCIL_DESC depthDesc = {};
     D3D11_RASTERIZER_DESC rasterDesc = {};
-    gameBlend->GetDesc(&blendDesc);
-    gameDepth->GetDesc(&depthDesc);
-    gameRaster->GetDesc(&rasterDesc);
-    if (!blendDesc.RenderTarget[0].BlendEnable ||
-        blendDesc.RenderTarget[0].SrcBlend != D3D11_BLEND_ONE ||
-        blendDesc.RenderTarget[0].DestBlend != D3D11_BLEND_INV_SRC_ALPHA ||
-        depthDesc.DepthWriteMask != D3D11_DEPTH_WRITE_MASK_ZERO ||
-        rasterDesc.CullMode != D3D11_CULL_NONE) return 9;
+    if (!Display::D3D11::MakeBlendDesc(D3DBLEND_ZERO, D3DBLEND_SRCCOLOR, D3DBLENDOP_ADD,
+        D3DBLEND_ONE, D3DBLEND_ZERO, D3DBLENDOP_ADD, true, 5, &blendDesc) ||
+        !Display::D3D11::MakeDepthStencilDesc(true, false, D3DCMP_GREATEREQUAL,
+        true, D3DCMP_EQUAL, D3DSTENCILOP_KEEP, D3DSTENCILOP_KEEP, D3DSTENCILOP_REPLACE,
+        0x7f, 0x3f, &depthDesc) ||
+        !Display::D3D11::MakeRasterizerDesc(D3DFILL_WIREFRAME, D3DCULL_CW, true, &rasterDesc) ||
+        FAILED(device.Device()->CreateBlendState(&blendDesc, &gameBlend)) ||
+        FAILED(device.Device()->CreateDepthStencilState(&depthDesc, &gameDepth)) ||
+        FAILED(device.Device()->CreateRasterizerState(&rasterDesc, &gameRaster))) return 9;
+    const FLOAT expectedFactor[4] = {.25f, .5f, .75f, 1.f};
+    device.Context()->OMSetBlendState(gameBlend.Get(), expectedFactor, 0x1357);
+    device.Context()->OMSetDepthStencilState(gameDepth.Get(), 37);
+    device.Context()->RSSetState(gameRaster.Get());
+    const char* stateEffects[] = {"MeshEffect.fx", "Puddle_LN_NV.fx"};
+    const char* stateTechniques[] = {"Material", "DefaultLights"};
+    for (unsigned i = 0; i < 2; ++i)
+    {
+        Display::D3D11::C_D3D11Effect* stateEffect = nullptr;
+        if (FAILED(effectLibrary.Get(device.Device(), stateEffects[i], &stateEffect))) return 9;
+        for (unsigned repeat = 0; repeat < 2; ++repeat)
+        {
+            if (FAILED(stateEffect->Apply(stateTechniques[i], 0, device.Context()))) return 9;
+            Microsoft::WRL::ComPtr<ID3D11BlendState> actualBlend;
+            Microsoft::WRL::ComPtr<ID3D11DepthStencilState> actualDepth;
+            Microsoft::WRL::ComPtr<ID3D11RasterizerState> actualRaster;
+            FLOAT actualFactor[4] = {};
+            UINT actualMask = 0, actualReference = 0;
+            device.Context()->OMGetBlendState(&actualBlend, actualFactor, &actualMask);
+            device.Context()->OMGetDepthStencilState(&actualDepth, &actualReference);
+            device.Context()->RSGetState(&actualRaster);
+            if (actualBlend.Get() != gameBlend.Get() || actualDepth.Get() != gameDepth.Get() ||
+                actualRaster.Get() != gameRaster.Get() || actualMask != 0x1357 || actualReference != 37 ||
+                memcmp(actualFactor, expectedFactor, sizeof(expectedFactor)))
+            { std::fprintf(stderr, "FX11 overwrote engine state: %s repeat=%u\n", stateEffects[i], repeat); return 9; }
+        }
+    }
+    std::printf("FX11 engine state preserved across MeshEffect/Puddle and immediate reapply\n");
     device.Context()->ClearState();
     Display::D3D11::C_D3D11Effect* alphaEffect = nullptr;
     result = effectLibrary.Get(device.Device(), "AutoScrollFade.fx", &alphaEffect);

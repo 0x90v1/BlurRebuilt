@@ -94,13 +94,17 @@ def main() -> int:
         lambda match: f"Set{match[1]}Shader(CompileShader({match[2]}, {match[3]}()));",
         source,
     )
-    # FX9 fixed-function pass assignments need native D3D11 state objects.
+    # [Blur1PCDX11] PCFX imports pass state into the engine's FXB state manager.
+    # Context::SetRenderState honours render flags; the render stage owns depth,
+    # stencil and write masks. FX11 must only bind shaders/resources here.
+    # Baking incomplete state objects resets reverse depth and stencil (Puddle,
+    # MeshEffect), and defeats the engine's blend/cull overrides. Keep authored
+    # assignments as diagnostics, not a second source of GPU render state.
     # Alpha test is implemented by injecting a pixel shader discard below.
     pass_block = re.compile(r"\bpass\s+([A-Za-z_]\w*)\s*\{([^{}]*)\}", re.DOTALL)
     state_assignment = re.compile(r"(?m)^\s*([A-Za-z_]\w*)\s*=\s*([^;]+);\s*$")
     technique_names = [(m.start(), m[1]) for m in re.finditer(
         r"\btechnique11\s+([A-Za-z_]\w*)", source)]
-    native_states: list[str] = []
     state_records: list[str] = []
 
     def convert_pass(match: re.Match[str]) -> str:
@@ -110,51 +114,11 @@ def main() -> int:
                           if pos < match.start()), "")
         for key, value in states.items():
             state_records.append(f"{technique}\t{match[1]}\t{key}\t{value}\n")
-        body = state_assignment.sub("", original)
-        serial = len(native_states)
-        calls: list[str] = []
-        if any(k in states for k in ("AlphaBlendEnable", "SrcBlend", "DestBlend", "BlendOp")):
-            enabled = states.get("AlphaBlendEnable", "FALSE").upper()
-            blend_names = {"one": "ONE", "zero": "ZERO",
-                           "srcalpha": "SRC_ALPHA", "invsrcalpha": "INV_SRC_ALPHA"}
-            source_blend = blend_names[states.get("SrcBlend", "ONE").lower()]
-            dest_blend = blend_names[states.get("DestBlend", "ZERO").lower()]
-            operation = states.get("BlendOp", "ADD").upper()
-            blend_name = f"BlurNativeBlend{serial}"
-            native_states.append(
-                f"BlendState {blend_name} {{ BlendEnable[0] = {enabled}; "
-                f"SrcBlend[0] = {source_blend}; DestBlend[0] = {dest_blend}; "
-                f"BlendOp[0] = {operation}; SrcBlendAlpha[0] = {source_blend}; "
-                f"DestBlendAlpha[0] = {dest_blend}; BlendOpAlpha[0] = {operation}; "
-                "RenderTargetWriteMask[0] = 15; };\n"
-            )
-            calls.append(f"SetBlendState({blend_name}, float4(1,1,1,1), 0xffffffff);")
-        if "ZWriteEnable" in states:
-            write_mask = "ALL" if states["ZWriteEnable"].upper() == "TRUE" else "ZERO"
-            depth_name = f"BlurNativeDepth{serial}"
-            native_states.append(
-                f"DepthStencilState {depth_name} {{ DepthEnable = TRUE; "
-                f"DepthWriteMask = {write_mask}; DepthFunc = LESS_EQUAL; }};\n"
-            )
-            calls.append(f"SetDepthStencilState({depth_name}, 0);")
-        if "CullMode" in states:
-            cull = states["CullMode"].upper()
-            if cull not in ("NONE", "CW", "CCW"):
-                raise ValueError(f"unsupported authored cull mode: {cull}")
-            raster_name = f"BlurNativeRaster{serial}"
-            native_states.append(
-                f"RasterizerState {raster_name} {{ FillMode = SOLID; "
-                f"CullMode = {'NONE' if cull == 'NONE' else 'BACK'}; "
-                f"FrontCounterClockwise = {'TRUE' if cull == 'CW' else 'FALSE'}; "
-                "DepthClipEnable = TRUE; };\n"
-            )
-            calls.append(f"SetRasterizerState({raster_name});")
-        return f"pass {match[1]} {{{body}\n{' '.join(calls)}\n}}"
+        return f"pass {match[1]} {{{state_assignment.sub('', original)}\n}}"
 
     source = pass_block.sub(convert_pass, source)
     source = inject_effect_alpha_test(source)
     output.with_suffix(".states").write_text("".join(state_records), encoding="utf-8")
-    source = "".join(native_states) + source
     transformed.write_text(source, encoding="utf-8")
     return subprocess.run(
         [str(args.fxc), "/nologo", "/Gec", "/Zpr", "/T", "fx_5_0", "/Fo", str(output),

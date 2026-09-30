@@ -1376,7 +1376,7 @@ void Context::BeginPass(Effect* pEffect, U32 iTechnique)
 	m_pCurrentEffect = pEffect;
 	m_iCurrentTechnique = iTechnique;
 #if defined(BLUR_USE_DX11)
-	// [Blur1PCDX11] FXB supplies parameters and pass choice; FX5 owns the native pipeline.
+	// [Blur1PCDX11] FXB/render stages own state; FX5 binds native shaders/resources.
 	NativeFX11Apply(pEffect, pPass, iTechnique, &m_Sources[0]);
 #endif
 }

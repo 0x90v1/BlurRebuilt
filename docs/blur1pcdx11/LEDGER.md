@@ -130,3 +130,15 @@ Blocked: none for this repair batch. T127 remains in progress: vehicle/scene lig
 Next: implement the original per-sampler sRGB contract with compatible texture/view formats, verify actual GPU sample values, then compare the same Showroom against the saved D3D9 reference. Separately identify the remaining no-VS draw callers and recover any missing variants from correctly keyed retail captures.
 
 Files touched: display/source/{context/Context_D3D11.cpp,device/d3d11/{D3D11GameDeviceNative.cpp,D3D11States.cpp,PCD3D11GameDevice.cpp},texture/d3d11/D3D11TextureLoad.cpp}; display/include/display/device/d3d11/D3D11States.h; fx/source/{NativeFX11.cpp,System.cpp}; render/deferred/UI/drop-shadow pixel shader interfaces; code/tools/dx11_shadercompile/{alpha_test.py,compile_builtins.py}; code/tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py}; code/tools/dx11_probe/main.cpp; cmake/dx11.cmake; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored diagnostic/build/run artifacts. Existing unrelated work preserved.
+
+## 2026-09-30 03:08 — session Codex visual diagnosis — T127
+
+Did: corrected FX11 pass state ownership. D3D9 replay proves the alloy bands are expected; selected native draws locate the actual wheel corruption in the later puddle pass. Removed guessed complete FX11 blend/depth/stencil/raster objects so the imported PC FXB and render stages retain their live state. Added GPU state-preservation checks across ordinary and repeated/immediate effect applies. Found in / Belongs to Blur1PCDX11. No lower-phase source changes or push; follow-up work remains uncommitted.
+
+Verified: standard Release errsum0 (`visual_fx_state_build.txt`). Hardware and WARP regressions pass along with prior probes. Queued minimized Showroom and DebugRb race exit zero, clean debug/missing-shader logs, both stills inspected. Native puddle draw now matches D3D9 GREATER/no-depth-write/stencil-replace state; wheel pixel remains unchanged and the reflection overlay is gone. Delivered standard exe `23C8A1BA1224B0E8DD72D7166C3A292CDCD46F5EBC94D512E5026A624F02A577`, PDB `D606F19B18E50D96217DA23A06A15CDE67479BC3C67F901EC545E589AD894AFF` and regenerated FX5 effects. Exe/PDB match Release outputs.
+
+Blocked: none for build/delivery. Broader visual parity, the unreproduced damage-volume loading crash and uncaptured variants remain open.
+
+Next: recover and verify the live sampler filter/address/border/LOD contract from pristine PC source. FX11 currently binds live gamma but retains compiled sampler defaults for the other properties. Distinguish Display2's encoded LOD bias from the old Display device API; preserve the actual PC anisotropy behavior. Add GPU sampling checks before claiming a fix. Task remains active.
+
+Files touched: dx11_fxcompile/compile_fx.py, fx/FxContext.cpp, dx11_probe/main.cpp, README and phase docs; ignored reference captures/build/runtime logs. Other sessions' pending changes preserved.
