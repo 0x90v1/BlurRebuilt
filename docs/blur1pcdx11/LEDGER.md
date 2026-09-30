@@ -164,3 +164,13 @@ Verified: standard Release and probe builds have zero errors; full hardware/WARP
 Blocked: none. T127 remains in progress; remaining NaN depth pixels, packed UI and broader parity are unverified.
 
 Next: commit this verified repair, isolate the first writer of a remaining NaN depth pixel, then verify packed stroke/trail inputs against the PC source.
+
+## 2026-09-30 05:07 — session Codex visual diagnosis — T127
+
+Did: preserved the shipped billboard zero-depth result in native shaders after recovering the loaded D3D9 instructions and verifying zero-multiply arithmetic on the GPU. Found in / Belongs to Blur1PCDX11. Road depth repair is committed as f8344dfd.
+
+Verified: sequential standard/probe rebuilds succeed; hardware and WARP pass eight billboard depth checks plus previous checks. D3D9 reference passes25. Rebuilt standard exe/effects delivered; final queued minimized race exits0 with clean diagnostics and no nonfinite depth pixels. Logs and inspected captures: _work/build/foliage_depth and billboard_depth_final. The initial concurrent generator failure is superseded by the sequential rebuild.
+
+Blocked: none. Full parity remains T127. The new stroke GPU capture reproduces NaN positions/UVs before conversion; UI repair verification follows.
+
+Next: commit the billboard repair; finish hardware/WARP verification and deliver the packed stroke/trail/gradient/multiply conversions, then compare the resulting race UI with PC.

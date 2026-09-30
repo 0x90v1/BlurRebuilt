@@ -141,6 +141,12 @@ C_VertexPrepassOutput PrepassSpriteVS(in C_VertexInput input)
 
 // pixel shader
 
+#if defined(BLUR_DX11)
+// [Blur2PC][Blur1PCDX11][retail-recovered] Loaded PC foliage draw 7047732
+// leaves depth z/w at zero. D3D9's zero multiply yields zero after rcp(0),
+// whereas SM5 yields NaN. Preserve the measured PC result for this path.
+#define RETAIL_ZERO_BILLBOARD_PREPASS_DEPTH
+#endif
 #include <Common/Pixel.h>
 
 // technique

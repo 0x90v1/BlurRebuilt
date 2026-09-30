@@ -122,3 +122,13 @@ Standard Release `_work/build/visual_road_depth_build.txt` and probe build repor
 Delivered exe/PDB match the standard outputs by SHA256:
 Amax.exe: `6296149e2d66f8ce6be8f15c240f7ded59552dde9a95411c70976b1de6044343`
 Amax.pdb: `fa3526b17c84183191eb5b747e9508b34da6cb1cf22746fd6a21d7c5202a25b4`
+
+### T127: preserve PC billboard zero-depth arithmetic (2026-09-30)
+
+Found in / Belongs to **Blur1PCDX11**. At pixel (34,319), native draw 217 (`FoliageBillboard_LN / MaterialPrepass`) is the first NaN writer. Actual loaded D3D9 draw 7047732 leaves TEXCOORD0.zw zero, then executes rcp(w) followed by mul(z). This is not missing retail clip-depth interpolation: the shipped vertex shader explicitly writes zero. Recovered assembly is `_work/build/foliage_depth/{vertex,pixel}.txt`. The PC headlight depth texture has no nonfinite pixels and the corresponding foliage pixel is zero.
+
+A standalone D3D9 GPU reference verifies the same rcp/mul sequence: 0*rcp(0) returns zero, while .25*rcp(2) returns .125. Twenty-five reference checks pass (`foliage_depth/reference_gpu.log`). SM5 follows the [D3D11 floating-point rules](https://learn.microsoft.com/en-us/windows/win32/direct3d11/floating-point-rules), where this expression produces NaN. A native-only billboard define preserves the exact measured zero output; ordinary materials retain their depth calculation. No clip depth was invented for foliage. Billboard and its FoliageBillboard inclusion share this path.
+
+Eight actual GPU depth checks across all four compiled billboard variants and clip w=1/2 pass on hardware and WARP, along with the prior full probe suite (`foliage_depth/{hardware,warp}.log`). Initial concurrent effect generation conflicted and failed; it is superseded by sequential standard rebuild `visual_billboard_depth_rebuild.txt` (1254/1254 FX effects, 693/693 built-ins, errsum0) and `foliage_depth/probe_rebuild.log` (exit0). Do not use the earlier build/probe logs as validation.
+
+The rebuilt standard executable/effects were delivered, then a minimized queued race exited zero with no severe debug or missing-VS diagnostics. The final depth readback has zero nonfinite pixels, selected draw217 writes zero, and negative vehicle coverage remains 5.13%. Captures/readback are `billboard_depth_final/race_final.png`, `headlight.png`, `depth.bin`; the final race was visually inspected. Remaining packed UI stroke/trail/gradient/multiply paths are being tested separately.

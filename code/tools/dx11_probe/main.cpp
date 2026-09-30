@@ -12,6 +12,7 @@
 #include <d3d11shader.h>
 #include "polygon_font_checks.h"
 #include "road_prepass_checks.h"
+#include "billboard_prepass_checks.h"
 
 // [Blur1PCDX11] D3D11 stage linkage requires register/component agreement,
 // even when the original D3D9 stages shared matching semantic names.
@@ -188,6 +189,7 @@ int main()
     result = effectLibrary.Open(L"_work/build/gen/fx11/effects");
     if (FAILED(result) || effectLibrary.EffectCount() != 1254) return 9;
     if (!CheckRoadPrepass(device, effectLibrary)) return 13;
+    if (!CheckBillboardPrepass(device, effectLibrary)) return 14;
     std::string failedEffect;
     result = effectLibrary.PreloadAll(device.Device(), &failedEffect);
     if (FAILED(result))

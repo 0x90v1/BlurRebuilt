@@ -89,7 +89,12 @@ C_PixelOutput PrepassPS(in C_VertexPrepassOutput vtxData)
 #endif // OPAQUE_PASS
  
 #if defined(ENABLE_PREPASS_DEPTHTEXTURE)
+#if defined(BLUR_DX11) && defined(RETAIL_ZERO_BILLBOARD_PREPASS_DEPTH)
+    // [Blur2PC][Blur1PCDX11] Exact PC zero-interpolant/zero-multiply result.
+    output.m_fDepth = 0.0f;
+#else
     output.m_fDepth = mul( vtxData.m_vTexCoord.z,  1 / vtxData.m_vTexCoord.w );
+#endif
 #endif
 
 #endif // ENABLE_PREPASS_VIEWDEPTH
