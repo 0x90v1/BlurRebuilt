@@ -31,6 +31,10 @@ float SampleDepthBuffer(sampler2D depth, float2 uv)
 	float3 depthBytes = round(tex2D(depth, uv).rgb * 255.0f);
 	float3 depthScale = float3(65536.0f, 256.0f, 1.0f) / 16777215.0f;		
 	return dot(depthBytes, depthScale);
+	#elif defined(BLUR2PC)
+	// [Blur2PC] Retail PC depth samples carry a sign over vehicles. Recover
+	// depth from the magnitude, as in retail psDoFFgBgDownsample/Combine.
+	return abs(tex2D(depth, uv).r);
 	#else
 	return tex2D(depth, uv).r;
 	#endif
