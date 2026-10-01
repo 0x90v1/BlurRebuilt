@@ -31,7 +31,7 @@ namespace Particle
 	#ifdef RENDER_DYNAMICEFFECT_USE_XMVECTOR
 		XMVECTOR vTime = XMVectorReplicate(pUpdateConstants->timeStep);
 		XMVECTOR vAcceleration = XMVectorMultiply(vTime, XMLoadFloat4A16((XMFLOAT4A16*)&pPhysicsSettings->vAcceleration));
-		XMVECTOR vResistance = XMVectorSubtract(XMVectorSplatOne(), XMVectorMultiply(vTime, XMVectorReplicate(pPhysicsSettings->fAirResistance)));
+		XMVECTOR vResistance = XMVectorReplicate(AirResistanceFactor(pUpdateConstants->timeStep, pPhysicsSettings->fAirResistance));	// [Blur2PC]
 		XMVECTOR vFriction = XMVectorSubtract(XMVectorSplatOne(), XMVectorMultiply(vTime, XMVectorReplicate(pPhysicsSettings->fFriction)));
 		XMVECTOR vRestitution = XMVectorReplicate(pPhysicsSettings->fRestitution);
 		XMVECTOR vSleepSpeedSq = XMVectorReplicate(pUpdateConstants->sleepSpeedSq);
@@ -39,7 +39,7 @@ namespace Particle
 	#else
 		Maths::HF32 vTime = pUpdateConstants->timeStep;
 		Maths::HVec3 vAcceleration = vTime * Maths::Load<Maths::HVec3>(&pPhysicsSettings->vAcceleration);
-		Maths::HF32 vResistance = 1.0f - vTime * pPhysicsSettings->fAirResistance;
+		Maths::HF32 vResistance = AirResistanceFactor(pUpdateConstants->timeStep, pPhysicsSettings->fAirResistance);	// [Blur2PC]
 		Maths::HF32 vFriction = 1.0f - vTime * pPhysicsSettings->fFriction;
 		Maths::HF32 vRestitution = pPhysicsSettings->fRestitution;
 		Maths::HF32 vSleepSpeedSq = pUpdateConstants->sleepSpeedSq;

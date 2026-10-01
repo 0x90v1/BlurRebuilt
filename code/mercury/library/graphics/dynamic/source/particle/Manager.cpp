@@ -8,6 +8,7 @@
 #include "Dynamic/Particle/Force.h"
 #include "Dynamic/Particle/EffectInterface.h"
 #include "Dynamic/Particle/SuperEffect.h"
+#include "Dynamic/Particle/PhysicsSettings.h"	// [Blur2PC]
 
 #include "Dynamic/Renderer.h"
 #include "Dynamic/TypeIndex.h"
@@ -28,6 +29,9 @@
 #include <system\Debug\I_DebugRender.h>
 
 #include <btl/containers/radix.h>
+
+// [Blur2PC] the frame rate particle effect data is tuned for; see PhysicsSettings.h.
+F32 DynamicEffect::Particle::g_ParticleSourceFrameRate = 60.0f;
 
 using namespace DynamicEffect;
 using namespace DynamicEffect::Particle;
