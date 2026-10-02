@@ -253,3 +253,16 @@ Blocked: none. Active timed post effect and neutral-launch reverse-light state a
 Next: compare protected final-composition textures and reflection/road output against PC at matching rear-light state. T127 remains active.
 
 Files touched: NativeFX11.cpp opt-in CPU diagnostic; phase analysis/board/ledger. Private replay and capture harness stay under ignored _work/.
+
+
+## 2026-10-02 23:08 — session Codex visual diagnosis — T127
+
+Did: verify same-input final composition against D3D9 and capture road material/reflection inputs after matched-resolution PC/native runs. No production tuning. Found in / Belongs to Blur1PCDX11.
+
+Verified: standard Release parity_oct02_build exit0/errsum0 and delivered exe/PDB/effects. Queued PC60, native60 and native unlocked races exit0. Actual final-composition hardware replay differs in five channels by one byte; WARP maximum one byte. Road static material textures within one decoder byte; live road sampler/constant contract agrees with PC.
+
+Blocked: none. Native/PC lightmap residency differs; old road trace resolution and elapsed state differ. Intermittent damage-volume loading crash remains open.
+
+Next: compare road lightmap at matching resident dimensions, then road vertex inputs and reflection producer. T127 remains in progress.
+
+Files touched: phase analysis, board and ledger. Private replay/capture tools remain under ignored _work/.
