@@ -580,6 +580,9 @@ Exact next step: obtain authorization to commit only T186's RayTriangle.inl and 
 ## 2026-09-30 — Codex Business Bay — T186 propagation resumed
 User: requested the fix in BlurX for testing. Proceeding with the isolated base commit and required merges as the necessary propagation step; no push. Base correction/build/delivery remain verified as above. Exact next step: merge through all higher phases, standard builds/delivery, then Nov10 Business Bay with Q held past the original failure interval.
 
+## 2026-09-30 - Codex Business Bay - T186 completion
+Did: committed only T186 mask conversions and owning task documentation as66a7afac; merged through all higher phases (49fd41e6, ef6d40d9, 6bd5e080). Verified: base standard build/retail Q-drive/delivery as above; all higher standard builds errsum0 and own standard EXE/PDB deliveries match. Reported higher-phase opening passes; scoped later-run limits recorded in its owning analysis. Blockers: none. Exact next step: none for the base correction; user confirmation of reported scene belongs to its own phase. No push.
+
 ## 2026-10-01 - session Claude (BlurX T179) - particle air resistance at any frame rate
 Did: `AirResistanceFactor` (PhysicsSettings.h) in the 13 particle shape updates, `g_ParticleSourceFrameRate` 60 for PC data (Manager.cpp); analysis.md "Timing", particle air resistance. Approved by the user from BlurX T179.
 Verified: Release build 0 errors; delivered _work/run Amax.exe/pdb; retail quick race runs; factor arithmetic checked against the source form. Next: Blur1Multi sets rate 30 for console sources; merge up.
