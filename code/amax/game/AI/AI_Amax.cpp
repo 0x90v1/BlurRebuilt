@@ -2422,7 +2422,12 @@ namespace AIAmax
 		params.AddChildNode(paramsPerkRepair);
 
 
-		if (m_SystemsInitialised)
+		// [Blur2PC] the snapshot cleared m_SystemsInitialised when a route's AI data failed to load, so no
+		// driver was created for it (LoadAICityData now keeps the flag, or the Showroom's failure would
+		// poison the next level). Keep that no-data behaviour here: a driver created without track data
+		// never gets MT_POST_INIT_AI_SYSTEM, and the first MT_STOP_AI (C_VehicleActor::Reset) then
+		// dereferences CData's NULL vehicle-state interface in CSpeedTracker::HandleMessage.
+		if (m_SystemsInitialised && m_DataInitilaised)
 		{
 			CMessage msg;
 			msg.mType = MT_INIT_AI_DRIVER;
