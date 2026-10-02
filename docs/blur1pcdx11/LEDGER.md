@@ -266,3 +266,16 @@ Blocked: none. Native/PC lightmap residency differs; old road trace resolution a
 Next: compare road lightmap at matching resident dimensions, then road vertex inputs and reflection producer. T127 remains in progress.
 
 Files touched: phase analysis, board and ledger. Private replay/capture tools remain under ignored _work/.
+
+
+## 2026-10-02 23:52 — session Codex visual diagnosis — T127
+
+Did: restore retail saturation in the road prepass normal blend and remove the extra RoadTwoSpecN normal-axis swap for DX11. Found in / Belongs to Blur1PCDX11. The foreground noisy paving now renders smoothly.
+
+Verified: actual retail SM3 bytecode versus captured native mesh/texture/constants. Road hardware comparison is byte-exact over 211,463 covered pixels; RoadTwoSpecN controlled-camera comparison is byte-exact over 291,035 pixels. WARP residuals remain explicitly bounded in analysis. Standard road_normal_clamp_build and road_twospec_axis_build exit0/errsum0; 1254 effects/693 built-ins regenerated. Queued native60/unlocked and updated native60 races exit0. Standard exe/PDB/effects delivered; executable hash agrees with build Release. Protected final road lighting inputs in road_paving_lights_oct02.
+
+Blocked: none. Full reflection/lighting and uncaptured retail variant parity remain unverified; intermittent damage-volume loading crash remains open.
+
+Next: compare foreground Road_LN_ND_NG / MaterialLights draw 7059193 against actual retail bytecode using the protected identical inputs. T127 remains in progress.
+
+Files touched: RoadTwoSpecN.fx, Special/RoadSurface.h, phase analysis/board/ledger. Private GPU replay/capture artifacts remain under ignored _work/.

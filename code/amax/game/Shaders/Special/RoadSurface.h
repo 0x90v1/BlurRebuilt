@@ -86,7 +86,14 @@ real3 EvaluateWorldNormal(in C_VertexPrepassOutput vtxData, real2 vTexCoord)
 {
 	real3	vTangentNormal	= h4tex2D(WorldNormalSampler, vTexCoord.xy).xzy * 2.0h - 1.0h;
 	real3	vWorldNormal	= TangentToWorld(vtxData, vTangentNormal);
+#if defined(BLUR_DX11)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] PC prepass shader 0x10de23c0
+	// (race trace draw 7047278) uses mov_sat on this blend interpolant.
+	// Its w component also carries clip w for the separate depth output.
+			vWorldNormal	= normalize(lerp(real3(0.0h, 1.0h, 0.0h), vWorldNormal, saturate(vtxData.m_vTexCoord.w)));
+#else
 			vWorldNormal	= normalize(lerp(real3(0.0h, 1.0h, 0.0h), vWorldNormal, vtxData.m_vTexCoord.w));
+#endif
 	return vWorldNormal;
 }
 #endif

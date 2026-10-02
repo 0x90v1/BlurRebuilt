@@ -189,14 +189,22 @@ C_PixelOutput RoadSurfacePrepassPS(in C_VertexPrepassOutput vtxData)
 #else
 
 #if defined(ENABLE_PREPASS_VIEWSPACE) && !defined(NO_WORLDNORMAL)
-	real3	vWorldNormal	= EvaluateWorldNormal(vtxData, vtxData.m_vTexCoord.xy).xzy;
+	real3	vWorldNormal	= EvaluateWorldNormal(vtxData, vtxData.m_vTexCoord.xy);
+#if !defined(BLUR_DX11)
+	vWorldNormal = vWorldNormal.xzy;
+#endif
+	// [Blur2PC][Blur1PCDX11][retail-recovered] Draw 7047187 uses the same
+	// world-normal PS as Road (0x10de23c0), without a second y/z swap.
 	real3	vViewNormal;
 	vViewNormal.x			= dot(vWorldNormal, g_vViewMatrix0.xyz);
 	vViewNormal.y			= dot(vWorldNormal, g_vViewMatrix1.xyz);
 	vViewNormal.z			= dot(vWorldNormal, g_vViewMatrix2.xyz);
 	output.m_vColour		= real4(vViewNormal * 0.5h + 0.5h, 1.0f);
 #elif !defined(NO_WORLDNORMAL)
-	real3	vWorldNormal	= EvaluateWorldNormal(vtxData, vtxData.m_vTexCoord.xy).xzy;
+	real3	vWorldNormal	= EvaluateWorldNormal(vtxData, vtxData.m_vTexCoord.xy);
+#if !defined(BLUR_DX11)
+	vWorldNormal = vWorldNormal.xzy;
+#endif
 	output.m_vColour		= real4(vWorldNormal * 0.5h + 0.5h, 1.0h);
 #else
 	output.m_vColour	= real4(normalize(vtxData.m_vNormal.xyz) * 0.5h + 0.5fh, 1.0h);
