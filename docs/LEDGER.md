@@ -534,6 +534,13 @@ Next: reload instructions/configuration in new sessions, then compare recorded p
 Files touched: AGENTS.md; docs/agent-reference/; tools/agent_context.py; docs/{BOARD,LEDGER}.md. Global config: C:/Users/uKER/.codex/config.toml. Backups: C:/Users/uKER/.codex/tmp/context-efficiency-20260929-182911.
 
 
+## 2026-09-29 - Codex continuation - T174 checkpoint
+Did: verified the existing retail-derived Track strip device allocator/draw correction against pristine source and retail executable evidence; no new base source edit in this continuation.
+Verified: standard Release build tools/build.sh has zero errors; queued private retail Brighton test reached Racing and exited 0 with compressed drive/skid video. Exact visual pre/post skid comparison remains unverified.
+Delivery: standard _work/build/vs/Release/Amax.exe and Amax.pdb copied to this phase _work/run after confirming no delivered executable running. SHA256 01C69F482DB04AFF489E760C01133EA7B58799F31A6A47539EB80F32B3F7DB8E.
+Next: certify actual visible wheel marks against pre-fix retail build; preserve other sessions changes. No commit or push requested/performed, so merge propagation not applicable yet; existing higher-phase device correction remains in workspace.
+
+
 ## 2026-09-29 22:45 - Codex showroom-effects - T177
 Did: restored retail PC's DoF pass enable checks, then corrected the signed-depth decode exposed by the user's report that the car was blurred. Shared PC depth reads now use the magnitude, as retail DoF, atmospheric-scattering, volumetric-fog, reduced-motion-blur and depth-reduction shaders do. Camera focus values unchanged. Recorded recovered mechanisms, shader comparisons, related-effect audit and its limits in analysis.md. Found in / belongs to Blur1PC, reproduced on retail PC data.
 Verified: standard tools/build.sh Release build has zero errors; regenerated built-in shaders (693 SM3 ok, 0 failed). Retail SM3 DoF combine/near-CoC and atmospheric-scattering/volumetric-fog instructions match; other compared shaders retain compiler scheduling/register differences. Queued minimized title test: sharp car with strongly blurred background, `_work/t177/corrected/showroom.png`. Queued debug-menu Brighton drive: 84 mph, sharp player car, clean exit 0/no timeout; compressed `_work/t177/drive_corrected/drive.mp4`, still `drive.png`. The guard-only screenshot `_work/t177/after/showroom.png` is the rejected intermediate result, not approval evidence.
