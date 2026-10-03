@@ -623,3 +623,23 @@ Found in / Belongs to **Blur1PCDX11**. With BasicRender now created, a Downtown 
 The retail shader dump across 11 more routes added no files (3,336 before and after): `GameAppResources` preloads every effect, so the Observatory audit already covers all loaded passes.
 
 Verification: standard build errsum 0. Queued regression (389 s, wait 0) covered Brighton, Hackney, Amboy, LA River, Long Beach Docks, Haruna, Dumbo, Downtown, Russian Hill, Barcelona Oval and Gracia at native60, plus Downtown, Docks and Haruna unlocked. All 14 exit 0 with no missing-shader, input-layout, RTV or unmeasured-format diagnostics, and the stills are coherent (`_work/build/route_regression_oct03/sheet.jpg`).
+
+### T127: configured resolution and MSAA discarded; native device reset and MSAA resolve (2026-10-03)
+
+Found in / Belongs to **Blur1PCDX11**. The user reported a low internal resolution. With their settings (1920x1080, multisample 3), every native target, the back buffer included, was 1280x720.
+- `PlatformInitialise` loads the settings and `MyCreateWindow` → `SetDisplaySize` puts 1920x1080 into the device parameters. `C_ApplicationBase::SetupDeviceParams` then calls `C_DeviceParams::Setup(1280, 720, …, E_Multisample_None)`.
+- In D3D9 (`D3D9DeviceParams.cpp`) `Setup` assigns only on Xenon, so on PC the configured size and window multisample survive. The native `Setup` assigned everything, so the game rendered at 1280x720 without MSAA and the result was stretched to the screen. Native `Setup` is now a no-op on PC, matching D3D9.
+- Automated checks had used 1280x720 settings, which equal the default and hid the fault.
+
+Runtime changes (options, window resize) go through `ResetDevice` → `DestroyVolatile`/`CreateVolatile`. Native had no counterpart to `PCD3D9Device::Create/DestroyDeviceVolatile`. Now `DestroyDeviceVolatile` destroys the windows, unbinds the output targets and releases the back-buffer colour and depth surfaces. `CreateDeviceVolatile` sets the fullscreen state, calls `ResizeTarget` in fullscreen, then `ResizeBuffers`, re-acquires the back buffer, recreates its depth surface and rebuilds the window targets.
+
+MSAA had never run natively; with the size fix it produced a black scene. The window textures use typeless storage for per-sampler sRGB views, and `C_RenderTexture2D::Resolve` passed `B8G8R8A8_TYPELESS` to `ResolveSubresource`. The debug layer reports "never able to resolve multisampled resources". The resolve now uses the typed linear format; D3D9 resolves with `StretchRect` on the linear values.
+
+Verification (`_work/build/lowres_title_oct03/`, private settings copies, windowed):
+- At 1920x1080, MSAA 3 and 0 give 1920x1080 back buffer and window targets. Title text is sharp at native pixels.
+- MSAA 3 scene edges are smoothed compared with MSAA 0 (`race_msaa_zoom.png`), and no resolve errors remain.
+- A mid-race `Amax.UpdateGraphicsOptions` switch to 1600x900 with no MSAA logs `back buffer reset 1600x900`; the following frame is a correct 1600x900 race.
+- MSAA 3 unlocked exits 0.
+- The fullscreen start and fullscreen mode switch are not automated (scripted runs stay windowed) and are unverified.
+
+Separate, open: the crowd-flag built-ins (`vsCrowdFlag`/`vsCrowdFlagPrepass` with their pixel shaders) raise D3D11 VS/PS TEXCOORD linkage errors under the debug layer once a race starts.

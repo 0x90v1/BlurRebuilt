@@ -724,9 +724,10 @@ C_DeviceParams::C_DeviceParams() : m_pd3dDevice(nullptr), m_pd3dObject(nullptr),
     m_WindowBufferDepthStencilFormat(E_Format_D24S8), m_WindowBufferMultisample(E_Multisample_2),
     m_ScreenWidth(640), m_ScreenHeight(480) {}
 C_DeviceParams::~C_DeviceParams() {}
-void C_DeviceParams::Setup(U32 fbw,U32 fbh,U32 bbw,U32 bbh,E_Multisample bbm,U32 wbw,U32 wbh,E_Multisample wbm)
-{ m_Width=bbw; m_Height=bbh; m_Multisample=bbm; m_WindowBufferWidth=wbw; m_WindowBufferHeight=wbh;
-  m_WindowBufferMultisample=wbm; m_ScreenWidth=fbw; m_ScreenHeight=fbh; }
+// [Blur1PCDX11] As D3D9DeviceParams.cpp: Setup assigns only on Xenon. On PC the sizes and window
+// multisample come from LoadSettings/SetDisplaySize before C_ApplicationBase::SetupDeviceParams calls
+// this with its 1280x720 defaults; assigning them here discarded the configured resolution and MSAA.
+void C_DeviceParams::Setup(U32,U32,U32,U32,E_Multisample,U32,U32,E_Multisample) {}
 
 namespace { bool IsDXBC(const S32* data,U32 size)
 { return data && size>=4 && *reinterpret_cast<const U32*>(data)==0x43425844; } }

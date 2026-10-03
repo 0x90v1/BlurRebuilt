@@ -689,3 +689,13 @@ Verified: standard build errsum 0; 14 queued races (11 routes native60, 3 unlock
 Next: per-pass GPU parity for audited shaders is now limited to the explained interface differences; continue with remaining visual/state parity (Blur1PC detail-1 black frame belongs to Blur1PC).
 
 Files touched: display2/source/context/D3D11Context.cpp, docs/blur1pcdx11/{analysis,LEDGER}.md.
+
+## 2026-10-03 — session Claude DX11 continuation — T127 resolution, MSAA and device reset
+
+Did: user reported a low internal resolution. Native `C_DeviceParams::Setup` overwrote the configured 1920x1080 and MSAA with 1280x720 and no MSAA; it is now a PC no-op, as in D3D9. Implemented native `CreateDeviceVolatile`/`DestroyDeviceVolatile` (swap chain resize and fullscreen state, back buffer and window targets). Fixed the MSAA resolve, which used a typeless format.
+
+Verified: standard build errsum 0; 1920x1080 MSAA 3/0 targets correct; MSAA edges resolved; runtime switch to 1600x900 works; MSAA 3 unlocked exits 0. Fullscreen not automated (unverified). Evidence `_work/build/lowres_title_oct03`.
+
+Next: crowd-flag built-in VS/PS linkage errors; user check of fullscreen start.
+
+Files touched: device/d3d11/{D3D11GameDevice.cpp,PCD3D11GameDevice.cpp}, docs/blur1pcdx11/{analysis,LEDGER}.md.

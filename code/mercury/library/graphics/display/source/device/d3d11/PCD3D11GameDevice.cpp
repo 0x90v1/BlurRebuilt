@@ -185,8 +185,60 @@ bool C_PCD3D11GameDevice::CreateDevice()
     SetColourDepthStencilSurface();InvalidateState();DefaultStates();ResizeWindows();
     m_Valid=true;return true;
 }
-bool C_PCD3D11GameDevice::CreateDeviceVolatile() {return true;}
-void C_PCD3D11GameDevice::DestroyDeviceVolatile() {DestroyWindows();}
+// [Blur1PCDX11] The counterpart of PCD3D9Device::CreateDeviceVolatile/DestroyDeviceVolatile. The
+// application applies the configured resolution, window mode and multisampling through ResetDevice
+// (DestroyVolatile, then CreateVolatile with the new parameters); D3D9 resets its device there. Without
+// this the swap chain, back buffer and window targets kept their creation-time size.
+bool C_PCD3D11GameDevice::CreateDeviceVolatile()
+{
+    if(!m_pSwapChain || !m_BackBuffers.Size())return false;
+    C_BackBuffer* back=m_BackBuffers[0];
+    if(back->m_ColourSurface.m_pd3dSurface)return true;    // created by CreateDevice, not yet destroyed
+    SetPresentParamsD3D11();
+    const BOOL fullscreen=!m_DeviceParams.m_Windowed;
+    BOOL current=FALSE;m_pSwapChain->GetFullscreenState(&current,nullptr);
+    if(current!=fullscreen)
+    {
+        const HRESULT hr=m_pSwapChain->SetFullscreenState(fullscreen,nullptr);
+        if(FAILED(hr))Blur2PCAutomation::LogF("DX11 SetFullscreenState(%d) failed %08x",fullscreen,(unsigned)hr);
+    }
+    if(fullscreen)
+    {
+        // D3D9 Reset switches the display mode with the back buffer; DXGI needs the target resized too.
+        DXGI_MODE_DESC mode=m_d3dPresentParams.BufferDesc;
+        mode.RefreshRate.Numerator=m_DeviceParams.m_RefreshRate;mode.RefreshRate.Denominator=m_DeviceParams.m_RefreshRate ? 1 : 0;
+        const HRESULT hr=m_pSwapChain->ResizeTarget(&mode);
+        if(FAILED(hr))Blur2PCAutomation::LogF("DX11 ResizeTarget %ux%u failed %08x",mode.Width,mode.Height,(unsigned)hr);
+    }
+    HRESULT hr=m_pSwapChain->ResizeBuffers(1,m_DeviceParams.m_Width,m_DeviceParams.m_Height,
+        m_d3dPresentParams.BufferDesc.Format,0);
+    if(FAILED(hr)){Blur2PCAutomation::LogF("DX11 ResizeBuffers %ux%u failed %08x",m_DeviceParams.m_Width,m_DeviceParams.m_Height,(unsigned)hr);return false;}
+    back->m_Width=m_DeviceParams.m_Width;back->m_Height=m_DeviceParams.m_Height;
+    back->m_ColourFormat=m_DeviceParams.m_ColourFormat;
+    back->m_DepthStencilFormat=m_DeviceParams.m_DepthStencilFormat;
+    back->m_Multisample=E_Multisample_None;
+    if(FAILED(m_pSwapChain->GetBuffer(0,__uuidof(ID3D11Texture2D),
+        reinterpret_cast<void**>(&back->m_ColourSurface.m_pd3dSurface))))return false;
+    if(!m_Display2.CreateDepthStencilSurface(back->m_Width,back->m_Height,E_Usage_DepthStencil,
+        static_cast<Display2::E_SurfaceFormat>(back->m_DepthStencilFormat),Display2::E_Multisample_None,nullptr,
+        &back->m_DepthStencilSurface))return false;
+    Blur2PCAutomation::LogF("DX11 back buffer reset %ux%u windowed=%d windows %ux%u multisample=%d",
+        back->m_Width,back->m_Height,(int)m_DeviceParams.m_Windowed,m_DeviceParams.m_WindowBufferWidth,
+        m_DeviceParams.m_WindowBufferHeight,(int)m_DeviceParams.m_WindowBufferMultisample);
+    SetColourDepthStencilSurface();InvalidateState();DefaultStates();ResizeWindows();
+    m_Valid=true;m_Lost=false;return true;
+}
+void C_PCD3D11GameDevice::DestroyDeviceVolatile()
+{
+    DestroyWindows();
+    // ResizeBuffers requires every reference to the swap chain's buffer to be released.
+    ID3D11DeviceContext* context=nullptr;
+    if(m_pd3dDevice)m_pd3dDevice->GetImmediateContext(&context);
+    if(context){context->OMSetRenderTargets(0,nullptr,nullptr);context->Flush();context->Release();}
+    for(S32 i=0;i<m_BackBuffers.Size();++i)
+    {m_Display2.DestroySurface(&m_BackBuffers[i]->m_DepthStencilSurface);
+     m_Display2.DestroySurface(&m_BackBuffers[i]->m_ColourSurface);}
+}
 void C_PCD3D11GameDevice::DestroyDevice()
 {
     ClearWindows();m_DynamicVertexBuffer.Destroy();
@@ -400,7 +452,9 @@ void C_RenderTexture2D::Resolve(U32 level) const
     ID3D11Device* device=nullptr;source->GetDevice(&device);if(!device)return;
     ID3D11DeviceContext* context=nullptr;device->GetImmediateContext(&context);
     D3D11_TEXTURE2D_DESC desc={};source->GetDesc(&desc);
-    if(context){context->ResolveSubresource(dest,level,source,0,desc.Format);context->Release();}
+    // [Blur1PCDX11] Colour targets use typeless storage (per-sampler sRGB views); a resolve needs a typed
+    // format, and D3D9's StretchRect resolve works on the linear values.
+    if(context){context->ResolveSubresource(dest,level,source,0,GetLinearFormat(desc.Format));context->Release();}
     device->Release();
 }
 
