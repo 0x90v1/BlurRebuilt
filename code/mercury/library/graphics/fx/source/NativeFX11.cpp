@@ -68,7 +68,10 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
 {
     // [Blur1PCDX11] FX sampler values are GPUTexture pointers (Display2: ID3D11Resource), as D3D9's were IDirect3DBaseTexture9.
     const char* name = g_effects.TextureForSampler(effect->Name.Chars(), sampler);
-    if (getenv("BLUR_DX11_TRACE_SCENE") && Blur2PCAutomation::Now() > 21 &&
+    // [Blur1PCDX11] Diagnostic options are set before launch; do not scan the
+    // process environment for every texture or constant bound while rendering.
+    static const bool traceScene = getenv("BLUR_DX11_TRACE_SCENE") != nullptr;
+    if (traceScene && Blur2PCAutomation::Now() > 21 &&
         strstr(sampler, "DamageVolume"))
     {
         static unsigned tracedDamageVolume = 0;
@@ -146,7 +149,8 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
 void TraceVehicleParameter(const Effect* effect, const char* name, const void* data,
                            unsigned bytes, const char* source)
 {
-    if (!getenv("BLUR_DX11_TRACE_VEHICLE") || !name || !data || bytes < 128 ||
+    static const bool traceVehicle = getenv("BLUR_DX11_TRACE_VEHICLE") != nullptr;
+    if (!traceVehicle || !name || !data || bytes < 128 ||
         strcmp(name, "g_VehicleVtxParams") ||
         Blur2PCAutomation::Now() < 21 || Blur2PCAutomation::Now() >= 22) return;
     static unsigned vehicleInputs = 0;

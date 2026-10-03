@@ -331,3 +331,16 @@ Blocked: none. Broader visual variants, slowdown and intermittent damage-volume 
 Next: cache process diagnostic options, build/deliver, repeat moving60/unlocked, and profile remaining hot paths. T127 remains in progress.
 
 Files touched: native D3D11Effect texture binding, owned cube_binding_checks and D3D9 sampling reference, owned probe include/check hunks, phase analysis/board/ledger. Private artifacts remain under ignored _work/.
+
+
+## 2026-10-03 01:20 — session Codex visual diagnosis — T127
+
+Did: cache hot launch-time native diagnostic options and retain this session's bounded GPU evidence helpers. Found in / Belongs to Blur1PCDX11.
+
+Verified: standard diagnostic_cache_build errsum0 and delivered; indexed2/2 translation units compile. Queued moving60/unlocked exit0; further debug-enabled60 exits0 without validation errors. Environment scanning drops from the leading sampled costs. Car reaches132mph. Dynamic vertex staging maps now dominate the unlocked profile (665/1275 caller stacks).
+
+Blocked: none. Native dynamic locks ignore the pristine caller's discard/no-overwrite flags; visual parity and damage-volume crash remain open.
+
+Next: finish the native dynamic-lock repair and queued GPU retention regression, then consume moving60/unlocked verification and profile remaining cost. T127 remains in progress.
+
+Files touched: owned NativeFX11 cache hunks, owned D3D11GameDeviceNative diagnostics (separate alpha-test edits excluded), phase analysis/board/ledger. Private artifacts remain under ignored _work/.

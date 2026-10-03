@@ -8,6 +8,7 @@
 #include <array>
 #include <wrl/client.h>
 #include <system/debug/Blur2PCAutomation.h>
+#include <system/debug/Variables.h>
 #include <intrin.h>
 #include <d3dcompiler.h>
 #include "Display/Utils/Screenshot.h"
@@ -77,6 +78,26 @@ struct NativeState
 };
 std::map<C_D3D11GameDevice*, NativeState> g_states;
 NativeState& State(C_D3D11GameDevice* device) { return g_states[device]; }
+
+// [Blur1PCDX11] Opt-in, bounded stacks identify callers hidden by draw wrappers.
+void TraceMissingVertexShader(bool indexed, U32 count, const C_VertexShader* shader, bool nativeFX)
+{
+    // [Blur1PCDX11] Launch-time diagnostic flags must not scan the environment
+    // at every draw when the corresponding trace is disabled.
+    static const bool enabled = getenv("BLUR_DX11_TRACE_MISSING_VS") != nullptr;
+    if (!enabled) return;
+    static std::map<ULONG, bool> stacks;
+    if (stacks.size() >= 16) return;
+    void* frames[12] = {};
+    ULONG hash = 0;
+    const USHORT depth = CaptureStackBackTrace(0, 12, frames, &hash);
+    if (!stacks.emplace(hash, true).second) return;
+    Blur2PCAutomation::LogF("DX11 missing VS stack=%08x indexed=%u count=%u shader=%p bytes=%u nativeFX=%u pass=%s module=%p",
+        hash, indexed, count, shader, shader ? static_cast<unsigned>(shader->m_Bytecode.size()) : 0,
+        nativeFX, FX::NativeFX11CurrentPass(), GetModuleHandleW(nullptr));
+    for (USHORT frame = 0; frame < depth; ++frame)
+        Blur2PCAutomation::LogF("DX11 missing VS stack=%08x frame=%u address=%p", hash, frame, frames[frame]);
+}
 
 // [Blur1PCDX11] D3D9 samples texture stage N through sampler register sN. The SM5 recompiles of the
 // built-in shaders keep the sN registers but fxc packs the textures of legacy samplers into t0, t1, ...
@@ -397,6 +418,9 @@ void BindRenderTargets(C_D3D11GameDevice* game)
 // [Blur1PCDX11] Temporary: one-frame draw trace (target, shaders, blend, centre pixel after the draw).
 unsigned g_dx11TraceFrame = 0;
 unsigned g_dx11TraceDraw = 0;
+// [Blur1PCDX11] Select a diagnostic pass by a used shader variable when
+// visibility changes make draw ordinals unstable between automated runs.
+static bool g_dx11TraceSelectedCapture = false;
 void TraceDraw(ID3D11Device* device, ID3D11DeviceContext* context, const NativeState& state, UINT count, bool indexed)
 {
     if (!g_dx11TraceFrame) return;
@@ -435,11 +459,79 @@ void TraceDraw(ID3D11Device* device, ID3D11DeviceContext* context, const NativeS
         }
     }
     const D3D11_RENDER_TARGET_BLEND_DESC& blend = state.blend.RenderTarget[0];
+    // [Blur1PCDX11] Optional scalar MRT1 evidence while isolating prepass writers.
+    if (getenv("BLUR_DX11_TRACE_DEPTH_PX"))
+    {
+        ID3D11RenderTargetView* targets[2] = {};
+        context->OMGetRenderTargets(2, targets, nullptr);
+        ComPtr<ID3D11Resource> depthResource;
+        if (targets[1]) targets[1]->GetResource(&depthResource);
+        for (auto* target : targets) if (target) target->Release();
+        ComPtr<ID3D11Texture2D> depthTexture;
+        if (depthResource) depthResource.As(&depthTexture);
+        D3D11_TEXTURE2D_DESC depthDesc = {};
+        if (depthTexture) depthTexture->GetDesc(&depthDesc);
+        if (depthDesc.Format == DXGI_FORMAT_R32_FLOAT && depthDesc.SampleDesc.Count == 1)
+        {
+            float x = .25f, y = .75f;
+            sscanf_s(getenv("BLUR_DX11_TRACE_DEPTH_PX"), "%f,%f", &x, &y);
+            const UINT px = (std::min)(depthDesc.Width - 1, static_cast<UINT>(depthDesc.Width * x));
+            const UINT py = (std::min)(depthDesc.Height - 1, static_cast<UINT>(depthDesc.Height * y));
+            depthDesc.Width = depthDesc.Height = depthDesc.MipLevels = depthDesc.ArraySize = 1;
+            depthDesc.Usage = D3D11_USAGE_STAGING; depthDesc.BindFlags = depthDesc.MiscFlags = 0;
+            depthDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+            ComPtr<ID3D11Texture2D> staging;
+            if (SUCCEEDED(device->CreateTexture2D(&depthDesc, nullptr, &staging)))
+            {
+                D3D11_BOX box = { px, py, 0, px + 1, py + 1, 1 };
+                context->CopySubresourceRegion(staging.Get(), 0, 0, 0, 0, depthTexture.Get(), 0, &box);
+                D3D11_MAPPED_SUBRESOURCE mapped = {};
+                if (SUCCEEDED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped)))
+                {
+                    Blur2PCAutomation::LogF("DX11 prepass depth draw=%u pixel=%u,%u value=%.9g", g_dx11TraceDraw, px, py, *static_cast<const float*>(mapped.pData));
+                    context->Unmap(staging.Get(), 0);
+                }
+            }
+        }
+    }
     Blur2PCAutomation::LogF("DX11 trace %u %s count=%u VS=%p PS=%p fx=%s RT=%p %ux%u fmt=%u blend=%u %u/%u op=%u mask=%x depth=%u stencil=%u px=%s",
         g_dx11TraceDraw++, indexed ? "idx" : "arr", count, vs.Get(), ps.Get(),
         state.nativeFXActive ? FX::NativeFX11CurrentPass() : "-", resource.Get(), desc.Width, desc.Height, desc.Format,
         blend.BlendEnable, blend.SrcBlend, blend.DestBlend, blend.BlendOp, blend.RenderTargetWriteMask,
         state.depth.DepthEnable, state.depth.StencilEnable, pixel);
+    // [Blur1PCDX11] One still from a selected draw in the existing one-frame
+    // trace isolates material output without changing any render state.
+    static bool captured = false;
+    static const char* selectedDraw = getenv("BLUR_DX11_CAPTURE_TRACE_DRAW");
+    static const char* capturePath = getenv("BLUR_DX11_CAPTURE_TRACE_PATH");
+    if (!captured && selectedDraw && capturePath && texture &&
+        (g_dx11TraceSelectedCapture || g_dx11TraceDraw-1 == strtoul(selectedDraw,nullptr,10)))
+    {
+        captured = true;
+        TakeD3D11BackBufferScreenshot(capturePath,texture.Get());
+        Blur2PCAutomation::LogF("DX11 trace still draw=%u path=%s",g_dx11TraceDraw-1,capturePath);
+    }
+    // [Blur1PCDX11] FX11 can bind state objects after the engine cache changes.
+    // Read the actual GPU state for the bounded, opt-in one-frame trace.
+    ComPtr<ID3D11DepthStencilState> actualDepth;
+    ComPtr<ID3D11RasterizerState> actualRaster;
+    ComPtr<ID3D11DepthStencilView> actualDSV;
+    UINT reference = 0;
+    context->OMGetDepthStencilState(&actualDepth, &reference);
+    context->RSGetState(&actualRaster);
+    context->OMGetRenderTargets(0, nullptr, &actualDSV);
+    D3D11_DEPTH_STENCIL_DESC depthDesc = {};
+    D3D11_RASTERIZER_DESC rasterDesc = {};
+    if (actualDepth) actualDepth->GetDesc(&depthDesc);
+    if (actualRaster) actualRaster->GetDesc(&rasterDesc);
+    ComPtr<ID3D11Resource> depthResource;
+    if (actualDSV) actualDSV->GetResource(&depthResource);
+    Blur2PCAutomation::LogF("DX11 trace   actual DSV=%p depth=%u/write%u/func%u stencil=%u/ref%u/read%u/write%u front=%u/%u/%u/%u back=%u/%u/%u/%u cull=%u/ccw%u",
+        depthResource.Get(), depthDesc.DepthEnable, depthDesc.DepthWriteMask, depthDesc.DepthFunc,
+        depthDesc.StencilEnable, reference, depthDesc.StencilReadMask, depthDesc.StencilWriteMask,
+        depthDesc.FrontFace.StencilFunc, depthDesc.FrontFace.StencilFailOp, depthDesc.FrontFace.StencilDepthFailOp, depthDesc.FrontFace.StencilPassOp,
+        depthDesc.BackFace.StencilFunc, depthDesc.BackFace.StencilFailOp, depthDesc.BackFace.StencilDepthFailOp, depthDesc.BackFace.StencilPassOp,
+        rasterDesc.CullMode, rasterDesc.FrontCounterClockwise);
     if (desc.Width <= 4)
     {
         const float* c = state.pixelData;
@@ -643,6 +735,215 @@ void C_D3D11GameDevice::SetTexture(U32 slot, const C_Texture* texture)
     m_Sampler[slot].m_pTexture = texture;
     SetNativeTexture(slot, texture ? texture->m_pd3dTexture : nullptr);
 }
+// [Blur1PCDX11] Bounded opt-in GPU evidence for the recovered vehicle path.
+// Read the actually bound constant buffers, not only the CPU parameter sources.
+static void TraceVehicleShader(ID3D11Device* device, ID3D11DeviceContext* context,
+                               const std::vector<U8>& code, bool vertex)
+{
+    const char* tracePart = getenv("BLUR_DX11_TRACE_VEHICLE_PART");
+    if (tracePart && ((vertex && strstr(tracePart, "ps")) || (!vertex && strstr(tracePart, "vs")))) return;
+    if (tracePart && strstr(tracePart, "raw"))
+    {
+        if (strstr(tracePart, "noop")) return;
+        ComPtr<ID3D11Buffer> buffer;
+        context->PSGetConstantBuffers(strstr(tracePart, "13") ? 13 : 0, 1, &buffer);
+        return;
+    }
+    ComPtr<ID3D11ShaderReflection> reflection;
+    if (code.empty() || FAILED(D3DReflect(code.data(), code.size(), IID_PPV_ARGS(&reflection)))) return;
+    D3D11_SHADER_DESC shader = {};
+    reflection->GetDesc(&shader);
+    for (UINT i = 0; i < shader.BoundResources; ++i)
+    {
+        D3D11_SHADER_INPUT_BIND_DESC binding = {};
+        reflection->GetResourceBindingDesc(i, &binding);
+        if (tracePart && (strstr(tracePart, "constants") || strstr(tracePart, "descriptors") || strstr(tracePart, "copy")) && binding.Type != D3D_SIT_CBUFFER) continue;
+        if (tracePart && strstr(tracePart, "textures") && binding.Type != D3D_SIT_TEXTURE) continue;
+        if (binding.Type == D3D_SIT_CBUFFER)
+        {
+            ComPtr<ID3D11Buffer> buffer, staging;
+            if (vertex) context->VSGetConstantBuffers(binding.BindPoint, 1, &buffer);
+            else context->PSGetConstantBuffers(binding.BindPoint, 1, &buffer);
+            if (!buffer) continue;
+            D3D11_BUFFER_DESC desc = {};
+            buffer->GetDesc(&desc);
+            if (tracePart && strstr(tracePart, "descriptors")) continue;
+            desc.Usage = D3D11_USAGE_STAGING;
+            desc.BindFlags = desc.MiscFlags = 0;
+            desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+            if (FAILED(device->CreateBuffer(&desc, nullptr, &staging))) continue;
+            context->CopyResource(staging.Get(), buffer.Get());
+            if (tracePart && strstr(tracePart, "copy")) continue;
+            D3D11_MAPPED_SUBRESOURCE mapped = {};
+            if (FAILED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) continue;
+            auto* cb = reflection->GetConstantBufferByName(binding.Name);
+            D3D11_SHADER_BUFFER_DESC cbDesc = {};
+            cb->GetDesc(&cbDesc);
+            for (UINT v = 0; v < cbDesc.Variables; ++v)
+            {
+                D3D11_SHADER_VARIABLE_DESC variable = {};
+                cb->GetVariableByIndex(v)->GetDesc(&variable);
+                if (!(variable.uFlags & D3D_SVF_USED) || variable.StartOffset + variable.Size > desc.ByteWidth) continue;
+                if (getenv("BLUR_DX11_TRACE_SCENE") || getenv("BLUR_DX11_TRACE_VEHICLE_DUMP"))
+                {
+                    char path[MAX_PATH];
+                    sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_%s_%s.bin", vertex ? "VS" : "PS", variable.Name);
+                    FILE* file = nullptr;
+                    if (fopen_s(&file, path, "wb") == 0)
+                    { fwrite(static_cast<const U8*>(mapped.pData) + variable.StartOffset, variable.Size, 1, file); fclose(file); }
+                }
+                float first[4] = {}, last[4] = {};
+                const UINT copied = (std::min)(variable.Size, 16U);
+                memcpy(first, static_cast<const U8*>(mapped.pData) + variable.StartOffset, copied);
+                memcpy(last, static_cast<const U8*>(mapped.pData) + variable.StartOffset + variable.Size - copied, copied);
+                Blur2PCAutomation::LogF("DX11 vehicle GPU %s %s bytes=%u first=%.5f %.5f %.5f %.5f last=%.5f %.5f %.5f %.5f",
+                    vertex ? "VS" : "PS", variable.Name, variable.Size,
+                    first[0], first[1], first[2], first[3], last[0], last[1], last[2], last[3]);
+            }
+            context->Unmap(staging.Get(), 0);
+        }
+        else if (binding.Type == D3D_SIT_SAMPLER)
+        {
+            ComPtr<ID3D11SamplerState> sampler;
+            if (vertex) context->VSGetSamplers(binding.BindPoint, 1, &sampler);
+            else context->PSGetSamplers(binding.BindPoint, 1, &sampler);
+            D3D11_SAMPLER_DESC sd = {}; if (sampler) sampler->GetDesc(&sd);
+            Blur2PCAutomation::LogF("DX11 scene sampler %s s%u filter=%u addr=%u/%u/%u lod=%f..%f bias=%f",
+                binding.Name, binding.BindPoint, sd.Filter, sd.AddressU, sd.AddressV, sd.AddressW, sd.MinLOD, sd.MaxLOD, sd.MipLODBias);
+        }
+        else if (binding.Type == D3D_SIT_TEXTURE)
+        {
+            ComPtr<ID3D11ShaderResourceView> view;
+            if (vertex) context->VSGetShaderResources(binding.BindPoint, 1, &view);
+            else context->PSGetShaderResources(binding.BindPoint, 1, &view);
+            D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+            ComPtr<ID3D11Resource> resource;
+            if (view) { view->GetDesc(&desc); view->GetResource(&resource); }
+            Blur2PCAutomation::LogF("DX11 vehicle GPU %s texture %s t%u view=%p resource=%p format=%u dimension=%u",
+                vertex ? "VS" : "PS", binding.Name, binding.BindPoint, view.Get(), resource.Get(), desc.Format, desc.ViewDimension);
+            if (getenv("BLUR_DX11_TRACE_VEHICLE_DUMP") && resource &&
+                desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE3D)
+            {
+                // [Blur1PCDX11] Preserve row/slice pitches for LUT and damage-volume evidence.
+                ComPtr<ID3D11Texture3D> texture, staging;
+                if (FAILED(resource.As(&texture))) continue;
+                D3D11_TEXTURE3D_DESC td = {}; texture->GetDesc(&td);
+                td.Usage = D3D11_USAGE_STAGING; td.BindFlags = td.MiscFlags = 0;
+                td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+                if (FAILED(device->CreateTexture3D(&td, nullptr, &staging))) continue;
+                context->CopyResource(staging.Get(), texture.Get());
+                const UINT mip = desc.Texture3D.MostDetailedMip;
+                D3D11_MAPPED_SUBRESOURCE mapped = {};
+                if (FAILED(context->Map(staging.Get(), mip, D3D11_MAP_READ, 0, &mapped))) continue;
+                const UINT depth = (std::max)(1U, td.Depth >> mip);
+                const UINT header[] = {(std::max)(1U, td.Width >> mip),
+                    (std::max)(1U, td.Height >> mip), depth, static_cast<UINT>(td.Format),
+                    mapped.RowPitch, mapped.DepthPitch};
+                char path[MAX_PATH];
+                sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_%s_volume.bin", binding.Name);
+                FILE* file = nullptr;
+                if (fopen_s(&file, path, "wb") == 0)
+                { fwrite(header, sizeof(header), 1, file); fwrite(mapped.pData, mapped.DepthPitch, depth, file); fclose(file); }
+                context->Unmap(staging.Get(), mip);
+            }
+            if ((getenv("BLUR_DX11_TRACE_SCENE") || getenv("BLUR_DX11_TRACE_VEHICLE_DUMP")) && resource &&
+                (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D || desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURECUBE))
+            {
+                ComPtr<ID3D11Texture2D> texture, staging;
+                if (FAILED(resource.As(&texture))) continue;
+                D3D11_TEXTURE2D_DESC td = {}; texture->GetDesc(&td);
+                td.Usage = D3D11_USAGE_STAGING; td.BindFlags = td.MiscFlags = 0; td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+                if (FAILED(device->CreateTexture2D(&td, nullptr, &staging))) continue;
+                context->CopyResource(staging.Get(), texture.Get());
+                // [Blur1PCDX11] Read each face/mip once for the selected
+                // draw; mip filtering can expose data absent from mip zero.
+                for (UINT face = 0; face < td.ArraySize; ++face)
+                for (UINT mip = 0; mip < td.MipLevels; ++mip)
+                {
+                    const UINT subresource = face * td.MipLevels + mip;
+                    D3D11_MAPPED_SUBRESOURCE mapped = {};
+                    if (FAILED(context->Map(staging.Get(), subresource, D3D11_MAP_READ, 0, &mapped))) continue;
+                    const UINT width = (std::max)(1U, td.Width >> mip);
+                    const UINT height = (std::max)(1U, td.Height >> mip);
+                    const UINT header[] = {width, height, static_cast<UINT>(td.Format), mapped.RowPitch};
+                    const bool bc = td.Format >= DXGI_FORMAT_BC1_TYPELESS && td.Format <= DXGI_FORMAT_BC3_UNORM_SRGB;
+                    char path[MAX_PATH], suffix[64] = {};
+                    if (td.ArraySize > 1) sprintf_s(suffix, "_face%u", face);
+                    if (mip) { char level[32]; sprintf_s(level, "_mip%u", mip); strcat_s(suffix, level); }
+                    sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_%s%s.bin", binding.Name, suffix);
+                    FILE* file = nullptr;
+                    if (fopen_s(&file, path, "wb") == 0)
+                    { fwrite(header, sizeof(header), 1, file); fwrite(mapped.pData, mapped.RowPitch, bc ? (height + 3) / 4 : height, file); fclose(file); }
+                    context->Unmap(staging.Get(), subresource);
+                }
+            }
+        }
+    }
+}
+// [Blur1PCDX11] Opt-in capture of actual paint vertex inputs/outputs.
+static void TraceVehicleVertices(ID3D11Device* device, ID3D11DeviceContext* context,
+                                const std::vector<U8>& code, UINT indices, UINT start, INT base)
+{
+    if (!getenv("BLUR_DX11_TRACE_VEHICLE_VERTICES") || code.empty()) return;
+    ComPtr<ID3D11GeometryShader> oldGS;
+    context->GSGetShader(&oldGS, nullptr, nullptr);
+    if (oldGS) return;
+    ComPtr<ID3D11Buffer> vb, ib;
+    UINT stride = 0, offset = 0, ibOffset = 0; DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+    context->IAGetVertexBuffers(0, 1, &vb, &stride, &offset);
+    context->IAGetIndexBuffer(&ib, &format, &ibOffset);
+    if (!vb || !stride || base < 0) return;
+    auto dump = [&](ID3D11Buffer* buffer, const char* name) {
+        if (!buffer) return;
+        D3D11_BUFFER_DESC desc = {}; buffer->GetDesc(&desc);
+        desc.Usage = D3D11_USAGE_STAGING; desc.BindFlags = desc.MiscFlags = 0;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+        ComPtr<ID3D11Buffer> staging;
+        if (FAILED(device->CreateBuffer(&desc, nullptr, &staging))) return;
+        context->CopyResource(staging.Get(), buffer);
+        D3D11_MAPPED_SUBRESOURCE mapped = {};
+        if (FAILED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) return;
+        char path[MAX_PATH]; sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\paint_vertices_trace\\%s.bin", name);
+        FILE* file = nullptr;
+        if (fopen_s(&file, path, "wb") == 0) { fwrite(mapped.pData, 1, desc.ByteWidth, file); fclose(file); }
+        context->Unmap(staging.Get(), 0);
+    };
+    dump(vb.Get(), "vb"); dump(ib.Get(), "ib");
+    ComPtr<ID3D11Buffer> controls;
+    UINT controlStride = 0, controlOffset = 0;
+    context->IAGetVertexBuffers(3, 1, &controls, &controlStride, &controlOffset);
+    dump(controls.Get(), "controls");
+    Blur2PCAutomation::LogF("DX11 vehicle controls stride=%u offset=%u", controlStride, controlOffset);
+    D3D11_BUFFER_DESC vbDesc = {}; vb->GetDesc(&vbDesc);
+    const UINT vertices = (std::min)(2048U, (vbDesc.ByteWidth - offset) / stride - static_cast<UINT>(base));
+    // [Blur1PCDX11] Preserve draw addressing even when the paint-only stream
+    // output declaration cannot capture another material's signature.
+    Blur2PCAutomation::LogF("DX11 vertex capture stride=%u offset=%u base=%d vertices=%u indices=%u start=%u ibOffset=%u format=%u bytes=%u",
+        stride, offset, base, vertices, indices, start, ibOffset, format, vbDesc.ByteWidth);
+    const D3D11_SO_DECLARATION_ENTRY output[] = {
+        {0,"SV_Position",0,0,4,0},{0,"TEXCOORD",0,0,4,0},{0,"TEXCOORD",1,0,4,0},
+        {0,"TEXCOORD",2,0,4,0},{0,"TEXCOORD",4,0,4,0}
+    };
+    const UINT soStride = 80;
+    ComPtr<ID3D11GeometryShader> capture;
+    HRESULT hr = device->CreateGeometryShaderWithStreamOutput(code.data(), code.size(), output, 5,
+        &soStride, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, &capture);
+    if (FAILED(hr)) { Blur2PCAutomation::LogF("DX11 paint vertex SO failed %08x", hr); return; }
+    D3D11_BUFFER_DESC desc = {}; desc.ByteWidth = vertices * soStride; desc.BindFlags = D3D11_BIND_STREAM_OUTPUT;
+    ComPtr<ID3D11Buffer> so;
+    if (!vertices || FAILED(device->CreateBuffer(&desc, nullptr, &so))) return;
+    D3D11_PRIMITIVE_TOPOLOGY oldTopology;
+    context->IAGetPrimitiveTopology(&oldTopology);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+    context->GSSetShader(capture.Get(), nullptr, 0);
+    ID3D11Buffer* target = so.Get(); const UINT zero = 0;
+    context->SOSetTargets(1, &target, &zero); context->Draw(vertices, base);
+    context->SOSetTargets(0, nullptr, nullptr); context->GSSetShader(nullptr, nullptr, 0);
+    context->IASetPrimitiveTopology(oldTopology);
+    dump(so.Get(), "so");
+    Blur2PCAutomation::LogF("DX11 paint vertex inputs stride=%u offset=%u base=%d vertices=%u indices=%u start=%u ibOffset=%u format=%u",
+        stride, offset, base, vertices, indices, start, ibOffset, format);
+}
 void C_D3D11GameDevice::SetNativeTexture(U32 slot, ID3D11Resource* sampled)
 {
     if (slot >= E_Sampler_Count) return;
@@ -748,8 +1049,9 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
 { auto context = Context(m_pd3dDevice); if (!context) return; context->IASetPrimitiveTopology(Topology(type));
   SetStencilTopology(this, Topology(type));
   ComPtr<ID3D11VertexShader> bound; context->VSGetShader(&bound, nullptr, nullptr);
-  if (!bound) { static unsigned missing = 0; if (missing++ < 64)
-      Blur2PCAutomation::LogF("DX11 draw without VS caller=%p lastFX=%s", _ReturnAddress(), FX::NativeFX11LastError()); return; }
+  if (!bound) { TraceMissingVertexShader(false, count, m_pVertexShader, State(this).nativeFXActive);
+      static unsigned missing = 0; if (missing++ < 64)
+      Blur2PCAutomation::LogF("DX11 draw without VS caller=%p module=%p lastFX=%s", _ReturnAddress(), GetModuleHandleW(nullptr), FX::NativeFX11LastError()); return; }
   { static unsigned trace = 0; if (trace++ < 18) {
       ComPtr<ID3D11PixelShader> ps; ComPtr<ID3D11InputLayout> layout;
       ComPtr<ID3D11RenderTargetView> rtv; ComPtr<ID3D11DepthStencilView> dsv;
@@ -771,6 +1073,51 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
           State(this).blend.RenderTarget[0].BlendEnable);
   } }
   if (!State(this).nativeFXActive) { BindConstants(this, true); BindConstants(this, false); }
+  // [Blur1PCDX11] Inspect actual built-in bindings at one requested trace draw.
+  // This includes deferred light passes, which do not use the FX material path.
+  g_dx11TraceSelectedCapture = false;
+  if (g_dx11TraceFrame && !State(this).nativeFXActive)
+  {
+      static const char* selected = getenv("BLUR_DX11_TRACE_BOUND_DRAW");
+      static const char* variableName = getenv("BLUR_DX11_TRACE_BOUND_VARIABLE");
+      static bool tracedVariable = false;
+      bool selectedVariable = false;
+      if (variableName && !tracedVariable && m_pPixelShader)
+      {
+          const auto& bytes = m_pPixelShader->m_Bytecode;
+          ComPtr<ID3D11ShaderReflection> reflection;
+          D3D11_SHADER_VARIABLE_DESC variable = {};
+          if (!bytes.empty() && SUCCEEDED(D3DReflect(bytes.data(), bytes.size(), IID_PPV_ARGS(&reflection))) &&
+              SUCCEEDED(reflection->GetVariableByName(variableName)->GetDesc(&variable)) &&
+              (variable.uFlags & D3D_SVF_USED))
+              selectedVariable = true;
+      }
+      if (selectedVariable || (selected && g_dx11TraceDraw == strtoul(selected, nullptr, 10)))
+      {
+          tracedVariable |= selectedVariable;
+          g_dx11TraceSelectedCapture = selectedVariable;
+          Blur2PCAutomation::LogF("DX11 selected built-in bindings draw=%u", g_dx11TraceDraw);
+          if (selectedVariable)
+          {
+              if (strcmp(variableName, "g_mColour") == 0)
+              {
+                  const auto* correction = Debug::FindByName("Graphics.Render.PostProcess.HDR.ColourCorrection");
+                  if (correction && correction->Type() == Debug::kVtBool)
+                      Blur2PCAutomation::LogF("DX11 colour correction enabled=%u default=%u",
+                          static_cast<const Debug::Bool*>(correction)->Value(),
+                          static_cast<const Debug::Bool*>(correction)->Default());
+              }
+              const auto parameter = m_pPixelShader->GetParamFromName(variableName);
+              Blur2PCAutomation::LogF("DX11 selected built-in parameter %s register=%u count=%u",
+                  variableName, parameter.m_RegisterIndex, parameter.m_RegisterCount);
+              if (parameter.m_RegisterCount && parameter.m_RegisterIndex < 255 &&
+                  parameter.m_RegisterCount <= 255 - parameter.m_RegisterIndex)
+                  ReportPixelConstants(parameter.m_RegisterIndex, parameter.m_RegisterCount);
+          }
+          if (m_pVertexShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pVertexShader->m_Bytecode, true);
+          if (m_pPixelShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pPixelShader->m_Bytecode, false);
+      }
+  }
   if (!TryDraw(context.Get(), count, start, false))
   {
       static unsigned traced = 0;
@@ -780,9 +1127,101 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
 void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32 start, U32 count)
 { auto context = Context(m_pd3dDevice); if (!context) return; context->IASetPrimitiveTopology(Topology(type));
   SetStencilTopology(this, Topology(type));
+  // [Blur1PCDX11] Inspect one actual scene material draw after loading.
+  static const bool traceScene = getenv("BLUR_DX11_TRACE_SCENE") != nullptr;
+  if (State(this).nativeFXActive && traceScene &&
+      Blur2PCAutomation::Now() > 5 &&
+      strncmp(FX::NativeFX11CurrentPass(), "Default / MaterialLights", 24) == 0)
+  {
+      static bool tracedScene = false;
+      if (!tracedScene)
+      {
+          tracedScene = true;
+          Blur2PCAutomation::LogF("DX11 scene GPU draw %s base=%u start=%u count=%u", FX::NativeFX11CurrentPass(), base, start, count);
+          for (int stage = 0; stage < 2; ++stage)
+          {
+              const auto* bytes = stage ? (m_pPixelShader ? &m_pPixelShader->m_Bytecode : nullptr) :
+                  (m_pVertexShader ? &m_pVertexShader->m_Bytecode : nullptr);
+              ComPtr<ID3DBlob> assembly;
+              if (bytes && SUCCEEDED(D3DDisassemble(bytes->data(), bytes->size(), 0, nullptr, &assembly)))
+              {
+                  FILE* file = nullptr;
+                  if (fopen_s(&file, stage ? "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_bound_ps.txt" :
+                      "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_bound_vs.txt", "wb") == 0)
+                  { fwrite(assembly->GetBufferPointer(), 1, assembly->GetBufferSize(), file); fclose(file); }
+              }
+          }
+          if (m_pVertexShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pVertexShader->m_Bytecode, true);
+          if (m_pPixelShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pPixelShader->m_Bytecode, false);
+          if (m_pVertexDeclaration) for (U32 e = 0; e < m_pVertexDeclaration->m_ElementCount; ++e)
+          {
+              const auto& element = m_pVertexDeclaration->m_Elements[e];
+              Blur2PCAutomation::LogF("DX11 scene IA usage=%u index=%u type=%u stream=%u offset=%u",
+                  element.Usage, element.UsageIndex, element.Type, element.Stream, element.Offset);
+          }
+          for (UINT slot = 0; slot < 2; ++slot)
+          {
+              ComPtr<ID3D11Buffer> buffer, staging;
+              UINT stride = 0, offset = 0; DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+              if (slot) context->IAGetIndexBuffer(&buffer, &format, &offset);
+              else context->IAGetVertexBuffers(0, 1, &buffer, &stride, &offset);
+              if (!buffer) continue;
+              D3D11_BUFFER_DESC desc = {}; buffer->GetDesc(&desc);
+              desc.Usage = D3D11_USAGE_STAGING; desc.BindFlags = desc.MiscFlags = 0; desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+              if (FAILED(m_pd3dDevice->CreateBuffer(&desc, nullptr, &staging))) continue;
+              context->CopyResource(staging.Get(), buffer.Get());
+              D3D11_MAPPED_SUBRESOURCE mapped = {};
+              if (FAILED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) continue;
+              FILE* file = nullptr;
+              if (fopen_s(&file, slot ? "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_ib.bin" :
+                  "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_vb.bin", "wb") == 0)
+              { fwrite(mapped.pData, 1, desc.ByteWidth, file); fclose(file); }
+              context->Unmap(staging.Get(), 0);
+              Blur2PCAutomation::LogF("DX11 scene buffer slot=%u stride=%u offset=%u format=%u bytes=%u", slot, stride, offset, format, desc.ByteWidth);
+          }
+      }
+  }
+  // [Blur1PCDX11] Select one material for the existing bounded GPU-input trace.
+  bool traceVehicleAfter = false;
+  static const char* traceMaterial = getenv("BLUR_DX11_TRACE_VEHICLE_EFFECT");
+  if (!traceMaterial) traceMaterial = "veh_paint / Material";
+  static const bool traceVehicle = getenv("BLUR_DX11_TRACE_VEHICLE") != nullptr;
+  if (State(this).nativeFXActive && traceVehicle &&
+      (!getenv("BLUR_DX11_TRACE_VEHICLE_FRAME") || g_dx11TraceFrame) &&
+      (!getenv("BLUR_DX11_TRACE_VEHICLE_DRAW") ||
+       g_dx11TraceDraw == strtoul(getenv("BLUR_DX11_TRACE_VEHICLE_DRAW"), nullptr, 10)) &&
+      (!getenv("BLUR_DX11_TRACE_VEHICLE_COUNT") ||
+       count == strtoul(getenv("BLUR_DX11_TRACE_VEHICLE_COUNT"), nullptr, 10)) &&
+      (!getenv("BLUR_DX11_TRACE_VEHICLE_FILE") || strstr(FX::NativeFX11CurrentPass(), getenv("BLUR_DX11_TRACE_VEHICLE_FILE"))) &&
+      Blur2PCAutomation::Now() > 5 && strncmp(FX::NativeFX11CurrentPass(), traceMaterial, strlen(traceMaterial)) == 0 &&
+      (!strstr(FX::NativeFX11CurrentPass(), "Prepass") || strstr(traceMaterial, "Prepass")) &&
+      (!strstr(FX::NativeFX11CurrentPass(), "LOD") || strstr(traceMaterial, "LOD")))
+  {
+      static bool tracedVehicle = false;
+      if (!tracedVehicle)
+      {
+          tracedVehicle = true;
+          if (getenv("BLUR_DX11_TRACE_VEHICLE_VERTICES")) g_dx11TraceSelectedCapture = true;
+          Blur2PCAutomation::LogF("DX11 vehicle GPU draw %s", FX::NativeFX11CurrentPass());
+          traceVehicleAfter = getenv("BLUR_DX11_TRACE_VEHICLE_AFTER") != nullptr;
+          if (!traceVehicleAfter)
+          {
+              if (m_pVertexShader) TraceVehicleVertices(m_pd3dDevice, context.Get(), m_pVertexShader->m_Bytecode, count, start, base);
+              if (m_pVertexShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pVertexShader->m_Bytecode, true);
+              if (m_pPixelShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pPixelShader->m_Bytecode, false);
+          }
+          if (m_pVertexDeclaration) for (U32 e = 0; e < m_pVertexDeclaration->m_ElementCount; ++e)
+          {
+              const auto& element = m_pVertexDeclaration->m_Elements[e];
+              Blur2PCAutomation::LogF("DX11 vehicle IA usage=%u index=%u type=%u stream=%u offset=%u",
+                  element.Usage, element.UsageIndex, element.Type, element.Stream, element.Offset);
+          }
+      }
+  }
   ComPtr<ID3D11VertexShader> bound; context->VSGetShader(&bound, nullptr, nullptr);
-  if (!bound) { static unsigned missing = 0; if (missing++ < 64)
-      Blur2PCAutomation::LogF("DX11 indexed draw without VS caller=%p lastFX=%s", _ReturnAddress(), FX::NativeFX11LastError()); return; }
+  if (!bound) { TraceMissingVertexShader(true, count, m_pVertexShader, State(this).nativeFXActive);
+      static unsigned missing = 0; if (missing++ < 64)
+      Blur2PCAutomation::LogF("DX11 indexed draw without VS caller=%p module=%p lastFX=%s", _ReturnAddress(), GetModuleHandleW(nullptr), FX::NativeFX11LastError()); return; }
   { static unsigned trace = 0; if (trace++ < 18) {
       ComPtr<ID3D11PixelShader> ps; ComPtr<ID3D11InputLayout> layout;
       ComPtr<ID3D11RenderTargetView> rtv; ComPtr<ID3D11DepthStencilView> dsv;
@@ -868,6 +1307,12 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
       if (traced++ < 24) Blur2PCAutomation::LogF("DX11 indexed draw rejected VS=%p PS=%p count=%u", m_pVertexShader, m_pPixelShader, count);
   }
   TraceDraw(m_pd3dDevice, context.Get(), State(this), count, true);
+  if (traceVehicleAfter)
+  {
+      if (m_pVertexShader) TraceVehicleVertices(m_pd3dDevice, context.Get(), m_pVertexShader->m_Bytecode, count, start, base);
+      if (m_pVertexShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pVertexShader->m_Bytecode, true);
+      if (m_pPixelShader) TraceVehicleShader(m_pd3dDevice, context.Get(), m_pPixelShader->m_Bytecode, false);
+  }
   if (!testPS && count == 1647)
   {
       static bool nativeCaptured = false;
