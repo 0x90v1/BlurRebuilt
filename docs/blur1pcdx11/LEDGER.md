@@ -292,3 +292,16 @@ Blocked: none. Other material/reflection permutations and damage-volume crash re
 Next: consume queued default_lod_replay hardware/WARP results and compare the captured general reflection material against retail draw7048564. T127 remains in progress.
 
 Files touched: phase analysis, board and ledger. Private tools and replay artifacts remain under ignored _work/.
+
+
+## 2026-10-03 00:25 — session Codex visual diagnosis — T127
+
+Did: verify the selected general scenery material through reflection, normal/depth prepass and final lighting using actual retail shaders and identical protected inputs. No production tuning. Found in / Belongs to Blur1PCDX11.
+
+Verified: reflection hardware exact on captured and controlled cameras; prepass hardware normal colour and R32F depth exact; final lighting differs by one byte in one channel. WARP bounds and one reflection coverage residual recorded in analysis. All queued captures/private replays exit0. Existing standard road fixes remain delivered.
+
+Blocked: none. Broader variants and intermittent damage-volume crash remain open.
+
+Next: consume live driving_parity_oct03 batch (PC60/native60/native unlocked), inspect compressed videos and final stills for moving rendering differences, and classify the next reproduced fault. T127 remains in progress.
+
+Files touched: phase analysis, board and ledger. Private artifacts remain under ignored _work/.
