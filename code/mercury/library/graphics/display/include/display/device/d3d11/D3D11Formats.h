@@ -31,6 +31,10 @@ DXGI_FORMAT GetLinearFormat(DXGI_FORMAT format);
 HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
                           bool srgb, ID3D11ShaderResourceView** view,
                           ID3D11ShaderResourceView* existing = nullptr);
+// [Blur1PCDX11] Display2's texture owner pairs these at creation/destruction.
+// Retained views are released before its resource; raw resources stay uncached.
+void RegisterTextureViewOwner(ID3D11Resource* resource);
+void ReleaseTextureViewOwner(ID3D11Resource* resource);
 
 } }
 

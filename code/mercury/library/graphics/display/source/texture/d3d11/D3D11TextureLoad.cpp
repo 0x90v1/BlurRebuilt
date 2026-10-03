@@ -73,7 +73,14 @@ S32 CreateTexture2D(C_Texture2D* texture, Sys::I_BinaryStream* stream)
         return 0;
     if (FAILED(Display2::D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(source.Format))))
     { native->Release(); return 0; }
-    if (texture->m_pd3dTexture) texture->m_pd3dTexture->Release();
+    // [Blur1PCDX11] Serialized assets share Display2's texture owner, but are
+    // allocated here. Retire old views before replacing a streamed resource.
+    if (texture->m_pd3dTexture)
+    {
+        D3D11::ReleaseTextureViewOwner(texture->m_pd3dTexture);
+        texture->m_pd3dTexture->Release();
+    }
+    D3D11::RegisterTextureViewOwner(native);
     texture->m_pd3dTexture = native;
     const U32 total = TotalBytes(source, layout);
     texture->SetSize(total);
@@ -186,7 +193,13 @@ void CloneTexture2D(C_Texture2D* destination, const C_Texture2D* source,
     if (FAILED(Device()->GetD3DDevice()->CreateTexture2D(&desc, nullptr, &native))) return;
     if (FAILED(Display2::D3D11TextureFormats::SetPCFormat(native,
         static_cast<D3DFORMAT>(source->GetFormat())))) { native->Release(); return; }
-    if (destination->m_pd3dTexture) destination->m_pd3dTexture->Release();
+    // [Blur1PCDX11] A streaming clone gets its own view lifetime and descriptor.
+    if (destination->m_pd3dTexture)
+    {
+        D3D11::ReleaseTextureViewOwner(destination->m_pd3dTexture);
+        destination->m_pd3dTexture->Release();
+    }
+    D3D11::RegisterTextureViewOwner(native);
     destination->m_pd3dTexture = native;
     destination->SetSize(size);
     destination->SetFlags(source->GetFlags());

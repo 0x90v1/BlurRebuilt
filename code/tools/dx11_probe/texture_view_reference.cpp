@@ -10,6 +10,39 @@
 
 using Microsoft::WRL::ComPtr;
 
+// [Blur1PCDX11] A resource-owned marker proves that the registry does not
+// extend texture lifetime after its engine owner releases the retained views.
+static volatile LONG g_destroyedTextures = 0;
+static const GUID g_lifetimeMarker = {0x47d7219b,0x2132,0x4a32,{0x97,0xd3,0x56,0x38,0x51,0x0f,0xf4,0x73}};
+class C_LifetimeMarker : public IUnknown
+{
+public:
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** object) override
+    {
+        if (!object) return E_POINTER;
+        *object = nullptr;
+        if (iid != __uuidof(IUnknown)) return E_NOINTERFACE;
+        *object = static_cast<IUnknown*>(this); AddRef(); return S_OK;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_refs); }
+    ULONG STDMETHODCALLTYPE Release() override
+    {
+        const ULONG refs = InterlockedDecrement(&m_refs);
+        if (!refs) { InterlockedIncrement(&g_destroyedTextures); delete this; }
+        return refs;
+    }
+private:
+    volatile LONG m_refs = 1;
+};
+
+struct C_ViewOwner
+{
+    explicit C_ViewOwner(ID3D11Resource* texture) : resource(texture)
+    { Display::D3D11::RegisterTextureViewOwner(resource); }
+    ~C_ViewOwner() { Display::D3D11::ReleaseTextureViewOwner(resource); }
+    ID3D11Resource* resource;
+};
+
 static bool CheckViews(Display::D3D11::C_D3D11Device& device, unsigned kind)
 {
     const char* types[] = {"Texture2D", "Texture3D", "TextureCube", "Texture2DArray", "TextureCubeArray", "Texture2D"};
@@ -128,8 +161,72 @@ technique11 Material { pass p0 {
         if (FAILED(effect.CreateTextureView(bindingName,device.Device(),textures[0].Get(),false,&view)) ||
             !render(view.Get(),actual) || std::memcmp(actual,expected,sizeof(actual))!=0) return false;
     }
+    // Switching materials/resources, gamma and an effect reload must reuse
+    // each owned view without changing pixels or retaining a dead texture.
+    const int sampleTexture=0;
+    if (FAILED(effect.SetRawParameter("uniformOnly",&sampleTexture,sizeof(sampleTexture)))) return false;
     context->ClearState();
-    std::printf("%s: 14 retained/fresh views and 2 changed-uniform GPU draws passed\n",types[kind]);
+    if (FAILED(effect.SetTexture(bindingName,nullptr))) return false;
+    const LONG destroyedBefore=g_destroyedTextures;
+    for (auto& texture : textures)
+    {
+        auto* marker=new C_LifetimeMarker;
+        const HRESULT result=texture->SetPrivateDataInterface(g_lifetimeMarker,marker);
+        marker->Release();
+        if (FAILED(result)) return false;
+    }
+    ComPtr<ID3D11ShaderResourceView> identity[2][2];
+    {
+        C_ViewOwner owners[]={C_ViewOwner(textures[0].Get()),C_ViewOwner(textures[1].Get())};
+        for (unsigned step=0;step<24;++step)
+        {
+            const unsigned material=step%2;
+            const bool srgb=(step/2)%2 != 0;
+            const unsigned slot=kind==5?0:srgb;
+            if (step==8 && FAILED(effect.SetTexture(bindingName,nullptr))) return false;
+            if (step==12)
+            {
+                const unsigned char changed[2][4]={{40,200,64,255},{192,32,128,255}};
+                const float changedScalar[]={.125f,.875f};
+                const unsigned subresources=kind==2?6:kind==3?2:kind==4?12:1;
+                for (unsigned material=0;material<2;++material)
+                    for (unsigned subresource=0;subresource<subresources;++subresource)
+                        context->UpdateSubresource(textures[material].Get(),subresource,nullptr,
+                            kind==5?static_cast<const void*>(&changedScalar[material]):changed[material],4,4);
+            }
+            if (step==16)
+            {
+                if (FAILED(effect.LoadMemory(device.Device(),replacementCode->GetBufferPointer(),replacementCode->GetBufferSize()))) return false;
+            }
+            ComPtr<ID3D11ShaderResourceView> view,fresh;
+            const HRESULT result=effect.CreateTextureView(bindingName,device.Device(),textures[material].Get(),srgb,&view);
+            if (result != (identity[material][slot] ? S_FALSE : S_OK))
+            { std::fprintf(stderr,"%s owned step%u unexpected result %08x\n",types[kind],step,static_cast<unsigned>(result)); return false; }
+            if (identity[material][slot] && identity[material][slot].Get()!=view.Get())
+            { std::fprintf(stderr,"%s owned step%u changed view identity\n",types[kind],step); return false; }
+            identity[material][slot]=view;
+            D3D11_SHADER_RESOURCE_VIEW_DESC desc={};
+            view->GetDesc(&desc);
+            if (FAILED(device.Device()->CreateShaderResourceView(textures[material].Get(),&desc,&fresh))) return false;
+            float actual[4],expected[4];
+            if (!render(view.Get(),actual) || !render(fresh.Get(),expected) || std::memcmp(actual,expected,sizeof(actual)))
+            { std::fprintf(stderr,"%s owned step%u pixel mismatch\n",types[kind],step); return false; }
+        }
+        context->ClearState();
+        if (FAILED(effect.SetTexture(bindingName,nullptr))) return false;
+        for (auto& material : identity) for (auto& view : material) view.Reset();
+        if (g_destroyedTextures != destroyedBefore) return false;
+    }
+    // The owner registry is now empty for these resources. Releasing the last
+    // external texture references must destroy both, without a COM cycle.
+    for (auto& texture : textures) texture.Reset();
+    // D3D11 defers object destruction; flush only this lifetime test after
+    // dropping all application references, as required by the API contract.
+    context->ClearState();
+    context->Flush();
+    if (g_destroyedTextures != destroyedBefore+2)
+    { std::fprintf(stderr,"%s: retained texture lifetime leak\n",types[kind]); return false; }
+    std::printf("%s: 14 retained/fresh + 24 alternating owned GPU views, 2 uniforms and destruction passed\n",types[kind]);
     return true;
 }
 
@@ -140,7 +237,8 @@ int main()
     ComPtr<ID3D11InfoQueue> queue;
     device.Device()->QueryInterface(IID_PPV_ARGS(&queue));
     if (queue) queue->ClearStoredMessages();
-    for (unsigned kind=0;kind<6;++kind) if (!CheckViews(device,kind)) return 1;
+    for (unsigned kind=0;kind<6;++kind) if (!CheckViews(device,kind))
+    { std::fprintf(stderr,"Texture view kind%u failed\n",kind); return 1; }
     if (queue) for (UINT64 i=0;i<queue->GetNumStoredMessages();++i)
     {
         SIZE_T size=0; queue->GetMessage(i,nullptr,&size);

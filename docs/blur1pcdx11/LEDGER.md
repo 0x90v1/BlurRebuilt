@@ -409,3 +409,16 @@ Blocked: none for this repair. The initial wrong build macro excluded the attemp
 Next: assess existing material SRV creation statistics and recover safe ownership/invalidation before further performance changes; verify any resulting change on hardware/WARP and moving60/unlocked.
 
 Files touched: own dynamic/source/View.cpp gate/default and phase analysis/board/ledger. Private captures, retail recovery and discarded experiment artifacts remain under ignored _work/ only. Commit own repair/docs only, as previously authorized; no push.
+
+
+## 2026-10-03 — session Codex visual diagnosis — T127 texture ownership and reported recurrence
+
+Did: retain equivalent linear/sRGB native views for the real engine texture lifetime, including serialized assets and streaming replacements. Investigate the user's renewed right-railing glitch; add and then fully remove temporary locked-buffer and compressed-video diagnostics. Preserve the recovered retail pass-flush default; no speculative visual fix added.
+
+Verified: hardware/WARP each pass228 paired GPU comparisons,12 uniform checks,12 destruction markers. Standard asset build and clean diagnostic-removal build errsum0. Moving cap60/unlocked pair exit0/103s; completed locked-buffer diagnostic pair exit0/113s, no still-locked draw comparison triggered. Two compressed videos,720 frames each, ffmpeg/game exit0/143s. Inspected strongest colour candidates do not identify the original malformed strips. Clean standard EXE/PDB delivered through queue and hashes verified. Runtime rates remain variable; no controlled overall speedup established.
+
+Blocked: the returning visual fault is not yet isolated. The earlier clean stills are insufficient to claim it fully repaired. Diagnostic attempts also encountered a loading resource wait timeout and a vehicle-reset AI null crash; the first full-size recorder attempt failed, then was bounded and verified. All diagnostic source changes removed. Broader parity remains open.
+
+Next: obtain an affected frame behind the right railing, capture its producer and compare actual GPU vertex/state data with the PC mechanism. Commit only the verified view ownership change and these owned docs, as already authorized; no push.
+
+Files touched: D3D11Formats.h/cpp, PCD3D11Device.cpp, D3D11TextureLoad.cpp, dx11_probe/texture_view_reference.cpp, two-line native helper dependency in cmake/dx11.cmake, owned phase docs. Temporary diagnostics removed from DynamicVertexBuffer.cpp and PCD3D11GameDevice.cpp; scratch evidence under ignored _work/.

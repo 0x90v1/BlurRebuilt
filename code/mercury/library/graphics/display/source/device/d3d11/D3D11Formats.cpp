@@ -1,7 +1,36 @@
 #include "Display/Device/D3D11/D3D11Formats.h"
 #include "Display2/Device/D3D11TextureFormats.h"
+#include <wrl/client.h>
+#include <mutex>
+#include <unordered_map>
 
 namespace Display { namespace D3D11 {
+
+namespace
+{
+// [Blur1PCDX11] PC binds an existing texture across materials. Native linear
+// and gamma views share that texture owner's lifetime, rather than an effect's
+// current binding. This registry never retains an owner after DestroyTexture.
+struct S_TextureViews
+{
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> views[2];
+};
+std::unordered_map<ID3D11Resource*, S_TextureViews> g_textureViewOwners;
+std::mutex g_textureViewOwnersMutex;
+}
+
+void RegisterTextureViewOwner(ID3D11Resource* resource)
+{
+    if (!resource) return;
+    std::lock_guard<std::mutex> lock(g_textureViewOwnersMutex);
+    g_textureViewOwners.emplace(resource, S_TextureViews{});
+}
+
+void ReleaseTextureViewOwner(ID3D11Resource* resource)
+{
+    std::lock_guard<std::mutex> lock(g_textureViewOwnersMutex);
+    g_textureViewOwners.erase(resource);
+}
 
 bool GetFormatLayout(D3DFORMAT source, C_FormatLayout* layout)
 {
@@ -225,7 +254,30 @@ HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
             }
         }
     }
-    return device->CreateShaderResourceView(resource, &desc, view);
+    // [Blur1PCDX11] Only explicitly owned textures retain views across changes
+    // of material. The descriptor is immutable for a resource; unsupported
+    // gamma uses the same linear slot, as on PC. Validate the device as well.
+    std::lock_guard<std::mutex> lock(g_textureViewOwnersMutex);
+    auto owner = g_textureViewOwners.find(resource);
+    if (owner == g_textureViewOwners.end())
+        return device->CreateShaderResourceView(resource, &desc, view);
+    auto& retained = owner->second.views[srgb && gammaFormat != DXGI_FORMAT_UNKNOWN ? 1 : 0];
+    if (retained)
+    {
+        Microsoft::WRL::ComPtr<ID3D11Device> viewDevice;
+        retained->GetDevice(&viewDevice);
+        D3D11_SHADER_RESOURCE_VIEW_DESC previous = {};
+        retained->GetDesc(&previous);
+        if (viewDevice.Get() == device && SameTextureView(previous, desc))
+        {
+            retained->AddRef();
+            *view = retained.Get();
+            return S_FALSE;
+        }
+    }
+    const HRESULT result = device->CreateShaderResourceView(resource, &desc, view);
+    if (SUCCEEDED(result)) retained = *view;
+    return result;
 }
 
 } }

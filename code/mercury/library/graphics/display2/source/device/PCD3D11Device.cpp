@@ -1,6 +1,7 @@
 // [Blur1PCDX11] Native Display2 resource ownership. No D3D9 device is created.
 #include "StdAfx.h"
 #include "Display2/Device/Device.h"
+#include "Display/Device/D3D11/D3D11Formats.h"
 
 namespace Display2
 {
@@ -216,6 +217,7 @@ bool C_Device::CreateTexture2D(U32 width, U32 height, U32 levels, U32 flags,
     ID3D11Texture2D* native = nullptr;
     if (FAILED(m_pd3dDevice->CreateTexture2D(&desc, nullptr, &native))) return false;
     if (FAILED(D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(format)))) { native->Release(); return false; }
+    Display::D3D11::RegisterTextureViewOwner(native);
     texture->m_pd3dTexture = native;
     texture->SetFlags(flags);
     texture->SetSize(GetTexture2DSize(width, height, desc.MipLevels, flags, format));
@@ -233,6 +235,7 @@ bool C_Device::CreateTexture3D(U32 width, U32 height, U32 depth, U32 levels, U32
     ID3D11Texture3D* native = nullptr;
     if (desc.Format == DXGI_FORMAT_UNKNOWN || FAILED(m_pd3dDevice->CreateTexture3D(&desc, nullptr, &native))) return false;
     if (FAILED(D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(format)))) { native->Release(); return false; }
+    Display::D3D11::RegisterTextureViewOwner(native);
     texture->m_pd3dTexture = native; texture->SetFlags(flags);
     texture->SetSize(GetTexture3DSize(width, height, depth, desc.MipLevels, flags, format));
     return true;
@@ -255,6 +258,7 @@ bool C_Device::CreateTextureCube(U32 width, U32 levels, U32 flags, E_TextureForm
     ID3D11Texture2D* native = nullptr;
     if (desc.Format == DXGI_FORMAT_UNKNOWN || FAILED(m_pd3dDevice->CreateTexture2D(&desc, nullptr, &native))) return false;
     if (FAILED(D3D11TextureFormats::SetPCFormat(native,static_cast<D3DFORMAT>(format)))) { native->Release(); return false; }
+    Display::D3D11::RegisterTextureViewOwner(native);
     texture->m_pd3dTexture = native; texture->SetFlags(flags);
     texture->SetSize(GetTexture2DSize(width, width, desc.MipLevels, flags, format) * 6);
     return true;
@@ -263,7 +267,12 @@ bool C_Device::CreateTextureCube(U32 width, U32 levels, U32 flags, E_TextureForm
 void C_Device::DestroyTexture(C_Texture* texture)
 {
     if (texture && texture->m_pd3dTexture)
-    { texture->m_pd3dTexture->Release(); texture->m_pd3dTexture = nullptr; }
+    {
+        // [Blur1PCDX11] Break the native view references with the PC texture
+        // owner's destruction, including streaming and volatile recreation.
+        Display::D3D11::ReleaseTextureViewOwner(texture->m_pd3dTexture);
+        texture->m_pd3dTexture->Release(); texture->m_pd3dTexture = nullptr;
+    }
 }
 void C_Device::Destroy(C_Texture* texture) { DestroyTexture(texture); }
 

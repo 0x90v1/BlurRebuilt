@@ -151,6 +151,8 @@ if(TARGET display2 AND BLUR_USE_DX11)
     target_include_directories(display2_dx11_backend PRIVATE
         $<TARGET_PROPERTY:display2,INCLUDE_DIRECTORIES>)
     target_compile_definitions(display2_dx11_backend PRIVATE BUILD_CONFIG_SPEED BLUR_USE_DX11=1)
+    # [Blur1PCDX11] Texture ownership now releases the shared native view helper.
+    target_link_libraries(display2_dx11_backend PRIVATE blur_dx11)
     set_target_properties(display2_dx11_backend PROPERTIES FOLDER "dx11")
 
     # The generated Jam list is the retail D3D9 selection. Exclude its device
