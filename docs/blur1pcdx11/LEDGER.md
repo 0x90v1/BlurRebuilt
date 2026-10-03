@@ -422,3 +422,10 @@ Blocked: the returning visual fault is not yet isolated. The earlier clean still
 Next: obtain an affected frame behind the right railing, capture its producer and compare actual GPU vertex/state data with the PC mechanism. Commit only the verified view ownership change and these owned docs, as already authorized; no push.
 
 Files touched: D3D11Formats.h/cpp, PCD3D11Device.cpp, D3D11TextureLoad.cpp, dx11_probe/texture_view_reference.cpp, two-line native helper dependency in cmake/dx11.cmake, owned phase docs. Temporary diagnostics removed from DynamicVertexBuffer.cpp and PCD3D11GameDevice.cpp; scratch evidence under ignored _work/.
+
+
+## 2026-10-03 — session Codex visual diagnosis — T127 railing-focused follow-up
+
+Verified: clean delivered executable, queued scrape_recurrence_barrier_oct03 exit0/51s/wait0; existing trace samples(.95,.49) at40s, no saturated producer at that pixel; final still lacks the earlier malformed strips. Texture ownership committed e03536b0. No source changes or diagnostic instrumentation added. Board remains in progress.
+
+Next: await confirmation whether the displayed unlocked-video pink band is the returning fault, then trace its producer with an affected frame. Recurrence remains open; a clean selected pixel is not a complete repair. Evidence under ignored _work/build/scrape_recurrence_barrier_oct03.
