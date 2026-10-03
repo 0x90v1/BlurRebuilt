@@ -86,6 +86,13 @@ C_PixelOutput PrepassPS(in C_VertexPrepassOutput vtxData)
 #endif
 #endif
 
+#if defined(BLUR_DX11)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] Every shipped PC prepass built from
+	// this path ends in texkill(alpha * lodfade - 0.5), including passes without
+	// ENABLE_PREPASS, whose zero output is always killed. Solid passes do not.
+	clip(output.m_vColour.a - 0.5h);
+#endif
+
 #endif // OPAQUE_PASS
  
 #if defined(ENABLE_PREPASS_DEPTHTEXTURE)

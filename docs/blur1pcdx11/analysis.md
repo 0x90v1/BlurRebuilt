@@ -564,3 +564,17 @@ Verification: `_work/build/alpha_native_matrix_oct03/` replays the matrix throug
 Unknown: other GPU vendors' D3D9 drivers. The rule was measured on one NVIDIA HAL only.
 
 Observatory shrub quads: the darker rectangle behind each billboard shrub is unchanged by this repair (`_work/build/alpha_format_race_oct03/shrub_crop.png`: PC, previous native, current native). It is a separate fault.
+
+### T127: shipped prepass alpha clip (2026-10-03)
+
+Found in / Belongs to **Blur1PCDX11**: Blur1PC loads the retail FXB shaders, and only the native build compiles `Common/Pixel.h` from source. The Observatory billboard shrubs drew a darker full-quad rectangle in the normal/depth prepass.
+
+Evidence: `BLUR_DX11_DUMP_FX=*` (the existing opt-in dump in `fx/System.cpp` now accepts `*`) captured all 3,336 retail pass shaders loaded by an Observatory race into `_work/build/fxdump_variants/`; the disassembly is in `_work/build/retail_fx_dump_oct03/asm/`.
+- Of 109 retail `MaterialPrepass` pixel shaders, the 61 compiled from `Pixel.h`'s non-opaque `PrepassPS` end in `texkill(albedo.a * saturate(lodfade) - 0.5)`. These are the billboard, foliage, SpeedTree, default, Material, HighVis, neon, advert and detail-colour families.
+- The other 48 (Road*, Ocean*) use their own prepass shaders and have no kill, and neither do the 22 retail `MaterialPrepassSolid` (`OPAQUE_PASS`) shaders.
+- `MaterialElectricPrepass` has no `ENABLE_PREPASS`, so its colour stays zero and retail kills every pixel (`mov r0, -0.5; texkill r0`).
+- The leaked source has no such clip. The shipped `PrepassPS` therefore had `clip(output.a - 0.5)` after the LOD fade.
+
+Repair: `Pixel.h` applies that clip under `BLUR_DX11` in the non-opaque path. Native disassembly check (`retail_fx_dump_oct03/compare_kill.py`): all 45 indexed retail-kill passes gain the discard. The 70 no-kill passes keep only the alpha-test discard; FoliageBillboard shows one extra compiler-emitted discard with a single clip in source. Electric prepasses live in base-effect files outside the per-technique index and use the same source path. Standard build errsum 0, 1254/1254 effects. Queued Observatory native60/unlocked exit 0, and the shrub rectangles are gone (`alpha_format_race_oct03/shrub_crop_clip.png`, PC/native60/unlocked).
+
+The dump allows a systematic shipped-versus-source shader audit. Next: compare each retail pass with the same pass compiled from source for ps_3_0/vs_3_0 (instruction classes, texkill, texld, constants) to find further shipped revisions.

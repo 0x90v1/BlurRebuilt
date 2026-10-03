@@ -645,3 +645,15 @@ Blocked: none. Other-vendor D3D9 alpha behaviour remains unmeasured.
 Next: the Observatory billboard shrubs draw a darker full-quad rectangle on native (PC is clean). Compare the Billboard draw sequence and its non-alpha-tested writes against the D3D9 replay.
 
 Files touched: code/tools/dx11_shadercompile/alpha_test.py, display device d3d11/D3D11GameDeviceNative.cpp, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.
+
+## 2026-10-03 — session Claude DX11 continuation — T127 shipped prepass clip
+
+Did: committed the alpha-test format contract as `fc50e064`. Let the opt-in `BLUR_DX11_DUMP_FX` dump accept `*`, dumped all 3,336 retail shaders from an Observatory race, and found that every shipped non-opaque `PrepassPS` kills `alpha*lodfade < 0.5`, which the leaked source lacks. Added that clip to `Common/Pixel.h` under `BLUR_DX11`.
+
+Verified: retail/native discard comparison matches for all 115 indexed prepass passes; standard build errsum 0, 1254/1254 effects; EXE/PDB/effects delivered with hash checks; queued Observatory native60/unlocked exit 0 with no billboard shrub rectangles. Evidence `_work/build/{retail_fx_dump_oct03,alpha_format_race_oct03}`.
+
+Blocked: none.
+
+Next: audit the retail pass dump against source compiled for ps_3_0/vs_3_0 to find further shipped shader revisions.
+
+Files touched: code/amax/game/Shaders/Common/Pixel.h, fx/source/System.cpp, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.

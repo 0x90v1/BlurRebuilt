@@ -450,10 +450,11 @@ void System::OnEffectLoad(Effect *pEffect)
 				Function& function = shaderType ? pPass->VertexShader : pPass->PixelShader;
 				const E_ShaderType type = shaderType ? E_ShaderType_VertexShader : E_ShaderType_PixelShader;
 				// [Blur1PCDX11] Opt-in complete retail evidence, including matched passes,
-				// for recovering later vehicle shader revisions. Never substitute a pass.
+				// for recovering later shader revisions ("*" dumps every effect). Never substitute a pass.
 				if (((getenv("BLUR_DX11_DUMP_VEHICLE_FX") &&
 					strncmp(pEffect->Name.Chars(), "veh_", 4) == 0) ||
-					(getenv("BLUR_DX11_DUMP_FX") && strcmp(pEffect->Name.Chars(), getenv("BLUR_DX11_DUMP_FX")) == 0)) &&
+					(getenv("BLUR_DX11_DUMP_FX") && (strcmp(getenv("BLUR_DX11_DUMP_FX"), "*") == 0 ||
+						strcmp(pEffect->Name.Chars(), getenv("BLUR_DX11_DUMP_FX")) == 0))) &&
 					function.Microcode && function.cMicrocode)
 				{
 					char path[MAX_PATH] = {};
