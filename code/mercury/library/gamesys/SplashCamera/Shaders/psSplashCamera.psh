@@ -4,6 +4,10 @@
 
 struct PS_INPUT
 {
+#ifdef BLUR_DX11
+	// [Blur1PCDX11] Preserve the VS register before TEXCOORD0 on native D3D11.
+	float4 m_Position : POSITION;
+#endif
 	float3	m_TexCoord	: TEXCOORD0; //z -> Alpha
 #if defined(REFRACT) || defined(LIGHT)
 	float4	m_ScreenPos : TEXCOORD1;

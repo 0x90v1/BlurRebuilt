@@ -9,6 +9,8 @@
 #include <d3d11_4.h>
 #include <vector>
 #include <string>
+// [Blur1PCDX11] Supplied by fx, without introducing a display header dependency.
+namespace FX { const char* NativeFX11CurrentPass(); }
 namespace Display { namespace D3D11 {
 namespace
 {
@@ -48,6 +50,8 @@ LONG CALLBACK LogNativeException(EXCEPTION_POINTERS* info)
                 Blur2PCAutomation::LogF("DX11 queued sev=%u id=%d VS=%p PS=%p: %s",
                     static_cast<unsigned>(message->Severity), static_cast<int>(message->ID),
                     vertex, pixel, message->pDescription);
+                // [Blur1PCDX11] Identify material permutations behind runtime binding failures.
+                Blur2PCAutomation::LogF("DX11 queued current FX: %s", FX::NativeFX11CurrentPass());
                 reported.push_back(key);
             }
         }

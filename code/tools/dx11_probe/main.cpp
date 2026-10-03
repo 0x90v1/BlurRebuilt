@@ -39,6 +39,9 @@ static bool CheckBuiltinShaderLinks()
             pairs.emplace_back(L"deferred/vsDynamicLightsPrepass", std::wstring(prefix) + std::to_wstring(count));
     // [Blur1PCDX11] These shaders must link once the PC initialization also runs on DX11.
     pairs.emplace_back(L"display/vsOcclusion", L"display/psOcclusion");
+    pairs.emplace_back(L"splashCamera/vsSplashCamera", L"splashCamera/psSplashCamera");
+    pairs.emplace_back(L"splashCamera/vsSplashCameraRefract", L"splashCamera/psSplashCameraRefract");
+    pairs.emplace_back(L"splashCamera/vsSplashCameraRefract", L"splashCamera/psSplashCameraLight");
     const std::pair<const wchar_t*, const wchar_t*> particlePairs[] = {
         {L"vsParticle", L"psParticle"}, {L"vsParticle", L"psParticleA8"},
         {L"vsParticle2D", L"psParticle"}, {L"vsParticle2D", L"psParticleA8"},
@@ -46,6 +49,7 @@ static bool CheckBuiltinShaderLinks()
         {L"vsParticleNdotL", L"psParticle"}, {L"vsParticleNdotL", L"psParticleA8"},
         {L"vsParticleNormalMap", L"psParticleNormalMap"},
         {L"vsParticleSoft", L"psParticleSoft"}, {L"vsParticleSoft", L"psParticleSoftA8"},
+        {L"vsParticleSoft", L"psParticle"}, {L"vsParticleSoft", L"psParticleA8"},
         {L"vsParticleDecal", L"psParticleDecal"}, {L"vsParticlePointSprite", L"psParticlePointSprite"}
     };
     for (const auto& pair : particlePairs)

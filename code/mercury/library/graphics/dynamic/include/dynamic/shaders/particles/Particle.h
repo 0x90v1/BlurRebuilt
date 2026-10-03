@@ -31,6 +31,12 @@ struct VS_OUTPUT
 	float4 positionUV		: TEXCOORD1;
 #endif
 
+#if defined(BLUR_DX11) && !defined(POINTSPRITE) && !defined(NORMALMAP) && !defined(REFRACT) && !defined(DEPTH)
+	// [Blur1PCDX11] Retail also pairs the soft VS with the ordinary PS. Keep
+	// its TEXCOORD1 register so TEXCOORD2/3 link without enabling soft depth.
+	float4 unusedPositionUV : TEXCOORD1;
+#endif
+
 	float4 worldPositionAndOffset	: TEXCOORD2;
 	float4 colour					: TEXCOORD3;
 };

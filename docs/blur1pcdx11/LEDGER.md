@@ -305,3 +305,16 @@ Blocked: none. Broader variants and intermittent damage-volume crash remain open
 Next: consume live driving_parity_oct03 batch (PC60/native60/native unlocked), inspect compressed videos and final stills for moving rendering differences, and classify the next reproduced fault. T127 remains in progress.
 
 Files touched: phase analysis, board and ledger. Private artifacts remain under ignored _work/.
+
+
+## 2026-10-03 00:41 — session Codex visual diagnosis — T127
+
+Did: repair DX11 splash PS and ordinary-particle signature registers, preserving the retail stage selection and shader math. Extend the signature regression to166 actual stage pairs. Add the FX pass name to existing bounded debug-layer diagnostics. Found in / Belongs to Blur1PCDX11.
+
+Verified: standard moving_shader_links_build and moving_binding_diagnostic_build errsum0;693 native built-ins regenerated/embedded; standard exe/PDB/effects delivered. Signature check passes166 pairs. Queued corrected moving native60/unlocked races exit0; both prior linkage errors are gone. PC driving reference reaches133mph/60Hz. Native moving performance remains about6fps; cube/2D binding error persists and is identified as ScrollFade_LN_NL / Material. Native video requests are unsupported; these checks use one final still.
+
+Blocked: none. Performance, ScrollFade binding, broader visual variants and intermittent damage-volume crash remain open.
+
+Next: consume scrollfade_moving_oct03 selected-draw capture and recover the cube sampler's actual resource/default mechanism against retail before changing binding. T127 remains in progress.
+
+Files touched: SplashCamera psSplashCamera.psh, dynamic Particle.h, native PCD3D11GameDevice diagnostics, owned dx11_probe linkage check, phase analysis/board/ledger. Private artifacts remain under ignored _work/.
