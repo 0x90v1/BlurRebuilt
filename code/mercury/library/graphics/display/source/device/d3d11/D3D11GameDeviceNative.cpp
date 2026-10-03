@@ -397,8 +397,8 @@ void BindRenderTargets(C_D3D11GameDevice* game)
             if (traced.find(key) == traced.end() && traced.size() < 40)
             {
                 traced[key] = 1;
-                Blur2PCAutomation::LogF("DX11 target %p tex=%p %ux%u fmt=%d sub=%u", raw[slot], key,
-                    td.Width, td.Height, static_cast<int>(td.Format), surface->m_Subresource);
+                Blur2PCAutomation::LogF("DX11 target %p tex=%p %ux%u fmt=%d sub=%u samples=%u", raw[slot], key,
+                    td.Width, td.Height, static_cast<int>(td.Format), surface->m_Subresource, td.SampleDesc.Count);
             }
         }
     }

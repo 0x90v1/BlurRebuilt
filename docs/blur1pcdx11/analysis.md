@@ -643,3 +643,12 @@ Verification (`_work/build/lowres_title_oct03/`, private settings copies, window
 - The fullscreen start and fullscreen mode switch are not automated (scripted runs stay windowed) and are unverified.
 
 Separate, open: the crowd-flag built-ins (`vsCrowdFlag`/`vsCrowdFlagPrepass` with their pixel shaders) raise D3D11 VS/PS TEXCOORD linkage errors under the debug layer once a race starts.
+
+### T127: MSAA sample counts above 4 were dropped (2026-10-03)
+
+Found in / Belongs to **Blur1PCDX11**. The user reported no anti-aliasing after the resolution fix. `C_D3D11Manager` offers every sample count the adapter supports (None, 2, 4, 8 and 16 when available), so the user's option 3 is 8x. `Display2::C_Device::CreateSurface` mapped only `E_Multisample_2`/`_4` to sample counts and created everything else with 1 sample. Option 3 therefore produced no multisampling, and the earlier "MSAA 3 edges smoothed" comparison was wrong: its captures came from different moments. `E_Multisample` holds the `D3DMULTISAMPLE_n_SAMPLES` value, which is the sample count, so the surface now uses it for 2..16.
+
+Verification (`_work/build/lowres_title_oct03/{aa0,aa3,aa2}`, debug layer):
+- The `DX11 target` diagnostic now logs sample counts. Option 3 creates the 1920x1080 window colour and mask targets and a 1920x1088 target with 8 samples.
+- Matched no-AA/8x captures at the same race moment have equal brightness (mean 98.91/98.86). Edges are anti-aliased and thin trim no longer breaks into dashes (`aa_matched_zoom.png`).
+- 8x and 4x runs exit 0 with no new debug-layer messages; the crowd-flag linkage errors remain.

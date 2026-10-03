@@ -284,8 +284,10 @@ bool C_Device::CreateSurface(U32 width, U32 height, U32 flags, E_SurfaceFormat f
     D3D11_TEXTURE2D_DESC desc = {};
     desc.Width = width; desc.Height = height; desc.MipLevels = 1; desc.ArraySize = 1;
     desc.Format = NativeFormat(static_cast<E_TextureFormat>(format));
-    desc.SampleDesc.Count = (multisample == E_Multisample_4) ? 4 :
-                            (multisample == E_Multisample_2) ? 2 : 1;
+    // [Blur1PCDX11] E_Multisample holds the D3DMULTISAMPLE_n_SAMPLES value, which is the sample count
+    // (2..16); C_D3D11Manager offers every count the adapter supports, including 8 and 16.
+    const UINT samples = static_cast<UINT>(multisample);
+    desc.SampleDesc.Count = (samples >= 2 && samples <= 16) ? samples : 1;
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = (flags & E_Flags_DepthStencil) ? D3D11_BIND_DEPTH_STENCIL : D3D11_BIND_RENDER_TARGET;
     if (desc.Format == DXGI_FORMAT_UNKNOWN ||
