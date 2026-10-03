@@ -449,3 +449,16 @@ Files touched: D3D11Effect.h/cpp and own phase board/analysis/ledger additions. 
 Verified: lookup repair committed7121dd08; queued unlocked early-race scrape trace32s, pixel(.95,.49), one still, exit0/41s/wait0. No original saturated strip in this selected sample. No source changes or diagnostic instrumentation added. T127 board remains in progress with recurrence unresolved.
 
 Next: obtain confirmed affected-frame evidence and isolate the GPU producer behind the right railing; selected clean samples are insufficient to claim a repair. Private evidence under ignored _work/build/scrape_recurrence_early_railing_oct03.
+
+
+## 2026-10-03 — session Codex visual diagnosis — T127 extended right-railing checks
+
+Did: reject and remove the EffectKey normalization experiment after complete API benchmarks show no benefit. Confirm the reported fault is behind the right railing only. Capture longer compressed Promenade scrapes with a temporary native recorder, then remove that recorder exactly. Explicitly select verified retail routes and compare Amboy against the lower PC executable.
+
+Verified: normalization reference bytes identical but controlled complete benchmarks regress; pre-edit source bytes restored. Promenade60/unlocked recordings each1800frames, game/ffmpeg/queue exit0,160s/wait0; bounded colour candidates and early scrape frames do not reproduce the original strip. Amboy_1 PC60/native60/native unlocked exit0,81s/wait128 with AI routes27; coherent inspected stills. Final clean standard Release exit0/errsum0; normal EXE/PDB delivery hashes match. Final clean moving60/unlocked Promenade pair exit0,82s/wait0; early stills lack the strip.
+
+Blocked: recurring right-railing producer remains unisolated; clean captures do not establish a fix. Initial debug route0 selections lack AI data and crash on vehicle reset; corrected fixtures explicitly use route1. No AI or installed-data change and no retained diagnostic/fix attempt.
+
+Next: obtain a confirmed affected right-railing frame and compare its actual GPU producer with the PC mechanism; continue valid-route vehicle/reflection coverage independently. Keep parity goal/T127 in progress. Commit own verification notes as authorized; no push.
+
+Files touched: own phase board/analysis/ledger additions only after exact source cleanup. Ignored evidence: effect_key_oct03, railing_followup_oct03, railing_video_valid_oct03, amboy_valid_reference_oct03, railing_clean_delivery_oct03.
