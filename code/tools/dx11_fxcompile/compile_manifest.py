@@ -31,6 +31,10 @@ def main() -> int:
         top / "code/mercury/library/graphics/shader/include/shader",
         top / "code/mercury/library/graphics/vehicle/include",
     ]
+    # [Blur2PC] Effects also include other .fx files (for example MeshEffect.fx).
+    # A wrapper's own timestamp cannot detect changes in those shared inputs.
+    included_effect_mtime = max((effect.stat().st_mtime_ns for directory in include_dirs
+                                 for effect in directory.rglob("*.fx")), default=0)
     jobs: list[tuple[Path, Path, list[str]]] = []
     for entry in entries:
         source_relative = Path(entry["fx"])
@@ -48,7 +52,8 @@ def main() -> int:
 
     def compile_one(job: tuple[Path, Path, list[str]]) -> tuple[Path, int, str]:
         source, output, defines = job
-        if args.skip_existing and output.is_file():
+        if (args.skip_existing and output.is_file()
+                and output.stat().st_mtime_ns >= included_effect_mtime):
             return output, 0, ""
         command = [sys.executable, str(compiler), "--fxc", str(args.fxc),
                    "--source", str(source), "--out", str(output)]

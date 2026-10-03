@@ -24,7 +24,12 @@
 #	define VS_INPUT_TANGENT
 #endif
 #if defined(ENABLE_SKINNING)
+#if defined(BLUR_DX11)
+// [Blur2PC] Match the native U8_4 integer input; FX9 converted it to float.
+#	define VS_INPUT_BLENDINDICES	uint4	m_vBlendIndices	: TEXCOORD3 annotation(xyzw(blendindices) | format(U8_4));
+#else
 #	define VS_INPUT_BLENDINDICES	float4	m_vBlendIndices	: TEXCOORD3 annotation(xyzw(blendindices) | format(U8_4));
+#endif
 #	define VS_INPUT_BLENDWEIGHTS	float4	m_vBlendWeights	: TEXCOORD4 annotation(xyzw(blendweights) | format(U8_4N));
 #else
 #	define VS_INPUT_BLENDINDICES

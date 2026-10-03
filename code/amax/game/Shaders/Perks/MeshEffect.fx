@@ -26,7 +26,12 @@ struct C_VertexInput
 	#endif
 
 #if defined(ENABLE_SKINNING)
+#if defined(BLUR_DX11)
+	// [Blur2PC] Preserve numeric U8_4 bone indices with the native integer input.
+	uint4	m_vBlendIndices	: TEXCOORD4 annotation(xyzw(blendindices) | format(U8_4));
+#else
 	float4	m_vBlendIndices	: TEXCOORD4 annotation(xyzw(blendindices) | format(U8_4));
+#endif
 	float4	m_vBlendWeights	: TEXCOORD5 annotation(xyzw(blendweights) | format(U8_4N));
 #endif
 };
