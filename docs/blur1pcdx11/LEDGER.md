@@ -318,3 +318,16 @@ Blocked: none. Performance, ScrollFade binding, broader visual variants and inte
 Next: consume scrollfade_moving_oct03 selected-draw capture and recover the cube sampler's actual resource/default mechanism against retail before changing binding. T127 remains in progress.
 
 Files touched: SplashCamera psSplashCamera.psh, dynamic Particle.h, native PCD3D11GameDevice diagnostics, owned dx11_probe linkage check, phase analysis/board/ledger. Private artifacts remain under ignored _work/.
+
+
+## 2026-10-03 00:54 — session Codex visual diagnosis — T127
+
+Did: recover PC cube-sampler reads with bound2D textures and repair the native FX dimension mismatch. Add direct PC/native GPU regressions, preserving valid cubes. Found in / Belongs to Blur1PCDX11.
+
+Verified: PC67 GPU checks; native54 checks on hardware and WARP without debug errors; standard scrollfade_cube_binding_build errsum0 and exe/PDB/effects delivered. Queued moving native60/unlocked both exit0/60s/wait0; prior linkage and cube-dimension errors gone. Moving performance remains poor. Owned-process sampling identifies repeated diagnostic getenv calls as a substantial CPU cost.
+
+Blocked: none. Broader visual variants, slowdown and intermittent damage-volume crash remain open.
+
+Next: cache process diagnostic options, build/deliver, repeat moving60/unlocked, and profile remaining hot paths. T127 remains in progress.
+
+Files touched: native D3D11Effect texture binding, owned cube_binding_checks and D3D9 sampling reference, owned probe include/check hunks, phase analysis/board/ledger. Private artifacts remain under ignored _work/.

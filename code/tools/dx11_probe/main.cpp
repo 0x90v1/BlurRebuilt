@@ -19,6 +19,7 @@
 #include "billboard_prepass_checks.h"
 #include "polygon_packed_checks.h"
 #include "vehicle_volume_checks.h"
+#include "cube_binding_checks.h"
 
 // [Blur1PCDX11] D3D11 stage linkage requires register/component agreement,
 // even when the original D3D9 stages shared matching semantic names.
@@ -617,7 +618,7 @@ int main()
     std::printf("FX11 alpha test: previously visible material rejected by Never\n");
 
     if (!CheckStencilFaces(device) || !CheckTextureGammaViews(device) ||
-        !CheckLuminanceTextures(device)) return 12;
+        !CheckLuminanceTextures(device) || !CheckCubeTextureBinding(device)) return 12;
     if (!CheckNativeAlphaTest(device) || !CheckBuiltinShaderLinks() || !CheckAlphaBlendFactors(device)) return 12;
 
     if (SUCCEEDED(result)) result = device.DrawProbeTriangle(

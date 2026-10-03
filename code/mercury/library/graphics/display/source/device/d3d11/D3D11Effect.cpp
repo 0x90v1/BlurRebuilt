@@ -54,6 +54,18 @@ HRESULT C_D3D11Effect::SetTexture(const char* name, ID3D11ShaderResourceView* vi
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     ID3DX11EffectShaderResourceVariable* resource = variable->AsShaderResource();
     if (!resource || !resource->IsValid()) return E_INVALIDARG;
+    if (view)
+    {
+        D3DX11_EFFECT_TYPE_DESC type = {};
+        D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+        view->GetDesc(&desc);
+        // [Blur1PCDX11] PC cube sampling a bound 2D texture returns RGBA zero
+        // (including nonzero texels). An unbound native SRV preserves that
+        // measured result without the D3D11 draw-time dimension error.
+        if (SUCCEEDED(variable->GetType()->GetDesc(&type)) &&
+            type.Type == D3D_SVT_TEXTURECUBE && desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+            view = nullptr;
+    }
     return resource->SetResource(view);
 }
 

@@ -224,6 +224,50 @@ int main()
         if (!valid) return 1;
         ++checked;
     }
+    // [Blur1PCDX11] Retail ScrollFade declares a cube but can retain the
+    // FX system's 2D default. PC returns zero RGBA for that dimension mismatch.
+    const char* cubeSource = "samplerCUBE image:register(s0); float4 direction:register(c0); float4 main():COLOR0 { return texCUBEbias(image,direction); }";
+    code.Reset(); errors.Reset(); shader.Reset();
+    result = D3DCompile(cubeSource, std::strlen(cubeSource), nullptr, nullptr, nullptr,
+        "main", "ps_3_0", D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY, 0, &code, &errors);
+    if (FAILED(result) || FAILED(device->CreatePixelShader(static_cast<const DWORD*>(code->GetBufferPointer()),&shader))) return 1;
+    device->SetPixelShader(shader.Get());
+    const DWORD values[] = {0,0xffffffff,0x99663322};
+    for(unsigned kind=0;kind<3;++kind) for(DWORD value:values)
+    {
+        if (kind == 0 && value != 0) continue;
+        ComPtr<IDirect3DTexture9> image;
+        ComPtr<IDirect3DCubeTexture9> cube;
+        D3DLOCKED_RECT lock={};
+        if(kind==1) {
+            if(FAILED(device->CreateTexture(1,1,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&image,nullptr)))return 1;
+            image->LockRect(0,&lock,nullptr,0); memcpy(lock.pBits,&value,4);image->UnlockRect(0);
+        }
+        if(kind==2) {
+            if(FAILED(device->CreateCubeTexture(1,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&cube,nullptr)))return 1;
+            for(unsigned face=0;face<6;++face){cube->LockRect((D3DCUBEMAP_FACES)face,0,&lock,nullptr,0);memcpy(lock.pBits,&value,4);cube->UnlockRect((D3DCUBEMAP_FACES)face,0);}
+        }
+        HRESULT bound=device->SetTexture(0,kind==1?static_cast<IDirect3DBaseTexture9*>(image.Get()):static_cast<IDirect3DBaseTexture9*>(cube.Get()));
+        for(unsigned direction=0;direction<6;++direction) {
+            float vector[4]={0,0,0,0};vector[direction/2]=direction%2?-1.f:1.f;
+            device->SetPixelShaderConstantF(0,vector,1);
+            device->Clear(0,nullptr,D3DCLEAR_TARGET,0xffff00ff,1,0);
+            if(FAILED(device->BeginScene()))return 1;
+            HRESULT drawn=device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP,2,quad,sizeof(Vertex));device->EndScene();
+            if(FAILED(device->GetRenderTargetData(target.Get(),readback.Get())) || FAILED(readback->LockRect(&lock,nullptr,D3DLOCK_READONLY))) return 1;
+            auto p=static_cast<const float*>(lock.pBits);
+            printf("kind=%u value=%08lx direction=%u bind=%08lx draw=%08lx RGBA=%.9g %.9g %.9g %.9g\n",kind,value,direction,bound,drawn,p[0],p[1],p[2],p[3]);
+            bool valid = SUCCEEDED(bound) && SUCCEEDED(drawn);
+            const float expected[] = {kind == 2 ? ((value >> 16) & 255)/255.f : 0,
+                kind == 2 ? ((value >> 8) & 255)/255.f : 0,
+                kind == 2 ? (value & 255)/255.f : 0,
+                kind == 2 ? ((value >> 24) & 255)/255.f : kind == 0 ? 1.f : 0.f};
+            for (unsigned channel=0;channel<4;++channel) valid &= std::abs(p[channel]-expected[channel])<1e-6f;
+            readback->UnlockRect();
+            if (!valid) return 1;
+            ++checked;
+        }
+    }
     device.Reset();
     DestroyWindow(window);
     std::printf("D3D9 sampling reference: %u GPU checks passed\n",checked);
