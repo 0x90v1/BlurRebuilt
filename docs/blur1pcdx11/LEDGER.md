@@ -442,3 +442,10 @@ Blocked: none for verified optimization. Returning right-railing geometry remain
 Next: isolate the GPU producer in a confirmed affected right-railing frame; independently audit remaining EffectKey normalization cost. Commit own verified optimization and notes as authorized, no push.
 
 Files touched: D3D11Effect.h/cpp and own phase board/analysis/ledger additions. Private profiles, lookup comparison, GPU logs and PC compressed reference under ignored _work/build/racing_profile*_oct03 and racing_reference_pc_oct03; no retained engine diagnostics.
+
+
+## 2026-10-03 — session Codex visual diagnosis — T127 early-race railing sample
+
+Verified: lookup repair committed7121dd08; queued unlocked early-race scrape trace32s, pixel(.95,.49), one still, exit0/41s/wait0. No original saturated strip in this selected sample. No source changes or diagnostic instrumentation added. T127 board remains in progress with recurrence unresolved.
+
+Next: obtain confirmed affected-frame evidence and isolate the GPU producer behind the right railing; selected clean samples are insufficient to claim a repair. Private evidence under ignored _work/build/scrape_recurrence_early_railing_oct03.
