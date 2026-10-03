@@ -142,7 +142,7 @@ bool C_TextureRender::OnCreate()
 
 	RESOURCE_MEMORY_ID("BasicRender");
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
 	if(!CreatePixelShaderFromFunc("Shaders/psTextureRenderRGB", 0, &m_PixelShader[E_TextureRenderPixelShader_RGB], REF_SHADER(psTextureRenderRGB)))
 		return false;
 	if(!CreatePixelShaderFromFunc("Shaders/psTextureRenderA", 0, &m_PixelShader[E_TextureRenderPixelShader_A], REF_SHADER(psTextureRenderA)))

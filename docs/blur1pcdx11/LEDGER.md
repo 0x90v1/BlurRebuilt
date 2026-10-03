@@ -669,3 +669,13 @@ Blocked: the Blur1PC D3D9 capture at graphical detail 1 is black (Blur1PC fault,
 Next: dump retail shaders on other tracks (water, night, perks) and rerun the audit; trace the 8 "VS object has no native shader" draws (caller 0x01499128).
 
 Files touched: Shaders/{Road.fx,Road.h,RoadTwoSpec.fx,Water.fx,WaterCubeMap.fx,WaterFlow.fx,SyntheticBillboard.fx,Effects/LightFlare.fx,Perks/MeshEffect.fx}, shader/misc/Resolve.h, code/tools/dx11_shader_audit/, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.
+
+## 2026-10-03 — session Claude DX11 continuation — T127 native built-in renderers
+
+Did: committed the shader revision audit as `72c52590`/`8b30804f`. Traced the 8 per-run "VS object has no native shader" draws to `C_BasicRender::BindColoured3D` through a module-relative caller in the diagnostic. Enabled embedded built-in shaders for BasicRender, FontRender and TextureRender under `DEVICE_PCD3D11`.
+
+Verified: standard build errsum 0; queued Observatory native60 exit 0 with every renderer shader created and no missing-shader/open-file errors. Evidence `_work/build/vs_rva_oct03`.
+
+Next: final regression at native60/unlocked; extend the retail shader dump/audit to other tracks.
+
+Files touched: display/source/render/{BasicRender,FontRender,TextureRender}.cpp, device/d3d11/D3D11GameDeviceNative.cpp (diagnostic), docs/blur1pcdx11/{analysis,LEDGER}.md.

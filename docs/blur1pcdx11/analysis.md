@@ -607,3 +607,11 @@ Verification: standard build errsum 0, 1254/1254 effects; the index now has the 
 Found in / Belongs to **Blur1PC**: at graphical detail 1, the PC D3D9 Brighton capture is black apart from the lights and HUD (`_work/build/shader_revisions_oct03/brighton_detail1.jpg`, PC on top), with no error in its log. Native renders the scene, so native water at detail 1 has no PC visual reference until that is fixed in Blur1PC.
 
 Audit scope: only effects loaded on Observatory are covered; other tracks, vehicle passes (T148) and built-in shaders are outside it.
+
+### T127: debug/basic renderers lacked native built-in shaders (2026-10-03)
+
+Found in / Belongs to **Blur1PCDX11**. Every native run logged eight "VS object has no native shader" lines. The diagnostic now also logs the module-relative caller, because `Amax.exe` is `DYNAMIC_BASE`. RVA 0x00e29128 resolves to `Display::C_BasicRender::BindColoured3D` (BasicRender.cpp:165).
+
+`BasicRender.cpp`, `FontRender.cpp` and `TextureRender.cpp` choose embedded shaders only for `DEVICE_PCD3D9`/XB2/PS3. Native builds therefore took the `CreateVertexShaderFromFile` branch, failed on `Shaders/*.dx11vsh` (the long-standing open-file errors), and returned false. All three renderers stayed uncreated and their draws were skipped. The SM5 blobs are already compiled and embedded, so the guards now include `DEVICE_PCD3D11`, matching `shader/VertexShaders.cpp`.
+
+Queued Observatory native60 exits 0. The log shows all 4 BasicRender VS, 2 BasicRender PS, FontRender VS/PS and TextureRender RGB/A created, with no missing-shader lines and no `.dx11vsh`/`.dx11psh` open failures. `render/source/sky/SkyDome.cpp` has the same guard but is used only by samples.

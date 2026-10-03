@@ -66,7 +66,7 @@ bool C_FontRender::OnCreate()
 		m_pVertexDeclaration = Device()->CreateVertexDeclaration(vertexFormat);
 	}
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
 	if(!CreateVertexShaderFromFunc("Shaders/vsFontRender", 0, &m_VertexShader, REF_SHADER(vsFontRender)))
 		return false;
 	if(!CreatePixelShaderFromFunc("Shaders/psFontRender", 0, &m_PixelShader, REF_SHADER(psFontRender)))

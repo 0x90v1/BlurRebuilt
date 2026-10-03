@@ -677,8 +677,9 @@ void C_D3D11GameDevice::SetVertexShader(const C_VertexShader* shader)
     {
         static unsigned traced = 0;
         if (traced++ < 8)
-            Blur2PCAutomation::LogF("DX11 VS object %p has no native shader bytes=%u caller=%p",
-                shader, (unsigned)shader->m_Bytecode.size(), _ReturnAddress());
+            Blur2PCAutomation::LogF("DX11 VS object %p has no native shader bytes=%u caller=%p rva=%08x",
+                shader, (unsigned)shader->m_Bytecode.size(), _ReturnAddress(),
+                (unsigned)((const char*)_ReturnAddress() - (const char*)GetModuleHandleA(nullptr)));
     }
     auto context = Context(m_pd3dDevice); if (!context) return;
     context->VSSetShader(shader ? shader->m_pd3dVertexShader : nullptr, nullptr, 0);

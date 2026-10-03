@@ -94,7 +94,7 @@ bool C_BasicRender::OnCreate()
 		m_pVertexDeclaration[E_BasicRenderVertexShader_Textured3D] = Device()->CreateVertexDeclaration(texturedVertexFormat3D);
 	}
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
 	if(!CreateVertexShaderFromFunc("Shaders/vsBasicRenderColoured2D", 0, &m_VertexShader[E_BasicRenderVertexShader_Coloured2D], REF_SHADER(vsBasicRenderColoured2D)))
 		return false;
 	if(!CreateVertexShaderFromFunc("Shaders/vsBasicRenderColoured3D", 0, &m_VertexShader[E_BasicRenderVertexShader_Coloured3D], REF_SHADER(vsBasicRenderColoured3D)))
