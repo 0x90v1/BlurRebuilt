@@ -679,3 +679,13 @@ Verified: standard build errsum 0; queued Observatory native60 exit 0 with every
 Next: final regression at native60/unlocked; extend the retail shader dump/audit to other tracks.
 
 Files touched: display/source/render/{BasicRender,FontRender,TextureRender}.cpp, device/d3d11/D3D11GameDeviceNative.cpp (diagnostic), docs/blur1pcdx11/{analysis,LEDGER}.md.
+
+## 2026-10-03 — session Claude DX11 continuation — T127 render-texture init and route regression
+
+Did: fixed the native `C_RenderTexture2D` constructor, which left its slot index uninitialized; enabling BasicRender exposed this as a boot-movie crash on Downtown. Confirmed the retail effect dump is complete (all effects preload).
+
+Verified: standard build errsum 0; 14 queued races (11 routes native60, 3 unlocked) exit 0 with clean logs and coherent stills. Evidence `_work/build/{retail_fx_dump_routes_oct03,route_regression_oct03}`.
+
+Next: per-pass GPU parity for audited shaders is now limited to the explained interface differences; continue with remaining visual/state parity (Blur1PC detail-1 black frame belongs to Blur1PC).
+
+Files touched: display2/source/context/D3D11Context.cpp, docs/blur1pcdx11/{analysis,LEDGER}.md.

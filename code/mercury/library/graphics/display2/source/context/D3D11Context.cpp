@@ -1796,7 +1796,7 @@ void C_Texture::Unlock(const U32 level) const
 
 C_RenderTexture2D::C_RenderTexture2D() : m_Flags(0)
 {
-#if DEVICE_D3D9_PC
+#if DEVICE_D3D9_PC || DEVICE_D3D11_PC // [Blur1PCDX11] The native layout carries these slots too.
 	m_TextureIndex = 0;
 	m_SurfaceIndex = 0;
 	m_Multisample = D3DMULTISAMPLE_NONE;	// [Blur2PC]

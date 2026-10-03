@@ -615,3 +615,11 @@ Found in / Belongs to **Blur1PCDX11**. Every native run logged eight "VS object 
 `BasicRender.cpp`, `FontRender.cpp` and `TextureRender.cpp` choose embedded shaders only for `DEVICE_PCD3D9`/XB2/PS3. Native builds therefore took the `CreateVertexShaderFromFile` branch, failed on `Shaders/*.dx11vsh` (the long-standing open-file errors), and returned false. All three renderers stayed uncreated and their draws were skipped. The SM5 blobs are already compiled and embedded, so the guards now include `DEVICE_PCD3D11`, matching `shader/VertexShaders.cpp`.
 
 Queued Observatory native60 exits 0. The log shows all 4 BasicRender VS, 2 BasicRender PS, FontRender VS/PS and TextureRender RGB/A created, with no missing-shader lines and no `.dx11vsh`/`.dx11psh` open failures. `render/source/sky/SkyDome.cpp` has the same guard but is used only by samples.
+
+### T127: uninitialized native render-texture slot index (2026-10-03)
+
+Found in / Belongs to **Blur1PCDX11**. With BasicRender now created, a Downtown boot crashed: `C_BootLayer::RenderFullscreen` → `RenderMovie` → `BasicRender::DrawTextured2DRect` → `SetNativeTexture` → `CreateTextureView` called through a wild pointer (`retail_fx_dump_routes_oct03/downtown/crash.txt`). The boot `.bik` movies are not installed, so the movie's `Display::C_RenderTexture2D` is never created. D3D11Context.h declares `m_TextureIndex`/`m_SurfaceIndex`/`m_Multisample` for `DEVICE_D3D9_PC || DEVICE_D3D11_PC`, but the native constructor initialized them only under `DEVICE_D3D9_PC`. `GetTexture()` therefore indexed `m_Texture[garbage]`. The constructor guard now matches the declaration. On D3D9 the zeroed index returns a texture whose null device pointer binds nothing.
+
+The retail shader dump across 11 more routes added no files (3,336 before and after): `GameAppResources` preloads every effect, so the Observatory audit already covers all loaded passes.
+
+Verification: standard build errsum 0. Queued regression (389 s, wait 0) covered Brighton, Hackney, Amboy, LA River, Long Beach Docks, Haruna, Dumbo, Downtown, Russian Hill, Barcelona Oval and Gracia at native60, plus Downtown, Docks and Haruna unlocked. All 14 exit 0 with no missing-shader, input-layout, RTV or unmeasured-format diagnostics, and the stills are coherent (`_work/build/route_regression_oct03/sheet.jpg`).
