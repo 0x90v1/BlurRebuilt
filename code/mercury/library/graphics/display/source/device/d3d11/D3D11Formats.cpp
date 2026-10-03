@@ -104,8 +104,46 @@ DXGI_FORMAT GetTextureResourceFormat(DXGI_FORMAT format)
     }
 }
 
+// GetDesc need not initialize inactive union storage. Compare the fields of
+// the actual view dimension rather than padding or another dimension's fields.
+static bool SameTextureView(const D3D11_SHADER_RESOURCE_VIEW_DESC& a,
+                            const D3D11_SHADER_RESOURCE_VIEW_DESC& b)
+{
+    if (a.Format != b.Format || a.ViewDimension != b.ViewDimension) return false;
+    switch (a.ViewDimension)
+    {
+    case D3D11_SRV_DIMENSION_TEXTURE2D:
+        return a.Texture2D.MostDetailedMip == b.Texture2D.MostDetailedMip &&
+               a.Texture2D.MipLevels == b.Texture2D.MipLevels;
+    case D3D11_SRV_DIMENSION_TEXTURE2DARRAY:
+        return a.Texture2DArray.MostDetailedMip == b.Texture2DArray.MostDetailedMip &&
+               a.Texture2DArray.MipLevels == b.Texture2DArray.MipLevels &&
+               a.Texture2DArray.FirstArraySlice == b.Texture2DArray.FirstArraySlice &&
+               a.Texture2DArray.ArraySize == b.Texture2DArray.ArraySize;
+    case D3D11_SRV_DIMENSION_TEXTURE2DMS:
+        return true;
+    case D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY:
+        return a.Texture2DMSArray.FirstArraySlice == b.Texture2DMSArray.FirstArraySlice &&
+               a.Texture2DMSArray.ArraySize == b.Texture2DMSArray.ArraySize;
+    case D3D11_SRV_DIMENSION_TEXTURE3D:
+        return a.Texture3D.MostDetailedMip == b.Texture3D.MostDetailedMip &&
+               a.Texture3D.MipLevels == b.Texture3D.MipLevels;
+    case D3D11_SRV_DIMENSION_TEXTURECUBE:
+        return a.TextureCube.MostDetailedMip == b.TextureCube.MostDetailedMip &&
+               a.TextureCube.MipLevels == b.TextureCube.MipLevels;
+    case D3D11_SRV_DIMENSION_TEXTURECUBEARRAY:
+        return a.TextureCubeArray.MostDetailedMip == b.TextureCubeArray.MostDetailedMip &&
+               a.TextureCubeArray.MipLevels == b.TextureCubeArray.MipLevels &&
+               a.TextureCubeArray.First2DArrayFace == b.TextureCubeArray.First2DArrayFace &&
+               a.TextureCubeArray.NumCubes == b.TextureCubeArray.NumCubes;
+    default:
+        return false;
+    }
+}
+
 HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
-                          bool srgb, ID3D11ShaderResourceView** view)
+                          bool srgb, ID3D11ShaderResourceView** view,
+                          ID3D11ShaderResourceView* existing)
 {
     if (!device || !resource || !view) return E_INVALIDARG;
     *view = nullptr;
@@ -162,6 +200,31 @@ HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
     // [Blur1PCDX11] D3D9 ignores SRGBTEXTURE on formats without SRGBREAD support.
     const DXGI_FORMAT gammaFormat = GetSRGBFormat(desc.Format);
     if (srgb && gammaFormat != DXGI_FORMAT_UNKNOWN) desc.Format = gammaFormat;
+    // [Blur1PCDX11] FX already retains its current view. Reuse only that view,
+    // with the same resource, device and complete descriptor; gamma changes
+    // still create the appropriate view. No extra resource lifetime or cache.
+    if (existing)
+    {
+        ID3D11Resource* previousResource = nullptr;
+        existing->GetResource(&previousResource);
+        const bool sameResource = previousResource == resource;
+        if (previousResource) previousResource->Release();
+        if (sameResource)
+        {
+            ID3D11Device* previousDevice = nullptr;
+            existing->GetDevice(&previousDevice);
+            const bool sameDevice = previousDevice == device;
+            if (previousDevice) previousDevice->Release();
+            D3D11_SHADER_RESOURCE_VIEW_DESC previous = {};
+            existing->GetDesc(&previous);
+            if (sameDevice && SameTextureView(previous, desc))
+            {
+                existing->AddRef();
+                *view = existing;
+                return S_FALSE;
+            }
+        }
+    }
     return device->CreateShaderResourceView(resource, &desc, view);
 }
 

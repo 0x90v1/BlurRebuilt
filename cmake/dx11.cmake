@@ -224,3 +224,10 @@ if(TARGET display2 AND BLUR_USE_DX11)
     target_link_libraries(dx11_dynamic_buffer_reference PRIVATE blur_dx11 display2 core)
     set_target_properties(dx11_dynamic_buffer_reference PROPERTIES FOLDER "dx11")
 endif()
+
+# [Blur1PCDX11] Verify current-view reuse against fresh GPU sampling.
+add_executable(dx11_texture_view_reference
+    ${BLUR_TOP}/code/tools/dx11_probe/texture_view_reference.cpp)
+target_compile_features(dx11_texture_view_reference PRIVATE cxx_std_17)
+target_link_libraries(dx11_texture_view_reference PRIVATE blur_dx11)
+set_target_properties(dx11_texture_view_reference PROPERTIES FOLDER "dx11")

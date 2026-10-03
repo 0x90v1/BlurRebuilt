@@ -357,3 +357,16 @@ Blocked: none. Broader visual parity and intermittent damage-volume crash remain
 Next: build/test the current-view reuse candidate, compare fresh/reused hardware/WARP sampling across resource/gamma/null/reload transitions, then verify moving60/unlocked and profile. T127 remains in progress.
 
 Files touched: owned D3D11Context lock hunks, owned cmake diagnostic target, dynamic_buffer_checks/reference, phase analysis/board/ledger. Private harness remains under ignored _work/.
+
+
+## 2026-10-03 01:53 — session Codex visual diagnosis — T127
+
+Did: reuse the FX variable's retained native texture view when resource/device/active descriptor match. Preserve gamma and resource changes, null binding and reload. Found in / Belongs to Blur1PCDX11.
+
+Verified: standard build and diagnostic target errsum0/exit0; indexed4/4 source units compile;84 fresh/reused GPU comparisons pass on hardware and WARP without debug errors. Standard EXE/PDB delivery verified. Moving debug60/unlocked exit0/46s/wait0, no previous validation/lock/view failures. Final still reaches134mph. Unlocked engine reports roughly25–32fps; parity remains incomplete.
+
+Blocked: none. Broader variants and intermittent damage-volume crash remain open.
+
+Next: cache repeated reflected variable lookups with effect-reload invalidation; verify uniform/resource/reload behavior on hardware/WARP, then moving60/unlocked and remaining CPU costs. T127 remains in progress.
+
+Files touched: owned D3D11Effect/Formats headers and implementations, owned NativeFX11 binding hunk and cmake diagnostic target, texture_view_reference, phase analysis/board/ledger. Private artifacts remain under ignored _work/.

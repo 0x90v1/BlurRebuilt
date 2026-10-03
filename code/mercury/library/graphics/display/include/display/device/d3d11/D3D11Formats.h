@@ -29,7 +29,8 @@ DXGI_FORMAT GetSRGBFormat(DXGI_FORMAT linearFormat);
 DXGI_FORMAT GetTextureResourceFormat(DXGI_FORMAT format);
 DXGI_FORMAT GetLinearFormat(DXGI_FORMAT format);
 HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
-                          bool srgb, ID3D11ShaderResourceView** view);
+                          bool srgb, ID3D11ShaderResourceView** view,
+                          ID3D11ShaderResourceView* existing = nullptr);
 
 } }
 

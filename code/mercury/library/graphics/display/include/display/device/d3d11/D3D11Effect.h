@@ -15,6 +15,10 @@ public:
     bool HasParameter(const char* name) const;
     HRESULT SetRawParameter(const char* name, const void* data, UINT bytes);
     HRESULT SetTexture(const char* name, ID3D11ShaderResourceView* view);
+    // Returns S_FALSE when the effect's currently retained view can be reused.
+    HRESULT CreateTextureView(const char* name, ID3D11Device* device,
+                              ID3D11Resource* texture, bool srgb,
+                              ID3D11ShaderResourceView** view) const;
     HRESULT SetSampler(const char* name, ID3D11SamplerState* sampler);
     HRESULT GetPassInputSignature(const char* technique, UINT pass,
                                   const void** signature, SIZE_T* bytes) const;

@@ -117,7 +117,7 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
         bool srgb = live.m_TextureGamma == Display2::E_Bool_True;
         const Display::E_Bool forced = Display::Device()->GetForceTextureGamma();
         if (forced != Display::E_Bool_Default) srgb = forced == Display::E_Bool_True;
-        const HRESULT result = Display::D3D11::CreateTextureView(
+        const HRESULT result = native->CreateTextureView(name,
             Display::Device()->GetD3DDevice(), texture, srgb, &view);
         static const bool traceGamma = getenv("BLUR_DX11_TRACE_TEXTURE_GAMMA") != nullptr;
         if (traceGamma)

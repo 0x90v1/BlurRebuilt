@@ -1,5 +1,6 @@
 #include "Display/Device/D3D11/D3D11Effect.h"
 #include "Display/Device/D3D11/D3D11EffectNames.h"
+#include "Display/Device/D3D11/D3D11Formats.h"
 
 #include <cstdio>
 #include <algorithm>
@@ -67,6 +68,24 @@ HRESULT C_D3D11Effect::SetTexture(const char* name, ID3D11ShaderResourceView* vi
             view = nullptr;
     }
     return resource->SetResource(view);
+}
+
+HRESULT C_D3D11Effect::CreateTextureView(const char* name, ID3D11Device* device,
+                                      ID3D11Resource* texture, bool srgb,
+                                      ID3D11ShaderResourceView** view) const
+{
+    if (!view) return E_INVALIDARG;
+    *view = nullptr;
+    if (!m_Effect || !name) return E_INVALIDARG;
+    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
+    if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
+    ID3DX11EffectShaderResourceVariable* resource = variable->AsShaderResource();
+    if (!resource || !resource->IsValid()) return E_INVALIDARG;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> previous;
+    // GetResourceArray supports an initially unbound scalar slot as well.
+    const HRESULT result = resource->GetResourceArray(&previous, 0, 1);
+    if (FAILED(result)) return result;
+    return Display::D3D11::CreateTextureView(device, texture, srgb, view, previous.Get());
 }
 
 HRESULT C_D3D11Effect::SetSampler(const char* name, ID3D11SamplerState* sampler)
