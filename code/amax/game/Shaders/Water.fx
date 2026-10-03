@@ -126,7 +126,7 @@ real3 EvaluateDiffuse(in C_Material mtlData, in out C_Surface surfaceData, in C_
 #if defined(BLUR_DX11) && defined(WATER_NO_DEPTH)
 	// [Blur2PC][Blur1PCDX11][retail-recovered] The shipped *NoDepth techniques
 	// (refract pass at graphical detail 1) skip the depth read: distance is 1.
-	float	fWaterDepth		= vtxData.m_vScreenPos.z; 
+	float	fWaterDepth		= vtxData.m_vScreenPos.z;
 	float	fDistUnderwater	= 1.0h;
 #else
 	float	fSceneDepth		= SampleDepthBuffer(DepthBufferSampler, vScreenCoords, g_vDepthScale);
@@ -249,4 +249,3 @@ technique MaterialLSplitScreenNoDepth <string SortType = "postresolve"; string D
 	}
 }
 #endif
-
