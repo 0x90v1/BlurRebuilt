@@ -279,3 +279,16 @@ Blocked: none. Full reflection/lighting and uncaptured retail variant parity rem
 Next: compare foreground Road_LN_ND_NG / MaterialLights draw 7059193 against actual retail bytecode using the protected identical inputs. T127 remains in progress.
 
 Files touched: RoadTwoSpecN.fx, Special/RoadSurface.h, phase analysis/board/ledger. Private GPU replay/capture artifacts remain under ignored _work/.
+
+
+## 2026-10-03 00:16 — session Codex visual diagnosis — T127
+
+Did: verify foreground road final lighting and the road reflection producer against actual retail shader bytecode; protect the next general scenery reflection draw. No production adjustment. Found in / Belongs to Blur1PCDX11.
+
+Verified: road final-lighting hardware replay byte-exact over212,024 covered pixels; road reflection hardware replay byte-exact over56,827 covered pixels. WARP final-lighting max5/reflection max1. Both queued probes exit0. Native road reflection and general scenery reflection capture races exit0. Existing standard Release road repairs remain delivered; this checkpoint adds evidence only.
+
+Blocked: none. Other material/reflection permutations and damage-volume crash remain open.
+
+Next: consume queued default_lod_replay hardware/WARP results and compare the captured general reflection material against retail draw7048564. T127 remains in progress.
+
+Files touched: phase analysis, board and ledger. Private tools and replay artifacts remain under ignored _work/.
