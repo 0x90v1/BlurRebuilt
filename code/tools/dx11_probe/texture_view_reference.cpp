@@ -14,10 +14,15 @@ static bool CheckViews(Display::D3D11::C_D3D11Device& device, unsigned kind)
 {
     const char* types[] = {"Texture2D", "Texture3D", "TextureCube", "Texture2DArray", "TextureCubeArray", "Texture2D"};
     const char* coords[] = {"float2(.5,.5)", "float3(.5,.5,.5)", "float3(1,0,0)", "float3(.5,.5,0)", "float4(1,0,0,0)", "float2(.5,.5)"};
-    std::string source = std::string(types[kind]) + " sampleTexture;\n" + R"(
+    const char* nativeName=kind==1?"g_sVehicleDamageVolumeTexture":"sampleTexture";
+    const char* bindingName=kind==1?"g_sVehicleDamageVolumeTexture3d":"sampleTexture";
+    std::string source = std::string(types[kind]) + " " + nativeName + ";\n" + R"(
+float4 tint;
+float4 secondTint;
+bool uniformOnly = false;
 SamplerState pointSampler { Filter=MIN_MAG_MIP_POINT; AddressU=Clamp; AddressV=Clamp; AddressW=Clamp; };
 float4 VS(uint id:SV_VertexID):SV_Position { return float4(id==2?3:-1,id==1?3:-1,0,1); }
-float4 PS():SV_Target { return sampleTexture.Sample(pointSampler,)" + coords[kind] + R"(); }
+float4 PS():SV_Target { if (uniformOnly) return tint + secondTint; return )" + nativeName + R"(.Sample(pointSampler,)" + coords[kind] + R"(); }
 technique11 Material { pass p0 {
  SetVertexShader(CompileShader(vs_5_0,VS())); SetPixelShader(CompileShader(ps_5_0,PS()));
 } }
@@ -27,6 +32,13 @@ technique11 Material { pass p0 {
     { if (errors) std::fprintf(stderr,"%s",static_cast<const char*>(errors->GetBufferPointer())); return false; }
     Display::D3D11::C_D3D11Effect effect;
     if (FAILED(effect.LoadMemory(device.Device(),bytecode->GetBufferPointer(),bytecode->GetBufferSize()))) return false;
+    if (!effect.HasParameter("tint") || effect.HasParameter("addedTint") || effect.HasParameter("missing")) return false;
+    if (!effect.HasParameter(nativeName) || !effect.HasParameter(bindingName)) return false;
+    std::string replacement=source;
+    for (size_t pos=0;(pos=replacement.find("tint",pos))!=std::string::npos;pos+=9)
+        replacement.replace(pos,4,"addedTint");
+    ComPtr<ID3DBlob> replacementCode;
+    if (FAILED(D3DCompile(replacement.data(),replacement.size(),nullptr,nullptr,nullptr,nullptr,"fx_5_0",0,0,&replacementCode,&errors))) return false;
     ComPtr<ID3D11Resource> textures[2];
     const unsigned char pixels[2][4] = {{128,64,240,255},{24,80,176,255}};
     const float scalarPixels[] = {.25f,.75f};
@@ -70,7 +82,7 @@ technique11 Material { pass p0 {
     auto* context=device.Context();
     const D3D11_VIEWPORT viewport={0,0,1,1,0,1};
     auto render = [&](ID3D11ShaderResourceView* view, float* pixel) {
-        if (FAILED(effect.SetTexture("sampleTexture",view)) || FAILED(effect.Apply("Material",0,context))) return false;
+        if (FAILED(effect.SetTexture(bindingName,view)) || FAILED(effect.Apply("Material",0,context))) return false;
         context->RSSetState(raster.Get()); context->RSSetViewports(1,&viewport);
         auto* raw=rtv.Get(); context->OMSetRenderTargets(1,&raw,nullptr);
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -85,10 +97,14 @@ technique11 Material { pass p0 {
     const bool gamma[]={false,false,true,true,true,true,false,false,false,false,false,false,false,false};
     for (unsigned step=0;step<14;++step)
     {
-        if (step==10 && FAILED(effect.SetTexture("sampleTexture",nullptr))) return false;
-        if (step==12 && FAILED(effect.LoadMemory(device.Device(),bytecode->GetBufferPointer(),bytecode->GetBufferSize()))) return false;
+        if (step==10 && FAILED(effect.SetTexture(bindingName,nullptr))) return false;
+        if (step==12)
+        {
+            if (FAILED(effect.LoadMemory(device.Device(),replacementCode->GetBufferPointer(),replacementCode->GetBufferSize()))) return false;
+            if (effect.HasParameter("tint") || !effect.HasParameter("addedTint") || effect.HasParameter("missing")) return false;
+        }
         ComPtr<ID3D11ShaderResourceView> view, fresh;
-        const HRESULT result=effect.CreateTextureView("sampleTexture",device.Device(),textures[resources[step]].Get(),gamma[step],&view);
+        const HRESULT result=effect.CreateTextureView(bindingName,device.Device(),textures[resources[step]].Get(),gamma[step],&view);
         if (result != (step%2 || (kind==5 && (step==2 || step==6)) ? S_FALSE : S_OK))
         {
             std::fprintf(stderr,"%s step%u unexpected reuse result %08x\n",types[kind],step,static_cast<unsigned>(result));
@@ -98,8 +114,22 @@ technique11 Material { pass p0 {
         float reused[4], expected[4];
         if (!render(view.Get(),reused) || !render(fresh.Get(),expected) || std::memcmp(reused,expected,sizeof(reused))!=0) return false;
     }
+    const int uniformOnly=1;
+    if (FAILED(effect.SetRawParameter("uniformOnly",&uniformOnly,sizeof(uniformOnly)))) return false;
+    const float secondTint[]={1,2,4,8};
+    for (unsigned change=0;change<2;++change)
+    {
+        float tint[4],expected[4],actual[4];
+        for (unsigned channel=0;channel<4;++channel)
+        { tint[channel]=secondTint[channel]*(change+1); expected[channel]=tint[channel]+secondTint[channel]; }
+        if (FAILED(effect.SetRawParameter("addedTint",tint,sizeof(tint))) ||
+            FAILED(effect.SetRawParameter("secondTint",secondTint,sizeof(secondTint)))) return false;
+        ComPtr<ID3D11ShaderResourceView> view;
+        if (FAILED(effect.CreateTextureView(bindingName,device.Device(),textures[0].Get(),false,&view)) ||
+            !render(view.Get(),actual) || std::memcmp(actual,expected,sizeof(actual))!=0) return false;
+    }
     context->ClearState();
-    std::printf("%s: 14 retained/fresh GPU view comparisons passed\n",types[kind]);
+    std::printf("%s: 14 retained/fresh views and 2 changed-uniform GPU draws passed\n",types[kind]);
     return true;
 }
 

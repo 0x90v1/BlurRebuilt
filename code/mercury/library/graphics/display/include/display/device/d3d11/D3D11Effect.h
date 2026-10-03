@@ -4,6 +4,8 @@
 // [Blur1PCDX11] Native FX5 effect resource for the game's authored materials.
 #include <d3dx11effect.h>
 #include <wrl/client.h>
+#include <map>
+#include <string>
 
 namespace Display { namespace D3D11 {
 
@@ -29,8 +31,13 @@ public:
     HRESULT Apply(const char* technique, UINT pass, ID3D11DeviceContext* context) const;
 
 private:
+    ID3DX11EffectVariable* FindVariable(const char* name) const;
     ID3DX11EffectPass* FindPass(const char* technique, UINT pass) const;
     Microsoft::WRL::ComPtr<ID3DX11Effect> m_Effect;
+    // [Blur1PCDX11] Reflection pointers belong to m_Effect. Build the index at
+    // load time so render-time lookups, including absent names, are read-only.
+    std::map<std::string, ID3DX11EffectVariable*, std::less<>> m_Variables;
+    bool m_VariablesComplete = false;
 };
 
 } }

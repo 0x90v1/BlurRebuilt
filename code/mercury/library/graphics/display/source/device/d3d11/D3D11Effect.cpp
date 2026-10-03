@@ -11,8 +11,34 @@ namespace Display { namespace D3D11 {
 HRESULT C_D3D11Effect::LoadMemory(ID3D11Device* device, const void* bytes, SIZE_T size)
 {
     if (!device || !bytes || !size) return E_INVALIDARG;
+    m_Variables.clear();
+    m_VariablesComplete = false;
     m_Effect.Reset();
-    return D3DX11CreateEffectFromMemory(bytes, size, 0, device, &m_Effect);
+    const HRESULT result = D3DX11CreateEffectFromMemory(bytes, size, 0, device, &m_Effect);
+    D3DX11_EFFECT_DESC effect = {};
+    if (SUCCEEDED(result) && SUCCEEDED(m_Effect->GetDesc(&effect)))
+    {
+        m_VariablesComplete = true;
+        for (UINT i = 0; i < effect.GlobalVariables; ++i)
+        {
+            ID3DX11EffectVariable* variable = m_Effect->GetVariableByIndex(i);
+            D3DX11_EFFECT_VARIABLE_DESC desc = {};
+            if (variable && variable->IsValid() && SUCCEEDED(variable->GetDesc(&desc)) && desc.Name)
+                m_Variables.emplace(desc.Name, variable);
+            else
+                m_VariablesComplete = false;
+        }
+    }
+    return result;
+}
+
+ID3DX11EffectVariable* C_D3D11Effect::FindVariable(const char* name) const
+{
+    if (!m_Effect || !name) return nullptr;
+    name = NativeEffectParameterName(name);
+    const auto found = m_Variables.find(name);
+    if (found != m_Variables.end()) return found->second;
+    return m_VariablesComplete ? nullptr : m_Effect->GetVariableByName(name);
 }
 
 HRESULT C_D3D11Effect::LoadFile(ID3D11Device* device, const wchar_t* path)
@@ -34,14 +60,14 @@ HRESULT C_D3D11Effect::LoadFile(ID3D11Device* device, const wchar_t* path)
 bool C_D3D11Effect::HasParameter(const char* name) const
 {
     if (!m_Effect || !name) return false;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
+    ID3DX11EffectVariable* variable = FindVariable(name);
     return variable && variable->IsValid();
 }
 
 HRESULT C_D3D11Effect::SetRawParameter(const char* name, const void* data, UINT bytes)
 {
     if (!m_Effect || !name || !data || !bytes) return E_INVALIDARG;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
+    ID3DX11EffectVariable* variable = FindVariable(name);
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     D3DX11_EFFECT_TYPE_DESC type = {};
     if (FAILED(variable->GetType()->GetDesc(&type))) return E_FAIL;
@@ -51,7 +77,7 @@ HRESULT C_D3D11Effect::SetRawParameter(const char* name, const void* data, UINT 
 HRESULT C_D3D11Effect::SetTexture(const char* name, ID3D11ShaderResourceView* view)
 {
     if (!m_Effect || !name) return E_INVALIDARG;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
+    ID3DX11EffectVariable* variable = FindVariable(name);
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     ID3DX11EffectShaderResourceVariable* resource = variable->AsShaderResource();
     if (!resource || !resource->IsValid()) return E_INVALIDARG;
@@ -77,7 +103,7 @@ HRESULT C_D3D11Effect::CreateTextureView(const char* name, ID3D11Device* device,
     if (!view) return E_INVALIDARG;
     *view = nullptr;
     if (!m_Effect || !name) return E_INVALIDARG;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
+    ID3DX11EffectVariable* variable = FindVariable(name);
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     ID3DX11EffectShaderResourceVariable* resource = variable->AsShaderResource();
     if (!resource || !resource->IsValid()) return E_INVALIDARG;
@@ -91,7 +117,7 @@ HRESULT C_D3D11Effect::CreateTextureView(const char* name, ID3D11Device* device,
 HRESULT C_D3D11Effect::SetSampler(const char* name, ID3D11SamplerState* sampler)
 {
     if (!m_Effect || !name) return E_INVALIDARG;
-    ID3DX11EffectVariable* variable = m_Effect->GetVariableByName(NativeEffectParameterName(name));
+    ID3DX11EffectVariable* variable = FindVariable(name);
     if (!variable || !variable->IsValid()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
     ID3DX11EffectSamplerVariable* state = variable->AsSampler();
     if (!state || !state->IsValid()) return E_INVALIDARG;

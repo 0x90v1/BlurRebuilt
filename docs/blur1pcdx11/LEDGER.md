@@ -370,3 +370,16 @@ Blocked: none. Broader variants and intermittent damage-volume crash remain open
 Next: cache repeated reflected variable lookups with effect-reload invalidation; verify uniform/resource/reload behavior on hardware/WARP, then moving60/unlocked and remaining CPU costs. T127 remains in progress.
 
 Files touched: owned D3D11Effect/Formats headers and implementations, owned NativeFX11 binding hunk and cmake diagnostic target, texture_view_reference, phase analysis/board/ledger. Private artifacts remain under ignored _work/.
+
+
+## 2026-10-03 02:09 — session Codex visual diagnosis — T127
+
+Did: index stable native FX reflection at load; preserve alias and absent-name behavior, clear on reload, keep render-time reads immutable. Found in / Belongs to Blur1PCDX11. The user's reported private copy/visible-console fault was repaired earlier in this continuation.
+
+Verified: standard build/diagnostic target errsum0/exit0; indexed2/2 units compile; hardware/WARP84 paired view comparisons plus12 changed-uniform GPU draws pass, including renamed/missing variables on reload and vehicle alias. EXE/PDB delivered and hashes match. Moving debug60/unlocked exit0/46s/47s/wait0, no validation/lock/view failures; coherent131mph still. GetVariableByName disappears from the owned main-thread sample. Rendering remains25.1–29.0fps in the profiled moving fixture.
+
+Blocked: none. Performance parity, broader variants and intermittent damage-volume crash remain open.
+
+Next: instrument remaining SRV creation reasons in a bounded opt-in fixture, distinguishing live resource/gamma changes from cube/2D defaults; use recovered binding behavior to remove proven redundant work. Then hardware/WARP and moving60/unlocked verification. T127 remains in progress.
+
+Files touched: owned D3D11Effect header/implementation, texture_view_reference, phase analysis/board/ledger. Private artifacts remain under ignored _work/.
