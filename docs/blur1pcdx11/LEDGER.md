@@ -383,3 +383,29 @@ Blocked: none. Performance parity, broader variants and intermittent damage-volu
 Next: instrument remaining SRV creation reasons in a bounded opt-in fixture, distinguishing live resource/gamma changes from cube/2D defaults; use recovered binding behavior to remove proven redundant work. Then hardware/WARP and moving60/unlocked verification. T127 remains in progress.
 
 Files touched: owned D3D11Effect header/implementation, texture_view_reference, phase analysis/board/ledger. Private artifacts remain under ignored _work/.
+
+
+## 2026-10-03 03:09 — session Codex visual diagnosis — T127
+
+Did: finish bounded SRV cause statistics and actual-input crash composition replay; focus on clarified intermittent geometry beyond the right barrier. Native reproduction saved; no guessed visual fix.
+
+Verified: clean standard build errsum0 and delivery hashes match; selected PC/native crash replay max1 byte on hardware/WARP, including unlocked capture. PC compressed reference exit0. Three scrape traces exit0; sampled pixels miss the fault. Opt-in colour trigger builds errsum0; refining its first crash-fringe false positive to target horizontal strips.
+
+Blocked: none. Affecting draw/root cause unconfirmed; parity remains incomplete.
+
+Next: catch an affected strip, identify its GPU producer and compare pristine PC mechanism; repair and verify60/unlocked, remove temporary diagnostics, deliver and commit own changes.
+
+Files touched: own temporary native Present diagnostic and phase analysis/board/ledger; private captures/replays/logs under ignored _work/.
+
+
+## 2026-10-03 — session Codex visual diagnosis — T127 barrier scrape repair
+
+Did: identify stale GPU particle vertices behind the saturated barrier strips; recover retail's true pass-flush default and restore it under the actual native DX11 build guard. Remove temporary diagnostics and the failed shared-range publication experiment. Found in / Belongs to Blur1PCDX11; PC own-executable paired reference remains clean.
+
+Verified: explicit native false/true isolation reproduces/clears malformed geometry; retail constructor/render/flush functions recovered read-only. Corrected standard Release errsum0; compiled native object confirms true and the flush call. Standard EXE/PDB delivered with matching hashes. Four final queued early/late scrape runs, 60-cap/unlocked, exit0/199s/wait0; four inspected stills clean with no debug configuration override or DX11 diagnostic environment. Actual render rate below60; performance gain from this glitch is not established.
+
+Blocked: none for this repair. The initial wrong build macro excluded the attempted default change; its runs were not validation of the final fix. Broader T127 parity, uncaptured variants and intermittent damage-volume crash remain open.
+
+Next: assess existing material SRV creation statistics and recover safe ownership/invalidation before further performance changes; verify any resulting change on hardware/WARP and moving60/unlocked.
+
+Files touched: own dynamic/source/View.cpp gate/default and phase analysis/board/ledger. Private captures, retail recovery and discarded experiment artifacts remain under ignored _work/ only. Commit own repair/docs only, as previously authorized; no push.
