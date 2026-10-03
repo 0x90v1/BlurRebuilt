@@ -18,6 +18,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dx11_shadercompile
 from alpha_test import inject_effect_alpha_test
 
 
+def technique_blocks(source: str) -> list[tuple[str, str, int, int]]:
+    """Return technique names, annotations and balanced source spans."""
+    result = []
+    for match in re.finditer(r"\btechnique\s+(\w+)\s*(<[^>]*>)?\s*\{", source):
+        depth, end = 1, match.end()
+        while depth and end < len(source):
+            depth += (source[end] == "{") - (source[end] == "}")
+            end += 1
+        if depth:
+            raise ValueError(f"unterminated technique: {match[1]}")
+        result.append((match[1], match[2] or "", match.start(), end))
+    return result
+
+
+def annotation_defines(annotations: str) -> list[str]:
+    result = []
+    for match in re.finditer(r'\bstring\s+Define\s*=\s*"([^"]*)"', annotations,
+                             re.IGNORECASE):
+        result.extend(value.strip() for value in match[1].split(";") if value.strip())
+    for value in result:
+        if not re.fullmatch(r"[A-Za-z_]\w*", value):
+            raise ValueError(f"unsupported technique define: {value}")
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--fxc", required=True, type=Path)
@@ -25,6 +50,7 @@ def main() -> int:
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--include", action="append", default=[], type=Path)
     parser.add_argument("--define", action="append", default=[])
+    parser.add_argument("--technique", help="Compile one technique with its annotation defines")
     args = parser.parse_args()
 
     output = args.out.resolve()
@@ -45,6 +71,36 @@ def main() -> int:
         return 1
 
     source = preprocessed.read_text(encoding="utf-8-sig").rstrip("\0")
+    techniques = technique_blocks(source)
+    if args.technique:
+        selected = next((block for block in techniques if block[0] == args.technique), None)
+        if not selected:
+            raise ValueError(f"technique {args.technique} disappeared under its defines")
+        # Other techniques can use functions/structures disabled by these defines.
+        for name, _, start, end in reversed(techniques):
+            if name != args.technique:
+                source = source[:start] + source[end:]
+    else:
+        # [Blur1PCDX11] Fx_export.cpp:WriteEffect compiles each technique with
+        # GenerateAnnotationCmdLineParams. FX11 does not interpret Define annotations.
+        # Keep separate effects so differing HLSL types and uniform layouts cannot collide.
+        permutations = []
+        for name, annotations, _, _ in techniques:
+            defines = annotation_defines(annotations)
+            if not defines:
+                continue
+            variant = output.with_name(output.stem + "__" + name + output.suffix)
+            child = [sys.executable, str(Path(__file__).resolve()),
+                     "--fxc", str(args.fxc), "--source", str(args.source),
+                     "--out", str(variant), "--technique", name]
+            for directory in args.include:
+                child.extend(("--include", str(directory)))
+            for definition in dict.fromkeys(args.define + defines):
+                child.extend(("--define", definition))
+            if subprocess.run(child).returncode != 0:
+                return 1
+            permutations.append(f"{name}\t{variant.name}\n")
+        output.with_suffix(".techniques").write_text("".join(permutations), encoding="utf-8")
     source = re.sub(r"\bshared\s+", "", source)
     # FX9 binds independent vertex/pixel c-register files. FX5 packs global
     # values into constant buffers, so the old explicit register assignments
@@ -56,7 +112,7 @@ def main() -> int:
     # recording it for the native texture binding path.
     sampler_records: list[str] = []
     sampler_block = re.compile(
-        r"\bsampler\s+([A-Za-z_]\w*)\s*=\s*sampler_state\s*\{([^{}]*)\}",
+        r"\bsampler(?:2D|3D|CUBE)?\s+([A-Za-z_]\w*)\s*=\s*sampler_state\s*\{([^{}]*)\}",
         re.DOTALL,
     )
 
@@ -80,7 +136,8 @@ def main() -> int:
         for axis in "UVW":
             if "address" + axis.lower() not in values:
                 body += f"\nAddress{axis} = WRAP;"
-        return (f"sampler {match[1]} = sampler_state {{{body}\n"
+        sampler_type = match[0].split()[0]
+        return (f"{sampler_type} {match[1]} = sampler_state {{{body}\n"
                 f"Filter = {filter_name};\n}}")
 
     source = sampler_block.sub(convert_sampler, source)

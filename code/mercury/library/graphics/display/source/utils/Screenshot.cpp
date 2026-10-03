@@ -39,9 +39,14 @@ static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* 
 	source->GetDesc(&desc);
 	Blur2PCAutomation::LogF("DX11 shot %s %ux%u fmt=%u samples=%u", path.Chars(),
 		desc.Width, desc.Height, static_cast<unsigned>(desc.Format), desc.SampleDesc.Count);
-	if (desc.Format != DXGI_FORMAT_B8G8R8A8_UNORM &&
+	// [Blur1PCDX11] Typeless colour storage has the same readback bytes as its
+	// UNORM view. Resolve MSAA using the typed view format required by DX11.
+	DXGI_FORMAT resolveFormat = desc.Format;
+	if (resolveFormat == DXGI_FORMAT_B8G8R8A8_TYPELESS) resolveFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
+	if (resolveFormat == DXGI_FORMAT_R8G8B8A8_TYPELESS) resolveFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	if (resolveFormat != DXGI_FORMAT_B8G8R8A8_UNORM &&
 		desc.Format != DXGI_FORMAT_B8G8R8A8_UNORM_SRGB &&
-		desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM &&
+		resolveFormat != DXGI_FORMAT_R8G8B8A8_UNORM &&
 		desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
 		desc.Format != DXGI_FORMAT_R32_FLOAT)
 	{
@@ -62,7 +67,7 @@ static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* 
 			context->Release();
 			return;
 		}
-		context->ResolveSubresource(resolved, 0, source, 0, desc.Format);
+		context->ResolveSubresource(resolved, 0, source, 0, resolveFormat);
 	}
 	D3D11_TEXTURE2D_DESC stagingDesc = desc;
 	stagingDesc.SampleDesc.Count = 1;
@@ -93,7 +98,7 @@ static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* 
 				header[16] = 32;
 				header[17] = 0x28; // Top-left origin, eight alpha bits.
 				fwrite(header, 1, sizeof(header), file);
-				const bool rgba = desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+				const bool rgba = resolveFormat == DXGI_FORMAT_R8G8B8A8_UNORM ||
 					desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 				for (U32 y = 0; y < desc.Height; ++y)
 				{

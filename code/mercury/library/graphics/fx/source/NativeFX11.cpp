@@ -21,6 +21,13 @@ const void* GetDefaultVertexTextureFor(const void* texture); // System.cpp, PC F
 static char g_fx11LastError[256] = {};
 static char g_fx11CurrentPass[256] = {};
 
+const char* NativeFX11EffectName(const Effect* effect)
+{
+    if (!effect) return "";
+    const char* filename = effect->NativeFilename.Chars();
+    return filename && *filename ? filename : effect->Name.Chars();
+}
+
 namespace {
 Display::D3D11::C_D3D11EffectLibrary g_effects;
 bool g_opened = false;
@@ -29,7 +36,7 @@ unsigned g_failures = 0;
 // may reuse an ID for another state. These objects share the FX library device.
 std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> g_samplers;
 
-Display::D3D11::C_D3D11Effect* Find(const Effect* effect)
+Display::D3D11::C_D3D11Effect* Find(const Effect* effect, int technique)
 {
     if (!effect || !Display::Device() || !Display::Device()->GetD3DDevice()) return nullptr;
     if (!g_opened)
@@ -47,7 +54,9 @@ Display::D3D11::C_D3D11Effect* Find(const Effect* effect)
         }
     }
     Display::D3D11::C_D3D11Effect* result = nullptr;
-    const HRESULT hr = g_effects.Get(Display::Device()->GetD3DDevice(), effect->Name.Chars(), &result);
+    const char* name = technique >= 0 && technique < effect->Techniques.Size()
+        ? effect->Techniques[technique].Name.Chars() : nullptr;
+    const HRESULT hr = g_effects.Get(Display::Device()->GetD3DDevice(), NativeFX11EffectName(effect), &result, name);
     if (FAILED(hr) && g_failures++ < 20)
         Blur2PCAutomation::LogF("DX11 FX missing %s: %08x", effect->Name.Chars(), static_cast<unsigned>(hr));
     return result;
@@ -67,7 +76,7 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
                  int samplerState, bool immediate = false)
 {
     // [Blur1PCDX11] FX sampler values are GPUTexture pointers (Display2: ID3D11Resource), as D3D9's were IDirect3DBaseTexture9.
-    const char* name = g_effects.TextureForSampler(effect->Name.Chars(), sampler);
+    const char* name = g_effects.TextureForSampler(NativeFX11EffectName(effect), sampler, technique);
     // [Blur1PCDX11] Diagnostic options are set before launch; do not scan the
     // process environment for every texture or constant bound while rendering.
     static const bool traceScene = getenv("BLUR_DX11_TRACE_SCENE") != nullptr;
@@ -77,7 +86,7 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
         static unsigned tracedDamageVolume = 0;
         if (tracedDamageVolume++ < 12)
             Blur2PCAutomation::LogF("DX11 FX damage binding %s / %s lookup=%s resource=%p",
-                effect->Name.Chars(), sampler, name ? name : "<missing>", texture);
+                NativeFX11EffectName(effect), sampler, name ? name : "<missing>", texture);
     }
     if (!name) return;
     // [Blur1PCDX11] Every recovered vehicle damage-volume sampler is a
@@ -104,11 +113,11 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
         if (!state) samplerResult = Display::Device()->GetD3DDevice()->CreateSamplerState(&desc, &state);
         if (SUCCEEDED(samplerResult))
             samplerResult = g_effects.SetTextureSampler(Display::Device()->GetD3DDevice(),
-                effect->Name.Chars(), sampler, state.Get());
+                NativeFX11EffectName(effect), sampler, state.Get(), technique);
     }
     if (FAILED(samplerResult)) { static unsigned failures = 0; if (failures++ < 24)
         Blur2PCAutomation::LogF("DX11 FX sampler binding failed %s / %s result=%08x",
-            effect->Name.Chars(), sampler, static_cast<unsigned>(samplerResult)); }
+            NativeFX11EffectName(effect), sampler, static_cast<unsigned>(samplerResult)); }
     ID3D11ShaderResourceView* view = nullptr;
     if (texture)
     {
@@ -123,7 +132,7 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
         if (traceGamma)
         {
             bool authored = false;
-            const HRESULT metadata = g_effects.TextureUsesSRGB(effect->Name.Chars(), name, &authored);
+            const HRESULT metadata = g_effects.TextureUsesSRGB(NativeFX11EffectName(effect), name, &authored, technique);
             static unsigned counts[4] = {};
             const unsigned category = (immediate ? 2U : 0U) + (SUCCEEDED(metadata) && authored != srgb ? 1U : 0U);
             if (counts[category]++ < 12)
@@ -131,13 +140,13 @@ void BindTexture(const Effect* effect, Display::D3D11::C_D3D11Effect* native,
                 D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
                 if (view) view->GetDesc(&desc);
                 Blur2PCAutomation::LogF("DX11 FX gamma %s / %s immediate=%u state=%d authored=%u live=%u forced=%u view=%u result=%08x",
-                    effect->Name.Chars(), name, immediate, samplerState, authored, srgb,
+                    NativeFX11EffectName(effect), name, immediate, samplerState, authored, srgb,
                     static_cast<unsigned>(forced), static_cast<unsigned>(desc.Format), static_cast<unsigned>(result));
             }
         }
         if (FAILED(result)) { static unsigned failures = 0; if (failures++ < 24)
             Blur2PCAutomation::LogF("DX11 FX texture view failed %s / %s srgb=%u result=%08x",
-                effect->Name.Chars(), name, srgb, static_cast<unsigned>(result)); }
+                NativeFX11EffectName(effect), name, srgb, static_cast<unsigned>(result)); }
     }
     const HRESULT result = native->SetTexture(name, view);
     if (FAILED(result)) { static unsigned failures = 0; if (failures++ < 24)
@@ -259,7 +268,7 @@ const void* NativeFX11Shader(const Effect* effect, int technique, int pass,
                             E_ShaderType type, unsigned* bytes)
 {
     if (bytes) *bytes = 0;
-    auto* native = Find(effect);
+    auto* native = Find(effect, technique);
     if (!native || !bytes || technique < 0 || technique >= effect->Techniques.Size()) return nullptr;
     const char* name = effect->Techniques[technique].Name.Chars();
     const void* shader = nullptr;
@@ -275,7 +284,7 @@ const void* NativeFX11Shader(const Effect* effect, int technique, int pass,
 bool NativeFX11Apply(const Effect* effect, const Pass* pass, int technique,
                      void* const* sources)
 {
-    auto* native = Find(effect);
+    auto* native = Find(effect, technique);
     const int index = PassIndex(effect, pass, technique);
     if (!native || index < 0 || !sources) return false;
     const char* techniqueName = effect->Techniques[technique].Name.Chars();
@@ -297,8 +306,8 @@ bool NativeFX11Apply(const Effect* effect, const Pass* pass, int technique,
             static_cast<unsigned>(hr), Blur2PCAutomation::Now());
     if (SUCCEEDED(hr))
     {
-        sprintf_s(g_fx11CurrentPass, "%.80s / %.80s pass=%d", effect->Name.Chars(),
-            effect->Techniques[technique].Name.Chars(), index);
+        sprintf_s(g_fx11CurrentPass, "%.40s / %.60s pass=%d file=%.120s", effect->Name.Chars(),
+            effect->Techniques[technique].Name.Chars(), index, NativeFX11EffectName(effect));
         Display::Device()->SetNativeFXActive(true);
     }
     return SUCCEEDED(hr);
@@ -318,7 +327,7 @@ bool NativeFX11SetImmediate(const Effect* effect, const Pass* pass, int techniqu
                             const char* parameter, const void* value, unsigned bytes,
                             bool texture, int samplerState)
 {
-    auto* native = Find(effect);
+    auto* native = Find(effect, technique);
     const int index = PassIndex(effect, pass, technique);
     if (!native || index < 0 || !parameter || !value) return false;
     if (texture && samplerState < 0) return false;

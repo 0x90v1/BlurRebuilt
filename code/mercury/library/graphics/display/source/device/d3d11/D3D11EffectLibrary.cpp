@@ -74,9 +74,13 @@ HRESULT C_D3D11EffectLibrary::Open(const wchar_t* rootPath)
 }
 
 const char* C_D3D11EffectLibrary::TextureForSampler(const char* gameEffectName,
-                                                      const char* samplerName) const
+                                                      const char* samplerName,
+                                                      const char* technique) const
 {
-    const auto effect = m_Effects.find(EffectKey(gameEffectName));
+    const std::string effectKey = EffectKey(gameEffectName);
+    auto effect = m_Effects.end();
+    if (technique) effect = m_Effects.find(effectKey + "@" + EffectKey(technique));
+    if (effect == m_Effects.end()) effect = m_Effects.find(effectKey);
     if (effect == m_Effects.end()) return nullptr;
     const std::string key = EffectKey(samplerName);
     const auto sampler = effect->second.samplerTextures.find(key);
@@ -89,13 +93,17 @@ const char* C_D3D11EffectLibrary::TextureForSampler(const char* gameEffectName,
 HRESULT C_D3D11EffectLibrary::SetTextureSampler(ID3D11Device* device,
                                                 const char* gameEffectName,
                                                 const char* samplerOrTexture,
-                                                ID3D11SamplerState* state)
+                                                ID3D11SamplerState* state,
+                                                const char* technique)
 {
     if (!samplerOrTexture || !state) return E_INVALIDARG;
     C_D3D11Effect* native = nullptr;
-    HRESULT hr = Get(device, gameEffectName, &native);
+    HRESULT hr = Get(device, gameEffectName, &native, technique);
     if (FAILED(hr)) return hr;
-    const auto found = m_Effects.find(EffectKey(gameEffectName));
+    const std::string effectKey = EffectKey(gameEffectName);
+    auto found = m_Effects.end();
+    if (technique) found = m_Effects.find(effectKey + "@" + EffectKey(technique));
+    if (found == m_Effects.end()) found = m_Effects.find(effectKey);
     const C_Entry& entry = found->second;
     const std::string key = EffectKey(samplerOrTexture);
     const auto sampler = entry.samplerNames.find(key);
@@ -117,11 +125,14 @@ HRESULT C_D3D11EffectLibrary::SetTextureSampler(ID3D11Device* device,
 
 HRESULT C_D3D11EffectLibrary::TextureUsesSRGB(const char* gameEffectName,
                                                const char* textureParameter,
-                                               bool* srgb) const
+                                               bool* srgb, const char* technique) const
 {
     if (!gameEffectName || !textureParameter || !srgb) return E_INVALIDARG;
     *srgb = false;
-    const auto effect = m_Effects.find(EffectKey(gameEffectName));
+    const std::string effectKey = EffectKey(gameEffectName);
+    auto effect = m_Effects.end();
+    if (technique) effect = m_Effects.find(effectKey + "@" + EffectKey(technique));
+    if (effect == m_Effects.end()) effect = m_Effects.find(effectKey);
     if (effect == m_Effects.end()) return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
     const auto texture = effect->second.textureSRGB.find(EffectKey(textureParameter));
     if (texture == effect->second.textureSRGB.end())
@@ -131,11 +142,14 @@ HRESULT C_D3D11EffectLibrary::TextureUsesSRGB(const char* gameEffectName,
 }
 
 HRESULT C_D3D11EffectLibrary::Get(ID3D11Device* device, const char* gameEffectName,
-                                   C_D3D11Effect** effect)
+                                   C_D3D11Effect** effect, const char* technique)
 {
     if (!device || !gameEffectName || !effect) return E_INVALIDARG;
     *effect = nullptr;
-    const auto found = m_Effects.find(EffectKey(gameEffectName));
+    const std::string key = EffectKey(gameEffectName);
+    auto found = m_Effects.end();
+    if (technique) found = m_Effects.find(key + "@" + EffectKey(technique));
+    if (found == m_Effects.end()) found = m_Effects.find(key);
     if (found == m_Effects.end()) return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
     C_Entry& entry = found->second;
     if (!entry.effect)

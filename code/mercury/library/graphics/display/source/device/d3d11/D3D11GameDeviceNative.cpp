@@ -1073,6 +1073,7 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
           State(this).blend.RenderTarget[0].BlendEnable);
   } }
   if (!State(this).nativeFXActive) { BindConstants(this, true); BindConstants(this, false); }
+  BindAlphaTest(this);
   // [Blur1PCDX11] Inspect actual built-in bindings at one requested trace draw.
   // This includes deferred light passes, which do not use the FX material path.
   g_dx11TraceSelectedCapture = false;
@@ -1253,6 +1254,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
           m_pVertexShader, LastGameInputLayoutDiagnostic());
   } }
   if (!State(this).nativeFXActive) { BindConstants(this, true); BindConstants(this, false); }
+  BindAlphaTest(this);
   static bool testPSChecked = false;
   static ComPtr<ID3D11PixelShader> testPS;
   static ComPtr<ID3D11VertexShader> testVS;
@@ -1317,7 +1319,6 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
   {
       static bool nativeCaptured = false;
       if (!nativeCaptured)
-  BindAlphaTest(this);
       {
           nativeCaptured = true;
           ComPtr<ID3D11RenderTargetView> rtv;
@@ -1432,7 +1433,6 @@ void C_D3D11GameDevice::SetViewport(const C_Viewport& viewport)
     m_Viewport = viewport; auto context = Context(m_pd3dDevice); if (!context) return;
     D3D11_VIEWPORT native = {};
     native.TopLeftX = static_cast<F32>(viewport.GetX()); native.TopLeftY = static_cast<F32>(viewport.GetY());
-  BindAlphaTest(this);
     native.Width = static_cast<F32>(viewport.GetW()); native.Height = static_cast<F32>(viewport.GetH());
     native.MinDepth = viewport.GetMinZ(); native.MaxDepth = viewport.GetMaxZ();
     context->RSSetViewports(1, &native);

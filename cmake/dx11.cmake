@@ -24,6 +24,8 @@ file(GLOB_RECURSE _dx11_fx_includes CONFIGURE_DEPENDS
     ${BLUR_TOP}/code/amax/game/Shaders/*.h
     ${BLUR_TOP}/code/mercury/library/graphics/shader/include/*.h
     ${BLUR_TOP}/code/mercury/library/graphics/vehicle/include/*.h)
+file(GLOB _dx11_recovered_samplers CONFIGURE_DEPENDS
+    ${BLUR_TOP}/code/mercury/library/graphics/vehicle/include/vehicle/shaders/retail_dx11/*.samplers)
 # Recreate the PC effect permutation list from the original Jam rules. This
 # produces the native SM5 variant set under the branch's ignored build tree.
 set(_dx11_fx_manifest ${BLUR_TOP}/_work/build/targets_fx_pc_speed.json)
@@ -49,15 +51,22 @@ add_custom_command(OUTPUT ${_dx11_fx_stamp}
         --top ${BLUR_TOP} --manifest ${_dx11_fx_manifest}
         --fxc ${BLUR_FXC_EXE}
         --out ${BLUR_TOP}/_work/build/gen/fx11/effects
-        --jobs 4
+        --jobs 4 --skip-existing
     COMMAND ${CMAKE_COMMAND} -E touch ${_dx11_fx_stamp}
     DEPENDS ${_dx11_fx_manifest} ${_dx11_fx_sources} ${_dx11_fx_includes}
+        ${_dx11_recovered_samplers}
         ${BLUR_TOP}/code/tools/dx11_fxcompile/compile_fx.py
         ${BLUR_TOP}/code/tools/dx11_fxcompile/compile_manifest.py
         ${BLUR_TOP}/code/tools/dx11_shadercompile/alpha_test.py
     VERBATIM)
 add_custom_target(dx11_fx_all DEPENDS ${_dx11_fx_stamp})
 set_target_properties(dx11_fx_all PROPERTIES FOLDER "dx11")
+
+if(TARGET Amax AND BLUR_USE_DX11)
+    # [Blur1PCDX11] Technique permutations are runtime inputs, so a game build
+    # must regenerate them along with the native executable.
+    add_dependencies(Amax dx11_fx_all)
+endif()
 
 set(_dx11_shader_dir ${BLUR_TOP}/code/mercury/library/graphics/display/include/display/shaders)
 add_custom_command(

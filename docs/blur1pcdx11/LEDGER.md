@@ -112,12 +112,60 @@ Next: trace `Road / MaterialLights` at (0.70, 0.83) of a race frame with each of
 
 Files touched: display device `d3d11/{D3D11GameDeviceNative.cpp,D3D11GameDevice.cpp,PCD3D11GameDevice.cpp,D3D11EffectLibrary.cpp}`, `display/include/display/device/d3d11/D3D11EffectLibrary.h`, `display/source/render/Render.cpp`, `fx/source/NativeFX11.cpp`, `_work/run/{run_slot.ps1,scripts/race.txt,scripts/start.txt}`, docs/blur1pcdx11/{analysis.md,LEDGER.md,BOARD.md}. No commit (user instruction).
 
+## 2026-09-29 — session Codex DX11 — continuation status inspection
+
+Did: inspected the current phase board, ledger, analysis, presentation fixes and Git state after the provider handover. The previous session's commit-and-push request is complete at `517ebfec`; the wider T127 port remains in progress. No rendering work was started during this status inspection.
+
+Verified: initial worktree was clean; HEAD and origin tracking reference were `517ebfec0820aff3fc364975fdbd9df069576a4c`, and `git ls-remote origin refs/heads/blur1pcdx11` confirmed the live remote has that commit. The delivered `_work/run/Amax.exe` and standard Release build exe have identical SHA256 `354DDFEB66F58FF4F5F8014D16663C0419CBCFCFDBAA97DF27B59E10E1A81E27`. Current source and phase docs contain the four presentation fixes. No build or game run performed. As confirmed by the user, blur1pcdx11 is the top branch and requires no upward merge.
+
+Blocked: none for the completed commit-and-push request. The board still records missing vehicle techniques (T148), white near road and missing sRGB reads.
+
+Next: await the user's next instruction; the recorded rendering investigation begins with the `Road / MaterialLights` inputs, followed by sRGB views and vehicle shader reconstruction.
+
+Files touched: docs/blur1pcdx11/LEDGER.md (this inspection entry only; uncommitted).
+
+## 2026-09-29 18:54 — session Codex DX11 — T127
+
+Did: resumed the port with a fresh visual assessment at the user's direction. Captured matched debug-menu races from the delivered DX11 exe and the D3D9 phase: DX11's scene is substantially worse than the previous summary suggested. Corrected ignored technique Define annotations by compiling and selecting separate FX11 effects; shared-group changes now update native effect parameters by name; legacy constant-buffer writes leave active FX11 buffers bound; raw render-context texture setters now use the device's reflected register map. That last change visibly restored the sky's clouds. Fixed the native probe's stale input-signature call, made Amax depend on its FX compilation, and updated the obsolete branch README and phase analysis. Removed all new investigation-only parameter dumps and road texture suppression after testing. Delivered Amax.exe/Amax.pdb and the new native effect binaries and metadata to this phase's standard run directory. No commit or push.
+
+Verified: all 1,254 source effect variants compiled with zero failures, producing 5,196 indexed entries; 693 built-in shaders compiled; standard Release Amax build had zero errors by errsum.py. Hardware and WARP probes with the debug layer each preload the complete effect set, verify the road lighting technique's dynamic-light resource, draw the material, test other resources/shaders, present/resize and exit zero. Queued minimized race runs show the sky improvement, but still show washed-out ground, broken buildings, duplicated mirror strips and missing car body. Suppressing the road's planar reflection for one diagnostic run did not remove the white foreground; the window frame is already broken before final post-processing. The final cleanup build's first verification run ended before its scripted capture (no crash.txt; cause unknown), so its stale screenshot was not counted as evidence. A fresh retry (`visual_delivery.txt`) wrote a new still at 28.29 s, completed its scripted quit and exited zero in 30 s; visually inspected `visual_delivery.png`, confirming the sky improvement and remaining scene faults. No debug-layer error, binding-failure or view-failure lines appeared in that final log. Exe and PDB hashes match their standard Release outputs; git diff --check passed.
+
+Blocked: none for this continuation's compiler/binding corrections and visual assessment. T127 is still incomplete: major scene sampling/lighting faults, sRGB reads and vehicle body techniques (T148) remain. Clean probes and logs do not establish visual parity.
+
+Next: use the fresh D3D9/ DX11 visual baseline, isolate Road / MaterialLights albedo and diffuse inputs in the window render texture, and validate actual texture contents and GPU resource/sampler/constant-buffer bindings at the draw. Implement the existing sRGB sampler contract, then tackle the missing shipped vehicle techniques. The reflection-only isolation has already been tried and did not solve the washout.
+
+Files touched: README.Blur1PCDX11.md, cmake/dx11.cmake, display device/d3d11/{D3D11EffectLibrary.h/.cpp,D3D11GameDevice.h,D3D11GameDeviceNative.cpp,D3D11Device.cpp}, display/source/context/Context_D3D11.cpp, fx/source/{NativeFX11.cpp,FxContext.cpp}, code/tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py}, code/tools/dx11_probe/main.cpp, docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored build/run scripts, effects and visual artifacts. All tracked changes remain uncommitted.
+
 ## 2026-09-29 18:35 - Codex context-efficiency - T176
 Did: applied the user-authorized context-efficiency patch to this phase worktree and the other active phase worktrees (blur1pc, blur1multi, blurx, blur1pcdx11). Reduced always-loaded AGENTS.md from about 22 KB to 6,054 bytes; preserved every original substantive section in docs/agent-reference/{layout,build,architecture,workflow}.md and added context.md. Added tools/agent_context.py for bounded task/ownership/ledger reads, saved-log excerpts, and recorded Codex token metrics. Global Codex limits: tool_output_token_limit=4000, model_auto_compact_token_limit=140000.
 Verified: all phase instruction links resolve; all original sections preserved; helper copies identical; all four context commands expose the requested task, ledger, and ownership within 8,000 characters. Exercised log neighbors/tail, missing-task rejection, malformed usage-event handling, token metrics, and small/default output caps. TOML parsed and installed Codex rendered a fresh prompt successfully. Only this patch's paths were edited; concurrent code work was not changed by this task. No game build/run required for documentation and read-only helper changes.
 Blocked: none for applying the patch. Worktree changes remain uncommitted under the project's commit-on-request rule; no branch merges or pushes performed. The untouched master/source snapshot was not modified.
 Next: reload instructions/configuration in new sessions, then compare recorded per-request tokens and same-session cumulative usage deltas for comparable completed tasks. Full logs remain on disk for any truncated excerpt. Commit these paths only when requested, preserving the existing branch ancestry and other work.
 Files touched: AGENTS.md; docs/agent-reference/; tools/agent_context.py; docs/blur1pcdx11/{BOARD,LEDGER}.md. Global config: C:/Users/uKER/.codex/config.toml. Backups: C:/Users/uKER/.codex/tmp/context-efficiency-20260929-182911.
+
+## 2026-09-29 19:10 — session Codex DX11 — T127
+
+Did: switched the primary visual iteration testbed to startup Showroom at the user's request. Added ignored single-shot DX11/D3D9 automation scripts, captured both delivered phase executables, and updated the task and analysis. No renderer changes, rebuild, commit or push in this continuation.
+
+Verified: queued minimized DX11 runs exited zero in eight seconds; the D3D9 reference exited zero in thirteen seconds. Inspected both stills: DX11 has wheels but no car body and broken dark background surfaces; D3D9 has a full car and properly textured scene. Saved DX11 log confirms dropped `veh_paint / MaterialPrepass` draws without a vertex shader. Capture uses one scripted still per run, not PNG bursts.
+
+Blocked: none for changing the testbed. The port remains incomplete; missing shipped vehicle techniques and scene rendering faults remain open.
+
+Next: use `showroom_dx11.txt` for fast visual checks; recover the missing vehicle passes from the existing retail microcode dumps, and investigate background texture/sampler/constant bindings in this smaller scene. Use races only for later coverage.
+
+Files touched: docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored `_work/run/scripts/showroom_{dx11,dx9}.txt`, captures and DX11 log. Existing renderer changes remain uncommitted.
+
+## 2026-09-29 20:03 — session Codex DX11 — T148, T127
+
+Did: recovered all ten vehicle material techniques for 102 exact loaded retail permutations as native HLSL. Found and fixed selection by nonunique internal FXB names; the bridge now uses the loaded filename, and opt-in dumps preserve distinct variants. Discarded the first unkeyed generated sources and rebuilt them from correctly keyed captures. Fixed the DX11 shared-immediate cache contract and typed sampler metadata capture. Added fail-closed recovery tooling, six unit checks, GPU-bound buffer/view diagnostics, complete recovered-pass checks and an alloy MRT normal/depth probe. Effect compilation now has freshness-checked reuse of unchanged authored shaders. Delivered the standard exe/PDB plus effect binaries/index/metadata. No commit or push.
+
+Verified: final standard Release build has zero errors; hardware and WARP debug probes preload 4,913 indexed entries and verify all 1,020 recovered techniques. Both alloy prepasses return the expected packed normal and -0.2 depth. Recovery tests pass 6/6. Successive minimized queued Showroom captures demonstrate the progression from no body, through black silhouette, to full body and shaded wheels. The final run with tracing disabled (`showroom_delivery.txt`) exits zero in nine seconds and writes a fresh still, visually inspected. Delivered exe/PDB hashes match their Release outputs. No missing-effect, parameter/texture-binding or input-layout failure appears in that final log. Some other draws still report no vertex shader with no associated FX error; the scene remains too dark and incorrectly textured. git diff --check passes.
+
+Blocked: none for the recovered-pass task; T148 is done for the 102 captured permutations. Full vehicle/scene parity, uncaptured material variants, native alpha testing and texture sRGB remain T127, which is active again. Do not treat the probe or restored body as proof the port is finished.
+
+Next: inspect a broken Showroom building draw's actual GPU inputs, shader/declaration formats, constants and texture samples; compare its serialized vertex contract with the compiled shader and implement the existing sRGB contract. Keep Showroom as the fast testbed; use races only for broader validation later. Exact recovery evidence is `_work/build/fxdump_variants`, not the historical overwrite-prone `fxdump`.
+
+Files touched: fx/{Effect.h,NativeFX11.h,Manager.cpp,System.cpp,NativeFX11.cpp,FxContext.cpp}; display/device/d3d11/D3D11GameDeviceNative.cpp; vehicle/include/vehicle/shaders/retail_dx11/{102 .fx files and sampler sidecars}; code/tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py,recover_vehicle.py,test_recover_vehicle.py}; code/tools/dx11_probe/main.cpp; cmake/dx11.cmake; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored build/dump/run artifacts. Renderer work remains uncommitted.
 
 ## 2026-09-29 23:54 — session Codex visual diagnosis — T127
 
@@ -131,6 +179,36 @@ Next: implement the original per-sampler sRGB contract with compatible texture/v
 
 Files touched: display/source/{context/Context_D3D11.cpp,device/d3d11/{D3D11GameDeviceNative.cpp,D3D11States.cpp,PCD3D11GameDevice.cpp},texture/d3d11/D3D11TextureLoad.cpp}; display/include/display/device/d3d11/D3D11States.h; fx/source/{NativeFX11.cpp,System.cpp}; render/deferred/UI/drop-shadow pixel shader interfaces; code/tools/dx11_shadercompile/{alpha_test.py,compile_builtins.py}; code/tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py}; code/tools/dx11_probe/main.cpp; cmake/dx11.cmake; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored diagnostic/build/run artifacts. Existing unrelated work preserved.
 
+## 2026-09-30 01:30 — session Codex visual diagnosis — T127
+
+Did: committed the requested visual repair batch as `24d23d41` (`Fix DX11 texture streaming, alpha testing and shadow blending`), then continued the native-renderer work. Implemented compatible typeless colour resources with linear/sRGB views and live FX sampler-state/force-gamma overrides; restored omitted PC occlusion/particle shader initialization on DX11; corrected one/two-sided stencil state, winding and PC CCW mask/reference semantics. Delivered these follow-up changes plus bounded actual-state and selected-material diagnostics. Refreshed the D3D9 Showroom reference and reclassified its background blur as expected. Follow-up changes remain uncommitted. No push or lower-phase source changes. Found in / Belongs to Blur1PCDX11.
+
+Verified: standard Release builds report zero errors, including final `_work/build/visual_alloy_trace_build.txt`. Hardware and WARP probes each pass 24 actual gamma transitions plus HDR preservation, 24 stencil-byte checks, 45 alpha comparisons, five blend checks, 147 shader-interface pairs, all 1,020 recovered vehicle techniques, alloy MRT readback and presentation checks. Final rendering-fix Showroom and race runs (`showroom_stencil_final` and `race_stencil_final`) exit zero with debug enabled and no missing shaders, binding failures, rejected draws or severity 0/1/2 messages; both stills were inspected. Two subsequent diagnostic-only Showroom runs also exit zero. Current delivered and standard Release exe hashes both equal `88E3249147736871D0B0D7AF2308EB9DD69FF2EAA86E0D24A07D775169A1175D`; PDB hashes both equal `EC73CAD7EC7A120ED062661990CD81927BA90867499084C38BD2B87041449A96`. git diff --check passes. Probe triangle cases do not cover line/point stencil behavior; streaming correctness remains source/game verified rather than independently GPU tested.
+
+Blocked: no build/delivery blocker. T127 remains open: vehicle/reflection shading differs from the PC reference; legacy luminance channel expansion is unimplemented; uncaptured retail variants remain outside recovered coverage. One loading attempt crashed through a null damage-volume LockBox3D pointer; five later race runs succeeded, but no crash fix or causal explanation is established. The actual alloy draws have valid depth targets and expected reverse-depth/cull state; their matrices and sampled resources are populated. This does not establish visual parity or prove duplicated geometry.
+
+Next: isolate the main wheel material output before later draws, then compare cube samples and lighting constants with D3D9 using `_work/build/showroom_alloy_inputs.log` and the refreshed `_work/build/dx9_compare/showroom_current_dx9.png`. For the intermittent volume crash, instrument null-resource, duplicate-lock and staging-allocation failure paths in native LockResource before another reproduction; do not mask it with a vehicle-side null check. Separately GPU-verify the legacy L8/A8L8 RGBA sample contract before choosing the native expansion path. Task ownership remains this session; the board and phase analysis record this checkpoint.
+
+Files touched after the commit: display device/d3d11 format/state/effect-library/game-device code and headers; display texture/d3d11 loader and occlusion initialization; display2 native device/context code; dynamic particle initialization; fx native binding/context/header; dx11_probe; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored build/probe/run/capture artifacts. Existing work preserved; no broad staging.
+
+## 2026-09-30 - Codex Business Bay - T186 propagation claim
+Owner: session Codex Business Bay. Inherited base commit 66a7afac by merge. Expected phase files: board, analysis and ledger only; no phase-specific engine changes. Standard regeneration/build underway; next verify zero errors and deliver the own standard EXE/PDB after any running delivered process exits.
+
+## 2026-09-30 - Codex Business Bay - T186 propagation complete
+Did: inherited 66a7afac via merge 6bd5e080; no phase-specific engine edit. Verified: standard tools/build.sh, errsum0, own standard EXE/PDB delivered and hashes match build sources (_work/t186/delivery.txt). No separate phase runtime claim. Blockers: none. Exact next step: none for this propagation task. No push.
+
+## 2026-09-30 02:47 — session Codex visual diagnosis — T127
+
+Did: implemented the PC L8/A8L8/L16 sampling contract after measuring the D3D9 HAL GPU, including pre-filter sRGB decoding, original PC format metadata, streamed uploads, clones and PC-layout staging locks. Added independent D3D9 sampling and native GPU probes. Added bounded native lock-failure diagnostics and selected-draw captures; fixed screenshot readback of typeless colour targets. Isolated wheel bands in the main alloy material output before later body/composition draws. Actual D3D9 car capture is valid; the exact retail alloy pixel shader, material/light constants, SH node, view-projection matrix and sampler address/filter/gamma settings match the native trace. Small wheel-world differences between runs remain animation-dependent and are not a diagnosed fault. Found in / Belongs to Blur1PCDX11. Follow-up work uncommitted; no push or lower-phase source changes. Preserved concurrent T186 propagation.
+
+Verified: standard Release build `_work/build/visual_filtered_final_build.txt` has zero errors. Hardware and WARP probes each pass 58 luminance samples, 48 byte-exact PC-layout readbacks, 24 gamma transitions, 24 stencil checks, 45 alpha comparisons, five blend checks, 147 shader-interface pairs, all 1,020 recovered vehicle techniques, MRT and presentation checks. Independent D3D9 reference passes 12 checks. Minimized queued Showroom and DebugRb race runs with the luminance fix exit zero, with no missing VS, lock/map/view failure or severity 0/1/2 messages; stills inspected. Two selected wheel-draw captures also exit zero. Final delivered standard exe hash is `0E39306D0CAFF49B64469F1615F1F997F2C8E053D1753381B5F484E4C8545C43`; PDB is `F1FCC4C78BC9CC0D02D934AF2AA155AF7F364561FBE1C979163AA179B441B356`, both match Release outputs. Whitespace checks pass. Readback probes test production conversion/upload, not the game's complete staging lock lifecycle.
+
+Blocked: no build/delivery blocker. Vehicle/reflection visual parity remains open; luminance expansion uses more native memory while serializer sizes retain their PC meaning. The intermittent damage-volume lock crash has not recurred or been causally explained. Uncaptured retail variants remain outside recovered coverage.
+
+Next: inspect the queued D3D9 replay state at alloy draw 2207381 (`_work/build/dx9_compare/alloy_state.json`) and compare actual bound texture contents and vertex declaration/data against DX11. Matching constants/samplers eliminate those particular settings as evidence for the wheel discrepancy; do not tune shader arithmetic from screenshots. Separately verify the suspected Display2 live sampler LOD-bias translation against pristine source before changing it. Task remains owned and active.
+
+Files touched: native display formats/device/streaming, display2 resource/context and new D3D11TextureFormats.h, Screenshot.cpp, selected-draw diagnostics, dx11_probe luminance/reference tests, cmake/dx11.cmake, README and phase board/analysis/ledger; ignored build/probe/reference/capture files. Prior session changes preserved.
+
 ## 2026-09-30 03:08 — session Codex visual diagnosis — T127
 
 Did: corrected FX11 pass state ownership. D3D9 replay proves the alloy bands are expected; selected native draws locate the actual wheel corruption in the later puddle pass. Removed guessed complete FX11 blend/depth/stencil/raster objects so the imported PC FXB and render stages retain their live state. Added GPU state-preservation checks across ordinary and repeated/immediate effect applies. Found in / Belongs to Blur1PCDX11. No lower-phase source changes or push; follow-up work remains uncommitted.
@@ -142,6 +220,18 @@ Blocked: none for build/delivery. Broader visual parity, the unreproduced damage
 Next: recover and verify the live sampler filter/address/border/LOD contract from pristine PC source. FX11 currently binds live gamma but retains compiled sampler defaults for the other properties. Distinguish Display2's encoded LOD bias from the old Display device API; preserve the actual PC anisotropy behavior. Add GPU sampling checks before claiming a fix. Task remains active.
 
 Files touched: dx11_fxcompile/compile_fx.py, fx/FxContext.cpp, dx11_probe/main.cpp, README and phase docs; ignored reference captures/build/runtime logs. Other sessions' pending changes preserved.
+
+## 2026-09-30 03:52 — session Codex visual diagnosis — T127
+
+Did: committed FX pass state preservation as `96daf4ae`, as requested. Implemented live sampler address/filter/border/LOD binding and PC /16 bias encoding, with NONE disabling mip selection. Preserved PC maximum-anisotropy behavior recovered from pristine source. Found in / Belongs to Blur1PCDX11. No lower source changes or push.
+
+Verified: standard Release errsum0 (`visual_live_sampler_build.txt`); independent D3D9 HAL passes 23 sampling checks; hardware and WARP pass eleven new live-binding samples and all existing regressions. Queued minimized Showroom/race exits zero, clean debug logs, stills inspected. Delivered standard exe SHA256 `F52D0D0EE81ACFA3A470EF30D2B467A7362593E3119BF4723450FDCE6794398F` and PDB `486F919881CD5D8323A5E6036CF93A1634E3C7FA33D18F69C834D9443870EB60`, both matching Release outputs, plus regenerated effects. Fresh D3D9 race reference and both native/D3D9 draw traces saved. Packed-font GPU output before repair proves NaN positions and zero alpha from valid SHORT2/UBYTE4 inputs (`packed_font_before.log`, expected probe failure exit10).
+
+Blocked: no build/delivery blocker. Broader lighting parity, missing large race-position numeral, intermittent damage-volume crash and uncaptured variants remain open.
+
+Next: finish the standard build of the faithful packed-font numeric conversion, rerun hardware/WARP output checks, deliver and verify the large numeral in a minimized DebugRb race. Then compare headlight/body lighting at actual D3D9/native draws. Task active; font fix not yet delivered at this checkpoint.
+
+Files touched: native FX bindings/effect library, native sampler state/device, dx11_probe sampling/font checks, UI polygon-font shader, README and phase docs; ignored builds/runtime/reference traces.
 
 ## 2026-09-30 03:56 — session Codex visual diagnosis — T127
 
@@ -155,6 +245,19 @@ Next: inspect packed stroke/trail declarations and shaders for the same conversi
 
 Files touched: UI vsPolygonFont.vsh, dx11_probe main.cpp/new polygon_font_checks.h, phase analysis/ledger; ignored build/probe/runtime capture files.
 
+
+## 2026-09-30 04:18 — session Codex visual diagnosis — T127
+
+Did: committed packed font fix as `afce7ba0`. Continued headlight isolation using actual native and D3D9 draw bindings; found corrupt native road depth and NaNs, with valid negative retail vehicle depth. Added opt-in bound built-in shader tracing and temporary scene-prepass diagnostic probe. No lighting arithmetic or depth-source engine change yet.
+
+Verified: diagnostic standard Release errsum0, standard exe/PDB delivered, queued minimized headlight run and D3D9 replay exit zero. Compiled Default prepass signatures agree; headlight constants/states agree. Depth numerical plot and reference framebuffer inspected.
+
+Blocked: none. Broader parity remains active.
+
+Next: inspect all actual prepass writers for interface/arithmetic differences, isolate the draw creating the negative road wedge/NaNs, then repair the faithful native mechanism and verify GPU/runtime output. Packed stroke/trail paths remain open.
+
+Files touched: native device diagnostics, dx11_probe main/new prepass_checks.h, phase board/analysis/ledger; ignored probe/build/capture artifacts.
+
 ## 2026-09-30 04:42 — session Codex visual diagnosis — T127
 
 Did: recovered the retail road prepass depth interpolant from actual D3D9 draw 7047254 and repaired the native NO_WORLDNORMAL path. Added 128 GPU depth checks across 64 road permutations. Found in / Belongs to Blur1PCDX11; no lower-phase source changed.
@@ -164,6 +267,8 @@ Verified: standard Release and probe builds have zero errors; full hardware/WARP
 Blocked: none. T127 remains in progress; remaining NaN depth pixels, packed UI and broader parity are unverified.
 
 Next: commit this verified repair, isolate the first writer of a remaining NaN depth pixel, then verify packed stroke/trail inputs against the PC source.
+
+Checkpoint: road prepass repair committed as f8344dfd; continuing remaining NaN depth and packed UI diagnosis.
 
 ## 2026-09-30 05:07 — session Codex visual diagnosis — T127
 
@@ -206,6 +311,45 @@ Blocked: none. Restored binding/default does not resolve or establish full vehic
 
 Next: commit the volume binding/default repair, then compare environment cube-map mip levels and actual material outputs. Keep broader T127 active.
 
+## 2026-09-30 06:50 — session Codex visual diagnosis — T127
+
+Did: committed retail vehicle volume alias/default repair1839e1ca. Compared all vehicle reflection/damage mips and both actual packed paint vertex paths. Added opt-in real GPU vertex-output capture; continuing final rear-body brightness isolation. Found in / Belongs to Blur1PCDX11.
+
+Verified: texture mip comparisons within BC1 byte rounding, exact PC/native vertex-buffer contents, shipped-instruction CPU/GPU comparisons for normals/UV/world/SH, finite SO values and matching zero control points. Standard diagnostic Release builds exit0/errsum0 and are delivered. Queued minimized native runs and headless PC reference replays exit0. Material-stage selected stills are visually close; full paint/frame parity is unverified.
+
+Blocked: none.
+
+Next: complete queued `post_paint_trace` native/PC input capture, compare scene and bloom textures before final colour composition, then recover and repair the first differing mechanism. T127 remains active.
+
+Files touched: native game-device opt-in diagnostics, phase analysis/board/ledger; scratch evidence under _work/build.
+
+
+## 2026-09-30 07:20 — session Codex visual diagnosis — T127
+
+Did: completed final-composition input comparison; narrowed the bright rear panel to exact body draw1277 / PC7057320. Isolated a reproducible pixel constant-buffer getter observer effect. No production getter workaround added. Found in / Belongs to Blur1PCDX11.
+
+Verified: four standard diagnostic builds exit0/errsum0 and delivered; queued captures and PC replay exit0. Exact diagnostic-enabled panel RGB matches within one byte. Texture/cube inputs match within BC1 rounding. Slot0 PS getter changes render output; texture/VS reads and PS slot13 getter do not. WARP baseline remains bright.
+
+Blocked: none; earlier diagnostic-enabled material similarity cannot establish normal-launch parity.
+
+Next: consume hardware no-debug baseline, isolate Default-scene versus vehicle getter timing, then compare actual bindings before/after the responsible transition and recover the binding fault. T127 remains active.
+
+Files touched: native game-device opt-in selector/filter diagnostics, phase analysis/board/ledger, scratch evidence.
+
+
+## 2026-09-30 08:14 — session Codex visual diagnosis — T127
+
+Did: corrected the previous pixel-getter causality claim after isolation disproved it. Removed temporary input-layout cache auditing after zero collisions. Added opt-in post-draw shader/vertex capture and index-count filtering. Found in / Belongs to Blur1PCDX11.
+
+Verified: latest standard Release exit0/errsum0 and delivered. All queued isolation/capture runs exit0. Ordinary current hardware launch has dark body; no production repair explains the change. Actual packed vertices match PC; finite GPU outputs and shipped SH arithmetic agree within 1.124e-8.
+
+Blocked: none; stable normal-launch paint parity remains unverified.
+
+Next: trace final colour matrix source/settings and binding, then recover the first verified differing mechanism. Keep paint brightness instability open. T127 remains active.
+
+Files touched: native game-device opt-in diagnostics, phase analysis/board/ledger; scratch evidence under _work/build.
+
+
 ## 2026-09-30 08:27 — session Codex visual diagnosis — T127
 
 Did: committed the verified native occlusion/particle initialization repair: enable the existing pristine PC setup for DEVICE_PCD3D11 and extend shader linkage checks to the affected stages. Found in / Belongs to Blur1PCDX11.
@@ -217,6 +361,7 @@ Blocked: none; intermittent volume-lock crash and stable paint brightness parity
 Next: consume the latest ordinary baseline, compare the current frame with the PC reference, and recover the first stable differing mechanism. T127 remains active.
 
 Files touched: OcclusionQuery.cpp, particle Manager.cpp, dx11_probe/main.cpp selected linkage additions, phase analysis/board/ledger.
+
 
 ## 2026-09-30 08:38 — session Codex visual diagnosis — T127
 

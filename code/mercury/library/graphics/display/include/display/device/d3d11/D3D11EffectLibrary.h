@@ -15,12 +15,14 @@ class C_D3D11EffectLibrary
 public:
     HRESULT Open(const wchar_t* root);
     HRESULT Get(ID3D11Device* device, const char* gameEffectName,
-                C_D3D11Effect** effect);
+                C_D3D11Effect** effect, const char* technique = nullptr);
     HRESULT TextureUsesSRGB(const char* gameEffectName, const char* textureParameter,
-                            bool* srgb) const;
-    const char* TextureForSampler(const char* gameEffectName, const char* samplerName) const;
+                            bool* srgb, const char* technique = nullptr) const;
+    const char* TextureForSampler(const char* gameEffectName, const char* samplerName,
+                                 const char* technique = nullptr) const;
     HRESULT SetTextureSampler(ID3D11Device* device, const char* gameEffectName,
-                              const char* samplerOrTexture, ID3D11SamplerState* state);
+                              const char* samplerOrTexture, ID3D11SamplerState* state,
+                              const char* technique = nullptr);
     HRESULT PreloadAll(ID3D11Device* device, std::string* failedName = nullptr);
     size_t EffectCount() const { return m_Effects.size(); }
 

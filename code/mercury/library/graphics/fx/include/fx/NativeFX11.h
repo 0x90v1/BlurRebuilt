@@ -6,6 +6,7 @@ namespace FX {
 class Effect;
 struct Pass;
 enum E_ShaderType;
+const char* NativeFX11EffectName(const Effect* effect);
 
 const void* NativeFX11Shader(const Effect* effect, int technique, int pass,
                             E_ShaderType type, unsigned* bytes);

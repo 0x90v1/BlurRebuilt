@@ -10,6 +10,9 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dx11_shadercompile"))
+from alpha_test import inject_effect_alpha_test
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -35,6 +38,12 @@ def main() -> int:
     # A wrapper's own timestamp cannot detect changes in those shared inputs.
     included_effect_mtime = max((effect.stat().st_mtime_ns for directory in include_dirs
                                  for effect in directory.rglob("*.fx")), default=0)
+    # Incremental authored compilation must account for includes and technique
+    # compiler changes. The index/metadata are still regenerated on every run.
+    authored_inputs = [compiler, args.manifest,
+                       top / "code/tools/dx11_shadercompile/alpha_test.py"] + [header for directory in include_dirs
+                                                  for header in directory.rglob("*.h")]
+    authored_mtime = max(path.stat().st_mtime_ns for path in authored_inputs)
     jobs: list[tuple[Path, Path, list[str]]] = []
     for entry in entries:
         source_relative = Path(entry["fx"])
@@ -52,8 +61,30 @@ def main() -> int:
 
     def compile_one(job: tuple[Path, Path, list[str]]) -> tuple[Path, int, str]:
         source, output, defines = job
-        if (args.skip_existing and output.is_file()
-                and output.stat().st_mtime_ns >= included_effect_mtime):
+        # [Blur1PCDX11] Exact retail-recovered shaders for the dumped variants
+        # only. Do not apply a different material permutation as a fallback.
+        recovered = (top / "code/mercury/library/graphics/vehicle/include/vehicle/shaders/retail_dx11"
+                     / (output.stem + ".fx"))
+        if recovered.is_file():
+            output.parent.mkdir(parents=True, exist_ok=True)
+            transformed = output.with_suffix(".retail.fx5.fx")
+            transformed.write_text(inject_effect_alpha_test(recovered.read_text(encoding="utf-8")), encoding="utf-8")
+            command = [str(args.fxc), "/nologo", "/T", "fx_5_0", "/Fo", str(output), str(transformed)]
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    text=True, encoding="utf-8", errors="replace")
+            if result.returncode == 0:
+                output.with_suffix(".retail").write_text(str(recovered), encoding="utf-8")
+                output.with_suffix(".techniques").write_text("", encoding="utf-8")
+                output.with_suffix(".states").write_text("", encoding="utf-8")
+                output.with_suffix(".samplers").write_text(
+                    recovered.with_suffix(".samplers").read_text(), encoding="utf-8")
+            else:
+                output.with_suffix(".log").write_text(result.stdout, encoding="utf-8")
+            return output, result.returncode, result.stdout
+        sidecars = [output.with_suffix(suffix) for suffix in (".techniques", ".samplers", ".states")]
+        if (args.skip_existing and not output.with_suffix(".retail").exists()
+                and output.is_file() and all(path.is_file() for path in sidecars)
+                and output.stat().st_mtime_ns >= max(authored_mtime, included_effect_mtime, source.stat().st_mtime_ns)):
             return output, 0, ""
         command = [sys.executable, str(compiler), "--fxc", str(args.fxc),
                    "--source", str(source), "--out", str(output)]
@@ -66,6 +97,8 @@ def main() -> int:
         if result.returncode:
             output.parent.mkdir(parents=True, exist_ok=True)
             output.with_suffix(".log").write_text(result.stdout, encoding="utf-8")
+        elif output.with_suffix(".retail").exists():
+            output.with_suffix(".retail").unlink()
         return output, result.returncode, result.stdout
 
     succeeded = 0
@@ -94,17 +127,25 @@ def main() -> int:
             if key in index:
                 raise ValueError(f"ambiguous game effect variant: {output.stem}")
             index[key] = output.relative_to(output_root)
+            for line in output.with_suffix(".techniques").read_text(encoding="utf-8").splitlines():
+                technique, filename = line.split("\t")
+                index[key + "@" + technique.lower()] = (output.parent / filename).relative_to(output_root)
         (output_root / "effects.index").write_text(
             "".join(f"{key}\t{path.as_posix()}\n" for key, path in sorted(index.items())),
             encoding="utf-8",
         )
+        recovered_keys = [output.stem.lower() for _, output, _ in jobs
+                          if output.with_suffix(".retail").is_file()]
+        (output_root / "effects.recovered").write_text("\n".join(sorted(recovered_keys)) + "\n",
+                                                        encoding="utf-8")
         samplers: list[str] = []
         states: list[str] = []
-        for _, output, _ in jobs:
+        for key, relative in index.items():
+            output = output_root / relative
             for line in output.with_suffix(".samplers").read_text(encoding="utf-8").splitlines():
-                samplers.append(f"{output.stem.lower()}\t{line}\n")
+                samplers.append(f"{key}\t{line}\n")
             for line in output.with_suffix(".states").read_text(encoding="utf-8").splitlines():
-                states.append(f"{output.stem.lower()}\t{line}\n")
+                states.append(f"{key}\t{line}\n")
         (output_root / "effects.samplers").write_text("".join(samplers), encoding="utf-8")
         (output_root / "effects.states").write_text("".join(states), encoding="utf-8")
     return 0 if not failures else 1

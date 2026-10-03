@@ -6,7 +6,7 @@ static bool CheckLiveSamplers(Display::D3D11::C_D3D11Device& device,
     using Microsoft::WRL::ComPtr;
     if (FAILED(device.CreateOffscreenTarget(64,64))) return false;
     Display::D3D11::C_D3D11Effect* effect = nullptr;
-    if (FAILED(library.Get(device.Device(), "MeshEffect", &effect))) { std::fprintf(stderr,"Sampler effect load failed\n"); return false; }
+    if (FAILED(library.Get(device.Device(), "MeshEffect", &effect, "Material"))) { std::fprintf(stderr,"Sampler effect load failed\n"); return false; }
     const void* bytes = nullptr;
     SIZE_T size = 0;
     ComPtr<ID3D11ShaderReflection> reflection;
@@ -90,7 +90,7 @@ static bool CheckLiveSamplers(Display::D3D11::C_D3D11Device& device,
         ComPtr<ID3D11SamplerState> sampler, bound;
         if (FAILED(device.Device()->CreateSamplerState(&desc, &sampler)) ||
             FAILED(library.SetTextureSampler(device.Device(), "MeshEffect",
-                checked & 1 ? "g_tTexture" : "TextureSampler", sampler.Get())))
+                checked & 1 ? "g_tTexture" : "TextureSampler", sampler.Get(), "Material")))
             { std::fprintf(stderr,"Live sampler creation/binding %s failed\n",test.name); return false; }
         // The second apply models the immediate parameter path. Read what the
         // actual game effect bound, then use that object for the GPU samples.
@@ -128,7 +128,7 @@ static bool CheckLiveSamplers(Display::D3D11::C_D3D11Device& device,
     if (!Display::D3D11::MakeSamplerDesc(D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR,
         D3DTADDRESS_WRAP,D3DTADDRESS_WRAP,D3DTADDRESS_WRAP,1,&defaults) ||
         FAILED(device.Device()->CreateSamplerState(&defaults,&sampler)) ||
-        FAILED(library.SetTextureSampler(device.Device(),"MeshEffect","TextureSampler",sampler.Get()))) return false;
+        FAILED(library.SetTextureSampler(device.Device(),"MeshEffect","TextureSampler",sampler.Get(),"Material"))) return false;
     device.Context()->ClearState();
     std::printf("Live FX11 samplers: %u GPU samples passed (address/filter/border/encoded bias/NONE/immediate)\n",checked);
     return true;

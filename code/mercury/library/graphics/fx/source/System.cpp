@@ -449,6 +449,30 @@ void System::OnEffectLoad(Effect *pEffect)
 			{
 				Function& function = shaderType ? pPass->VertexShader : pPass->PixelShader;
 				const E_ShaderType type = shaderType ? E_ShaderType_VertexShader : E_ShaderType_PixelShader;
+				// [Blur1PCDX11] Opt-in complete retail evidence, including matched passes,
+				// for recovering later vehicle shader revisions. Never substitute a pass.
+				if (((getenv("BLUR_DX11_DUMP_VEHICLE_FX") &&
+					strncmp(pEffect->Name.Chars(), "veh_", 4) == 0) ||
+					(getenv("BLUR_DX11_DUMP_FX") && strcmp(pEffect->Name.Chars(), getenv("BLUR_DX11_DUMP_FX")) == 0)) &&
+					function.Microcode && function.cMicrocode)
+				{
+					char path[MAX_PATH] = {};
+					char variant[MAX_PATH] = {};
+					const char* filename = NativeFX11EffectName(pEffect);
+					const char* basename = filename;
+					for (const char* c = filename; *c; ++c) if (*c == '/' || *c == '\\') basename = c + 1;
+					strcpy_s(variant, basename);
+					if (char* extension = strrchr(variant, '.')) *extension = 0;
+					sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\fxdump_variants\\%s_%s_%d_%s.bin",
+						variant, pEffect->Techniques[i].Name.Chars(), j,
+						shaderType ? "vs" : "ps");
+					FILE* file = nullptr;
+					if (fopen_s(&file, path, "wb") == 0)
+					{
+						fwrite(function.Microcode, 1, function.cMicrocode, file);
+						fclose(file);
+					}
+				}
 				unsigned byteCount = 0;
 				const void* bytecode = NativeFX11Shader(pEffect, i, j, type, &byteCount);
 				if (bytecode && byteCount)

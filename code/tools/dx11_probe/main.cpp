@@ -5,15 +5,15 @@
 #include "Display/Device/D3D11/D3D11InputLayout.h"
 #include "Display/Device/D3D11/D3D11States.h"
 #include "Display/Device/D3D11/D3D11Formats.h"
-#include <fstream>
-#include "luminance_checks.h"
-#include "sampler_checks.h"
 #include <cstdio>
 #include <string>
 #include <cmath>
+#include <fstream>
 #include <vector>
 #include <d3dcompiler.h>
 #include <d3d11shader.h>
+#include "luminance_checks.h"
+#include "sampler_checks.h"
 #include "polygon_font_checks.h"
 #include "road_prepass_checks.h"
 #include "billboard_prepass_checks.h"
@@ -21,6 +21,148 @@
 #include "vehicle_volume_checks.h"
 #include "cube_binding_checks.h"
 
+// [Blur1PCDX11][retail-recovered] Alloy's shipped prepass decodes packed
+// normals, packs normal.z across BA, and writes negative clip z/w to MRT1.
+static bool CheckVehiclePrepass(Display::D3D11::C_D3D11Device& device,
+                               Display::D3D11::C_D3D11EffectLibrary& library)
+{
+    std::ifstream recoveredIndex("_work/build/gen/fx11/effects/effects.recovered");
+    std::vector<std::string> effects;
+    std::string key;
+    while (std::getline(recoveredIndex, key)) if (!key.empty()) effects.push_back(key);
+    if (effects.empty() || recoveredIndex.bad()) return false;
+    const char* techniques[] = { "Material", "MaterialNoDamage", "MaterialAlphaLuminance",
+        "MaterialAlphaLuminanceNoDamage", "MaterialLOD", "MaterialNoDamageLOD",
+        "MaterialAlphaLuminanceLOD", "MaterialAlphaLuminanceNoDamageLOD",
+        "MaterialPrepass", "MaterialPrepassNoDamage" };
+    for (const std::string& effect : effects)
+    {
+        Display::D3D11::C_D3D11Effect* native = nullptr;
+        if (FAILED(library.Get(device.Device(), effect.c_str(), &native))) return false;
+        for (const char* technique : techniques)
+        {
+            const void* bytes = nullptr;
+            SIZE_T size = 0;
+            if (FAILED(native->GetPassVertexShaderBytecode(technique, 0, &bytes, &size)) || !size ||
+                FAILED(native->GetPassPixelShaderBytecode(technique, 0, &bytes, &size)) || !size)
+            { std::fprintf(stderr, "Missing recovered pass: %s/%s\n", effect.c_str(), technique); return false; }
+        }
+    }
+    Display::D3D11::C_D3D11Effect* alloy = nullptr;
+    if (FAILED(library.Get(device.Device(), "veh_alloy_f_LN", &alloy))) return false;
+    const float identity[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+    if (FAILED(alloy->SetRawParameter("g_mWorld", identity, sizeof(identity))) ||
+        FAILED(alloy->SetRawParameter("g_mViewProj", identity, sizeof(identity)))) return false;
+    struct Vertex { float position[4], normal[4], uv[4], colour[4]; };
+    const Vertex vertices[] = {
+        { {0,.8f,.2f,1}, {.5f,.5f,1,0}, {0,0,0,0}, {.5f,.5f,.5f,1} },
+        { {.8f,-.8f,.2f,1}, {.5f,.5f,1,0}, {0,0,0,0}, {.5f,.5f,.5f,1} },
+        { {-.8f,-.8f,.2f,1}, {.5f,.5f,1,0}, {0,0,0,0}, {.5f,.5f,.5f,1} }
+    };
+    const unsigned short indices[] = { 0,1,2 };
+    const D3DVERTEXELEMENT9 elements[] = {
+        {0,0,D3DDECLTYPE_FLOAT4,0,D3DDECLUSAGE_POSITION,0},
+        {0,16,D3DDECLTYPE_FLOAT4,0,D3DDECLUSAGE_NORMAL,0},
+        {0,32,D3DDECLTYPE_FLOAT4,0,D3DDECLUSAGE_TEXCOORD,0},
+        {0,48,D3DDECLTYPE_FLOAT4,0,D3DDECLUSAGE_COLOR,0}
+    };
+    Microsoft::WRL::ComPtr<ID3D11Buffer> vb, ib;
+    if (FAILED(device.CreateVertexBuffer(sizeof(vertices), vertices, false, vb)) ||
+        FAILED(device.CreateIndexBuffer(sizeof(indices), indices, false, ib))) return false;
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = desc.Height = 64;
+    desc.MipLevels = desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R32_FLOAT;
+    desc.SampleDesc.Count = 1;
+    desc.BindFlags = D3D11_BIND_RENDER_TARGET;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> depth, staging;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> depthView;
+    if (FAILED(device.Device()->CreateTexture2D(&desc, nullptr, &depth)) ||
+        FAILED(device.Device()->CreateRenderTargetView(depth.Get(), nullptr, &depthView))) return false;
+    desc.BindFlags = 0;
+    desc.Usage = D3D11_USAGE_STAGING;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    if (FAILED(device.Device()->CreateTexture2D(&desc, nullptr, &staging))) return false;
+    D3D11_RASTERIZER_DESC raster = {};
+    raster.FillMode = D3D11_FILL_SOLID;
+    raster.CullMode = D3D11_CULL_NONE;
+    raster.DepthClipEnable = TRUE;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterState;
+    if (FAILED(device.Device()->CreateRasterizerState(&raster, &rasterState))) return false;
+    D3D11_VIEWPORT viewport = {0,0,64,64,0,1};
+    const float clear[4] = {0,0,0,0};
+    for (const char* technique : { "MaterialPrepass", "MaterialPrepassNoDamage" })
+    {
+        device.Context()->ClearState();
+        device.Context()->ClearRenderTargetView(device.RenderTargetView(), clear);
+        device.Context()->ClearRenderTargetView(depthView.Get(), clear);
+        device.Context()->ClearDepthStencilView(device.DepthStencilView(), D3D11_CLEAR_DEPTH, 1, 0);
+        ID3D11RenderTargetView* targets[] = {device.RenderTargetView(), depthView.Get()};
+        device.Context()->OMSetRenderTargets(2, targets, device.DepthStencilView());
+        device.Context()->RSSetViewports(1, &viewport);
+        device.Context()->RSSetState(rasterState.Get());
+        HRESULT hr = device.DrawGameEffectIndexed(*alloy, technique, 0, elements, 4,
+            vb.Get(), sizeof(Vertex), ib.Get(), DXGI_FORMAT_R16_UINT, 3);
+        unsigned char pixel[4] = {};
+        if (FAILED(hr) || FAILED(device.ReadPixel(32,32,pixel))) return false;
+        device.Context()->OMSetRenderTargets(0, nullptr, nullptr);
+        device.Context()->CopyResource(staging.Get(), depth.Get());
+        D3D11_MAPPED_SUBRESOURCE mapped = {};
+        if (FAILED(device.Context()->Map(staging.Get(),0,D3D11_MAP_READ,0,&mapped))) return false;
+        const float z = reinterpret_cast<const float*>(static_cast<const unsigned char*>(mapped.pData) +
+            32 * mapped.RowPitch)[32];
+        device.Context()->Unmap(staging.Get(),0);
+        std::printf("Recovered alloy %s normal RGBA %u %u %u %u depth %.6f\n",
+            technique,pixel[0],pixel[1],pixel[2],pixel[3],z);
+        if (pixel[0] < 127 || pixel[0] > 128 || pixel[1] < 127 || pixel[1] > 128 ||
+            pixel[2] != 255 || pixel[3] != 0 || std::fabs(z + .2f) > .0001f) return false;
+    }
+    device.Context()->ClearState();
+    std::printf("Recovered vehicle passes: %zu exact permutations x 10 techniques available\n", effects.size());
+    return true;
+}
+
+// [Blur1PCDX11] Check the actual compiled FX11 sampler defaults. FX9 leaves
+// AlbedoSampler at WRAP while EnvironmentSampler explicitly requests CLAMP.
+static bool CheckSceneSamplerDefaults(Display::D3D11::C_D3D11Device& device,
+                                     Display::D3D11::C_D3D11EffectLibrary& library)
+{
+    Display::D3D11::C_D3D11Effect* effect = nullptr;
+    if (FAILED(library.Get(device.Device(), "Default_LN_NB_NV.fxb", &effect, "MaterialLights"))) return false;
+    const void* code = nullptr;
+    SIZE_T bytes = 0;
+    if (FAILED(effect->GetPassPixelShaderBytecode("MaterialLights", 0, &code, &bytes))) return false;
+    Microsoft::WRL::ComPtr<ID3D11ShaderReflection> reflection;
+    if (FAILED(D3DReflect(code, bytes, IID_PPV_ARGS(&reflection)))) return false;
+    if (FAILED(effect->Apply("MaterialLights", 0, device.Context()))) return false;
+    D3D11_SHADER_DESC shader = {};
+    reflection->GetDesc(&shader);
+    unsigned checked = 0;
+    for (UINT i = 0; i < shader.BoundResources; ++i)
+    {
+        D3D11_SHADER_INPUT_BIND_DESC binding = {};
+        reflection->GetResourceBindingDesc(i, &binding);
+        if (binding.Type != D3D_SIT_SAMPLER) continue;
+        const std::string name(binding.Name);
+        if (name != "AlbedoSampler" && name != "EnvironmentSampler") continue;
+        Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler;
+        device.Context()->PSGetSamplers(binding.BindPoint, 1, &sampler);
+        if (!sampler) return false;
+        D3D11_SAMPLER_DESC desc = {};
+        sampler->GetDesc(&desc);
+        const auto expected = name == "AlbedoSampler" ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP;
+        if (desc.AddressU != expected || desc.AddressV != expected || desc.AddressW != expected)
+        { std::fprintf(stderr, "%s address defaults: %u/%u/%u expected %u\n", binding.Name,
+                       desc.AddressU, desc.AddressV, desc.AddressW, expected); return false; }
+        ++checked;
+    }
+    device.Context()->ClearState();
+    std::printf("Scene sampler defaults: %u checked (albedo WRAP, environment CLAMP)\n", checked);
+    return checked == 2;
+}
+
+// [Blur1PCDX11] Exercise the generated PS exit with the engine's mutable state.
+// Boundary pixels distinguish Greater from GreaterEqual and disabled from Never.
 // [Blur1PCDX11] D3D11 stage linkage requires register/component agreement,
 // even when the original D3D9 stages shared matching semantic names.
 static bool CheckBuiltinShaderLinks()
@@ -132,39 +274,8 @@ static bool CheckNativeAlphaTest(Display::D3D11::C_D3D11Device& device)
     return true;
 }
 
-static bool CheckAlphaBlendFactors(Display::D3D11::C_D3D11Device& device)
-{
-    const D3DBLEND factors[] = {D3DBLEND_SRCCOLOR, D3DBLEND_INVSRCCOLOR,
-        D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR, D3DBLEND_SRCALPHASAT};
-    const unsigned char expected[][4] = {{157,39,10,64}, {43,61,40,64},
-        {0,0,0,128}, {200,100,50,0}, {0,0,0,128}};
-    const unsigned char texel[] = {200,100,50,128};
-    for (unsigned test = 0; test < 5; ++test)
-    {
-        D3D11_BLEND_DESC desc = {};
-        if (!Display::D3D11::MakeBlendDesc(factors[test], D3DBLEND_ZERO, D3DBLENDOP_ADD,
-            factors[test], D3DBLEND_ZERO, D3DBLENDOP_ADD, true, 15, &desc)) return false;
-        Microsoft::WRL::ComPtr<ID3D11BlendState> blend;
-        if (FAILED(device.Device()->CreateBlendState(&desc, &blend))) return false;
-        const float scale[] = {1,1,1,1};
-        device.Context()->OMSetBlendState(blend.Get(), scale, 0xffffffff);
-        if (FAILED(device.DrawTexturedQuad(
-            L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
-            L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso", texel))) return false;
-        unsigned char actual[4] = {};
-        if (FAILED(device.ReadPixel(32, 32, actual))) return false;
-        for (unsigned channel = 0; channel < 4; ++channel)
-            if (std::abs(int(actual[channel]) - int(expected[test][channel])) > 1)
-            {
-                std::fprintf(stderr, "Blend factor %u channel %u: %u expected %u\n",
-                    factors[test], channel, actual[channel], expected[test][channel]);
-                return false;
-            }
-    }
-    std::puts("PC alpha blend factors: 5 GPU RGBA checks passed");
-    return true;
-}
-
+// [Blur1PCDX11] One PC resource must support successive linear/sRGB/linear
+// samplers without changing its bytes, including BC formats and alpha.
 static bool CheckTextureGammaViews(Display::D3D11::C_D3D11Device& device)
 {
     const unsigned char rgba[] = {128,128,128,102};
@@ -260,6 +371,39 @@ static bool CheckTextureGammaViews(Display::D3D11::C_D3D11Device& device)
         }
     }
     std::printf("Texture gamma views: %u GPU transitions across six colour formats, cube and volume; HDR unchanged\n",checked);
+    return true;
+}
+
+static bool CheckAlphaBlendFactors(Display::D3D11::C_D3D11Device& device)
+{
+    const D3DBLEND factors[] = {D3DBLEND_SRCCOLOR, D3DBLEND_INVSRCCOLOR,
+        D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR, D3DBLEND_SRCALPHASAT};
+    const unsigned char expected[][4] = {{157,39,10,64}, {43,61,40,64},
+        {0,0,0,128}, {200,100,50,0}, {0,0,0,128}};
+    const unsigned char texel[] = {200,100,50,128};
+    for (unsigned test = 0; test < 5; ++test)
+    {
+        D3D11_BLEND_DESC desc = {};
+        if (!Display::D3D11::MakeBlendDesc(factors[test], D3DBLEND_ZERO, D3DBLENDOP_ADD,
+            factors[test], D3DBLEND_ZERO, D3DBLENDOP_ADD, true, 15, &desc)) return false;
+        Microsoft::WRL::ComPtr<ID3D11BlendState> blend;
+        if (FAILED(device.Device()->CreateBlendState(&desc, &blend))) return false;
+        const float scale[] = {1,1,1,1};
+        device.Context()->OMSetBlendState(blend.Get(), scale, 0xffffffff);
+        if (FAILED(device.DrawTexturedQuad(
+            L"_work/build/gen/dx11_builtins/display/vsBasicRenderTextured2D.cso",
+            L"_work/build/gen/dx11_builtins/display/psBasicRenderTextured.cso", texel))) return false;
+        unsigned char actual[4] = {};
+        if (FAILED(device.ReadPixel(32, 32, actual))) return false;
+        for (unsigned channel = 0; channel < 4; ++channel)
+            if (std::abs(int(actual[channel]) - int(expected[test][channel])) > 1)
+            {
+                std::fprintf(stderr, "Blend factor %u channel %u: %u expected %u\n",
+                    factors[test], channel, actual[channel], expected[test][channel]);
+                return false;
+            }
+    }
+    std::puts("PC alpha blend factors: 5 GPU RGBA checks passed");
     return true;
 }
 
@@ -412,11 +556,10 @@ int main()
 
     Display::D3D11::C_D3D11EffectLibrary effectLibrary;
     result = effectLibrary.Open(L"_work/build/gen/fx11/effects");
-    if (FAILED(result) || effectLibrary.EffectCount() < 1254) return 9;
+    if (FAILED(result) || effectLibrary.EffectCount() <= 1254) return 9;
     if (!CheckRoadPrepass(device, effectLibrary)) return 13;
     if (!CheckBillboardPrepass(device, effectLibrary)) return 14;
     if (!CheckVehicleVolumeBinding(device, effectLibrary)) return 15;
-    if (!CheckLiveSamplers(device, effectLibrary)) return 9;
     std::string failedEffect;
     result = effectLibrary.PreloadAll(device.Device(), &failedEffect);
     if (FAILED(result))
@@ -425,6 +568,35 @@ int main()
                      failedEffect.c_str(), static_cast<unsigned long>(result));
         return 9;
     }
+
+    // [Blur1PCDX11] Technique Define annotations must change the compiled
+    // shader, as Fx_export.cpp:WriteEffect did for the shipped PC effects.
+    if (!CheckSceneSamplerDefaults(device, effectLibrary)) return 9;
+    if (!CheckLiveSamplers(device, effectLibrary)) return 9;
+    Display::D3D11::C_D3D11Effect* roadLights = nullptr;
+    result = effectLibrary.Get(device.Device(), "Road.fx", &roadLights, "MaterialLights");
+    if (FAILED(result)) return 9;
+    const void* roadShader = nullptr;
+    SIZE_T roadShaderBytes = 0;
+    result = roadLights->GetPassPixelShaderBytecode("MaterialLights", 0, &roadShader, &roadShaderBytes);
+    if (FAILED(result)) return 9;
+    Microsoft::WRL::ComPtr<ID3D11ShaderReflection> roadReflection;
+    result = D3DReflect(roadShader, roadShaderBytes, IID_PPV_ARGS(&roadReflection));
+    if (FAILED(result)) return 9;
+    D3D11_SHADER_DESC roadDesc = {};
+    if (FAILED(roadReflection->GetDesc(&roadDesc))) return 9;
+    bool hasDynamicLights = false;
+    for (UINT binding = 0; binding < roadDesc.BoundResources; ++binding)
+    {
+        D3D11_SHADER_INPUT_BIND_DESC input = {};
+        if (FAILED(roadReflection->GetResourceBindingDesc(binding, &input))) return 9;
+        // FXC's legacy sampler syntax names both the texture and sampler after
+        // DynamicLightsSampler; enumerate to distinguish the two bindings.
+        hasDynamicLights |= input.Type == D3D_SIT_TEXTURE &&
+            std::string(input.Name) == "DynamicLightsSampler";
+    }
+    if (!hasDynamicLights) return 9;
+    std::printf("Road MaterialLights technique defines: dynamic-light texture present\n");
     Display::D3D11::C_D3D11Effect* gameEffect = nullptr;
     result = effectLibrary.Get(device.Device(), "ScreenFacingSprite.fx", &gameEffect);
     if (FAILED(result) || !gameEffect) return 9;
@@ -497,7 +669,7 @@ int main()
                     alphaAssembly->GetBufferSize()).find("discard") == std::string::npos)
         return 9;
     if (SUCCEEDED(result)) result = device.CreateOffscreenTarget(64, 64);
-    if (FAILED(result)) return 10;
+    if (FAILED(result)) { std::fprintf(stderr, "Material target: %08lx\n", result); return 10; }
 
     // Draw through an FX5 pass compiled from the game's authored material.
     const float identity[16] = { 1, 0, 0, 0, 0, 1, 0, 0,
@@ -508,14 +680,14 @@ int main()
         if (gameEffect->HasParameter(name))
         {
             result = gameEffect->SetRawParameter(name, identity, sizeof(identity));
-            if (FAILED(result)) return 10;
+            if (FAILED(result)) { std::fprintf(stderr, "Material matrix %s: %08lx\n", name, result); return 10; }
         }
     }
     if (gameEffect->HasParameter("g_lodFade"))
     {
         const float fade[4] = { 1, 1, 1, 1 };
         result = gameEffect->SetRawParameter("g_lodFade", fade, sizeof(fade));
-        if (FAILED(result)) return 10;
+        if (FAILED(result)) { std::fprintf(stderr, "Material LOD fade: %08lx\n", result); return 10; }
     }
     const unsigned char whiteBGRA[4] = { 255, 255, 255, 255 };
     const void* whiteMip[] = { whiteBGRA };
@@ -525,13 +697,14 @@ int main()
     bool materialAlbedoSRGB = false;
     result = effectLibrary.TextureUsesSRGB("ScreenFacingSprite.fx", "g_tAlbedo",
                                             &materialAlbedoSRGB);
-    if (FAILED(result) || !materialAlbedoSRGB) return 10;
+    if (FAILED(result) || !materialAlbedoSRGB) { std::fprintf(stderr, "Material sRGB metadata: %08lx flag=%u\n", result, materialAlbedoSRGB); return 10; }
     result = device.CreateTexture2DFromPCData(1, 1, 1, D3DFMT_A8R8G8B8,
                                               whiteMip, whiteMipSize,
                                               whiteTexture, whiteView,
                                               materialAlbedoSRGB);
-    if (FAILED(result)) return 10;
-    if (FAILED(gameEffect->SetTexture("g_tAlbedo", whiteView.Get()))) return 10;
+    if (FAILED(result)) { std::fprintf(stderr, "Material texture creation: %08lx\n", result); return 10; }
+    result = gameEffect->SetTexture("g_tAlbedo", whiteView.Get());
+    if (FAILED(result)) { std::fprintf(stderr, "Material texture binding: %08lx\n", result); return 10; }
 
     const D3DVERTEXELEMENT9 materialElements[] = {
         { 0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
@@ -572,12 +745,14 @@ int main()
                                           materialElements, 5, materialVB.Get(),
                                           sizeof(MaterialVertex), materialIB.Get(),
                                           DXGI_FORMAT_R16_UINT, 3);
-    if (FAILED(result) || device.InputLayoutCount() != 1) return 10;
+    if (FAILED(result) || device.InputLayoutCount() != 1)
+    { std::fprintf(stderr, "Material draw: %08lx layouts=%zu\n", result, device.InputLayoutCount()); return 10; }
     result = device.DrawGameEffectIndexed(*gameEffect, "Material", 0,
                                           materialElements, 5, materialVB.Get(),
                                           sizeof(MaterialVertex), materialIB.Get(),
                                           DXGI_FORMAT_R16_UINT, 3);
-    if (FAILED(result) || device.InputLayoutCount() != 1) return 10;
+    if (FAILED(result) || device.InputLayoutCount() != 1)
+    { std::fprintf(stderr, "Material cached draw: %08lx layouts=%zu\n", result, device.InputLayoutCount()); return 10; }
     ID3D11SamplerState* boundSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT] = {};
     device.Context()->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,
                                     boundSamplers);
@@ -592,7 +767,7 @@ int main()
             bound->Release();
         }
     }
-    if (!linearSamplerBound) return 10;
+    if (!linearSamplerBound) { std::fprintf(stderr, "Material linear sampler missing\n"); return 10; }
     unsigned char materialPixel[4] = {};
     result = device.ReadPixel(32, 32, materialPixel);
     device.Context()->ClearState();
@@ -617,9 +792,10 @@ int main()
     device.Context()->ClearState();
     std::printf("FX11 alpha test: previously visible material rejected by Never\n");
 
-    if (!CheckStencilFaces(device) || !CheckTextureGammaViews(device) ||
-        !CheckLuminanceTextures(device) || !CheckCubeTextureBinding(device)) return 12;
-    if (!CheckNativeAlphaTest(device) || !CheckBuiltinShaderLinks() || !CheckAlphaBlendFactors(device)) return 12;
+    if (!CheckVehiclePrepass(device, effectLibrary)) return 11;
+    if (!CheckNativeAlphaTest(device) || !CheckBuiltinShaderLinks() || !CheckAlphaBlendFactors(device) ||
+        !CheckTextureGammaViews(device) || !CheckLuminanceTextures(device) || !CheckStencilFaces(device) ||
+        !CheckCubeTextureBinding(device)) return 12;
 
     if (SUCCEEDED(result)) result = device.DrawProbeTriangle(
         L"_work/build/gen/dx11_builtins/display/vsBasicRenderColoured2D.cso",

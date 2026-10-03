@@ -48,6 +48,17 @@ using S_StagingKey = std::pair<const ID3D11Resource*, UINT>;
 std::map<S_StagingKey, S_StagingLock> g_stagingLocks;
 std::mutex g_stagingMutex;
 
+void TraceLockFailure(const char* reason, ID3D11Resource* resource, UINT subresource, HRESULT result)
+{
+	static unsigned count = 0;
+	if (count++ >= 16) return;
+	void* frames[8] = {};
+	const USHORT captured = CaptureStackBackTrace(1,8,frames,nullptr);
+	Blur2PCAutomation::LogF("DX11 resource lock failed %s resource=%p sub=%u hr=%08x",
+		reason,resource,subresource,static_cast<unsigned>(result));
+	for (USHORT i=0; i<captured; ++i) Blur2PCAutomation::LogF("DX11 lock caller[%u]=%p",i,frames[i]);
+}
+
 // [Blur1PCDX11] The D3D11 debug layer raises 0x87D on the corruption it detects;
 // catch it so the message reaches the log instead of the crash handler.
 HRESULT TryMapStaging(ID3D11DeviceContext* context, ID3D11Resource* staging,
@@ -67,10 +78,10 @@ HRESULT TryMapStaging(ID3D11DeviceContext* context, ID3D11Resource* staging,
 bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
                  D3D11_MAPPED_SUBRESOURCE& mapped, U32 flags = 0)
 {
-	if (!resource) return false;
+	if (!resource) { TraceLockFailure("null resource",resource,subresource,E_POINTER); return false; }
 	std::lock_guard<std::mutex> lock(g_stagingMutex);
 	const S_StagingKey key(resource, subresource);
-	if (g_stagingLocks.count(key)) return false;
+	if (g_stagingLocks.count(key)) { TraceLockFailure("already locked",resource,subresource,E_FAIL); return false; }
 	ID3D11Device* device = nullptr;
 	resource->GetDevice(&device);
 	if (!device) return false;
@@ -197,6 +208,7 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 		}
 		else
 		{
+			TraceLockFailure("staging map",resource,subresource,hr);
 			static unsigned traced = 0;
 			if (traced++ < 3)
 			{
@@ -207,6 +219,7 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 			staging->Release();
 		}
 	}
+	else TraceLockFailure("staging allocation",resource,subresource,hr);
 	context->Release();
 	device->Release();
 	return SUCCEEDED(hr);

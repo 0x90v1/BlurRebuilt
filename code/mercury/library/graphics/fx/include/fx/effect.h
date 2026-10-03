@@ -808,6 +808,11 @@ public:
 	Btl::Vector<InputSemantic> VtxInputDeclaration;		///< A list of the vertex input semantics required for this shader
 
 	SharedString::String Name;								///< Name of the effect, usually the filename (minus path and .fx).
+#if defined(BLUR_USE_DX11)
+	// [Blur1PCDX11] Internal FXB Name omits permutation suffixes. Runtime-only
+	// identity set before deserialisation; never part of the PCFX wire format.
+	SharedString::String NativeFilename;
+#endif
 
 #if CFG_CONVERTER
 	Btl::Vector<Struct> Structs;						///< A description of the contents of some structs. used for debugging
