@@ -271,7 +271,13 @@ C_VertexPrepassOutput RoadSurfacePrepassVS(in C_VertexInput input)
 	output.m_vDepth = float4(0.0f, 0.0f, output.m_vPosition.zw);
 #endif
 #if defined(NO_WORLDNORMAL)
+#if defined(BLUR_DX11)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] Every shipped PC _NW road prepass
+	// VS writes a zero normal and reads no vertex normal.
+	output.m_vNormal.xyz	= 0.0f;
+#else
 	output.m_vNormal.xyz	= vtxData.m_vNormal.xyz;
+#endif
 #if defined(ENABLE_PREPASS_VIEWDEPTH)
 	output.m_vNormal.w		= output.m_vPosition.w / g_vNearFar.w;
 #endif

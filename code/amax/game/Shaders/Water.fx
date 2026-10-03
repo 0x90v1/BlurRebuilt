@@ -123,9 +123,16 @@ real3 EvaluateDiffuse(in C_Material mtlData, in out C_Surface surfaceData, in C_
 			vScreenCoords	+= g_vHalfPixelOffset.xy;
 #endif
 
+#if defined(BLUR_DX11) && defined(WATER_NO_DEPTH)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] The shipped *NoDepth techniques
+	// (refract pass at graphical detail 1) skip the depth read: distance is 1.
+	float	fWaterDepth		= vtxData.m_vScreenPos.z; 
+	float	fDistUnderwater	= 1.0h;
+#else
 	float	fSceneDepth		= SampleDepthBuffer(DepthBufferSampler, vScreenCoords, g_vDepthScale);
 	float	fWaterDepth		= vtxData.m_vScreenPos.z; 
 	float	fDistUnderwater	= max(0.0h, fSceneDepth - fWaterDepth);
+#endif
 
 #ifdef SPLITSCREEN
 	real	fRefractAmount  = 0;
@@ -212,3 +219,34 @@ technique MaterialLSplitScreen <string SortType = "postresolve"; string Define =
 		PixelShader = compile ps_3_0 MainPS();
 	}
 }
+
+#if defined(BLUR_DX11)
+// [Blur2PC][Blur1PCDX11][retail-recovered] Shipped NoDepth subtechniques.
+technique MaterialNoDepth <string SortType = "postresolve"; string Define = "WATER_NO_DEPTH";>
+{
+	pass p0
+	{
+		VertexShader = compile vs_3_0 MainVS();
+		PixelShader = compile ps_3_0 MainPS();
+	}
+}
+
+technique MaterialLightsNoDepth <string SortType = "postresolve"; string Define = "ENABLE_LIGHTING_PREPASS; WATER_NO_DEPTH";>
+{
+	pass p0
+	{
+		VertexShader = compile vs_3_0 MainVS();
+		PixelShader = compile ps_3_0 MainPS();
+	}
+}
+
+technique MaterialLSplitScreenNoDepth <string SortType = "postresolve"; string Define = "SPLITSCREEN; ENABLE_LIGHTING_PREPASS; WATER_NO_DEPTH";>
+{
+	pass p0
+	{
+		VertexShader = compile vs_3_0 MainVS();
+		PixelShader = compile ps_3_0 MainPS();
+	}
+}
+#endif
+

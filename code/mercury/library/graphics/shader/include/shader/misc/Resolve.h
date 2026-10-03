@@ -24,6 +24,11 @@ float ScaleDepth(float depthBufferValue, float4 scaleParam)
 float SampleDepthBuffer(sampler DepthSampler, float2 uv, float4 scaleParam)
 {
 	float depthBufferValue = SampleDepthBuffer(DepthSampler, uv);
+#if defined(BLUR_DX11)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] Every shipped PC effect that scales
+	// a depth-buffer sample (water, mesh effects, flares) takes abs() first.
+	depthBufferValue = abs(depthBufferValue);
+#endif
 
 	return ScaleDepth(depthBufferValue, scaleParam);
 }

@@ -657,3 +657,15 @@ Blocked: none.
 Next: audit the retail pass dump against source compiled for ps_3_0/vs_3_0 to find further shipped shader revisions.
 
 Files touched: code/amax/game/Shaders/Common/Pixel.h, fx/source/System.cpp, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.
+
+## 2026-10-03 — session Claude DX11 continuation — T127 shader revision audit
+
+Did: committed the prepass alpha clip as `b5d31dcd`. Built `code/tools/dx11_shader_audit/`, which compiles source passes with the retail-era D3DCompiler_42 and compares them with the retail dump. Recovered under `BLUR_DX11`: the depth-sample `abs`, the water `*NoDepth` techniques, the flare radius saturate, white SyntheticBillboard vertex colour, MeshEffect skinned bind-normal fresnel, and the road `_NW` zero normal with D3D9 `nrm(0)` semantics.
+
+Verified: native audit 1,197/1,288 identical, with the remainder explained interface differences. D3D9/D3D11 zero-normal probes match on hardware. Standard build errsum 0, 1254/1254 effects; EXE/PDB/effects delivered. Brighton detail 1 (PC/native60/unlocked) and Observatory native60/unlocked exit 0. Evidence `_work/build/{shader_audit_oct03,shader_audit_dx11_oct03,road_nw_zero_normal_oct03,shader_revisions_oct03}`.
+
+Blocked: the Blur1PC D3D9 capture at graphical detail 1 is black (Blur1PC fault, not fixed here).
+
+Next: dump retail shaders on other tracks (water, night, perks) and rerun the audit; trace the 8 "VS object has no native shader" draws (caller 0x01499128).
+
+Files touched: Shaders/{Road.fx,Road.h,RoadTwoSpec.fx,Water.fx,WaterCubeMap.fx,WaterFlow.fx,SyntheticBillboard.fx,Effects/LightFlare.fx,Perks/MeshEffect.fx}, shader/misc/Resolve.h, code/tools/dx11_shader_audit/, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.

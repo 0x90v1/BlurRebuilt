@@ -50,6 +50,11 @@ C_VertexOutput MainSpriteVS(in C_VertexInput input)
 	output	= EvaluatePosition(output, vtxData);
 	output	= EvaluateTexCoord(output, input);
 	output	= EvaluateColour(output, input, vtxData);
+#if defined(BLUR_DX11)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] Shipped PC SyntheticBillboard
+	// vertex shaders read no vertex colour and output constant white.
+	output.m_vColour	= 1.0h;
+#endif
 
 #if !defined(CFG_CONVERTER)
 	float fLodFade = EvaluateLodFadeNoSaturate(output.m_vPosition.w);

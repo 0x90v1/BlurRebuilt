@@ -124,7 +124,12 @@ C_PixelOutput LightFlarePS(in C_VertexOutput vtxData)
 
 #if defined(ENVIRONMENT)
 	half2	offset = vtxData.m_vTexCoord.xy * 2.f - 1.f;
+#if defined(BLUR_DX11)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] Shipped flares saturate the radius.
+	half2 radius = saturate(abs(offset.xy));
+#else
 	half2 radius = abs(offset.xy);
+#endif
 	half factor = pow(saturate(1.f - dot(radius.xy,radius.xy)), 6.f); 
 	half4	vColour = factor;
 #else

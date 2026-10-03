@@ -255,8 +255,16 @@ C_VertexOutput MainVS(in C_VertexInput input)
 	
 	C_VertexData vtxData = (C_VertexData) 0;
 	vtxData	= EvaluateBindPosition(vtxData, input);
+#if defined(BLUR_DX11) && defined(ENABLE_SKINNING)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] Shipped skinned mesh effects skin
+	// only the position; the fresnel term uses the bind normal in world space.
+	float3	vBindNormal	= vtxData.m_vNormal;
+#endif
 	vtxData	= EvaluateObjectPosition(vtxData, input);
 	vtxData	= EvaluateWorldPosition(vtxData, input);
+#if defined(BLUR_DX11) && defined(ENABLE_SKINNING)
+	vtxData.m_vNormal	= mul(vBindNormal, (float3x3) g_mWorld);
+#endif
 
 	float4	vWorldPosition	= vtxData.m_vPosition;
 	float4	vProjPosition	= mul(vWorldPosition, g_mViewProj);

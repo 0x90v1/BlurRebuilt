@@ -193,7 +193,15 @@ C_PixelOutput RoadSurfacePrepassPS(in C_VertexPrepassOutput vtxData)
 	real3	vWorldNormal	= EvaluateWorldNormal(vtxData, vtxData.m_vTexCoord.xy);
 	output.m_vColour	= real4(vWorldNormal * 0.5h + 0.5h, 1.0h);
 #else
+#if defined(BLUR_DX11)
+	// [Blur2PC][Blur1PCDX11][retail-recovered] D3D9 nrm of the zero _NW normal is
+	// zero (0 * rsq(0) = 0); SM5 normalize would give NaN. See Road.fx.
+	float3	vNormal			= vtxData.m_vNormal.xyz;
+	float3	vNormalised		= vNormal * rsqrt(dot(vNormal, vNormal));
+	output.m_vColour	= real4((vNormal == 0.0f ? 0.0f : vNormalised) * 0.5h + 0.5h, 1.0h);
+#else
 	output.m_vColour	= real4(normalize(vtxData.m_vNormal.xyz) * 0.5h + 0.5h, 1.0h);
+#endif
 #endif
     
 #endif

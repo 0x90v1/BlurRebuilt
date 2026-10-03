@@ -578,3 +578,32 @@ Evidence: `BLUR_DX11_DUMP_FX=*` (the existing opt-in dump in `fx/System.cpp` now
 Repair: `Pixel.h` applies that clip under `BLUR_DX11` in the non-opaque path. Native disassembly check (`retail_fx_dump_oct03/compare_kill.py`): all 45 indexed retail-kill passes gain the discard. The 70 no-kill passes keep only the alpha-test discard; FoliageBillboard shows one extra compiler-emitted discard with a single clip in source. Electric prepasses live in base-effect files outside the per-technique index and use the same source path. Standard build errsum 0, 1254/1254 effects. Queued Observatory native60/unlocked exit 0, and the shrub rectangles are gone (`alpha_format_race_oct03/shrub_crop_clip.png`, PC/native60/unlocked).
 
 The dump allows a systematic shipped-versus-source shader audit. Next: compare each retail pass with the same pass compiled from source for ps_3_0/vs_3_0 (instruction classes, texkill, texld, constants) to find further shipped revisions.
+
+### T127: shipped-versus-source shader audit and recovered revisions (2026-10-03)
+
+Found in / Belongs to **Blur1PCDX11**: Blur1PC runs the retail FXB shaders, and only the native build compiles the leaked source.
+
+Tool: `code/tools/dx11_shader_audit/`.
+- `legacy_compile.exe` (x86) compiles with `D3DCompiler_42.dll` from SysWOW64. This is the 9.27.952.3022 compiler stamped in the retail shaders, run with the PC exporter's `/Zpr` (pcfx.cpp).
+- `audit.py` maps every pass in the `BLUR_DX11_DUMP_FX=*` retail dump to its Jam variant, technique `Define` annotations and pass entries. It preprocesses with the exporter's defines, compiles, and disassembles both sides with the same fxc. `--define BLUR_DX11` audits the native source.
+- Of 1,288 non-vehicle retail passes loaded by an Observatory race, the plain leaked source reproduces 1,007 byte-for-byte. The legacy compiler is therefore exact, and each remaining difference is a source revision.
+
+Recovered under `BLUR_DX11`, each confirmed by an identical audit compile:
+- `Misc/Resolve.h`: the shipped depth scaling takes `abs()` of the depth sample (55 water, mesh-effect and flare passes).
+- Water, WaterCubeMap, WaterFlow: the shipped `MaterialNoDepth`, `MaterialLightsNoDepth` and `MaterialLSplitScreenNoDepth` techniques were absent from source, so native had no shader and skipped those draws. Retail selects the `NoDepth` subtechnique for the refract pass at graphical detail 1 (`C_GameWorld::SetGraphicalDetail`). They are the normal techniques with `fDistUnderwater = 1` and no depth read. 60 passes are now identical.
+- `Effects/LightFlare.fx` ENVIRONMENT: `radius = saturate(abs(offset))`.
+- `SyntheticBillboard.fx`: the vertex shaders output constant white and read no vertex colour.
+- `Perks/MeshEffect.fx`, skinned: only the position is skinned. The fresnel uses the bind normal rotated by `g_mWorld`.
+- Road and RoadTwoSpec `_NW` prepass: the vertex shader writes a zero normal and reads none. A D3D9 HAL probe of the retail pixel shader (`_work/build/road_nw_zero_normal_oct03/`) shows `nrm(0)` encodes as `0x7f7f7f` (0 * rsq(0) = 0), while SM5 `normalize` gives NaN. The native pixel shader selects zero for zero components, and D3D11 hardware then writes exactly D3D9's bytes in all four probe cases. WARP rounds 0.5 to 0x80.
+
+With `BLUR_DX11`, 1,197 passes are identical, and the remaining 91 are explained native-interface differences:
+- integer bone-index input in skinned vertex shaders (default, HighVis, ScrollFade, MeshEffect);
+- the native road depth interpolant register;
+- the D3D9 zero-arithmetic emulation in the road `_NW` and billboard prepasses;
+- one constant reordering.
+
+Verification: standard build errsum 0, 1254/1254 effects; the index now has the water `*NoDepth` entries. Queued races exit 0 (220 s, wait 0): Brighton PC and native 60/unlocked at graphical detail 1, and Observatory native 60/unlocked at detail 4. No missing-pass dumps were logged, and the stills look coherent. The 8 "VS object has no native shader" lines per run predate this change and are open.
+
+Found in / Belongs to **Blur1PC**: at graphical detail 1, the PC D3D9 Brighton capture is black apart from the lights and HUD (`_work/build/shader_revisions_oct03/brighton_detail1.jpg`, PC on top), with no error in its log. Native renders the scene, so native water at detail 1 has no PC visual reference until that is fixed in Blur1PC.
+
+Audit scope: only effects loaded on Observatory are covered; other tracks, vehicle passes (T148) and built-in shaders are outside it.
