@@ -546,3 +546,21 @@ Private real D3D9 hardware/current injected native hardware/WARP audit covers256
 Changing only the D3D9 target to A32B32G32R32F changes65784 coverage samples versus UNORM. Float-target D3D9 comparison exactly matches shader alpha versus float32(reference)*float32(1/255) across524288 samples; direct division by255 misses504. Explicit DITHERENABLE=false preserves UNORM findings. Unknown: exact UNORM conversion and behavior across other target formats/devices, required before production emulation. Evidence _work/build/alpha_fractional_reference_oct03/{main.cpp,pixel.hlsl,build4.log,slot4.log,pc.bin,pc_alpha_bytes.bin,pc_sampled_float.bin,pc_float_target_mask.bin,hardware.bin,hardware_alpha.bin,warp.bin}. Final probe exit0/1s/wait0. Scratch probes do not count as delivery; standard executable/effects remain verified8f01a6a4.
 
 Next: extend identical-input GPU references to float16/remaining UNORM targets, recover format-dependent alpha contract before implementing, then validate60/unlocked. Independently replay the shrub producer against D3D9 before changing foliage. No production fix attempt from this audit remains in the tree.
+
+### T127: format-dependent alpha-test comparison recovered and implemented (2026-10-03)
+
+Found in / Belongs to **Blur1PCDX11**. The D3D9 HAL format matrix (`_work/build/alpha_format_matrix_oct03/`, NVIDIA RTX 5070 Ti, driver nvldumd.dll) drew the same R32F alpha ramp through ALPHAFUNC 1-8 and ALPHAREF 0-255 into nine render-target formats. One rule reproduces all 524,288 samples of every format (`fit_final.py`):
+
+- The reference is `float32(ref) * float32(1/255)`. Plain division by 255 misses 504 float32 samples.
+- The output alpha and the reference are both converted to render target 0's precision before the compare. Formats without an alpha channel (X8R8G8B8, R16F, G16R16F, R32F) follow the class of their colour channels.
+- UNORM with k bits (A8R8G8B8, X8R8G8B8: k=8; A2R10G10B10: k=10; A16B16G16R16: k=16): `u = min(floor(saturate(v) * 2^(k+4)), 2^(k+4)-1)`, then `(u * (2^k-1) + 2^(k+3) - 1) >> (k+4)`. The value is fixed to k+4 bits first, then rounded with ties going down: for 8 bits, u=2048 (127.5) gives 127.
+- Float16 targets: truncate the float32 bits to half precision (clear the low 13 mantissa bits), unclamped. Clamping first misses 960 samples.
+- Float32 targets: no conversion.
+
+Native implementation: `alpha_test.py` converts both values in `BlurPCAlphaConvert`, selected by a new `BlurPCAlphaFormat` field in the b13 buffer. `BindRenderTargets` sets that field from render target 0's DXGI format (`AlphaTestFormat`), and `SetAlphaTestRef` computes the reference as above. Unmeasured target formats compare unconverted and log `DX11 alpha test unmeasured target format` (unverified). The 16-bit UNORM path sums the 36-bit product in 16-bit halves; the uint32 emulation matches the exact formula for every u at k=8, 10 and 16.
+
+Verification: `_work/build/alpha_native_matrix_oct03/` replays the matrix through the generated HLSL. Hardware and WARP match D3D9 with zero mismatches on all nine formats. The control run with conversion forced off misses 65,784 (8-bit), 16,764 (10-bit), 1,524 (16-bit UNORM) and 4,988 (float16) samples and matches float32. The standard build regenerated all 4,913 indexed effects and the built-in shaders (errsum 0); EXE/PDB and effects were delivered with hash checks. Queued Observatory native-60 and unlocked races exit 0 (171 s, wait 0). Their targets are formats 10, 41, 87 and 90, all measured classes, and no unmeasured format is logged.
+
+Unknown: other GPU vendors' D3D9 drivers. The rule was measured on one NVIDIA HAL only.
+
+Observatory shrub quads: the darker rectangle behind each billboard shrub is unchanged by this repair (`_work/build/alpha_format_race_oct03/shrub_crop.png`: PC, previous native, current native). It is a separate fault.

@@ -633,3 +633,15 @@ Six Observatory/Gracia PC60/native60/unlocked normal races exit0, queued206s/wai
 Private D3D9/native hardware/WARP matrix proves65280/524288 fractional-alpha coverage differences on UNORM. Actual quantized-byte comparison matches D3D9 exactly; GPU float sampling byte-exact and native hardware UNORM output alpha bytes match PC. Float-target comparison instead exactly matches float32(reference)*float32(1/255), all524288 samples; direct division misses504. Last probe exit0/1s/wait0; last selected shrub capture exit0/33s/wait0. Evidence _work/build/{parity_route_inventory_oct03,parity_city_reference_oct03,observatory_shrub_trace_oct03,observatory_shrub_inputs_oct03,alpha_fractional_reference_oct03}.
 
 No production edits or guessed alpha quantizer; no new engine diagnostics. Standard delivery remains8f01a6a4. Blocker for alpha repair: format-dependent conversion not fully recovered; other parity work remains possible. Next: extend references across float16/other UNORM targets, recover exact comparison, implement and validate60/unlocked; independently replay shrub producer before modifying foliage. T127/full parity goal remain active. Commit only own notes/board as authorized; no push.
+
+## 2026-10-03 — session Claude DX11 continuation — T127 alpha-test format contract
+
+Did: repaired double-encoded UTF-8 in the phase docs and committed the pending tree as `ccb9a5f3` at the user's request (T148 recovered vehicle techniques, per-draw `BindAlphaTest` placement, Sept 29-30 notes). Recovered the D3D9 alpha-test comparison for every measured target format (analysis.md) and implemented it natively: `alpha_test.py` `BlurPCAlphaConvert`/`BlurPCAlphaFormat`, `AlphaTestFormat` in `BindRenderTargets`, reference `r * (1/255)`.
+
+Verified: D3D9 matrix fit 0/524,288 mismatches on nine formats; native hardware and WARP replay 0 mismatches on all nine; control without conversion fails as expected. Standard build errsum 0, all 4,913 indexed effects regenerated; EXE/PDB/effects delivered and hash-verified. Queued Observatory native60/unlocked exit 0, no unmeasured target format. Evidence: `_work/build/{alpha_format_matrix_oct03,alpha_native_matrix_oct03,alpha_format_race_oct03}`.
+
+Blocked: none. Other-vendor D3D9 alpha behaviour remains unmeasured.
+
+Next: the Observatory billboard shrubs draw a darker full-quad rectangle on native (PC is clean). Compare the Billboard draw sequence and its non-alpha-tested writes against the D3D9 replay.
+
+Files touched: code/tools/dx11_shadercompile/alpha_test.py, display device d3d11/D3D11GameDeviceNative.cpp, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.

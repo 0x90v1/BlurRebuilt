@@ -13,20 +13,41 @@ cbuffer BlurPCAlphaTestState : register(b13) {
     uint BlurPCAlphaEnabled;
     uint BlurPCAlphaFunction;
     float BlurPCAlphaReference;
-    uint BlurPCAlphaPadding;
+    uint BlurPCAlphaFormat;
 };
+// D3D9 converts both the output alpha and the reference to the precision of
+// render target 0 before comparing (measured on the D3D9 HAL; analysis.md).
+// BlurPCAlphaFormat: 0 float32, 1 float16, otherwise UNORM bit count k.
+float BlurPCAlphaConvert(float value) {
+    if (BlurPCAlphaFormat == 1) return asfloat(asuint(value) & 0xffffe000u);
+    if (BlurPCAlphaFormat < 8) return value;
+    // u = floor(v * 2^(k+4)), then (u * (2^k - 1) + 2^(k+3) - 1) >> (k+4).
+    uint shift = BlurPCAlphaFormat + 4;
+    uint scale = (1u << BlurPCAlphaFormat) - 1u;
+    uint fixedPoint = (uint)min(floor(saturate(value) * (float)(1u << shift)),
+                                (float)((1u << shift) - 1u));
+    uint bias = (1u << (shift - 1u)) - 1u;
+    if (shift <= 16u) return (float)((fixedPoint * scale + bias) >> shift);
+    // 16-bit targets: the 36-bit product is summed in 16-bit halves.
+    uint low = (fixedPoint & 0xffffu) * scale;
+    uint high = (fixedPoint >> 16) * scale + (low >> 16) + (bias >> 16) +
+                (((low & 0xffffu) + (bias & 0xffffu)) >> 16);
+    return (float)(high >> (shift - 16u));
+}
 void BlurPCAlphaTest(float alpha) {
     if (!BlurPCAlphaEnabled) return;
+    alpha = BlurPCAlphaConvert(alpha);
+    float reference = BlurPCAlphaConvert(BlurPCAlphaReference);
     // D3DCMPFUNC values, as used by the original PC render state.
     bool passed = false;
     switch (BlurPCAlphaFunction) {
         case 1: passed = false; break;
-        case 2: passed = alpha <  BlurPCAlphaReference; break;
-        case 3: passed = alpha == BlurPCAlphaReference; break;
-        case 4: passed = alpha <= BlurPCAlphaReference; break;
-        case 5: passed = alpha >  BlurPCAlphaReference; break;
-        case 6: passed = alpha != BlurPCAlphaReference; break;
-        case 7: passed = alpha >= BlurPCAlphaReference; break;
+        case 2: passed = alpha <  reference; break;
+        case 3: passed = alpha == reference; break;
+        case 4: passed = alpha <= reference; break;
+        case 5: passed = alpha >  reference; break;
+        case 6: passed = alpha != reference; break;
+        case 7: passed = alpha >= reference; break;
         case 8: passed = true; break;
     }
     if (!passed) discard;

@@ -30,7 +30,8 @@ struct NativeState
     ComPtr<ID3D11Buffer> pixelConstants;
     // [Blur1PCDX11] Fixed-function PC alpha test, consumed by native PS exits.
     ComPtr<ID3D11Buffer> alphaConstants;
-    struct { UINT enabled = 0, function = 8; float reference = 0; UINT padding = 0; } alpha;
+    // format: render target 0's alpha-test precision, see AlphaTestFormat.
+    struct { UINT enabled = 0, function = 8; float reference = 0; UINT format = 8; } alpha;
     bool alphaDirty = true;
     float vertexData[256 * 4] = {};
     float pixelData[256 * 4] = {};
@@ -310,6 +311,32 @@ void BindConstants(C_D3D11GameDevice* device, bool vertex)
     if (vertex) context->VSSetConstantBuffers(0, 8, raw);
     else context->PSSetConstantBuffers(0, 8, raw);
 }
+// [Blur1PCDX11] D3D9 compares alpha at render target 0's precision: 0 float32,
+// 1 float16, otherwise the UNORM bit count. Measured on the D3D9 HAL for
+// 8-, 10- and 16-bit UNORM and 16/32-bit float targets (analysis.md).
+UINT AlphaTestFormat(DXGI_FORMAT format)
+{
+    switch (GetLinearFormat(format))
+    {
+    case DXGI_FORMAT_R16G16B16A16_FLOAT: case DXGI_FORMAT_R16G16_FLOAT: case DXGI_FORMAT_R16_FLOAT:
+        return 1;
+    case DXGI_FORMAT_R32G32B32A32_FLOAT: case DXGI_FORMAT_R32G32_FLOAT: case DXGI_FORMAT_R32_FLOAT:
+        return 0;
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+        return 10;
+    case DXGI_FORMAT_R16G16B16A16_UNORM: case DXGI_FORMAT_R16G16_UNORM: case DXGI_FORMAT_R16_UNORM:
+        return 16;
+    case DXGI_FORMAT_B8G8R8A8_UNORM: case DXGI_FORMAT_B8G8R8X8_UNORM: case DXGI_FORMAT_R8G8B8A8_UNORM:
+        return 8;
+    default:
+    {
+        // Unmeasured target class: compare unconverted and log it (unverified).
+        static unsigned traced = 0;
+        if (traced++ < 8) Blur2PCAutomation::LogF("DX11 alpha test unmeasured target format %d", (int)format);
+        return 0;
+    }
+    }
+}
 void BindAlphaTest(C_D3D11GameDevice* device)
 {
     auto context = Context(device->GetD3DDevice()); if (!context) return;
@@ -398,6 +425,13 @@ void BindRenderTargets(C_D3D11GameDevice* game)
         }
     }
     context->OMSetRenderTargets(count, raw, depthView.Get());
+    if (raw[0])
+    {
+        D3D11_TEXTURE2D_DESC colourDesc = {};
+        state.colourSurfaces[0]->m_pd3dSurface->GetDesc(&colourDesc);
+        const UINT format = AlphaTestFormat(colourDesc.Format);
+        if (state.alpha.format != format) { state.alpha.format = format; state.alphaDirty = true; }
+    }
     {
         const double now = Blur2PCAutomation::Now();
         if (now > 19.95 && now < 20.05)
@@ -1514,7 +1548,7 @@ void C_D3D11GameDevice::SetAlphaTestEnable(E_Bool value)
 void C_D3D11GameDevice::SetAlphaTestFunc(E_CmpFunc value)
 { m_AlphaTestFunc = value; State(this).alpha.function = Compare(value); State(this).alphaDirty = true; }
 void C_D3D11GameDevice::SetAlphaTestRef(U32 value)
-{ m_AlphaTestRef = value; State(this).alpha.reference = (value & 255) / 255.0f; State(this).alphaDirty = true; }
+{ m_AlphaTestRef = value; State(this).alpha.reference = static_cast<F32>(value & 255) * (1.0f / 255.0f); State(this).alphaDirty = true; }
 void C_D3D11GameDevice::SetAlphaToMaskEnable(E_Bool value)
 { m_AlphaToMaskEnable = value; State(this).blend.AlphaToCoverageEnable = value == E_Bool_True; ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlend(E_Blend src, E_Blend dst, E_BlendOp op,
