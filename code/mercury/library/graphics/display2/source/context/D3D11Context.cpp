@@ -51,11 +51,12 @@ std::mutex g_stagingMutex;
 // [Blur1PCDX11] The D3D11 debug layer raises 0x87D on the corruption it detects;
 // catch it so the message reaches the log instead of the crash handler.
 HRESULT TryMapStaging(ID3D11DeviceContext* context, ID3D11Resource* staging,
-                      D3D11_MAPPED_SUBRESOURCE& mapped)
+                      D3D11_MAPPED_SUBRESOURCE& mapped,
+                      D3D11_MAP mode = D3D11_MAP_READ_WRITE)
 {
 	__try
 	{
-		return context->Map(staging, 0, D3D11_MAP_READ_WRITE, 0, &mapped);
+		return context->Map(staging, 0, mode, 0, &mapped);
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER)
 	{
@@ -64,7 +65,7 @@ HRESULT TryMapStaging(ID3D11DeviceContext* context, ID3D11Resource* staging,
 }
 
 bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
-                 D3D11_MAPPED_SUBRESOURCE& mapped)
+                 D3D11_MAPPED_SUBRESOURCE& mapped, U32 flags = 0)
 {
 	if (!resource) return false;
 	std::lock_guard<std::mutex> lock(g_stagingMutex);
@@ -79,18 +80,34 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 	resource->GetType(&dimension);
 	ID3D11Resource* staging = nullptr;
 	HRESULT hr = E_FAIL;
+	bool directWrite = false;
+	D3D11_MAP mode = D3D11_MAP_READ_WRITE;
 	UINT width = 0, height = 1, depth = 1;
 	if (dimension == D3D11_RESOURCE_DIMENSION_BUFFER)
 	{
 		D3D11_BUFFER_DESC desc;
 		static_cast<ID3D11Buffer*>(resource)->GetDesc(&desc);
-		desc.Usage = D3D11_USAGE_STAGING;
-		desc.BindFlags = 0;
-		desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-		desc.MiscFlags = 0;
-		ID3D11Buffer* buffer = nullptr;
-		hr = device->CreateBuffer(&desc, nullptr, &buffer);
-		staging = buffer;
+		// [Blur1PCDX11] Retail DynamicVertexBuffer discards at offset zero and
+		// appends with NOOVERWRITE. Honor those promises without a GPU readback.
+		if (write && desc.Usage == D3D11_USAGE_DYNAMIC &&
+			(flags & (D3DLOCK_DISCARD | D3DLOCK_NOOVERWRITE)))
+		{
+			directWrite = true;
+			mode = flags & D3DLOCK_DISCARD ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE;
+			staging = resource;
+			staging->AddRef();
+			hr = S_OK;
+		}
+		else
+		{
+			desc.Usage = D3D11_USAGE_STAGING;
+			desc.BindFlags = 0;
+			desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+			desc.MiscFlags = 0;
+			ID3D11Buffer* buffer = nullptr;
+			hr = device->CreateBuffer(&desc, nullptr, &buffer);
+			staging = buffer;
+		}
 	}
 	else if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
 	{
@@ -154,14 +171,17 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 		}
 		else if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE3D)
 			context->CopySubresourceRegion(staging, 0, 0, 0, 0, resource, subresource, nullptr);
-		else
+		else if (!directWrite)
 			context->CopyResource(staging, resource);
-		hr = TryMapStaging(context, staging, mapped);
+		hr = TryMapStaging(context, staging, mapped, mode);
 		if (SUCCEEDED(hr))
 		{
 			S_StagingLock& held = g_stagingLocks[key];
 			held = {};
-			held.staging = staging; held.context = context; held.subresource = subresource; held.write = write;
+			held.staging = staging; held.context = context; held.subresource = subresource;
+			// [Blur1PCDX11] A directly mapped buffer is already the GPU resource;
+			// unlock unmaps it and must not copy it onto itself.
+			held.write = write && !directWrite;
 			held.pcFormat = Display2::D3D11TextureFormats::GetPCFormat(resource);
 			held.width = width; held.height = height; held.depth = depth; held.nativeMap = mapped;
 			DXGI_FORMAT storage;
@@ -1247,7 +1267,7 @@ void* C_VertexBuffer::Lock(const U32 offset, const U32 size, const U32 flags)
 {
 	BIZ_ASSERT(IsCreated());
 	D3D11_MAPPED_SUBRESOURCE mapped = {};
-	const bool ok = LockResource(m_pd3dVertexBuffer, 0, true, mapped);
+	const bool ok = LockResource(m_pd3dVertexBuffer, 0, true, mapped, flags);
 	BIZ_ASSERT_MSG(ok, "Failed to lock the d3d11 vertex buffer");
 	return ok ? static_cast<U8*>(mapped.pData) + offset : nullptr;
 }
@@ -1301,7 +1321,7 @@ void* C_IndexBuffer::Lock(const U32 offset, const U32 size, const U32 flags)
 {
 	BIZ_ASSERT(IsCreated());
 	D3D11_MAPPED_SUBRESOURCE mapped = {};
-	const bool ok = LockResource(m_pd3dIndexBuffer, 0, true, mapped);
+	const bool ok = LockResource(m_pd3dIndexBuffer, 0, true, mapped, flags);
 	BIZ_ASSERT_MSG(ok, "Failed to lock the d3d11 index buffer");
 	return ok ? static_cast<U8*>(mapped.pData) + offset : nullptr;
 }

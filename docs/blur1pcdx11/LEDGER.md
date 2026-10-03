@@ -344,3 +344,16 @@ Blocked: none. Native dynamic locks ignore the pristine caller's discard/no-over
 Next: finish the native dynamic-lock repair and queued GPU retention regression, then consume moving60/unlocked verification and profile remaining cost. T127 remains in progress.
 
 Files touched: owned NativeFX11 cache hunks, owned D3D11GameDeviceNative diagnostics (separate alpha-test edits excluded), phase analysis/board/ledger. Private artifacts remain under ignored _work/.
+
+
+## 2026-10-03 01:39 — session Codex visual diagnosis — T127
+
+Did: forward retail discard/no-overwrite promises to native dynamic vertex/index maps, removing staging readbacks. Add the standard GPU regression. Repair the reported private delivery/console wrapper. Found in / Belongs to Blur1PCDX11.
+
+Verified: standard builds errsum0; indexed2/2 translation units compile;64 queued GPU draws pass on hardware and WARP without debug errors. Standard EXE/PDB/effects delivery verified. Moving60/unlocked and corrected-wrapper debug60/unlocked all exit0, no previous validation/lock failures. Locked-file failure prevents launch; helper output is private. Final still reaches131mph. Remaining texture-view creation cost profiled.
+
+Blocked: none. Broader visual parity and intermittent damage-volume crash remain open.
+
+Next: build/test the current-view reuse candidate, compare fresh/reused hardware/WARP sampling across resource/gamma/null/reload transitions, then verify moving60/unlocked and profile. T127 remains in progress.
+
+Files touched: owned D3D11Context lock hunks, owned cmake diagnostic target, dynamic_buffer_checks/reference, phase analysis/board/ledger. Private harness remains under ignored _work/.

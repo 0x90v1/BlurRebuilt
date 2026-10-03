@@ -211,3 +211,16 @@ add_executable(d3d9_sampling_reference
 target_compile_features(d3d9_sampling_reference PRIVATE cxx_std_17)
 target_link_libraries(d3d9_sampling_reference PRIVATE d3d9 d3dcompiler)
 set_target_properties(d3d9_sampling_reference PROPERTIES FOLDER "dx11")
+
+# [Blur1PCDX11] Verify queued dynamic VB/IB writes through the game's actual
+# Display2 lock implementation, including resource reuse before GPU completion.
+if(TARGET display2 AND BLUR_USE_DX11)
+    add_executable(dx11_dynamic_buffer_reference
+        ${BLUR_TOP}/code/tools/dx11_probe/dynamic_buffer_reference.cpp)
+    target_include_directories(dx11_dynamic_buffer_reference PRIVATE
+        $<TARGET_PROPERTY:display2,INCLUDE_DIRECTORIES>)
+    target_compile_definitions(dx11_dynamic_buffer_reference PRIVATE BUILD_CONFIG_SPEED BLUR_USE_DX11=1)
+    target_compile_features(dx11_dynamic_buffer_reference PRIVATE cxx_std_17)
+    target_link_libraries(dx11_dynamic_buffer_reference PRIVATE blur_dx11 display2 core)
+    set_target_properties(dx11_dynamic_buffer_reference PROPERTIES FOLDER "dx11")
+endif()
