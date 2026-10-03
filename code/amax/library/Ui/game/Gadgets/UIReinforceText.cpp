@@ -83,6 +83,12 @@ void UIReinforceText::Render()
 	m_Position.y = py;
 
 	ResolveColourStyle( m_Intensity, m_Alpha );
+	// [Blur2PC] T222: that restore leaves the gadget's own (non-inherited) colour resolved, and
+	// C_GadgetBase::Render only re-resolves the inherited colour when the inherited values change.
+	// When the burst's last frame lands within one quantum of its end (60 Hz, unlocked), nothing
+	// changes afterwards and the text keeps the bright colour; at the native 30 Hz the final step
+	// always changes alpha and it settles to the inherited colour. Invalidate the cache instead.
+	m_IntensityInherit = -1.0f;
 
 	// Dirty again in case someone uses us
 	DirtySet( E_Dirty_Matrix, true );
