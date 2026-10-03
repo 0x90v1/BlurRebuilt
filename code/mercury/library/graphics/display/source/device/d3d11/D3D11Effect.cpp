@@ -19,6 +19,7 @@ HRESULT C_D3D11Effect::LoadMemory(ID3D11Device* device, const void* bytes, SIZE_
     if (SUCCEEDED(result) && SUCCEEDED(m_Effect->GetDesc(&effect)))
     {
         m_VariablesComplete = true;
+        m_Variables.reserve(effect.GlobalVariables);
         for (UINT i = 0; i < effect.GlobalVariables; ++i)
         {
             ID3DX11EffectVariable* variable = m_Effect->GetVariableByIndex(i);

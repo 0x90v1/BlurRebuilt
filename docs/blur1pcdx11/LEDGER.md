@@ -429,3 +429,16 @@ Files touched: D3D11Formats.h/cpp, PCD3D11Device.cpp, D3D11TextureLoad.cpp, dx11
 Verified: clean delivered executable, queued scrape_recurrence_barrier_oct03 exit0/51s/wait0; existing trace samples(.95,.49) at40s, no saturated producer at that pixel; final still lacks the earlier malformed strips. Texture ownership committed e03536b0. No source changes or diagnostic instrumentation added. Board remains in progress.
 
 Next: await confirmation whether the displayed unlocked-video pink band is the returning fault, then trace its producer with an affected frame. Recurrence remains open; a clean selected pixel is not a complete repair. Evidence under ignored _work/build/scrape_recurrence_barrier_oct03.
+
+
+## 2026-10-03 — session Codex visual diagnosis — T127 racing lookup and PC scrape reference
+
+Did: measure actual racing CPU samples, hash reflected parameter names at load using FX11-owned string lifetime and exact equality; preserve reload, aliases and missing-name semantics. Capture a fresh lower-PC wall-scrape compressed reference without lower-phase edits. Correct older7-frame reference coverage.
+
+Verified: isolated lookup medians approximately4x faster with identical hit counts; racing FindVariable sample counts reduced at60-cap/unlocked. Standard Release exit0/errsum0;693 builtin shaders compile. Queued hardware/WARP broad probe and owner-view GPU checks pass. Moving cap60/unlocked exit0/101s; standard EXE/PDB delivered with matching hashes. Lower-PC reference exit0/49s,600frames spanning9.98seconds; inspected still has normal right-wall sparks. No whole-game FPS claim.
+
+Blocked: none for verified optimization. Returning right-railing geometry remains unisolated; clean stills/reference do not prove it fixed. Broad parity remains incomplete.
+
+Next: isolate the GPU producer in a confirmed affected right-railing frame; independently audit remaining EffectKey normalization cost. Commit own verified optimization and notes as authorized, no push.
+
+Files touched: D3D11Effect.h/cpp and own phase board/analysis/ledger additions. Private profiles, lookup comparison, GPU logs and PC compressed reference under ignored _work/build/racing_profile*_oct03 and racing_reference_pc_oct03; no retained engine diagnostics.

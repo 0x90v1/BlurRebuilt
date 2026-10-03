@@ -4,7 +4,8 @@
 // [Blur1PCDX11] Native FX5 effect resource for the game's authored materials.
 #include <d3dx11effect.h>
 #include <wrl/client.h>
-#include <map>
+#include <cstring>
+#include <unordered_map>
 #include <string>
 
 namespace Display { namespace D3D11 {
@@ -36,7 +37,25 @@ private:
     Microsoft::WRL::ComPtr<ID3DX11Effect> m_Effect;
     // [Blur1PCDX11] Reflection pointers belong to m_Effect. Build the index at
     // load time so render-time lookups, including absent names, are read-only.
-    std::map<std::string, ID3DX11EffectVariable*, std::less<>> m_Variables;
+    // [Blur1PCDX11] FX11 keeps reflected names in its effect-owned heap.
+    // Hash their contents without allocating query strings or comparing a
+    // shared prefix at every tree node; equality remains exact and case-sensitive.
+    struct C_NameHash
+    {
+        size_t operator()(const char* name) const
+        {
+            unsigned hash = 2166136261u;
+            for (const unsigned char* byte = reinterpret_cast<const unsigned char*>(name); *byte; ++byte)
+                hash = (hash ^ *byte) * 16777619u;
+            return hash;
+        }
+    };
+    struct C_NameEqual
+    {
+        bool operator()(const char* lhs, const char* rhs) const
+        { return lhs == rhs || std::strcmp(lhs, rhs) == 0; }
+    };
+    std::unordered_map<const char*, ID3DX11EffectVariable*, C_NameHash, C_NameEqual> m_Variables;
     bool m_VariablesComplete = false;
 };
 
