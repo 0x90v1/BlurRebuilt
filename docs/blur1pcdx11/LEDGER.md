@@ -707,3 +707,7 @@ Did: native surfaces created 1 sample for any multisample option other than 2x/4
 Verified: standard build errsum 0; 8x targets created; matched no-AA/8x race captures show anti-aliased edges and equal brightness; 8x/4x debug-layer runs exit 0. The previous ledger claim that MSAA 3 edges were smoothed was wrong (1 sample).
 
 Files touched: display2/source/device/PCD3D11Device.cpp, device/d3d11/D3D11GameDeviceNative.cpp (diagnostic), docs/blur1pcdx11/{analysis,LEDGER}.md.
+
+## 2026-10-03 — session Claude DX11 continuation — T127 user confirmation
+
+User confirmed the delivered build (`b27ce4f6`) works in their own fullscreen 1920x1080 8x MSAA setup: full resolution and anti-aliasing applied. This covers the fullscreen start that automated runs could not exercise.
