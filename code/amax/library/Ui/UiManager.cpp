@@ -2080,14 +2080,9 @@ void C_UiManager::ProcessController()
 			{
 				F64 inputDevice = 0.0;
 #ifdef PLATFORM_PC
-				// [Blur2PC] Pass the actual source of the menu action to Lua.
-				Input::C_Device* pKeyboard = Framework::C_ApplicationBase::GetInstance()->GetKeyboard( i );
-				const bool primaryKeys = i == SysProfile::C_Manager::Instance().GetPrimaryPadNo();
-				const bool keyPressed = pKeyboard &&
-					( pKeyboard->GetButtonValue( Input::C_Keyboard::E_Button_NumPadEnter ) > 0.5f ||
-					  ( primaryKeys && ( pKeyboard->GetButtonValue( Input::C_Keyboard::E_Button_Return ) > 0.5f ||
-						pKeyboard->GetButtonValue( Input::C_Keyboard::E_Button_Space ) > 0.5f ) ) );
-				inputDevice = keyPressed ? 0.0 : 1.0;
+				// [Blur2PC] Retail PC (0x00c348c0) passes the type of the device that pressed the button
+				// (keyboard 0, mouse 1, pad 2) with Confirm, Cancel, X and Y; Lua reads it as arg4.
+				inputDevice = (F64)pInput->GetButtonDevice( Game::E_UiButton_Confirm );
 #endif
 				if ( m_bNormalNextButtonMapping )
 					_UI_MESSAGE_PAD( E_UiMsg_MenuNext, sPadIndex, true, 1.0, inputDevice, sMask );
@@ -2097,27 +2092,30 @@ void C_UiManager::ProcessController()
 			else
 			if ( pInput->GetButtonPressedDebounced( Game::E_UiButton_Cancel ) )
 			{
+#ifdef PLATFORM_PC
+				const F64 inputDevice = (F64)pInput->GetButtonDevice( Game::E_UiButton_Cancel );	// [Blur2PC] retail 0x00c348c0
+#else
+				const F64 inputDevice = 0.0;
+#endif
 				if ( m_bNormalNextButtonMapping )
-					_UI_MESSAGE_PAD( E_UiMsg_MenuBack, sPadIndex, true, 1.0, 0, sMask );
+					_UI_MESSAGE_PAD( E_UiMsg_MenuBack, sPadIndex, true, 1.0, inputDevice, sMask );
 				else
-					_UI_MESSAGE_PAD( E_UiMsg_MenuNext, sPadIndex, true, 1.0, 0, sMask );
+					_UI_MESSAGE_PAD( E_UiMsg_MenuNext, sPadIndex, true, 1.0, inputDevice, sMask );
 			}
 			else
 			if ( pInput->GetButtonPressedDebounced( Game::E_UiButton_Option1 ) )
 			{
+#ifdef PLATFORM_PC
+				_UI_MESSAGE_PAD( E_UiMsg_CtrlButton_X, sPadIndex, true, 1.0, (F64)pInput->GetButtonDevice( Game::E_UiButton_Option1 ), sMask );	// [Blur2PC] retail 0x00c348c0
+#else
 				_UI_MESSAGE_PAD( E_UiMsg_CtrlButton_X, sPadIndex, true, 1.0, 0, sMask );
+#endif
 			}
 			else
 			if ( pInput->GetButtonPressedDebounced( Game::E_UiButton_Option2 ) )
 			{
 #ifdef PLATFORM_PC
-				// [Blur2PC] Retail's fifth Lua argument identifies keyboard (0) or pad.
-				// The split-screen keyboard's Option2 binding is numpad + (0x00e653b8).
-				const S32 primaryPad = SysProfile::C_Manager::Instance().GetPrimaryPadNo();
-				Input::C_Device* pKeyboard = Framework::C_ApplicationBase::GetInstance()->GetKeyboard( i );
-				const S32 joinKey = i == primaryPad ? Input::C_Keyboard::E_Button_RControl : Input::C_Keyboard::E_Button_Add;
-				const F64 inputDevice = pKeyboard && pKeyboard->GetButtonValue( joinKey ) > 0.5f ? 0.0 : 1.0;
-				_UI_MESSAGE_PAD( E_UiMsg_CtrlButton_Y, sPadIndex, true, 1.0, inputDevice, sMask );
+				_UI_MESSAGE_PAD( E_UiMsg_CtrlButton_Y, sPadIndex, true, 1.0, (F64)pInput->GetButtonDevice( Game::E_UiButton_Option2 ), sMask );	// [Blur2PC] retail 0x00c348c0
 #else
 				_UI_MESSAGE_PAD( E_UiMsg_CtrlButton_Y, sPadIndex, true, 1.0, 0, sMask );
 #endif

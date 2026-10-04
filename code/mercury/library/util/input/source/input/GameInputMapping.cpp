@@ -24,6 +24,14 @@ const F32 C_ButtonInputFromDevice::GetValue() const
 	return m_pDevice->GetButtonValue( m_DeviceButtonIndex );
 }
 
+// [Blur2PC] retail Blur PC 0x00843c90: reports the type of the device the button belongs to
+const F32 C_ButtonInputFromDevice::GetValueAndDevice( S32* pDevice ) const
+{
+	if( pDevice )
+		*pDevice = m_pDevice->GetDeviceType();
+	return GetValue();
+}
+
 // C_ButtonInputCombiner
 
 
@@ -101,6 +109,48 @@ const F32 C_ButtonInputCombiner::GetValue() const
     }
 
     return value;
+}
+
+// [Blur2PC] retail Blur PC 0x00844090: the device of the input that sets the result (the first input holding
+// the maximum, or the minimum) is reported. Retail reuses its argument slot as the children's out value, so a
+// child that reports no device (a button from an axis) passes on the previous child's device; -1 here where
+// retail starts from that slot's pointer value.
+const F32 C_ButtonInputCombiner::GetValueAndDevice( S32* pDevice ) const
+{
+	const S32 buttonCount = m_ButtonList.Size();
+	S32 childDevice = -1;
+
+	F32 value;
+	if( m_Operation == E_Operation_Min )
+	{
+		value = 1.0f;
+		for(S32 i = 0; i < buttonCount; i++)
+		{
+			const F32 buttonValue = m_ButtonList[ i ]->GetValueAndDevice( &childDevice );
+			if( buttonValue < value )
+			{
+				value = buttonValue;
+				if( pDevice )
+					*pDevice = childDevice;
+			}
+		}
+	}
+	else
+	{
+		value = 0;
+		for(S32 i = 0; i < buttonCount; i++)
+		{
+			const F32 buttonValue = m_ButtonList[ i ]->GetValueAndDevice( &childDevice );
+			if( buttonValue > value )
+			{
+				value = buttonValue;
+				if( pDevice )
+					*pDevice = childDevice;
+			}
+		}
+	}
+
+	return value;
 }
 
 // C_ButtonInputFromAxis

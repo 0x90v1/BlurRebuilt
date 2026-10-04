@@ -36,6 +36,7 @@ C_GameInputButton::C_GameInputButton()
 	, m_HeldSeconds(0.0f)
 #endif
 	, m_pButtonInput(NULL)
+	, m_Device(-1)	// [Blur2PC]
 {
 }
 
@@ -50,7 +51,7 @@ void C_GameInputButton::Update( F32 buttonPressedThreshold )
     const F32 prevValue = m_Value;
     if(m_pButtonInput)
     {
-        m_Value = m_pButtonInput->GetValue();
+        m_Value = m_pButtonInput->GetValueAndDevice( &m_Device );	// [Blur2PC] retail 0x008431b0
     }
     else
     {
@@ -216,6 +217,12 @@ const bool C_GameInput::GetButtonPressed( const U32 buttonId ) const
 const F32 C_GameInput::GetButtonValue( const U32 buttonId ) const
 {
 	return m_GameButtonList[buttonId].m_Value;
+}
+
+// [Blur2PC] retail Blur PC 0x008433a0
+const S32 C_GameInput::GetButtonDevice( const U32 buttonId ) const
+{
+	return m_GameButtonList[buttonId].m_Device;
 }
 
 const bool C_GameInput::GetButtonPressedDebounced( const U32 buttonId ) const

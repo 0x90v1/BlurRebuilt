@@ -14,7 +14,8 @@ C_Device::C_Device(	C_DeviceManager* pDeviceManager,
 	m_UserIndex(userIndex),
 	m_Connected(false),
 	m_Enabled(true),
-	m_RumbleEnabled(false)
+	m_RumbleEnabled(false),
+	m_DeviceType(-1)	// [Blur2PC]
 {
 	m_ButtonValues.Resize(buttonCount);
 	m_AxisValues.Resize(axisCount);

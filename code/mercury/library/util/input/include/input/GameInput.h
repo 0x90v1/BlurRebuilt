@@ -38,6 +38,11 @@ public:
 	
 	//! Returns the button's pressed value between 0.0 and 1.0f
 	virtual const F32 GetValue() const = 0;
+
+	// [Blur2PC] Retail Blur PC's button GetValue takes an out parameter for the type of the device the value
+	// came from (Blur.exe 1.2: C_ButtonInputFromDevice 0x00843c90, combiner 0x00844090); inputs that are not
+	// device-backed leave it untouched (C_ButtonInputFromAxis 0x00844170).
+	virtual const F32 GetValueAndDevice( S32* pDevice ) const { (void)pDevice; return GetValue(); }
 };
 
 //! Base class used to map from physical device controls to game input controls.
@@ -79,6 +84,9 @@ private:
 	F32 m_HeldSeconds;
 #endif
 	C_ButtonInput* m_pButtonInput;
+	// [Blur2PC] retail Blur PC keeps the type of the device that produced the value (Input::E_Device, -1 none
+	// yet) after the input pointer (button record +0xc, written by 0x008431b0, read by 0x008433a0)
+	S32 m_Device;
 };
 
 // used internally by the C_GameInput class
@@ -131,6 +139,10 @@ public:
 
 	//! Returns current button value ranged 0.0f to 1.0f
 	const F32 GetButtonValue( const U32 buttonId ) const;
+
+	//! [Blur2PC] Type of the device (Input::E_Device) that last produced the button's value, -1 if none has
+	//! (retail Blur PC 0x008433a0; the UI passes it to Lua with menu actions).
+	const S32 GetButtonDevice( const U32 buttonId ) const;
 
 	//! Returns true if this is the first Update cycle that a button has been pressed
 	const bool GetButtonPressedDebounced( const U32 buttonId ) const;

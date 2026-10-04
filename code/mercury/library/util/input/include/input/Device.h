@@ -37,6 +37,11 @@ public:
 	//! Index of the signed-in player associated with the device.
 	const S32 GetUserIndex() const;
 
+	//! [Blur2PC] The device's type (E_Device), -1 if the device class sets none. Retail Blur PC's device
+	//! constructors store it at +0x34 (keyboard 0x008451a0, mouse 0x00845c50, pad 0x00845e30, each given its
+	//! type by C_DeviceManager::CreateDevice 0x00845aa0); C_ButtonInputFromDevice reports it.
+	const S32 GetDeviceType() const { return m_DeviceType; }
+
 	//! Returns true if this type of device is currently connected.
 	const bool IsConnected() const;
 
@@ -105,6 +110,8 @@ protected:
 	Ut::Vector<F32>	m_AxisValues;
 
 	Ut::Vector<F32>	m_RumbleMotorSpeeds;
+
+	S32 m_DeviceType;	// [Blur2PC] E_Device, set by the derived constructor
 };
 
 //! @}

@@ -25,6 +25,7 @@ public:
 
 	//! Inherited from I_ButtonInput.
 	const F32 GetValue() const;
+	const F32 GetValueAndDevice( S32* pDevice ) const;	// [Blur2PC]
 
 private:
 	C_Device* m_pDevice;
@@ -52,6 +53,7 @@ public:
 
 	//! Inherited from I_ButtonInput.
 	const F32 GetValue() const;
+	const F32 GetValueAndDevice( S32* pDevice ) const;	// [Blur2PC]
 
 private:
 	Ut::Vector<C_ButtonInput*> m_ButtonList;

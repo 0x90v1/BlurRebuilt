@@ -14,6 +14,7 @@ C_Pad360::C_Pad360( C_DeviceManager* pDeviceManager, const S32 userIndex )
 	: C_Device( pDeviceManager, userIndex, E_Button_Count, E_Axis_Count, E_RumbleMotor_Count )
 	, m_StickDeadzone(0.25f)
 {
+	m_DeviceType = E_Device_Pad360;	// [Blur2PC] retail 0x00845e30
 }
 
 C_Pad360::~C_Pad360()
