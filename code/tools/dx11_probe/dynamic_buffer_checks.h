@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cstring>
 #include "Display/Device/D3D11/D3D11InputLayout.h"
+// [Blur1PCDX11] This fixture also builds in the standalone buffer reference.
+extern void D3DX11InvalidateBoundState(unsigned stages, unsigned what);
 
 static bool CheckDynamicBufferLocks(Display::D3D11::C_D3D11Device& device)
 {
@@ -47,7 +49,7 @@ technique11 Material { pass p0 {
         {0,8,D3DDECLTYPE_FLOAT4,D3DDECLMETHOD_DEFAULT,D3DDECLUSAGE_COLOR,0}
     };
     auto* context = device.Context();
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     const void* bytecode = nullptr; SIZE_T bytecodeSize = 0;
     ComPtr<ID3D11InputLayout> layout;
     if (FAILED(effect.GetPassVertexShaderBytecode("Material",0,&bytecode,&bytecodeSize)) ||
@@ -106,7 +108,7 @@ technique11 Material { pass p0 {
             valid &= pixel[channel] == (channel==3 || channel==colour ? 255 : 0);
     }
     context->Unmap(staging.Get(),0);
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Dynamic VB/IB locks: %u queued discard/append/retained/discard draws %s\n",draws,valid?"passed":"FAILED");
     return valid;
 }

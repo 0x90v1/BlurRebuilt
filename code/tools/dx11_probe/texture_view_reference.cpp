@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+// [Blur1PCDX11] Raw context resets must also forget FX binding memoization.
+extern void D3DX11InvalidateBoundState(unsigned stages, unsigned what);
 using Microsoft::WRL::ComPtr;
 
 // [Blur1PCDX11] A resource-owned marker proves that the registry does not
@@ -125,7 +127,7 @@ technique11 Material { pass p0 {
         std::memcpy(pixel,mapped.pData,4*sizeof(float)); context->Unmap(staging.Get(),0);
         return true;
     };
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     const unsigned resources[]={0,0,0,0,1,1,1,1,0,0,0,0,0,0};
     const bool gamma[]={false,false,true,true,true,true,false,false,false,false,false,false,false,false};
     for (unsigned step=0;step<14;++step)
@@ -165,7 +167,7 @@ technique11 Material { pass p0 {
     // each owned view without changing pixels or retaining a dead texture.
     const int sampleTexture=0;
     if (FAILED(effect.SetRawParameter("uniformOnly",&sampleTexture,sizeof(sampleTexture)))) return false;
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     if (FAILED(effect.SetTexture(bindingName,nullptr))) return false;
     const LONG destroyedBefore=g_destroyedTextures;
     for (auto& texture : textures)
@@ -212,7 +214,7 @@ technique11 Material { pass p0 {
             if (!render(view.Get(),actual) || !render(fresh.Get(),expected) || std::memcmp(actual,expected,sizeof(actual)))
             { std::fprintf(stderr,"%s owned step%u pixel mismatch\n",types[kind],step); return false; }
         }
-        context->ClearState();
+        context->ClearState(); D3DX11InvalidateBoundState(3,15);
         if (FAILED(effect.SetTexture(bindingName,nullptr))) return false;
         for (auto& material : identity) for (auto& view : material) view.Reset();
         if (g_destroyedTextures != destroyedBefore) return false;
@@ -222,12 +224,71 @@ technique11 Material { pass p0 {
     for (auto& texture : textures) texture.Reset();
     // D3D11 defers object destruction; flush only this lifetime test after
     // dropping all application references, as required by the API contract.
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     context->Flush();
     if (g_destroyedTextures != destroyedBefore+2)
     { std::fprintf(stderr,"%s: retained texture lifetime leak\n",types[kind]); return false; }
     std::printf("%s: 14 retained/fresh + 24 alternating owned GPU views, 2 uniforms and destruction passed\n",types[kind]);
     return true;
+}
+
+// [Blur1PCDX11] Queue all draws before readback. Two independently updated
+// effects (including a clone) must retain each draw's complete constants.
+static bool CheckQueuedConstants(Display::D3D11::C_D3D11Device& device)
+{
+    const char* source = R"(
+float4 changing;
+float4 preserved;
+float4 VS(uint id:SV_VertexID):SV_Position { return float4(id==2?3:-1,id==1?3:-1,0,1); }
+float4 PS():SV_Target { return changing + preserved; }
+technique11 Material { pass p0 {
+ SetVertexShader(CompileShader(vs_5_0,VS())); SetPixelShader(CompileShader(ps_5_0,PS()));
+} }
+)";
+    ComPtr<ID3DBlob> code, errors;
+    if (FAILED(D3DCompile(source,std::strlen(source),nullptr,nullptr,nullptr,nullptr,"fx_5_0",0,0,&code,&errors))) return false;
+    ComPtr<ID3DX11Effect> effects[2];
+    if (FAILED(D3DX11CreateEffectFromMemory(code->GetBufferPointer(),code->GetBufferSize(),0,device.Device(),&effects[0])) ||
+        FAILED(effects[0]->CloneEffect(0,&effects[1]))) return false;
+    const float preserved[2][4] = {{1,2,4,8},{16,32,64,128}};
+    for (unsigned i=0;i<2;++i)
+        if (FAILED(effects[i]->GetVariableByName("preserved")->SetRawValue(preserved[i],0,sizeof(preserved[i])))) return false;
+    const unsigned count = 128;
+    ComPtr<ID3D11Texture2D> target, staging;
+    ComPtr<ID3D11RenderTargetView> rtv;
+    ComPtr<ID3D11ShaderResourceView> srv;
+    if (FAILED(device.CreateRenderTexture2D(count,1,1,1,DXGI_FORMAT_R32G32B32A32_FLOAT,target,rtv,srv))) return false;
+    D3D11_TEXTURE2D_DESC desc = {};
+    target->GetDesc(&desc); desc.Usage=D3D11_USAGE_STAGING; desc.BindFlags=0; desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+    if (FAILED(device.Device()->CreateTexture2D(&desc,nullptr,&staging))) return false;
+    D3D11_RASTERIZER_DESC rasterDesc = {};
+    rasterDesc.FillMode=D3D11_FILL_SOLID; rasterDesc.CullMode=D3D11_CULL_NONE;
+    ComPtr<ID3D11RasterizerState> raster;
+    if (FAILED(device.Device()->CreateRasterizerState(&rasterDesc,&raster))) return false;
+    auto* context = device.Context();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
+    ID3D11RenderTargetView* raw = rtv.Get(); context->OMSetRenderTargets(1,&raw,nullptr);
+    context->RSSetState(raster.Get()); context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    for (unsigned draw=0;draw<count;++draw)
+    {
+        auto* effect=effects[draw%2].Get();
+        const float value[4] = {float(draw),float(draw+1),float(draw+2),float(draw+3)};
+        if (FAILED(effect->GetVariableByName("changing")->SetRawValue(value,0,sizeof(value))) ||
+            FAILED(effect->GetTechniqueByName("Material")->GetPassByIndex(0)->Apply(0,context))) return false;
+        const D3D11_VIEWPORT viewport={float(draw),0,1,1,0,1}; context->RSSetViewports(1,&viewport);
+        context->Draw(3,0);
+    }
+    context->CopyResource(staging.Get(),target.Get());
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    if (FAILED(context->Map(staging.Get(),0,D3D11_MAP_READ,0,&mapped))) return false;
+    bool passed=true;
+    const float* pixels=static_cast<const float*>(mapped.pData);
+    for (unsigned draw=0;draw<count;++draw)
+        for (unsigned channel=0;channel<4;++channel)
+            if (pixels[draw*4+channel] != float(draw+channel)+preserved[draw%2][channel]) passed=false;
+    context->Unmap(staging.Get(),0); context->ClearState(); D3DX11InvalidateBoundState(3,15);
+    std::printf("Queued constants: %u alternating original/clone draws, partial updates: %s\n",count,passed?"passed":"FAILED");
+    return passed;
 }
 
 int main()
@@ -239,6 +300,7 @@ int main()
     if (queue) queue->ClearStoredMessages();
     for (unsigned kind=0;kind<6;++kind) if (!CheckViews(device,kind))
     { std::fprintf(stderr,"Texture view kind%u failed\n",kind); return 1; }
+    if (!CheckQueuedConstants(device)) return 1;
     if (queue) for (UINT64 i=0;i<queue->GetNumStoredMessages();++i)
     {
         SIZE_T size=0; queue->GetMessage(i,nullptr,&size);

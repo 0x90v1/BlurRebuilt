@@ -1160,9 +1160,11 @@ HRESULT CEffect::BindToDevice(ID3D11Device *pDevice, LPCSTR srcName)
                 D3D11_BUFFER_DESC bufDesc;
                 // size is always register aligned
                 bufDesc.ByteWidth = pCB->Size;
-                bufDesc.Usage = D3D11_USAGE_DEFAULT;
+                // [Blur1PCDX11] Per-draw constants are fully rewritten through
+                // WRITE_DISCARD, allowing the runtime to rename in-flight storage.
+                bufDesc.Usage = D3D11_USAGE_DYNAMIC;
                 bufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-                bufDesc.CPUAccessFlags = 0;
+                bufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
                 bufDesc.MiscFlags = 0;
 
                 VH( pDevice->CreateBuffer( &bufDesc, nullptr, &pCB->pD3DObject) );

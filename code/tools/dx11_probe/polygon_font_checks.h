@@ -59,7 +59,7 @@ static bool CheckPackedPolygonFont(Display::D3D11::C_D3D11Device& device)
     desc.BindFlags = 0; desc.Usage = D3D11_USAGE_STAGING; desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
     if (FAILED(device.Device()->CreateBuffer(&desc, nullptr, &staging))) return false;
     auto context = device.Context();
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     UINT offset = 0, vertexStride = sizeof(Vertex);
     ID3D11Buffer* buffer = vb.Get(); context->IASetVertexBuffers(0,1,&buffer,&vertexStride,&offset);
     context->IASetInputLayout(layout.Get()); context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -88,7 +88,7 @@ static bool CheckPackedPolygonFont(Display::D3D11::C_D3D11Device& device)
             }
         }
     }
-    context->Unmap(staging.Get(),0); context->ClearState();
+    context->Unmap(staging.Get(),0); context->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Packed polygon font SHORT2/UBYTE4 fetch: %s\n",valid ? "passed" : "FAILED");
     return valid;
 }

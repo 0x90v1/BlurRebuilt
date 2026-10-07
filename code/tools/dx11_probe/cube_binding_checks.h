@@ -42,7 +42,7 @@ technique11 Material { pass p0 {
     ComPtr<ID3D11DepthStencilState> depth;
     if (FAILED(device.Device()->CreateDepthStencilState(&depthDesc,&depth))) return false;
     auto* context = device.Context();
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     ID3D11RenderTargetView* rawTarget = rtv.Get();
     context->OMSetRenderTargets(1,&rawTarget,nullptr);
     context->OMSetDepthStencilState(depth.Get(),0);
@@ -96,7 +96,7 @@ technique11 Material { pass p0 {
             if (SUCCEEDED(queue->GetMessage(i,message,&size)) && message->Severity <= D3D11_MESSAGE_SEVERITY_ERROR)
             { std::fprintf(stderr,"Cube binding GPU error: %s\n",message->pDescription);return false; }
         }
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Native cube binding: %u GPU checks passed (2D/cube/2D, all faces, RGBA)\n",checked);
     return checked == 54;
 }

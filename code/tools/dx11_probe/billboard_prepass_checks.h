@@ -61,7 +61,7 @@ static bool CheckBillboardPrepass(Display::D3D11::C_D3D11Device& device,
                 FAILED(effect->SetTexture("g_tAlbedo",albedoView.Get()))) return false;
             UINT alpha = 0;
             if (effect->HasParameter("BlurPCAlphaEnabled") && FAILED(effect->SetRawParameter("BlurPCAlphaEnabled",&alpha,sizeof(alpha)))) return false;
-            auto context = device.Context(); context->ClearState();
+            auto context = device.Context(); context->ClearState(); D3DX11InvalidateBoundState(3,15);
             ID3D11RenderTargetView* targets[] = {device.RenderTargetView(),depthView.Get()};
             context->OMSetRenderTargets(2,targets,nullptr);
             const float clear[] = {-7,-7,-7,-7}; context->ClearRenderTargetView(depthView.Get(),clear);
@@ -81,7 +81,7 @@ static bool CheckBillboardPrepass(Display::D3D11::C_D3D11Device& device,
             ++checked;
         }
     }
-    device.Context()->ClearState();
+    device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Billboard prepass: %u GPU zero-depth samples including clip w=2\n",checked);
     return checked == 8;
 }

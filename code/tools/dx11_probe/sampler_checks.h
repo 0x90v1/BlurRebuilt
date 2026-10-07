@@ -98,7 +98,7 @@ static bool CheckLiveSamplers(Display::D3D11::C_D3D11Device& device,
             FAILED(effect->Apply("Material", 0, device.Context()))) return false;
         device.Context()->PSGetSamplers(binding.BindPoint, 1, &bound);
         if (bound.Get() != sampler.Get()) { std::fprintf(stderr,"Live sampler %s not preserved by apply\n",test.name); return false; }
-        device.Context()->ClearState();
+        device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
         ID3D11RenderTargetView* target = device.RenderTargetView();
         device.Context()->OMSetRenderTargets(1, &target, nullptr);
         const D3D11_VIEWPORT viewport = {0,0,64,64,0,1};
@@ -129,7 +129,7 @@ static bool CheckLiveSamplers(Display::D3D11::C_D3D11Device& device,
         D3DTADDRESS_WRAP,D3DTADDRESS_WRAP,D3DTADDRESS_WRAP,1,&defaults) ||
         FAILED(device.Device()->CreateSamplerState(&defaults,&sampler)) ||
         FAILED(library.SetTextureSampler(device.Device(),"MeshEffect","TextureSampler",sampler.Get(),"Material"))) return false;
-    device.Context()->ClearState();
+    device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Live FX11 samplers: %u GPU samples passed (address/filter/border/encoded bias/NONE/immediate)\n",checked);
     return true;
 }

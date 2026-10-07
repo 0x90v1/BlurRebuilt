@@ -137,8 +137,22 @@ inline void CheckAndUpdateCB_FX(ID3D11DeviceContext *pContext, SConstantBuffer *
 {
     if (pCB->IsDirty && !pCB->IsNonUpdatable)
     {
-        // CB out of date; rebuild it
-        pContext->UpdateSubresource(pCB->pD3DObject, 0, nullptr, pCB->pBackingStore, pCB->Size, pCB->Size);
+        // [Blur1PCDX11] Preserve the complete effect backing store at every
+        // update. Texture buffers retain their original DEFAULT upload path.
+        if (pCB->IsTBuffer)
+            pContext->UpdateSubresource(pCB->pD3DObject, 0, nullptr, pCB->pBackingStore, pCB->Size, pCB->Size);
+        else
+        {
+            D3D11_MAPPED_SUBRESOURCE mapped = {};
+            const HRESULT result = pContext->Map(pCB->pD3DObject, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+            if (FAILED(result))
+            {
+                DPF(0, "Effect constant buffer Map failed: %08x", result);
+                return;
+            }
+            memcpy(mapped.pData, pCB->pBackingStore, pCB->Size);
+            pContext->Unmap(pCB->pD3DObject, 0);
+        }
         pCB->IsDirty = false;
     }
 }

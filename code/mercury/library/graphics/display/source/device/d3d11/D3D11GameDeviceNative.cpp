@@ -22,14 +22,26 @@ bool (*g_FlushNativeFX)() = nullptr;
 // [Blur1PCDX11] FX effects declare the alpha-test cbuffer (b13), so an FX Apply
 // binds the effect's copy there; the device's buffer is rebound after each one.
 static bool g_alphaConstantsBound = false;
+// [Blur1PCDX11] An FX Apply can replace any legacy sampler slot. A memo may
+// skip a native bind only while no intervening pass has touched those slots.
+static U64 g_samplerBindingEpoch = 1;
 void FlushNativeFX()
 {
-    if (g_FlushNativeFX && g_FlushNativeFX()) g_alphaConstantsBound = false;
+    if (g_FlushNativeFX && g_FlushNativeFX())
+    { g_alphaConstantsBound = false; ++g_samplerBindingEpoch; }
 }
 namespace {
 using Microsoft::WRL::ComPtr;
 struct NativeState
 {
+    struct SamplerMemo
+    {
+        D3D11_SAMPLER_DESC descriptor = {};
+        ComPtr<ID3D11SamplerState> object;
+        ID3D11Device* device = nullptr;
+        U64 boundEpoch = 0;
+    };
+    SamplerMemo pixelSamplerMemo[16], vertexSamplerMemo[4];
     D3D11_BLEND_DESC blend = {};
     D3D11_DEPTH_STENCIL_DESC depth = {};
     D3D11_RASTERIZER_DESC raster = {};
@@ -393,10 +405,23 @@ void ApplySampler(C_D3D11GameDevice* device, U32 slot, bool vertex)
     // [Blur2PC] D3D9 MIPFILTER=NONE samples mip zero even when minifying.
     const auto mip = vertex ? device->m_VertexSampler[slot].m_FilterMip : device->m_Sampler[slot].m_FilterMip;
     desc.MaxLOD = mip == E_TextureFilter_None ? 0.f : D3D11_FLOAT32_MAX;
-    ComPtr<ID3D11SamplerState>& state = StateCaches(device->GetD3DDevice()).sampler[desc];
-    if (state || SUCCEEDED(device->GetD3DDevice()->CreateSamplerState(&desc, &state)))
-    { ID3D11SamplerState* raw = state.Get(); if (vertex) context->VSSetSamplers(slot, 1, &raw); else context->PSSetSamplers(slot, 1, &raw);
-      D3DX11InvalidateBoundState(vertex ? 1u : 2u, 4u); }
+    // [Blur1PCDX11] A material sets several sampler fields consecutively and
+    // often repeats the same descriptor. Reuse the last lookup for this slot.
+    NativeState::SamplerMemo& memo = vertex ? State(device).vertexSamplerMemo[slot] : State(device).pixelSamplerMemo[slot];
+    ID3D11Device* nativeDevice = device->GetD3DDevice();
+    if (!memo.object || memo.device != nativeDevice || memcmp(&memo.descriptor, &desc, sizeof(desc)) != 0)
+    {
+        ComPtr<ID3D11SamplerState>& object = StateCaches(nativeDevice).sampler[desc];
+        if (!object && FAILED(nativeDevice->CreateSamplerState(&desc, &object))) return;
+        memo.descriptor = desc; memo.object = object; memo.device = nativeDevice; memo.boundEpoch = 0;
+    }
+    if (memo.boundEpoch != g_samplerBindingEpoch)
+    {
+        ID3D11SamplerState* raw = memo.object.Get();
+        if (vertex) context->VSSetSamplers(slot, 1, &raw); else context->PSSetSamplers(slot, 1, &raw);
+        D3DX11InvalidateBoundState(vertex ? 1u : 2u, 4u);
+        memo.boundEpoch = g_samplerBindingEpoch;
+    }
 }
 void BindConstants(C_D3D11GameDevice* device, bool vertex)
 {

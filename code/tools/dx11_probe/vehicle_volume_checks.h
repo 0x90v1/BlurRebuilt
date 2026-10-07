@@ -76,7 +76,7 @@ static bool CheckVehicleVolumeBinding(Display::D3D11::C_D3D11Device& device,
             FAILED(device.Device()->CreateShaderResourceView(volume.Get(), nullptr, &view)) ||
             FAILED(paint->SetTexture(retailName, view.Get())) ||
             FAILED(paint->SetSampler("DamageVolumeTextureSampler3d", sampler.Get()))) return false;
-        context->ClearState();
+        context->ClearState(); D3DX11InvalidateBoundState(3,15);
         if (FAILED(paint->Apply("MaterialAlphaLuminance", 0, context))) return false;
         UINT offset = 0, vertexStride = sizeof(Vertex); ID3D11Buffer* buffer = vb.Get();
         context->IASetVertexBuffers(0, 1, &buffer, &vertexStride, &offset);
@@ -91,7 +91,7 @@ static bool CheckVehicleVolumeBinding(Display::D3D11::C_D3D11Device& device,
         if (!std::isfinite(actual) || std::abs(actual - expected) > 1e-5f)
         { std::fprintf(stderr, "Vehicle volume alpha %u: %.9g expected %.9g\n", alpha, actual, expected); return false; }
     }
-    context->ClearState();
+    context->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Retail vehicle volume: %u metadata aliases, 3 actual VS samples passed\n", aliases);
     return true;
 }

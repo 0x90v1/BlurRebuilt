@@ -676,3 +676,46 @@ The DX11-specific context now exposes packed DXT1/DXT3/DXT5 block rows on lock a
 Verification: standard tools/build.sh Release build exits0, errsum0. Queued minimized countdown runs at1920x1080 with private MSAA3 settings pass at60Hz (vertical opening, exit0/21s) and unlocked (horizontal opening, exit0/22s); both stills inspected. A separate selected-draw GPU readback exits0/24s and matches all256 PC reference bytes exactly (before repair88 bytes differed); `fixed_trace/mask_compare.txt`. EXE/PDB delivered to `_work/run/`, matching standard build hashes: EXE4FEFDF83170E6D7E861FB651DEF4A0A3D64B50FAF55EE4413A14C13C04A31642, PDBDD57461A8989CD532FFF7A514E7155D6B71F2B9DD4BF07D52C0C58F48E58F40B. No commit.
 
 Limits: these runs retain two pre-existing shader-linkage id343 diagnostics before the countdown, also present in the broken baseline. Selected-frame tracing additionally reports resource input/output unbinding warnings, also present before the repair. Do not describe validation logs or broader graphics parity as clean. DXT1/DXT3 and full hardware/WARP regression suites were not separately exercised in this continuation. T187 performance parity remains pending.
+
+
+### T187: remaining optimization assessment (2026-10-07)
+
+User reports about 30% lower FPS than D3D9 in the same scenario. Found in / Belongs to Blur1PCDX11; the residual bottleneck is not yet measured on the current delivered executable. This session inspected source and existing evidence only; no engine changes, benchmark, build or delivery.
+
+The October 4 profile recorded native excess time in FX BeginPass (+0.43 ms/frame), draws (+0.42), and SetMaterial/SetPrimitiveStream (+0.4); subsequent caching changes mean these are historical leads, not current attribution. NativeFX11 still traverses shared and VS/PS function bindings for each pass. FX11 SetRawValue already skips identical writes (EffectVariable.inl); a simple duplicate-write optimization would repeat existing work. EffectRuntime.cpp CheckAndUpdateCB_FX still uploads the entire dirty constant buffer with UpdateSubresource. Measure pass/parameter counts and upload bytes/cost before choosing buffer organization or upload changes; preserve every per-instance/shared value and pass ordering.
+
+D3D11GameDeviceNative.cpp SetVertexDeclaration caches created layouts by declaration/shader pair, but still searches the map and calls IASetInputLayout for each invocation; SetVertexShader invokes it again. A last-bound layout/stream fast path remains a candidate, with invalidation for all alternate bind/unbind and device lifetime paths.
+
+Other candidates require evidence: legacy SetNativeTexture queries four active RTVs and snapshots feedback resources with CopyResource when aliased; count actual racing frequency and preserve the required snapshot semantics. Fullscreen uses blt-model presentation after the validated regression repair, while initial windowed creation uses flip; measure Present cost in the user's exact mode before revisiting it. Do not restore the previously broken fullscreen flip path on performance grounds. Multithread protection is a correctness requirement for existing loading/main-thread context access, not a flag to disable speculatively.
+
+Next: matched current-delivery D3D9/DX11 measurements of rendered frame times, render-thread stacks, GPU time and Present time in the user's scenario, with equal resolution/detail/MSAA/vsync and diagnostics disabled. Rank work from that evidence; validate any implementation visually at 60 Hz and unlocked, plus relevant hardware/WARP checks. No speedup estimate or parity claim is established by this assessment.
+
+### T187: measured upload/sampler optimization pass (2026-10-07)
+
+Found in / Belongs to Blur1PCDX11. User authorized implementation after the assessment. Original EXE/PDB/source snapshots, private settings, queued runners, profiles and stills are under `_work/t187/oct07_perf/`. Original delivered EXE SHA256 is 4FEFDF83170E6D7E861FB651DEF4A0A3D64B50FAF55EE4413A14C13C04A31642; baseline private copies use this exact executable. No lower-phase source/delivery changed.
+
+Current windowed/no-AA render-thread sampling (1,253 samples) places 11.4% of samples in pending FX pass application, 7.1% in legacy ApplySampler and 3.0% in SetVertexDeclaration. Present occupies 1.8% versus 18.5% in the D3D9 profile. Inclusive percentages overlap and apply to this debug-race fixture, not exclusive-fullscreen Present cost or the user's Career race. Driver nearest-export labels are not actual call identities. PresentMon ETW collection fails with access denied. Temporary timestamp queries sampled one frame in 64 without flushing/waiting: 2.0–2.2 ms GPU timestamp spans include queue idle time and do not establish GPU busy time. Windowed CPU Present averages 0.044–0.046 ms. All temporary profiling code was removed before final build/delivery.
+
+Ordinary FX11 constant buffers now use DYNAMIC/CPU write access and full-backing-store WRITE_DISCARD uploads. Texture buffers retain DEFAULT/UpdateSubresource; externally supplied non-updatable buffers retain existing behavior. Legacy sampler slots memoize the last descriptor/object and skip identical native binds until an actual FX Apply changes the binding epoch. Descriptor/device changes force rebinding. See decisions.md. No simulation, shaders, presentation model, resolution or AA behavior changed.
+
+Alternating windowed/no-AA trials initially showed about 297 FPS before versus 369–382 with both changes. Later controls overlap: one original run reached about 366 FPS and one buffer-only run stayed near 298. The large initial gain is not a stable speedup claim. The sampler increment in two local buffer-only comparisons was small (approximately 2–4%), with run variation.
+
+Final standard executable, Observatory DebugRb stationary start, private 1920x1080 **exclusive fullscreen, 8x MSAA, vsync off, detail 4**, no debug layer or timestamp instrumentation:
+
+| Alternating pair | Original DX11 | Final DX11 |
+| --- | ---: | ---: |
+| 1 | 376.35 FPS | 380.40 FPS |
+| 2 | 353.70 FPS | 367.70 FPS |
+| Mean | 365.03 FPS | 374.05 FPS |
+
+Rates use the delta of RestoreWindow copy counters (one per rendered race frame) over matching elapsed 24–38 second windows, excluding launch/loading and the still capture. Existing five-second rendered-frame counters agree approximately; they are separate from the 60 Hz update counter. Average gain is about 2.5%, with variation larger than the first pair's gain. The matched D3D9 run's last three rendered-frame counters are 488.4/476.4/499.2 FPS (mean 488); final DX11 is still about 23% lower in this fixture. DebugRb has one player car and does not reproduce a full Career grid. Do not claim parity or extrapolate the windowed gain to fullscreen/Career.
+
+Verification:
+
+- Standard `tools/build.sh` Release: errsum 0. Final EXE/PDB delivered to `_work/run/` with matching standard-build hashes: EXE 73A45E3C25A5D1695C11EF2BD9FFF50198713D621DEE8197B14210F177B7611F; PDB 265923B73418736FB6D3CC5DE877AFED50AF01ED161E8C919461FE7804B583B1.
+- Fullscreen 8x-AA moving Observatory runs at 60 FPS and unlocked exit 0; stills inspected. Unlocked rendered-frame counters vary with the moving scene while updates remain approximately 60 Hz. Targets retain 1920x1080/sample count 8. No new Present/Map/resolve failures; both runs retain two existing crowd linkage id343 errors. Validation is not globally clean.
+- Hardware/WARP texture-view readback passes all six resource/format cases, retained/fresh/owned views, partial uniforms and destruction. Added 128 queued draws alternating an original effect and its clone, changing one uniform while preserving another before any readback; both adapters pass exact float comparisons with no severity error/corruption messages.
+- Hardware/WARP dynamic VB/IB public lock reference passes 64 queued discard/append/retained/discard draws. Localized probe/reference builds report errsum 0.
+- Probe fixtures previously called raw ClearState without forgetting the FX binding cache. Original uploads fail road hardware readback (887a0005), road WARP case1 and hardware owned-texture comparison. Fixtures now invalidate VS/PS memoized bindings after every raw reset. With this correction both original and optimized uploads pass 128 road samples and texture-view checks. The broad probe then stops at the same billboard case0 depth -7 versus expected 0 on hardware and WARP with both versions (exit14). Later broad-suite checks remain unexecuted; this pass did not repair the unrelated billboard/shader issue.
+
+This authorized optimization pass is delivered without a commit. T187 parity remains open. Next: profile final/original in exclusive fullscreen/8x-AA on the actual Career grid, separating render submission, FX parameter/pass traversal and GPU busy time before choosing the next change. Diagnose the baseline billboard prepass failure before claiming broad shader coverage. ETW-based attribution remains unavailable under the present account.

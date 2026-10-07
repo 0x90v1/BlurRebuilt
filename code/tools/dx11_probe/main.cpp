@@ -12,6 +12,8 @@
 #include <vector>
 #include <d3dcompiler.h>
 #include <d3d11shader.h>
+// [Blur1PCDX11] Raw context resets must also forget FX binding memoization.
+extern void D3DX11InvalidateBoundState(unsigned stages, unsigned what);
 #include "luminance_checks.h"
 #include "sampler_checks.h"
 #include "polygon_font_checks.h"
@@ -93,7 +95,7 @@ static bool CheckVehiclePrepass(Display::D3D11::C_D3D11Device& device,
     const float clear[4] = {0,0,0,0};
     for (const char* technique : { "MaterialPrepass", "MaterialPrepassNoDamage" })
     {
-        device.Context()->ClearState();
+        device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
         device.Context()->ClearRenderTargetView(device.RenderTargetView(), clear);
         device.Context()->ClearRenderTargetView(depthView.Get(), clear);
         device.Context()->ClearDepthStencilView(device.DepthStencilView(), D3D11_CLEAR_DEPTH, 1, 0);
@@ -117,7 +119,7 @@ static bool CheckVehiclePrepass(Display::D3D11::C_D3D11Device& device,
         if (pixel[0] < 127 || pixel[0] > 128 || pixel[1] < 127 || pixel[1] > 128 ||
             pixel[2] != 255 || pixel[3] != 0 || std::fabs(z + .2f) > .0001f) return false;
     }
-    device.Context()->ClearState();
+    device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Recovered vehicle passes: %zu exact permutations x 10 techniques available\n", effects.size());
     return true;
 }
@@ -156,7 +158,7 @@ static bool CheckSceneSamplerDefaults(Display::D3D11::C_D3D11Device& device,
                        desc.AddressU, desc.AddressV, desc.AddressW, expected); return false; }
         ++checked;
     }
-    device.Context()->ClearState();
+    device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("Scene sampler defaults: %u checked (albedo WRAP, environment CLAMP)\n", checked);
     return checked == 2;
 }
@@ -653,7 +655,7 @@ int main()
         }
     }
     std::printf("FX11 engine state preserved across MeshEffect/Puddle and immediate reapply\n");
-    device.Context()->ClearState();
+    device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
     Display::D3D11::C_D3D11Effect* alphaEffect = nullptr;
     result = effectLibrary.Get(device.Device(), "AutoScrollFade.fx", &alphaEffect);
     if (FAILED(result) || !alphaEffect) return 9;
@@ -770,7 +772,7 @@ int main()
     if (!linearSamplerBound) { std::fprintf(stderr, "Material linear sampler missing\n"); return 10; }
     unsigned char materialPixel[4] = {};
     result = device.ReadPixel(32, 32, materialPixel);
-    device.Context()->ClearState();
+    device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
     if (FAILED(result)) return 10;
     std::printf("FX11 material draw center RGBA %u %u %u %u\n",
                 materialPixel[0], materialPixel[1], materialPixel[2], materialPixel[3]);
@@ -789,7 +791,7 @@ int main()
     result = device.DrawGameEffectIndexed(*gameEffect, "Material", 0,
         materialElements, 5, materialVB.Get(), sizeof(MaterialVertex), materialIB.Get(), DXGI_FORMAT_R16_UINT, 3);
     if (FAILED(result) || FAILED(device.ReadPixel(32, 32, materialPixel)) || materialPixel[0] != 0) return 12;
-    device.Context()->ClearState();
+    device.Context()->ClearState(); D3DX11InvalidateBoundState(3,15);
     std::printf("FX11 alpha test: previously visible material rejected by Never\n");
 
     if (!CheckVehiclePrepass(device, effectLibrary)) return 11;

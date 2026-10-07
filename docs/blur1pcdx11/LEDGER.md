@@ -767,3 +767,28 @@ Scope: the user explicitly requested committing everything, including the inheri
 Verification: retained the completed standard Release build (errsum0), delivered EXE/PDB hash verification, 60Hz/unlocked visual checks, texture-view hardware/WARP checks and byte-exact countdown mask comparison recorded above. No engine edits after that build. git diff --check passes. Existing shader-linkage diagnostics and full-suite coverage limits remain as recorded. No push requested.
 
 Next: benchmark matched D3D9/DX11 settings and run full hardware/WARP regression coverage before further optimization or claiming parity.
+
+
+## 2026-10-07 — session Codex T187 assessment — remaining optimization candidates
+
+Did: reviewed the current native renderer and T187 profiling history in response to the reported remaining 30% FPS gap. Recorded source-backed candidates in phase analysis: FX parameter traversal/full dirty-buffer uploads, redundant input-layout/stream binding, legacy feedback queries/copies and mode-dependent presentation. No engine edits or commit.
+
+Verification: source inspection only; historical profile numbers explicitly separated from current evidence. No build/runtime checks needed for documentation. Current delivered performance has not been measured in this session.
+
+Blockers: none for the assessment; current CPU/GPU/Present attribution remains unknown. Next: capture matched D3D9/DX11 current-delivery frame times and CPU/GPU/Present costs in the user's scenario before implementing the highest-cost candidate. T187 parity remains incomplete.
+
+
+## 2026-10-07 - session Codex T187 optimization - upload/sampler pass delivered
+
+Did: profiled current D3D9/DX11 render threads; implemented full WRITE_DISCARD uploads for ordinary FX11 constant buffers and epoch-invalidated per-slot legacy sampler memoization. Removed temporary GPU/Present instrumentation. Corrected GPU fixtures' ClearState/FX-cache invalidation and added exact readback of 128 queued alternating original/clone draws with partial uniform updates. Owning decisions and evidence: analysis.md/decisions.md; scratch _work/t187/oct07_perf/. No lower-phase edits, commit or push.
+
+Verification: standard Release errsum0 and verified EXE/PDB delivery, matching hashes recorded in analysis. Fullscreen 1080p/8x-AA original/final stationary pairs average365.03/374.05 FPS (~2.5%, with run variation); D3D9 about488. Early windowed gains were larger but overlapping later controls prevent a stable large-gain claim. Final moving races pass at60 FPS and unlocked, stills inspected. Hardware/WARP texture/partial-uniform/clone/queued-constant and dynamic VB/IB checks pass; probe/reference builds errsum0; git diff --check passes. Existing crowd shader id343 errors remain. Broad probe fails the same billboard case with original and optimized uploads after correcting fixture resets; later suite coverage remains pending.
+
+Blockers/limits: PresentMon ETW access denied; timestamp spans do not prove GPU busy time; one-car DebugRb is not the full Career grid. This optimization pass is complete and delivered; T187 parity is not complete. Exact next step: matched final/original exclusive-fullscreen8x-AA Career-grid profiling, attributing FX traversal/submission and GPU busy time; separately diagnose baseline billboard prepass failure to unblock broad shader coverage. Task ownership released for continuation.
+
+
+## 2026-10-07 - session Codex T187 commit - user-requested optimization checkpoint
+
+User requested committing the delivered upload/sampler optimization pass, GPU fixture corrections, queued original/clone constant readback, and owning-phase performance/decision records. Retained completed standard Release errsum0, verified EXE/PDB delivery, 60 FPS/unlocked driving and hardware/WARP checks. No engine edits since that verification; git diff --check passes. Fullscreen benchmark average improves about2.5%; parity remains open. Existing crowd linkage errors and baseline billboard full-suite failure remain documented. No push requested.
+
+Next: matched final/original fullscreen8x-AA Career-grid profiling, separating FX submission/traversal and GPU busy time; diagnose the baseline billboard prepass failure before claiming broad shader coverage. Ownership released for continuation.

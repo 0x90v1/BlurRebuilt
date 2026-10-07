@@ -59,7 +59,7 @@ static bool CheckPackedPolygonShaders(Display::D3D11::C_D3D11Device& device)
         if (FAILED(device.Device()->CreateBuffer(&desc,nullptr,&so))) return false;
         desc.BindFlags=0; desc.Usage=D3D11_USAGE_STAGING; desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
         if (FAILED(device.Device()->CreateBuffer(&desc,nullptr,&staging))) return false;
-        auto context=device.Context(); context->ClearState();
+        auto context=device.Context(); context->ClearState(); D3DX11InvalidateBoundState(3,15);
         UINT offset=0,vertexStride=sizeof(Vertex); ID3D11Buffer* buffer=vb.Get();
         context->IASetVertexBuffers(0,1,&buffer,&vertexStride,&offset);
         buffer=defaults.Get(); const UINT zeroStride=0;
@@ -95,7 +95,7 @@ static bool CheckPackedPolygonShaders(Display::D3D11::C_D3D11Device& device)
                 result+=output.ComponentCount;
             }
         }
-        context->Unmap(staging.Get(),0); context->ClearState();
+        context->Unmap(staging.Get(),0); context->ClearState(); D3DX11InvalidateBoundState(3,15);
         if (!valid) return false;
     }
     std::printf("Packed stroke/trail/gradient/multiply: %u GPU components passed\n",checked);
