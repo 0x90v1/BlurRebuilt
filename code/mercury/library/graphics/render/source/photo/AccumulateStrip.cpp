@@ -326,6 +326,7 @@ void C_AccumulateStrip::ScreenToStrip(S32 top, S32 height)
 		const D3D11_BOX region = { 0, static_cast<UINT>(top), 0,
 			static_cast<UINT>(width), static_cast<UINT>(top + height), 1 };
 		context->CopySubresourceRegion(destination, 0, 0, 0, 0, source, 0, &region);
+		Display2::D3D11ResourceWritten(destination, context); // [Blur1PCDX11]
 	}
 	if (resolved) resolved->Release();
 	context->Release();
@@ -525,8 +526,11 @@ void C_AccumulateStrip::UnlockBitmap()
 		m_LockContext->Unmap(m_PlainSurface, 0);
 		Display::C_Texture2D* texture = GetTexture();
 		if (texture && texture->GetGPUTexture2D())
+		{
 			m_LockContext->CopySubresourceRegion(texture->GetGPUTexture2D(), 0,
 				0, 0, 0, m_PlainSurface, 0, nullptr);
+			Display2::D3D11ResourceWritten(texture->GetGPUTexture2D(), m_LockContext); // [Blur1PCDX11]
+		}
 		m_LockContext->Release();
 		m_PlainSurface->Release();
 		m_LockContext = 0;

@@ -43,6 +43,10 @@ struct S_StagingLock
 	UINT width, height, depth;
 	D3D11_MAPPED_SUBRESOURCE nativeMap;
 	std::vector<U8> pcBytes;
+	std::vector<U8>* shadow = nullptr; // dynamic buffer contents, see LockResource
+	unsigned nested = 1;                // buffer locks held (D3D9 allows nested buffer locks)
+	D3D11_MAPPED_SUBRESOURCE callerMap = {};
+	UINT blockRows = 0; // packed PC DXT rows, excluding native staging padding
 };
 using S_StagingKey = std::pair<const ID3D11Resource*, UINT>;
 std::map<S_StagingKey, S_StagingLock> g_stagingLocks;
@@ -75,13 +79,116 @@ HRESULT TryMapStaging(ID3D11DeviceContext* context, ID3D11Resource* staging,
 	}
 }
 
+// [Blur1PCDX11] PC D3D9 creates every resource without E_Flags_Video in the
+// MANAGED or SYSTEMMEM pool (D3D9Context.inl D3DPool), where a lock touches
+// only the runtime's system-memory copy and never waits for the GPU. Keep that
+// copy as a persistent staging mirror per locked subresource of any resource
+// the GPU cannot render into. The first lock reads it back; later locks map it
+// directly, and unlock writes it back as before. GPU copies into such a
+// resource refresh the mirror right after the write (D3D11ResourceWritten), as
+// D3D9's GetRenderTargetData fills a system-memory surface.
+const GUID kStagingMirrorGuid =
+	{ 0x6c0f6a2e, 0x5d43, 0x4c1b, { 0x9a, 0x31, 0x2b, 0x8e, 0x74, 0x10, 0x5f, 0xd2 } };
+
+class C_StagingMirrors final : public IUnknown
+{
+public:
+	std::map<UINT, ID3D11Resource*> m_Staging; // owned references, by subresource
+	// A DYNAMIC buffer cannot be read back. D3D9 keeps its contents across a lock
+	// without DISCARD/NOOVERWRITE; this is that contents for such locks.
+	std::vector<U8> m_Shadow;
+	bool m_ShadowStale = false;
+
+	~C_StagingMirrors() { for (auto& entry : m_Staging) entry.second->Release(); }
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** object) override
+	{
+		if (!object) return E_POINTER;
+		*object = nullptr;
+		if (iid != __uuidof(IUnknown)) return E_NOINTERFACE;
+		AddRef();
+		*object = static_cast<IUnknown*>(this);
+		return S_OK;
+	}
+	ULONG STDMETHODCALLTYPE AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&m_References)); }
+	ULONG STDMETHODCALLTYPE Release() override
+	{
+		const LONG references = InterlockedDecrement(&m_References);
+		if (!references) delete this;
+		return static_cast<ULONG>(references);
+	}
+
+private:
+	LONG m_References = 1;
+};
+
+// The resource owns its mirrors through private data, so they are released
+// with it; the returned pointer is valid while the resource is.
+C_StagingMirrors* StagingMirrors(ID3D11Resource* resource, bool create)
+{
+	IUnknown* found = nullptr;
+	UINT size = sizeof(found);
+	if (SUCCEEDED(resource->GetPrivateData(kStagingMirrorGuid, &size, &found)) && found)
+	{
+		found->Release();
+		return static_cast<C_StagingMirrors*>(found);
+	}
+	if (!create) return nullptr;
+	C_StagingMirrors* mirrors = new C_StagingMirrors;
+	const HRESULT hr = resource->SetPrivateDataInterface(kStagingMirrorGuid, mirrors);
+	mirrors->Release();
+	return SUCCEEDED(hr) ? mirrors : nullptr;
+}
+
+bool CanMirror(ID3D11Resource* resource, D3D11_RESOURCE_DIMENSION dimension)
+{
+	const UINT gpuWrites = D3D11_BIND_RENDER_TARGET | D3D11_BIND_DEPTH_STENCIL |
+		D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_STREAM_OUTPUT;
+	if (dimension == D3D11_RESOURCE_DIMENSION_BUFFER)
+	{
+		D3D11_BUFFER_DESC desc;
+		static_cast<ID3D11Buffer*>(resource)->GetDesc(&desc);
+		return desc.Usage == D3D11_USAGE_DEFAULT && !(desc.BindFlags & gpuWrites);
+	}
+	if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		static_cast<ID3D11Texture2D*>(resource)->GetDesc(&desc);
+		return desc.Usage == D3D11_USAGE_DEFAULT && !(desc.BindFlags & gpuWrites) && desc.SampleDesc.Count == 1;
+	}
+	if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE3D)
+	{
+		D3D11_TEXTURE3D_DESC desc;
+		static_cast<ID3D11Texture3D*>(resource)->GetDesc(&desc);
+		return desc.Usage == D3D11_USAGE_DEFAULT && !(desc.BindFlags & gpuWrites);
+	}
+	return false;
+}
+
 bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
                  D3D11_MAPPED_SUBRESOURCE& mapped, U32 flags = 0)
 {
 	if (!resource) { TraceLockFailure("null resource",resource,subresource,E_POINTER); return false; }
 	std::lock_guard<std::mutex> lock(g_stagingMutex);
 	const S_StagingKey key(resource, subresource);
-	if (g_stagingLocks.count(key)) { TraceLockFailure("already locked",resource,subresource,E_FAIL); return false; }
+	const auto locked = g_stagingLocks.find(key);
+	if (locked != g_stagingLocks.end())
+	{
+		// [Blur1PCDX11] D3D9 vertex and index buffers accept nested locks and return the
+		// same memory; each Unlock releases one. Textures keep the single-lock rule.
+		D3D11_RESOURCE_DIMENSION lockedDimension;
+		resource->GetType(&lockedDimension);
+		if (lockedDimension == D3D11_RESOURCE_DIMENSION_BUFFER)
+		{
+			++locked->second.nested;
+			// A directly mapped dynamic buffer (staging == resource) is never copied back.
+			if (write && (locked->second.shadow || locked->second.staging != resource))
+				locked->second.write = true;
+			mapped = locked->second.callerMap;
+			return true;
+		}
+		TraceLockFailure("already locked",resource,subresource,E_FAIL);
+		return false;
+	}
 	ID3D11Device* device = nullptr;
 	resource->GetDevice(&device);
 	if (!device) return false;
@@ -89,11 +196,64 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 	device->GetImmediateContext(&context);
 	D3D11_RESOURCE_DIMENSION dimension;
 	resource->GetType(&dimension);
+	if (dimension == D3D11_RESOURCE_DIMENSION_BUFFER)
+	{
+		D3D11_BUFFER_DESC desc;
+		static_cast<ID3D11Buffer*>(resource)->GetDesc(&desc);
+		if (desc.Usage == D3D11_USAGE_DYNAMIC)
+		{
+			const bool append = (flags & (D3DLOCK_DISCARD | D3DLOCK_NOOVERWRITE)) != 0;
+			C_StagingMirrors* mirrors = StagingMirrors(resource, !append);
+			if (mirrors && (flags & (D3DLOCK_DISCARD | D3DLOCK_NOOVERWRITE)))
+				mirrors->m_ShadowStale = !mirrors->m_Shadow.empty(); // written below without the copy
+			else if (mirrors)
+			{
+				// [Blur1PCDX11] D3D9 returns a dynamic buffer's current contents for a lock
+				// without DISCARD/NOOVERWRITE (DynamicEffect::C_DynamicVertexBuffer locks
+				// that way each frame). Keep them on the CPU and write the whole buffer
+				// with WRITE_DISCARD on unlock, so the GPU copy is renamed and never waited for.
+				if (mirrors->m_ShadowStale)
+				{
+					static unsigned stale = 0;
+					if (stale++ < 4) Blur2PCAutomation::LogF("DX11 dynamic buffer %p mixes DISCARD and plain locks", resource);
+					mirrors->m_ShadowStale = false;
+				}
+				if (mirrors->m_Shadow.size() != desc.ByteWidth) mirrors->m_Shadow.assign(desc.ByteWidth, 0);
+				mapped.pData = mirrors->m_Shadow.data();
+				mapped.RowPitch = mapped.DepthPitch = desc.ByteWidth;
+				S_StagingLock& held = g_stagingLocks[key];
+				held = {};
+				resource->AddRef();
+				held.staging = resource; held.context = context; held.subresource = subresource;
+				held.write = write; held.pcFormat = D3DFMT_UNKNOWN; held.shadow = &mirrors->m_Shadow;
+				held.callerMap = mapped;
+				context->Release();
+				device->Release();
+				return true;
+			}
+		}
+	}
 	ID3D11Resource* staging = nullptr;
 	HRESULT hr = E_FAIL;
 	bool directWrite = false;
 	D3D11_MAP mode = D3D11_MAP_READ_WRITE;
 	UINT width = 0, height = 1, depth = 1;
+	const bool mirrored = CanMirror(resource, dimension);
+	bool reused = false;
+	if (mirrored)
+	{
+		if (C_StagingMirrors* mirrors = StagingMirrors(resource, false))
+		{
+			const auto found = mirrors->m_Staging.find(subresource);
+			if (found != mirrors->m_Staging.end())
+			{
+				staging = found->second;
+				staging->AddRef();
+				reused = true;
+				hr = S_OK;
+			}
+		}
+	}
 	if (dimension == D3D11_RESOURCE_DIMENSION_BUFFER)
 	{
 		D3D11_BUFFER_DESC desc;
@@ -109,7 +269,7 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 			staging->AddRef();
 			hr = S_OK;
 		}
-		else
+		else if (!reused)
 		{
 			desc.Usage = D3D11_USAGE_STAGING;
 			desc.BindFlags = 0;
@@ -148,9 +308,12 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 			desc.SampleDesc.Count = 1;
 			desc.SampleDesc.Quality = 0;
 		}
-		ID3D11Texture2D* texture = nullptr;
-		hr = device->CreateTexture2D(&desc, nullptr, &texture);
-		staging = texture;
+		if (!reused)
+		{
+			ID3D11Texture2D* texture = nullptr;
+			hr = device->CreateTexture2D(&desc, nullptr, &texture);
+			staging = texture;
+		}
 	}
 	else if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE3D)
 	{
@@ -165,13 +328,18 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 		desc.BindFlags = 0;
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 		desc.MiscFlags = 0;
-		ID3D11Texture3D* texture = nullptr;
-		hr = device->CreateTexture3D(&desc, nullptr, &texture);
-		staging = texture;
+		if (!reused)
+		{
+			ID3D11Texture3D* texture = nullptr;
+			hr = device->CreateTexture3D(&desc, nullptr, &texture);
+			staging = texture;
+		}
 	}
 	if (SUCCEEDED(hr) && staging)
 	{
-		if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+		if (reused || directWrite)
+			; // the mirror already holds the resource's contents
+		else if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
 		{
 			D3D11_TEXTURE2D_DESC desc;
 			static_cast<ID3D11Texture2D*>(resource)->GetDesc(&desc);
@@ -182,11 +350,19 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 		}
 		else if (dimension == D3D11_RESOURCE_DIMENSION_TEXTURE3D)
 			context->CopySubresourceRegion(staging, 0, 0, 0, 0, resource, subresource, nullptr);
-		else if (!directWrite)
+		else
 			context->CopyResource(staging, resource);
 		hr = TryMapStaging(context, staging, mapped, mode);
 		if (SUCCEEDED(hr))
 		{
+			if (mirrored && !reused)
+			{
+				if (C_StagingMirrors* mirrors = StagingMirrors(resource, true))
+				{
+					staging->AddRef();
+					mirrors->m_Staging[subresource] = staging;
+				}
+			}
 			S_StagingLock& held = g_stagingLocks[key];
 			held = {};
 			held.staging = staging; held.context = context; held.subresource = subresource;
@@ -205,6 +381,24 @@ bool LockResource(ID3D11Resource* resource, UINT subresource, bool write,
 					mapped.pData,mapped.RowPitch,mapped.DepthPitch,held.pcBytes.data(),row,slice,false);
 				mapped.pData = held.pcBytes.data(); mapped.RowPitch = row; mapped.DepthPitch = slice;
 			}
+			else if (held.pcFormat == D3DFMT_DXT1 || held.pcFormat == D3DFMT_DXT3 ||
+				held.pcFormat == D3DFMT_DXT5)
+			{
+				// [Blur1PCDX11] The PC DDS loader writes the packed mip in one
+				// memcpy. Native staging rows can be padded (the 16x16 DXT5 UI
+				// wipe is 64 bytes/row on D3D9, but 128 on the DX11 driver).
+				// Expose PC block rows and translate at both lock boundaries.
+				const UINT row = ((width + 3) / 4) * (held.pcFormat == D3DFMT_DXT1 ? 8 : 16);
+				held.blockRows = (height + 3) / 4;
+				const UINT slice = row * held.blockRows;
+				held.pcBytes.resize(static_cast<size_t>(slice) * depth);
+				for (UINT z = 0; z < depth; ++z)
+					for (UINT y = 0; y < held.blockRows; ++y)
+						memcpy(held.pcBytes.data() + z * slice + y * row,
+							static_cast<const U8*>(mapped.pData) + z * mapped.DepthPitch + y * mapped.RowPitch, row);
+				mapped.pData = held.pcBytes.data(); mapped.RowPitch = row; mapped.DepthPitch = slice;
+			}
+			held.callerMap = mapped;
 		}
 		else
 		{
@@ -230,13 +424,39 @@ void UnlockStagingResource(ID3D11Resource* resource, UINT subresource)
 	std::lock_guard<std::mutex> guard(g_stagingMutex);
 	auto it = g_stagingLocks.find(S_StagingKey(resource, subresource));
 	if (it == g_stagingLocks.end()) return;
+	if (--it->second.nested > 0) return;
 	const S_StagingLock& lock = it->second;
+	if (lock.shadow)
+	{
+		if (lock.write)
+		{
+			D3D11_MAPPED_SUBRESOURCE target = {};
+			if (SUCCEEDED(TryMapStaging(lock.context, resource, target, D3D11_MAP_WRITE_DISCARD)))
+			{
+				memcpy(target.pData, lock.shadow->data(), lock.shadow->size());
+				lock.context->Unmap(resource, 0);
+			}
+		}
+		lock.staging->Release();
+		g_stagingLocks.erase(it);
+		return;
+	}
 	if (lock.write && !lock.pcBytes.empty())
 	{
+		if (lock.blockRows)
+		{
+			for (UINT z = 0; z < lock.depth; ++z)
+				for (UINT y = 0; y < lock.blockRows; ++y)
+					memcpy(static_cast<U8*>(lock.nativeMap.pData) + z * lock.nativeMap.DepthPitch + y * lock.nativeMap.RowPitch,
+						lock.pcBytes.data() + z * lock.callerMap.DepthPitch + y * lock.callerMap.RowPitch, lock.callerMap.RowPitch);
+		}
+		else
+		{
 		const UINT row = static_cast<UINT>(lock.pcBytes.size())/lock.height/lock.depth;
 		Display2::D3D11TextureFormats::ConvertLuminance(lock.pcFormat,lock.width,lock.height,lock.depth,
 			lock.pcBytes.data(),row,row*lock.height,lock.nativeMap.pData,
 			lock.nativeMap.RowPitch,lock.nativeMap.DepthPitch,true);
+		}
 	}
 	lock.context->Unmap(lock.staging, 0);
 	if (lock.write)
@@ -256,6 +476,23 @@ void UnlockStagingResource(ID3D11Resource* resource, UINT subresource)
 
 namespace Display2
 {
+void D3D11ResourceWritten(ID3D11Resource* resource, ID3D11DeviceContext* context)
+{
+	if (!resource || !context) return;
+	C_StagingMirrors* mirrors = StagingMirrors(resource, false);
+	if (!mirrors) return;
+	std::lock_guard<std::mutex> lock(g_stagingMutex);
+	D3D11_RESOURCE_DIMENSION dimension;
+	resource->GetType(&dimension);
+	for (auto& entry : mirrors->m_Staging)
+	{
+		// A mirror mapped by an open lock is refreshed by that lock's unlock.
+		if (g_stagingLocks.count(S_StagingKey(resource, entry.first))) continue;
+		if (dimension == D3D11_RESOURCE_DIMENSION_BUFFER) context->CopyResource(entry.second, resource);
+		else context->CopySubresourceRegion(entry.second, 0, 0, 0, 0, resource, entry.first, nullptr);
+	}
+}
+
 E_SurfaceFormat GetSurfaceFormatFromTexture(const E_TextureFormat format)
 {
 	return (E_SurfaceFormat)format;
@@ -1868,4 +2105,3 @@ C_ContextNoCheckNoTrack::C_ContextNoCheckNoTrack(GPUDevice* pd3dDevice) :
 
 
 } // namespace Display2
-

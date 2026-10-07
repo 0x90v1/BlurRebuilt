@@ -644,6 +644,18 @@ Verification (`_work/build/lowres_title_oct03/`, private settings copies, window
 
 Separate, open: the crowd-flag built-ins (`vsCrowdFlag`/`vsCrowdFlagPrepass` with their pixel shaders) raise D3D11 VS/PS TEXCOORD linkage errors under the debug layer once a race starts.
 
+### T187: fullscreen regression from the performance swap chain (2026-10-07)
+
+Found in / Belongs to **Blur1PCDX11**. The user reported a four-part image and severe colour banding after the uncommitted performance changes. Saved settings: 1920x1080, fullscreen, MSAA option 3, vsync off, detail 4. Previous T187 benchmarks used windowed mode with MSAA off.
+
+The delivered flip-model build, started minimized through the queue with BLUR2PC_FULLSCREEN=1 and private settings, created a 3840x2160 swap-chain buffer on the 4K desktop while the engine and depth surface remained 1920x1080. Startup repeatedly logs that mismatch and Present failed 887a0001. The script could not reach the menu and timed out. Windowed no-AA and 8x-AA menu captures did not reproduce the split image. Evidence: _work/t187/visual_regression/{delivered,msaa3,fullscreen}.
+
+CreateD3D11 now selects the committed blt model for initial exclusive fullscreen and preserves that model across resets. Initial windowed creation retains flip presentation. Microsoft documents that flip fullscreen transitions require ResizeBuffers before presentation: https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model . The repaired fullscreen 8x-AA run creates 1920x1080 back/window targets, reaches the menu, drives an Observatory race, captures complete menu/race frames, exits 0 and has no Present or severity 0/1/2 validation errors. Those captures do not establish complete graphics parity.
+
+The previously undelivered direct-mapped owner-view cache also had a lifetime race: a generation check before AddRef does not prevent the loader from releasing the view between those operations. Direct hits now check the generation and AddRef under the owner mutex, without extending resource lifetime. Direct parameter memo pointers survive unordered_map rehash; the memo maps are not cleared while referenced by parameter caches.
+
+Standard tools/build.sh Release reports errsum 0. Repaired EXE/PDB were delivered with matching standard-build hashes. Remaining verification is recorded in the continuation ledger. Performance parity remains open; no additional performance optimization was attempted after the regression report.
+
 ### T127: MSAA sample counts above 4 were dropped (2026-10-03)
 
 Found in / Belongs to **Blur1PCDX11**. The user reported no anti-aliasing after the resolution fix. `C_D3D11Manager` offers every sample count the adapter supports (None, 2, 4, 8 and 16 when available), so the user's option 3 is 8x. `Display2::C_Device::CreateSurface` mapped only `E_Multisample_2`/`_4` to sample counts and created everything else with 1 sample. Option 3 therefore produced no multisampling, and the earlier "MSAA 3 edges smoothed" comparison was wrong: its captures came from different moments. `E_Multisample` holds the `D3DMULTISAMPLE_n_SAMPLES` value, which is the sample count, so the surface now uses it for 2..16.
@@ -652,3 +664,15 @@ Verification (`_work/build/lowres_title_oct03/{aa0,aa3,aa2}`, debug layer):
 - The `DX11 target` diagnostic now logs sample counts. Option 3 creates the 1920x1080 window colour and mask targets and a 1920x1088 target with 8 samples.
 - Matched no-AA/8x captures at the same race moment have equal brightness (mean 98.91/98.86). Edges are anti-aliased and thin trim no longer breaks into dashes (`aa_matched_zoom.png`).
 - 8x and 4x runs exit 0 with no new debug-layer messages; the crowd-flag linkage errors remain.
+
+### T187 continuation: countdown wipe texture layout (2026-10-07)
+
+Found in / Belongs to **Blur1PCDX11**. The countdown's purple mask covered the lower half of the intended opening. Reproduced with the standard delivered executable by launching Observatory DebugRb and entering `Ingame/IntroRace.lua`; ordinary debug races skip that screen. The delivered D3D9 executable on PC data draws the opening correctly. Captures and traces are under `_work/t187/countdown/`.
+
+The stencil draws and UI transform were not the cause. D3D9 apitrace calls9941-9946 create and fill the 16x16 DXT5 mask: LockRect pitch64, packed payload256 bytes. Native draw2117 sampled a BC3 texture whose first eight rows were opaque and last eight transparent. Its staging row pitch is128. The PC DDS loader in Display2 Utils.cpp copies the packed mip in one memcpy; native LockResource exposed the padded staging allocation directly. Only the first two block rows received data. This layout gap is also present in the committed native lock path; the investigation does not attribute it to the latest performance shortcuts.
+
+The DX11-specific context now exposes packed DXT1/DXT3/DXT5 block rows on lock and copies each block row to/from native staging memory at the lock boundaries. Read locks and existing contents are preserved; tiny mip rows use rounded-up block dimensions. Existing staging mirrors and luminance conversion remain in place. No UI camera, stencil algorithm, asset, or base-phase source was changed.
+
+Verification: standard tools/build.sh Release build exits0, errsum0. Queued minimized countdown runs at1920x1080 with private MSAA3 settings pass at60Hz (vertical opening, exit0/21s) and unlocked (horizontal opening, exit0/22s); both stills inspected. A separate selected-draw GPU readback exits0/24s and matches all256 PC reference bytes exactly (before repair88 bytes differed); `fixed_trace/mask_compare.txt`. EXE/PDB delivered to `_work/run/`, matching standard build hashes: EXE4FEFDF83170E6D7E861FB651DEF4A0A3D64B50FAF55EE4413A14C13C04A31642, PDBDD57461A8989CD532FFF7A514E7155D6B71F2B9DD4BF07D52C0C58F48E58F40B. No commit.
+
+Limits: these runs retain two pre-existing shader-linkage id343 diagnostics before the countdown, also present in the broken baseline. Selected-frame tracing additionally reports resource input/output unbinding warnings, also present before the repair. Do not describe validation logs or broader graphics parity as clean. DXT1/DXT3 and full hardware/WARP regression suites were not separately exercised in this continuation. T187 performance parity remains pending.

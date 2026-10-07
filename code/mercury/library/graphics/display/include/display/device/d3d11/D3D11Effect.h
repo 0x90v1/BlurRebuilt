@@ -30,6 +30,10 @@ public:
     HRESULT GetPassVertexShaderBytecode(const char* technique, UINT pass,
                                        const void** bytecode, SIZE_T* bytes) const;
     HRESULT Apply(const char* technique, UINT pass, ID3D11DeviceContext* context) const;
+    // [Blur1PCDX11] Reflected interfaces for callers that resolve a name once.
+    // They belong to the loaded effect and stay valid until its next LoadMemory.
+    ID3DX11EffectVariable* Variable(const char* name) const { return FindVariable(name); }
+    ID3DX11EffectPass* Pass(const char* technique, UINT pass) const { return FindPass(technique, pass); }
 
 private:
     ID3DX11EffectVariable* FindVariable(const char* name) const;

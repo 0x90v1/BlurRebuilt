@@ -142,6 +142,9 @@ void *Context::GetSharedParameterValue(ParameterHandle &handle)
 /// constructor
 Context::Context()
 {
+#if defined(BLUR_USE_DX11)
+	m_bNativePass = false;
+#endif
 	m_iCurrentTechnique = -1;
 	m_pPixelBindings = NULL;
 	m_pVertexBindings = NULL;
@@ -788,6 +791,10 @@ void Context::SetRenderState(U32 i)
 /// set texture and sampler states
 void Context::SetTexture(int iHandle, nglFXParam_Sampler *param)
 {
+#if defined(BLUR_USE_DX11)
+	// [Blur1PCDX11] Legacy sampler registers; the native pass binds its own.
+	if (m_bNativePass) return;
+#endif
 	m_pDisplay->SetTexture(iHandle, FetchTexture((void*)param->Texture));
 	SetSamplerState(iHandle, param->iSamplerState);
 }
@@ -795,6 +802,9 @@ void Context::SetTexture(int iHandle, nglFXParam_Sampler *param)
 /// set vertex texture and sampler states
 void Context::SetVertexTexture(int iHandle, nglFXParam_Sampler *param)
 {
+#if defined(BLUR_USE_DX11)
+	if (m_bNativePass) return; // [Blur1PCDX11] see SetTexture
+#endif
 	m_pDisplay->SetVertexTexture(iHandle, FetchTexture(GetDefaultVertexTextureFor((void*)param->Texture)));	// [Blur2PC]
 	SetVertexSamplerState(iHandle, param->iSamplerState);	
 }
@@ -1065,6 +1075,10 @@ void Context::BindVertexFunction(Effect* effect, Pass* /*pass*/, Function* funct
 /// set parameters for the given pixel shader
 void Context::BindPixelFunction(Effect* effect, Pass* pass, Function* function)
 {
+#if defined(BLUR_USE_DX11)
+	// [Blur1PCDX11] The native pass sets the pixel shader at the next draw.
+	if (!m_bNativePass)
+#endif
 #if !PLATFORM_PPU_SPU
 	m_pDisplay->SetPixelShader(m_pCurrentPixelShader);
 #endif
@@ -1342,6 +1356,9 @@ void Context::BeginPass(Effect* pEffect, U32 iTechnique)
 	}
 
 	m_pCurrentPass = pPass;
+#if defined(BLUR_USE_DX11)
+	m_bNativePass = NativeFX11HasPass(pEffect, pPass, iTechnique);
+#endif
 
 #if PLATFORM_SPU
 	m_Allocator[0].Reset();

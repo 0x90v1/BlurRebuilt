@@ -163,6 +163,62 @@ HRESULT C_D3D11EffectLibrary::Get(ID3D11Device* device, const char* gameEffectNa
     return S_OK;
 }
 
+const void* C_D3D11EffectLibrary::FindEntry(const char* gameEffectName, const char* technique) const
+{
+    if (!gameEffectName) return nullptr;
+    const std::string key = EffectKey(gameEffectName);
+    auto found = m_Effects.end();
+    if (technique) found = m_Effects.find(key + "@" + EffectKey(technique));
+    if (found == m_Effects.end()) found = m_Effects.find(key);
+    return found == m_Effects.end() ? nullptr : &found->second;
+}
+
+HRESULT C_D3D11EffectLibrary::GetEffect(ID3D11Device* device, const void* entry, C_D3D11Effect** effect)
+{
+    if (!device || !entry || !effect) return E_INVALIDARG;
+    *effect = nullptr;
+    C_Entry& found = *const_cast<C_Entry*>(static_cast<const C_Entry*>(entry));
+    if (!found.effect)
+    {
+        std::unique_ptr<C_D3D11Effect> loaded(new C_D3D11Effect);
+        const HRESULT result = loaded->LoadFile(device, found.path.c_str());
+        if (FAILED(result)) return result;
+        found.effect = std::move(loaded);
+    }
+    *effect = found.effect.get();
+    return S_OK;
+}
+
+const char* C_D3D11EffectLibrary::EntryTextureForSampler(const void* entry, const char* samplerName) const
+{
+    if (!entry || !samplerName) return nullptr;
+    const C_Entry& found = *static_cast<const C_Entry*>(entry);
+    const std::string key = EffectKey(samplerName);
+    const auto sampler = found.samplerTextures.find(key);
+    if (sampler != found.samplerTextures.end()) return sampler->second.c_str();
+    const auto texture = found.textureNames.find(key);
+    return texture == found.textureNames.end() ? nullptr : texture->second.c_str();
+}
+
+HRESULT C_D3D11EffectLibrary::EntrySamplerNames(const void* entry, const char* samplerOrTexture,
+                                                 std::vector<const char*>* names) const
+{
+    if (!entry || !samplerOrTexture || !names) return E_INVALIDARG;
+    names->clear();
+    const C_Entry& found = *static_cast<const C_Entry*>(entry);
+    const std::string key = EffectKey(samplerOrTexture);
+    const auto sampler = found.samplerNames.find(key);
+    if (sampler != found.samplerNames.end())
+    {
+        names->push_back(sampler->second.c_str());
+        return S_OK;
+    }
+    const auto texture = found.textureSamplers.find(key);
+    if (texture == found.textureSamplers.end()) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
+    for (const std::string& name : texture->second) names->push_back(name.c_str());
+    return S_OK;
+}
+
 HRESULT C_D3D11EffectLibrary::PreloadAll(ID3D11Device* device,
                                           std::string* failedName)
 {

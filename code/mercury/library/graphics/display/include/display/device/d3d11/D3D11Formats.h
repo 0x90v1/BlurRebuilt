@@ -30,11 +30,21 @@ DXGI_FORMAT GetTextureResourceFormat(DXGI_FORMAT format);
 DXGI_FORMAT GetLinearFormat(DXGI_FORMAT format);
 HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
                           bool srgb, ID3D11ShaderResourceView** view,
-                          ID3D11ShaderResourceView* existing = nullptr);
+                          ID3D11ShaderResourceView* existing = nullptr, bool* owned = nullptr);
+// [Blur1PCDX11] Changes whenever an owned texture is released, so a caller may
+// keep "this texture has this owned view" until the generation changes.
+unsigned TextureViewOwnerGeneration();
 // [Blur1PCDX11] Display2's texture owner pairs these at creation/destruction.
 // Retained views are released before its resource; raw resources stay uncached.
 void RegisterTextureViewOwner(ID3D11Resource* resource);
 void ReleaseTextureViewOwner(ID3D11Resource* resource);
+// [Blur1PCDX11] Render-target and depth views of an owned resource, kept with
+// its owner like the shader views; other resources get a new view each call.
+// A null desc means the resource's default view.
+HRESULT GetRenderTargetView(ID3D11Device* device, ID3D11Resource* resource,
+                            const D3D11_RENDER_TARGET_VIEW_DESC* desc, ID3D11RenderTargetView** view);
+HRESULT GetDepthStencilView(ID3D11Device* device, ID3D11Resource* resource,
+                            const D3D11_DEPTH_STENCIL_VIEW_DESC* desc, ID3D11DepthStencilView** view);
 
 } }
 

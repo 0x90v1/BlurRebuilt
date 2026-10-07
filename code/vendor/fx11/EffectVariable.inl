@@ -1516,8 +1516,14 @@ struct TNumericVariable : public IBaseInterface
             }
 #endif
 
-            DirtyVariable();
-            memcpy(Data.pNumeric + ByteOffset, pData, ByteCount);
+            // [Blur1PCDX11] Blur rebinds every shared parameter at each pass, as its D3D9
+            // path rewrote registers. An identical value leaves the constant buffer clean,
+            // so Apply does not upload it again.
+            if (memcmp(Data.pNumeric + ByteOffset, pData, ByteCount) != 0)
+            {
+                DirtyVariable();
+                memcpy(Data.pNumeric + ByteOffset, pData, ByteCount);
+            }
 
 lExit:
             return hr;
@@ -4648,6 +4654,11 @@ HRESULT TSamplerVariable<IBaseInterface>::SetSampler(uint32_t Index, ID3D11Sampl
     static LPCSTR pFuncName = "ID3DX11EffectSamplerState::SetSampler";
 
     CHECK_SCALAR_BOUNDS(Index);
+
+    // [Blur1PCDX11] Setting the user state already in place changes nothing; the
+    // shader-block references below were replaced when it was first set.
+    if (Data.pSampler[Index].IsUserManaged && Data.pSampler[Index].pD3DObject == pSampler)
+        return S_OK;
 
     // Replace all references to the old shader block with this one
     GetEffect()->ReplaceSamplerReference(&Data.pSampler[Index], pSampler);

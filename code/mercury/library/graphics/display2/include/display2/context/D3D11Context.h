@@ -19,6 +19,10 @@
 
 namespace Display2
 {
+
+// [Blur1PCDX11] Call after a GPU copy, resolve or update writes a resource the
+// game may lock, so its persistent staging mirror follows the new contents.
+void D3D11ResourceWritten(ID3D11Resource* resource, ID3D11DeviceContext* context);
 	
 //------------------------------------------------------------------------------
 // Defines

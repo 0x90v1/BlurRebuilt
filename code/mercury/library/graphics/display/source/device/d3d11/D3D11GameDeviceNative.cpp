@@ -5,6 +5,7 @@
 #include "Display/Device/D3D11/D3D11States.h"
 #include "Display/Device/D3D11/D3D11Formats.h"
 #include <map>
+#include <unordered_map>
 #include <array>
 #include <wrl/client.h>
 #include <system/debug/Blur2PCAutomation.h>
@@ -17,6 +18,14 @@
 namespace FX { const char* NativeFX11LastError(); const char* NativeFX11CurrentPass(); }
 
 namespace Display { namespace D3D11 {
+bool (*g_FlushNativeFX)() = nullptr;
+// [Blur1PCDX11] FX effects declare the alpha-test cbuffer (b13), so an FX Apply
+// binds the effect's copy there; the device's buffer is rebound after each one.
+static bool g_alphaConstantsBound = false;
+void FlushNativeFX()
+{
+    if (g_FlushNativeFX && g_FlushNativeFX()) g_alphaConstantsBound = false;
+}
 namespace {
 using Microsoft::WRL::ComPtr;
 struct NativeState
@@ -37,6 +46,11 @@ struct NativeState
     float pixelData[256 * 4] = {};
     bool vertexDirty = true, pixelDirty = true;
     bool nativeFXActive = false;
+    // [Blur1PCDX11] D3D9 render states take effect at the next draw. Build the
+    // D3D11 state objects once per draw from the latest values, not per setter.
+    bool blendDirty = true, depthDirty = true, rasterDirty = true;
+    D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+    bool defaultVertexInputsBound = false;
     // [Blur1PCDX11] depth.FrontFace/BackFace retain the PC CW/CCW banks.
     bool stencilTwoSided = false, stencilTriangles = true;
     UINT stencilRef = 0xff;
@@ -78,7 +92,51 @@ struct NativeState
     }
 };
 std::map<C_D3D11GameDevice*, NativeState> g_states;
-NativeState& State(C_D3D11GameDevice* device) { return g_states[device]; }
+NativeState& State(C_D3D11GameDevice* device)
+{
+    static C_D3D11GameDevice* last = nullptr;
+    static NativeState* state = nullptr;
+    if (device != last) { last = device; state = &g_states[device]; }
+    return *state;
+}
+
+// [Blur1PCDX11] Immutable state objects by descriptor. The runtime also
+// deduplicates identical descriptors, but only after a locked lookup per call.
+// Descriptors are hashed as bytes, so keys are built with zeroed padding.
+template <class T_Desc> struct C_DescHash
+{
+    size_t operator()(const T_Desc& desc) const
+    {
+        unsigned hash = 2166136261u;
+        const unsigned char* bytes = reinterpret_cast<const unsigned char*>(&desc);
+        for (size_t i = 0; i < sizeof(desc); ++i) hash = (hash ^ bytes[i]) * 16777619u;
+        return hash;
+    }
+};
+template <class T_Desc> struct C_DescEqual
+{
+    bool operator()(const T_Desc& a, const T_Desc& b) const { return memcmp(&a, &b, sizeof(a)) == 0; }
+};
+template <class T_Desc, class T_State> using T_StateCache =
+    std::unordered_map<T_Desc, ComPtr<T_State>, C_DescHash<T_Desc>, C_DescEqual<T_Desc>>;
+struct S_StateCaches
+{
+    ID3D11Device* device = nullptr;
+    T_StateCache<D3D11_BLEND_DESC, ID3D11BlendState> blend;
+    T_StateCache<D3D11_DEPTH_STENCIL_DESC, ID3D11DepthStencilState> depth;
+    T_StateCache<D3D11_RASTERIZER_DESC, ID3D11RasterizerState> raster;
+    T_StateCache<D3D11_SAMPLER_DESC, ID3D11SamplerState> sampler;
+};
+S_StateCaches& StateCaches(ID3D11Device* device)
+{
+    static S_StateCaches caches;
+    if (caches.device != device)
+    {
+        caches.blend.clear(); caches.depth.clear(); caches.raster.clear(); caches.sampler.clear();
+        caches.device = device;
+    }
+    return caches;
+}
 
 // [Blur1PCDX11] Opt-in, bounded stacks identify callers hidden by draw wrappers.
 void TraceMissingVertexShader(bool indexed, U32 count, const C_VertexShader* shader, bool nativeFX)
@@ -171,9 +229,19 @@ void BindVertexViews(NativeState& state, ID3D11DeviceContext* context, const C_V
 }
 ComPtr<ID3D11DeviceContext> Context(ID3D11Device* device)
 {
-    ComPtr<ID3D11DeviceContext> context;
-    if (device) device->GetImmediateContext(&context);
-    return context;
+    static ID3D11Device* last = nullptr;
+    static ID3D11DeviceContext* immediate = nullptr;
+    if (device != last)
+    {
+        last = device;
+        immediate = nullptr;
+        if (device)
+        {
+            device->GetImmediateContext(&immediate);
+            if (immediate) immediate->Release(); // owned by the device
+        }
+    }
+    return ComPtr<ID3D11DeviceContext>(immediate);
 }
 D3D11_BLEND Blend(E_Blend value)
 {
@@ -242,23 +310,15 @@ D3D11_PRIMITIVE_TOPOLOGY Topology(E_PrimitiveType value)
     default: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
     }
 }
-void ApplyBlend(C_D3D11GameDevice* device)
+void ApplyBlend(C_D3D11GameDevice* device) { State(device).blendDirty = true; }
+void ApplyDepth(C_D3D11GameDevice* device) { State(device).depthDirty = true; }
+// [Blur1PCDX11] Only these draws set the input-assembler topology (traces excepted).
+void SetTopology(C_D3D11GameDevice* device, ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology)
 {
-    auto context = Context(device->GetD3DDevice()); if (!context) return;
-    ComPtr<ID3D11BlendState> state;
-    if (SUCCEEDED(device->GetD3DDevice()->CreateBlendState(&State(device).blend, &state)))
-    { const float factors[4] = {1,1,1,1}; context->OMSetBlendState(state.Get(), factors, 0xffffffff); }
-}
-void ApplyDepth(C_D3D11GameDevice* device)
-{
-    auto context = Context(device->GetD3DDevice()); if (!context) return;
-    const NativeState& cached = State(device);
-    D3D11_DEPTH_STENCIL_DESC desc = cached.depth;
-    ResolveStencilFaces(desc, cached.stencilTwoSided,
-                        cached.raster.FrontCounterClockwise != FALSE, cached.stencilTriangles);
-    ComPtr<ID3D11DepthStencilState> state;
-    if (SUCCEEDED(device->GetD3DDevice()->CreateDepthStencilState(&desc, &state)))
-        context->OMSetDepthStencilState(state.Get(), State(device).stencilRef);
+    NativeState& state = State(device);
+    if (state.topology == topology) return;
+    state.topology = topology;
+    context->IASetPrimitiveTopology(topology);
 }
 void SetStencilTopology(C_D3D11GameDevice* device, D3D11_PRIMITIVE_TOPOLOGY topology)
 {
@@ -271,30 +331,81 @@ void SetStencilTopology(C_D3D11GameDevice* device, D3D11_PRIMITIVE_TOPOLOGY topo
 }
 void ApplyRaster(C_D3D11GameDevice* device)
 {
-    auto context = Context(device->GetD3DDevice()); if (!context) return;
-    ComPtr<ID3D11RasterizerState> state;
-    if (SUCCEEDED(device->GetD3DDevice()->CreateRasterizerState(&State(device).raster, &state)))
-        context->RSSetState(state.Get());
-    if (State(device).stencilTwoSided) ApplyDepth(device);
+    NativeState& state = State(device);
+    state.rasterDirty = true;
+    if (state.stencilTwoSided) state.depthDirty = true;
+}
+// [Blur1PCDX11] Bind the latest blend, depth-stencil and rasterizer states
+// before a draw. Native FX passes carry no render states, so FX cannot
+// override these between the setter and the draw.
+void ApplyDirtyStates(C_D3D11GameDevice* device, ID3D11DeviceContext* context)
+{
+    NativeState& cached = State(device);
+    if (!cached.blendDirty && !cached.depthDirty && !cached.rasterDirty) return;
+    S_StateCaches& caches = StateCaches(device->GetD3DDevice());
+    if (cached.blendDirty)
+    {
+        cached.blendDirty = false;
+        D3D11_BLEND_DESC key;
+        memset(&key, 0, sizeof(key));
+        key.AlphaToCoverageEnable = cached.blend.AlphaToCoverageEnable;
+        key.IndependentBlendEnable = cached.blend.IndependentBlendEnable;
+        for (UINT i = 0; i < 8; ++i)
+        {
+            const D3D11_RENDER_TARGET_BLEND_DESC& from = cached.blend.RenderTarget[i];
+            D3D11_RENDER_TARGET_BLEND_DESC& to = key.RenderTarget[i];
+            to.BlendEnable = from.BlendEnable; to.SrcBlend = from.SrcBlend; to.DestBlend = from.DestBlend;
+            to.BlendOp = from.BlendOp; to.SrcBlendAlpha = from.SrcBlendAlpha; to.DestBlendAlpha = from.DestBlendAlpha;
+            to.BlendOpAlpha = from.BlendOpAlpha; to.RenderTargetWriteMask = from.RenderTargetWriteMask;
+        }
+        ComPtr<ID3D11BlendState>& state = caches.blend[key];
+        if (state || SUCCEEDED(device->GetD3DDevice()->CreateBlendState(&key, &state)))
+        { const float factors[4] = {1,1,1,1}; context->OMSetBlendState(state.Get(), factors, 0xffffffff); }
+    }
+    if (cached.depthDirty)
+    {
+        cached.depthDirty = false;
+        D3D11_DEPTH_STENCIL_DESC desc = cached.depth;
+        ResolveStencilFaces(desc, cached.stencilTwoSided,
+                            cached.raster.FrontCounterClockwise != FALSE, cached.stencilTriangles);
+        D3D11_DEPTH_STENCIL_DESC key;
+        memset(&key, 0, sizeof(key));
+        key.DepthEnable = desc.DepthEnable; key.DepthWriteMask = desc.DepthWriteMask; key.DepthFunc = desc.DepthFunc;
+        key.StencilEnable = desc.StencilEnable; key.StencilReadMask = desc.StencilReadMask;
+        key.StencilWriteMask = desc.StencilWriteMask; key.FrontFace = desc.FrontFace; key.BackFace = desc.BackFace;
+        ComPtr<ID3D11DepthStencilState>& state = caches.depth[key];
+        if (state || SUCCEEDED(device->GetD3DDevice()->CreateDepthStencilState(&key, &state)))
+            context->OMSetDepthStencilState(state.Get(), cached.stencilRef);
+    }
+    if (cached.rasterDirty)
+    {
+        cached.rasterDirty = false;
+        ComPtr<ID3D11RasterizerState>& state = caches.raster[cached.raster];
+        if (state || SUCCEEDED(device->GetD3DDevice()->CreateRasterizerState(&cached.raster, &state)))
+            context->RSSetState(state.Get());
+    }
 }
 void ApplySampler(C_D3D11GameDevice* device, U32 slot, bool vertex)
 {
+    FlushNativeFX();
     auto context = Context(device->GetD3DDevice()); if (!context || slot >= (vertex ? 4U : 16U)) return;
     D3D11_SAMPLER_DESC& desc = vertex ? State(device).vertexSampler[slot] : State(device).sampler[slot];
     // [Blur2PC] D3D9 MIPFILTER=NONE samples mip zero even when minifying.
     const auto mip = vertex ? device->m_VertexSampler[slot].m_FilterMip : device->m_Sampler[slot].m_FilterMip;
     desc.MaxLOD = mip == E_TextureFilter_None ? 0.f : D3D11_FLOAT32_MAX;
-    ComPtr<ID3D11SamplerState> state;
-    if (SUCCEEDED(device->GetD3DDevice()->CreateSamplerState(&desc, &state)))
-    { ID3D11SamplerState* raw = state.Get(); if (vertex) context->VSSetSamplers(slot, 1, &raw); else context->PSSetSamplers(slot, 1, &raw); }
+    ComPtr<ID3D11SamplerState>& state = StateCaches(device->GetD3DDevice()).sampler[desc];
+    if (state || SUCCEEDED(device->GetD3DDevice()->CreateSamplerState(&desc, &state)))
+    { ID3D11SamplerState* raw = state.Get(); if (vertex) context->VSSetSamplers(slot, 1, &raw); else context->PSSetSamplers(slot, 1, &raw);
+      D3DX11InvalidateBoundState(vertex ? 1u : 2u, 4u); }
 }
 void BindConstants(C_D3D11GameDevice* device, bool vertex)
 {
-    auto context = Context(device->GetD3DDevice()); if (!context) return;
     NativeState& state = State(device);
     // [Blur1PCDX11] FX11 owns its reflected constant buffers. Legacy register
     // writes may update the cache, but must not replace those buffers on the GPU.
     if (state.nativeFXActive) return;
+    FlushNativeFX();
+    auto context = Context(device->GetD3DDevice()); if (!context) return;
     auto& buffer = vertex ? state.vertexConstants : state.pixelConstants;
     bool& dirty = vertex ? state.vertexDirty : state.pixelDirty;
     float* data = vertex ? state.vertexData : state.pixelData;
@@ -310,6 +421,7 @@ void BindConstants(C_D3D11GameDevice* device, bool vertex)
     for (auto& slot : raw) slot = buffer.Get();
     if (vertex) context->VSSetConstantBuffers(0, 8, raw);
     else context->PSSetConstantBuffers(0, 8, raw);
+    D3DX11InvalidateBoundState(vertex ? 1u : 2u, 2u);
 }
 // [Blur1PCDX11] D3D9 compares alpha at render target 0's precision: 0 float32,
 // 1 float16, otherwise the UNORM bit count. Measured on the D3D9 HAL for
@@ -339,6 +451,7 @@ UINT AlphaTestFormat(DXGI_FORMAT format)
 }
 void BindAlphaTest(C_D3D11GameDevice* device)
 {
+    FlushNativeFX();
     auto context = Context(device->GetD3DDevice()); if (!context) return;
     NativeState& state = State(device);
     if (!state.alphaConstants)
@@ -347,6 +460,7 @@ void BindAlphaTest(C_D3D11GameDevice* device)
         desc.ByteWidth = sizeof(state.alpha);
         desc.Usage = D3D11_USAGE_DEFAULT; desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         if (FAILED(device->GetD3DDevice()->CreateBuffer(&desc, nullptr, &state.alphaConstants))) return;
+        g_alphaConstantsBound = false;
     }
     if (state.alphaDirty)
     {
@@ -354,8 +468,11 @@ void BindAlphaTest(C_D3D11GameDevice* device)
         state.alphaDirty = false;
     }
     // [Blur1PCDX11] Apply after FX11, which owns the other shader buffers.
+    if (g_alphaConstantsBound) return;
     ID3D11Buffer* buffer = state.alphaConstants.Get();
     context->PSSetConstantBuffers(13, 1, &buffer);
+    D3DX11InvalidateBoundState(2u, 2u);
+    g_alphaConstantsBound = true;
 }
 void BindRenderTargets(C_D3D11GameDevice* game)
 {
@@ -386,7 +503,7 @@ void BindRenderTargets(C_D3D11GameDevice* game)
             vd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
             vd.Texture2D.MipSlice = surface->m_Subresource;
         }
-        const HRESULT hr = device->CreateRenderTargetView(surface->m_pd3dSurface, &vd, &views[slot]);
+        const HRESULT hr = GetRenderTargetView(device, surface->m_pd3dSurface, &vd, &views[slot]);
         if (FAILED(hr)) { static unsigned failures = 0; if (failures++ < 12)
             Blur2PCAutomation::LogF("DX11 RTV creation failed %08x slot=%u format=%d sub=%u", (unsigned)hr, slot, (int)td.Format, surface->m_Subresource); }
         raw[slot] = views[slot].Get();
@@ -415,7 +532,7 @@ void BindRenderTargets(C_D3D11GameDevice* game)
         state.depthSurface->m_pd3dSurface->GetDesc(&depthDesc);
         if (colourDesc.Width == depthDesc.Width && colourDesc.Height == depthDesc.Height &&
             colourDesc.SampleDesc.Count == depthDesc.SampleDesc.Count)
-            device->CreateDepthStencilView(state.depthSurface->m_pd3dSurface, nullptr, &depthView);
+            GetDepthStencilView(device, state.depthSurface->m_pd3dSurface, nullptr, &depthView);
         else
         {
             static unsigned traced = 0;
@@ -425,6 +542,7 @@ void BindRenderTargets(C_D3D11GameDevice* game)
         }
     }
     context->OMSetRenderTargets(count, raw, depthView.Get());
+    D3DX11InvalidateBoundState(3u, 8u);
     if (raw[0])
     {
         D3D11_TEXTURE2D_DESC colourDesc = {};
@@ -649,7 +767,11 @@ void C_D3D11GameDevice::SetVertexDeclaration(const C_VertexDeclaration* declarat
         }
         defaultBuffers[input] = state.defaultVertexInputs[input].Get();
     }
-    context->IASetVertexBuffers(29, 3, defaultBuffers, defaultStrides, defaultOffsets);
+    if (!state.defaultVertexInputsBound)
+    {
+        context->IASetVertexBuffers(29, 3, defaultBuffers, defaultStrides, defaultOffsets);
+        state.defaultVertexInputsBound = true;
+    }
     ID3D11InputLayout* nativeLayout = nullptr;
     if (declaration && m_pVertexShader && !m_pVertexShader->m_Bytecode.empty())
     {
@@ -672,6 +794,7 @@ void C_D3D11GameDevice::SetVertexDeclaration(const C_VertexDeclaration* declarat
 }
 void C_D3D11GameDevice::SetVertexShader(const C_VertexShader* shader)
 {
+    FlushNativeFX();
     m_pVertexShader = shader; State(this).nativeFXActive = false;
     if (shader && !shader->m_pd3dVertexShader)
     {
@@ -683,15 +806,18 @@ void C_D3D11GameDevice::SetVertexShader(const C_VertexShader* shader)
     }
     auto context = Context(m_pd3dDevice); if (!context) return;
     context->VSSetShader(shader ? shader->m_pd3dVertexShader : nullptr, nullptr, 0);
+    D3DX11InvalidateBoundState(1u, 1u | 8u);
     BindVertexViews(State(this), context.Get(), shader);
     if (m_pVertexDeclaration) SetVertexDeclaration(m_pVertexDeclaration);
 }
 const C_VertexShader* C_D3D11GameDevice::GetVertexShader() { return m_pVertexShader; }
 void C_D3D11GameDevice::SetPixelShader(const C_PixelShader* shader)
 {
+    FlushNativeFX();
     m_pPixelShader = shader; State(this).nativeFXActive = false;
     auto context = Context(m_pd3dDevice); if (!context) return;
     context->PSSetShader(shader ? shader->m_pd3dPixelShader : nullptr, nullptr, 0);
+    D3DX11InvalidateBoundState(2u, 1u | 8u);
     BindPixelViews(State(this), context.Get(), shader);
 }
 const C_PixelShader* C_D3D11GameDevice::GetPixelShader() { return m_pPixelShader; }
@@ -981,6 +1107,7 @@ static void TraceVehicleVertices(ID3D11Device* device, ID3D11DeviceContext* cont
 }
 void C_D3D11GameDevice::SetNativeTexture(U32 slot, ID3D11Resource* sampled)
 {
+    FlushNativeFX();
     if (slot >= E_Sampler_Count) return;
     auto context = Context(m_pd3dDevice); if (!context) return;
     if (sampled)
@@ -1046,6 +1173,7 @@ void C_D3D11GameDevice::SetNativeTexture(U32 slot, ID3D11Resource* sampled)
         target = state.pixelTextureRegisters[slot];
     if (target < 0) return;
     ID3D11ShaderResourceView* raw = view.Get(); context->PSSetShaderResources(target, 1, &raw);
+    D3DX11InvalidateBoundState(2u, 8u);
 }
 void C_D3D11GameDevice::SetVertexTexture(U32 slot, const C_Texture* texture)
 {
@@ -1055,6 +1183,7 @@ void C_D3D11GameDevice::SetVertexTexture(U32 slot, const C_Texture* texture)
 }
 void C_D3D11GameDevice::SetNativeVertexTexture(U32 slot, ID3D11Resource* texture)
 {
+    FlushNativeFX();
     if (slot >= E_VertexSampler_Count) return;
     auto context = Context(m_pd3dDevice); if (!context) return;
     ComPtr<ID3D11ShaderResourceView> view;
@@ -1067,11 +1196,12 @@ void C_D3D11GameDevice::SetNativeVertexTexture(U32 slot, ID3D11Resource* texture
         target = state.vertexTextureRegisters[slot];
     if (target < 0) return;
     ID3D11ShaderResourceView* raw = view.Get(); context->VSSetShaderResources(target, 1, &raw);
+    D3DX11InvalidateBoundState(1u, 8u);
 }
 void C_D3D11GameDevice::SetVertexShaderConstantF(U32 start, const F32* data, U32 count)
-{ if (!data || start + count > 256) return; memcpy(State(this).vertexData + start * 4, data, count * 4 * sizeof(F32)); State(this).vertexDirty = true; BindConstants(this, true); }
+{ if (!data || start + count > 256) return; memcpy(State(this).vertexData + start * 4, data, count * 4 * sizeof(F32)); State(this).vertexDirty = true; }
 void C_D3D11GameDevice::SetPixelShaderConstantF(U32 start, const F32* data, U32 count)
-{ if (!data || start + count > 256) return; memcpy(State(this).pixelData + start * 4, data, count * 4 * sizeof(F32)); State(this).pixelDirty = true; BindConstants(this, false); }
+{ if (!data || start + count > 256) return; memcpy(State(this).pixelData + start * 4, data, count * 4 * sizeof(F32)); State(this).pixelDirty = true; }
 void C_D3D11GameDevice::SetVertexShaderParameterF(C_VertexShaderParameter param, const F32* data, U32 count)
 { SetVertexShaderConstantF(param.m_RegisterIndex, data, count); }
 void C_D3D11GameDevice::SetPixelShaderParameterF(C_PixelShaderParameter param, const F32* data)
@@ -1079,12 +1209,16 @@ void C_D3D11GameDevice::SetPixelShaderParameterF(C_PixelShaderParameter param, c
 void C_D3D11GameDevice::SetPixelShaderParameterArrayF(const C_PixelShaderParameterArray& param, const F32* data)
 { SetPixelShaderConstantF(param.m_RegisterIndex, data, param.m_RegisterCount); }
 void C_D3D11GameDevice::SetPixelShaderParameters(const C_PixelShader* shader)
-{ BindConstants(this, false); }
+{ (void)shader; } // [Blur1PCDX11] constants are uploaded by the next legacy draw
 void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count)
-{ auto context = Context(m_pd3dDevice); if (!context) return; context->IASetPrimitiveTopology(Topology(type));
+{ FlushNativeFX(); auto context = Context(m_pd3dDevice); if (!context) return; SetTopology(this, context.Get(), Topology(type));
   SetStencilTopology(this, Topology(type));
-  ComPtr<ID3D11VertexShader> bound; context->VSGetShader(&bound, nullptr, nullptr);
-  if (!bound) { TraceMissingVertexShader(false, count, m_pVertexShader, State(this).nativeFXActive);
+  ApplyDirtyStates(this, context.Get());
+  // [Blur1PCDX11] A native FX pass always binds its vertex shader; only legacy
+  // draws can arrive without one.
+  ComPtr<ID3D11VertexShader> bound;
+  if (!State(this).nativeFXActive) context->VSGetShader(&bound, nullptr, nullptr);
+  if (!State(this).nativeFXActive && !bound) { TraceMissingVertexShader(false, count, m_pVertexShader, State(this).nativeFXActive);
       static unsigned missing = 0; if (missing++ < 64)
       Blur2PCAutomation::LogF("DX11 draw without VS caller=%p module=%p lastFX=%s", _ReturnAddress(), GetModuleHandleW(nullptr), FX::NativeFX11LastError()); return; }
   { static unsigned trace = 0; if (trace++ < 18) {
@@ -1094,7 +1228,7 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
       context->OMGetRenderTargets(1, &rtv, &dsv);
       Blur2PCAutomation::LogF("DX11 Draw count=%u VS=%p PS=%p IA=%p RTV=%p DSV=%p caller=%p", count, bound.Get(), ps.Get(), layout.Get(), rtv.Get(), dsv.Get(), _ReturnAddress());
   } }
-  { static unsigned lateTrace = 0; if (Blur2PCAutomation::Now() > 5.0 && lateTrace++ < 20) {
+  { static unsigned lateTrace = 0; if (lateTrace < 20 && Blur2PCAutomation::Now() > 5.0 && lateTrace++ < 20) {
       ComPtr<ID3D11PixelShader> ps; ComPtr<ID3D11InputLayout> layout;
       ComPtr<ID3D11RenderTargetView> rtv; ComPtr<ID3D11Buffer> vb, ib;
       UINT stride = 0, offset = 0, indexOffset = 0; DXGI_FORMAT indexFormat = DXGI_FORMAT_UNKNOWN;
@@ -1161,8 +1295,9 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
   }
   TraceDraw(m_pd3dDevice, context.Get(), State(this), count, false); }
 void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32 start, U32 count)
-{ auto context = Context(m_pd3dDevice); if (!context) return; context->IASetPrimitiveTopology(Topology(type));
+{ FlushNativeFX(); auto context = Context(m_pd3dDevice); if (!context) return; SetTopology(this, context.Get(), Topology(type));
   SetStencilTopology(this, Topology(type));
+  ApplyDirtyStates(this, context.Get());
   // [Blur1PCDX11] Inspect one actual scene material draw after loading.
   static const bool traceScene = getenv("BLUR_DX11_TRACE_SCENE") != nullptr;
   if (State(this).nativeFXActive && traceScene &&
@@ -1254,8 +1389,11 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
           }
       }
   }
-  ComPtr<ID3D11VertexShader> bound; context->VSGetShader(&bound, nullptr, nullptr);
-  if (!bound) { TraceMissingVertexShader(true, count, m_pVertexShader, State(this).nativeFXActive);
+  // [Blur1PCDX11] A native FX pass always binds its vertex shader; only legacy
+  // draws can arrive without one.
+  ComPtr<ID3D11VertexShader> bound;
+  if (!State(this).nativeFXActive) context->VSGetShader(&bound, nullptr, nullptr);
+  if (!State(this).nativeFXActive && !bound) { TraceMissingVertexShader(true, count, m_pVertexShader, State(this).nativeFXActive);
       static unsigned missing = 0; if (missing++ < 64)
       Blur2PCAutomation::LogF("DX11 indexed draw without VS caller=%p module=%p lastFX=%s", _ReturnAddress(), GetModuleHandleW(nullptr), FX::NativeFX11LastError()); return; }
   { static unsigned trace = 0; if (trace++ < 18) {
@@ -1274,7 +1412,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
       D3D11_DEPTH_STENCIL_DESC dd = {}; if (ds) ds->GetDesc(&dd);
       Blur2PCAutomation::LogF("DX11 DrawIndexed count=%u VS=%p PS=%p IA=%p RTV=%p DSV=%p VB=%p stride=%u IB=%p VP=%.0fx%.0f z=%.1f..%.1f depth=%u/%u caller=%p", count, bound.Get(), ps.Get(), layout.Get(), rtv.Get(), dsv.Get(), vb.Get(), stride, ib.Get(), viewport.Width, viewport.Height, viewport.MinDepth, viewport.MaxDepth, dd.DepthEnable, dd.DepthFunc, _ReturnAddress());
   } }
-  { static unsigned lateTrace = 0; if (Blur2PCAutomation::Now() > 5.0 && lateTrace++ < 20) {
+  { static unsigned lateTrace = 0; if (lateTrace < 20 && Blur2PCAutomation::Now() > 5.0 && lateTrace++ < 20) {
       ComPtr<ID3D11PixelShader> ps; ComPtr<ID3D11InputLayout> layout;
       ComPtr<ID3D11RenderTargetView> rtv; ComPtr<ID3D11Buffer> vb, ib;
       UINT stride = 0, offset = 0, indexOffset = 0; DXGI_FORMAT indexFormat = DXGI_FORMAT_UNKNOWN;
@@ -1443,6 +1581,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
           context->IAGetInputLayout(&originalLayout);
           context->VSSetShader(testVS.Get(), nullptr, 0);
           context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+          State(this).topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
           context->DrawIndexed(count, start, base);
           context->VSSetShader(originalVS.Get(), nullptr, 0);
           context->IASetInputLayout(originalLayout.Get());
@@ -1458,7 +1597,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
       context->OMSetDepthStencilState(oldDepth.Get(), oldStencil);
       context->OMSetBlendState(oldBlend.Get(), oldBlendFactor, oldSampleMask);
   }
-  if (testPS) context->PSSetShader(original.Get(), nullptr, 0);
+  if (testPS) { context->PSSetShader(original.Get(), nullptr, 0); D3DX11InvalidateBoundState(3u, 1u); }
 }
 void C_D3D11GameDevice::SetNativeFXActive(bool active) { State(this).nativeFXActive = active; }
 void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32 minIndex, U32 vertexCount, U32 start, U32 count)
@@ -1545,11 +1684,14 @@ C_RenderTarget::C_RenderTarget() : m_pColourSurface(nullptr), m_pDepthStencilSur
 C_RenderTarget::~C_RenderTarget() {}
 
 void C_D3D11GameDevice::SetAlphaTestEnable(E_Bool value)
-{ m_AlphaTestEnable = value; State(this).alpha.enabled = value == E_Bool_True; State(this).alphaDirty = true; }
+{ m_AlphaTestEnable = value; const UINT enabled = value == E_Bool_True;
+  if (State(this).alpha.enabled != enabled) { State(this).alpha.enabled = enabled; State(this).alphaDirty = true; } }
 void C_D3D11GameDevice::SetAlphaTestFunc(E_CmpFunc value)
-{ m_AlphaTestFunc = value; State(this).alpha.function = Compare(value); State(this).alphaDirty = true; }
+{ m_AlphaTestFunc = value; const UINT function = Compare(value);
+  if (State(this).alpha.function != function) { State(this).alpha.function = function; State(this).alphaDirty = true; } }
 void C_D3D11GameDevice::SetAlphaTestRef(U32 value)
-{ m_AlphaTestRef = value; State(this).alpha.reference = static_cast<F32>(value & 255) * (1.0f / 255.0f); State(this).alphaDirty = true; }
+{ m_AlphaTestRef = value; const F32 reference = static_cast<F32>(value & 255) * (1.0f / 255.0f);
+  if (State(this).alpha.reference != reference) { State(this).alpha.reference = reference; State(this).alphaDirty = true; } }
 void C_D3D11GameDevice::SetAlphaToMaskEnable(E_Bool value)
 { m_AlphaToMaskEnable = value; State(this).blend.AlphaToCoverageEnable = value == E_Bool_True; ApplyBlend(this); }
 void C_D3D11GameDevice::SetBlend(E_Blend src, E_Blend dst, E_BlendOp op,
@@ -1683,7 +1825,10 @@ void C_D3D11GameDevice::SetStencilCcwFunc(E_CmpFunc value)
 void C_D3D11GameDevice::SetStencilCcwRef(S32) {}
 void C_D3D11GameDevice::SetStencilCcwMask(U32) {}
 void C_D3D11GameDevice::SetStencilCcwWriteMask(U32) {}
-void C_D3D11GameDevice::SetPresentInterval(E_PresentInterval value) { m_PresentInterval = value; }
+// [Blur1PCDX11] PC D3D9 compiles this out (D3D9Device.inl, #ifndef PLATFORM_PC): the
+// swap interval is the device parameter from the settings, applied at device
+// creation/reset. The per-frame Graphics.Render.PresentInterval value is console-only.
+void C_D3D11GameDevice::SetPresentInterval(E_PresentInterval value) { (void)value; }
 void C_D3D11GameDevice::SetTextureAddressU(U32 slot, E_TextureAddress value)
 { if (slot >= E_Sampler_Count) return; m_Sampler[slot].m_AddressU = value;
   State(this).sampler[slot].AddressU = Address(value); ApplySampler(this, slot, false); }

@@ -25,6 +25,21 @@ namespace Display
 namespace D3D11
 {
 
+// [Blur1PCDX11] Native FX passes assign only shaders, so FX defers its pass
+// Apply (shaders, constant buffers, views, samplers) until the device next
+// binds one of those itself or draws. Every such device call flushes first,
+// which keeps the original order of bindings.
+// [Blur1PCDX11] FX11 skips rebinding vertex/pixel state it already set
+// (EffectRuntime.cpp). The device reports its own binds of those stages:
+// stages bit 0 vertex, bit 1 pixel; what 1 shader, 2 constant buffers,
+// 4 samplers, 8 shader resource views.
+}}
+void D3DX11InvalidateBoundState(unsigned stages, unsigned what);
+namespace Display { namespace D3D11 {
+// g_FlushNativeFX returns true when it applied a pass.
+extern bool (*g_FlushNativeFX)();
+void FlushNativeFX();
+
 class C_Sampler : public C_SamplerBase
 {
 public:

@@ -26,6 +26,16 @@ public:
     HRESULT PreloadAll(ID3D11Device* device, std::string* failedName = nullptr);
     size_t EffectCount() const { return m_Effects.size(); }
 
+    // [Blur1PCDX11] Entry-level forms of the lookups above. An entry handle stays
+    // valid until Open; callers resolve names once and keep the reflected interfaces.
+    const void* FindEntry(const char* gameEffectName, const char* technique = nullptr) const;
+    HRESULT GetEffect(ID3D11Device* device, const void* entry, C_D3D11Effect** effect);
+    const char* EntryTextureForSampler(const void* entry, const char* samplerName) const;
+    // HLSL samplers that SetTextureSampler updates for this name, before the
+    // HasParameter filter; ERROR_NOT_FOUND when the name is neither form.
+    HRESULT EntrySamplerNames(const void* entry, const char* samplerOrTexture,
+                              std::vector<const char*>* names) const;
+
 private:
     struct C_Entry
     {

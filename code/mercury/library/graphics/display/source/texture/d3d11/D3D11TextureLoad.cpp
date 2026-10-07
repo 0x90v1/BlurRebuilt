@@ -127,6 +127,7 @@ void LoadTextureData2D(C_Texture2D* texture, Sys::I_BinaryStream* stream, int si
             context->UpdateSubresource(native,
                 D3D11CalcSubresource(mip, face, desc.MipLevels), nullptr,
                 upload.pSysMem,upload.SysMemPitch,upload.SysMemSlicePitch);
+            Display2::D3D11ResourceWritten(native, context); // [Blur1PCDX11]
             consumed += bytes;
         }
     context->Release();
@@ -176,6 +177,7 @@ void CopyTextureData2D(C_Texture2D* destination, const C_Texture2D* source)
                     D3D11CalcSubresource(mip + sourceFirst, face, s.MipLevels), nullptr);
             }
     }
+    Display2::D3D11ResourceWritten(dst, context); // [Blur1PCDX11]
     context->Release();
 }
 

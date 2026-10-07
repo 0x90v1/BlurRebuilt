@@ -7,6 +7,7 @@
 #include "Display/Utils/Screenshot.h"
 #include <d3d11sdklayers.h>
 #include <d3d11_4.h>
+#include <dxgi1_5.h>
 #include <vector>
 #include <string>
 // [Blur1PCDX11] Supplied by fx, without introducing a display header dependency.
@@ -72,6 +73,26 @@ C_PCD3D11GameDevice::C_PCD3D11GameDevice() : m_Lost(false),m_Valid(false),m_pSwa
     SetDepthFlip(true,false);
 }
 C_PCD3D11GameDevice::~C_PCD3D11GameDevice() {}
+namespace {
+// [Blur1PCDX11] D3D9 presents a windowed swap chain with PRESENT_INTERVAL_IMMEDIATE
+// at any rate. A DXGI blt-model (DISCARD) windowed swap chain is composed by DWM
+// once per display refresh, which caps the game at the monitor rate (measured:
+// exactly 144 fps at both 1280x720 and 1920x1080 on a 144 Hz display, where
+// PC D3D9 runs at 540-570). The flip model with tearing support restores
+// unthrottled immediate presentation; the blt model remains the fallback.
+bool g_legacySwapChain = false;
+bool TearingSupported()
+{
+    IDXGIFactory5* factory = nullptr;
+    if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory5), reinterpret_cast<void**>(&factory))) || !factory)
+        return false;
+    BOOL allowed = FALSE;
+    const bool supported = SUCCEEDED(factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+        &allowed, sizeof(allowed))) && allowed;
+    factory->Release();
+    return supported;
+}
+}
 void C_PCD3D11GameDevice::SetPresentParamsD3D11()
 {
     ZeroMemory(&m_d3dPresentParams,sizeof(m_d3dPresentParams));
@@ -84,9 +105,22 @@ void C_PCD3D11GameDevice::SetPresentParamsD3D11()
     m_d3dPresentParams.OutputWindow=m_DeviceParams.m_hWnd;
     m_d3dPresentParams.Windowed=m_DeviceParams.m_Windowed;
     m_d3dPresentParams.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
+    if(!g_legacySwapChain)
+    {
+        static const bool tearing=TearingSupported();
+        m_d3dPresentParams.BufferCount=2;
+        m_d3dPresentParams.SwapEffect=DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        m_d3dPresentParams.Flags=tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+    }
 }
 bool C_PCD3D11GameDevice::CreateD3D11()
 {
+    // [Blur1PCDX11] Preserve the committed exclusive-fullscreen swap chain.
+    // Creating a flip chain fullscreen on a 3840x2160 desktop gave that size
+    // to a 1920x1080 game, mismatched its depth target and failed Present.
+    // Windowed creation can use flip; retain this choice across device resets
+    // because ResizeBuffers cannot change a swap chain's presentation model.
+    g_legacySwapChain = !m_DeviceParams.m_Windowed;
     SetPresentParamsD3D11();
     char debugSetting[2] = {};
     UINT flags=D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -100,6 +134,14 @@ bool C_PCD3D11GameDevice::CreateD3D11()
     D3D_DRIVER_TYPE driver=(m_DeviceParams.m_UseREF || forceWarp) ? D3D_DRIVER_TYPE_WARP : D3D_DRIVER_TYPE_HARDWARE;
     HRESULT hr=D3D11CreateDeviceAndSwapChain(nullptr,driver,nullptr,flags,features,4,D3D11_SDK_VERSION,
         &m_d3dPresentParams,&m_pSwapChain,&m_pd3dDevice,&selected,&context);
+    if (FAILED(hr) && !g_legacySwapChain)
+    {
+        Blur2PCAutomation::LogF("DX11 flip-model swap chain failed %08x; using the blt model", static_cast<unsigned>(hr));
+        g_legacySwapChain = true;
+        SetPresentParamsD3D11();
+        hr=D3D11CreateDeviceAndSwapChain(nullptr,driver,nullptr,flags,features,4,D3D11_SDK_VERSION,
+            &m_d3dPresentParams,&m_pSwapChain,&m_pd3dDevice,&selected,&context);
+    }
     if (hr == DXGI_ERROR_SDK_COMPONENT_MISSING)
     {
         flags &= ~D3D11_CREATE_DEVICE_DEBUG;
@@ -210,8 +252,8 @@ bool C_PCD3D11GameDevice::CreateDeviceVolatile()
         const HRESULT hr=m_pSwapChain->ResizeTarget(&mode);
         if(FAILED(hr))Blur2PCAutomation::LogF("DX11 ResizeTarget %ux%u failed %08x",mode.Width,mode.Height,(unsigned)hr);
     }
-    HRESULT hr=m_pSwapChain->ResizeBuffers(1,m_DeviceParams.m_Width,m_DeviceParams.m_Height,
-        m_d3dPresentParams.BufferDesc.Format,0);
+    HRESULT hr=m_pSwapChain->ResizeBuffers(m_d3dPresentParams.BufferCount,m_DeviceParams.m_Width,m_DeviceParams.m_Height,
+        m_d3dPresentParams.BufferDesc.Format,m_d3dPresentParams.Flags);
     if(FAILED(hr)){Blur2PCAutomation::LogF("DX11 ResizeBuffers %ux%u failed %08x",m_DeviceParams.m_Width,m_DeviceParams.m_Height,(unsigned)hr);return false;}
     back->m_Width=m_DeviceParams.m_Width;back->m_Height=m_DeviceParams.m_Height;
     back->m_ColourFormat=m_DeviceParams.m_ColourFormat;
@@ -339,7 +381,18 @@ bool C_PCD3D11GameDevice::Present()
         }
         if (traceQueue) traceQueue->Release();
     }
-    HRESULT hr=m_pSwapChain->Present(m_PresentInterval==E_PresentInterval_Immediate ? 0 : 1,0);
+    // [Blur1PCDX11] PCD3D9Device presents with D3D9PresentInterval(m_DeviceParams.m_PresentInterval).
+    const E_PresentInterval interval=m_DeviceParams.m_PresentInterval;
+    const UINT syncInterval=interval==E_PresentInterval_Immediate ? 0 :
+        interval==E_PresentInterval_Two ? 2 : interval==E_PresentInterval_Three ? 3 : 1;
+    UINT presentFlags=0;
+    if(syncInterval==0 && (m_d3dPresentParams.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
+    {
+        // Tearing presents are valid only while not in exclusive fullscreen.
+        BOOL fullscreen=FALSE;m_pSwapChain->GetFullscreenState(&fullscreen,nullptr);
+        if(!fullscreen)presentFlags=DXGI_PRESENT_ALLOW_TEARING;
+    }
+    HRESULT hr=m_pSwapChain->Present(syncInterval,presentFlags);
     if (FAILED(hr))
     {
         static unsigned presentFailures = 0;
@@ -454,7 +507,7 @@ void C_RenderTexture2D::Resolve(U32 level) const
     D3D11_TEXTURE2D_DESC desc={};source->GetDesc(&desc);
     // [Blur1PCDX11] Colour targets use typeless storage (per-sampler sRGB views); a resolve needs a typed
     // format, and D3D9's StretchRect resolve works on the linear values.
-    if(context){context->ResolveSubresource(dest,level,source,0,GetLinearFormat(desc.Format));context->Release();}
+    if(context){context->ResolveSubresource(dest,level,source,0,GetLinearFormat(desc.Format));Display2::D3D11ResourceWritten(dest,context);context->Release();} // [Blur1PCDX11] mirror
     device->Release();
 }
 
@@ -606,7 +659,10 @@ void C_PCD3D11GameDevice::RestoreWindow(S32 index,U32 colourWrite)
     if (!copyContext) return;
     if (sourceDesc.Width == destinationDesc.Width && sourceDesc.Height == destinationDesc.Height &&
         sourceDesc.Format == destinationDesc.Format)
+    {
         copyContext->CopyResource(destination, source);
+        Display2::D3D11ResourceWritten(destination, copyContext); // [Blur1PCDX11]
+    }
     else
         Quad::DrawFullScreen(&window->m_ColourRenderTexture.GetTexture());
     copyContext->Release();

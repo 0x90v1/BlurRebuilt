@@ -786,6 +786,10 @@ struct Struct
 
 TechniqueHandle RegisterSubtechnique(const char *pszName);
 
+#if defined(BLUR_USE_DX11)
+void NativeFX11ReleaseCache(const void* effect); // [Blur1PCDX11] NativeFX11.cpp
+#endif
+
 class Effect : public I_Effect
 {
 public:
@@ -795,6 +799,9 @@ public:
 
 	~Effect()
 	{
+#if defined(BLUR_USE_DX11)
+		NativeFX11ReleaseCache(this);
+#endif
 	}
 
 	Btl::Vector<Technique> ALIGN16 Techniques;

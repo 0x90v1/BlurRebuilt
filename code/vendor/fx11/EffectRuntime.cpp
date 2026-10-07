@@ -147,10 +147,63 @@ inline void CheckAndUpdateCB_FX(ID3D11DeviceContext *pContext, SConstantBuffer *
 //--------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------
 
+// [Blur1PCDX11] What the immediate context's vertex and pixel stages hold, as
+// last set here. Blur applies a pass per draw and consecutive draws mostly bind
+// the same shaders, buffers, views and samplers; identical ranges are skipped.
+// The game device marks a stage's entries unknown whenever it binds that stage
+// itself or changes render targets (D3DX11InvalidateBoundState).
+extern SD3DShaderVTable g_vtVS;
+extern SD3DShaderVTable g_vtPS;
+namespace
+{
+const uintptr_t c_Unknown = ~uintptr_t(0);
+struct SBoundStage
+{
+    uintptr_t shader;
+    uintptr_t buffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+    uintptr_t samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+    uintptr_t views[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+};
+SBoundStage g_BoundStages[2];
+bool g_BoundStagesInitialised = false;
+void ForgetStage(SBoundStage& stage, unsigned what)
+{
+    if (what & 1) stage.shader = c_Unknown;
+    if (what & 2) for (auto& slot : stage.buffers) slot = c_Unknown;
+    if (what & 4) for (auto& slot : stage.samplers) slot = c_Unknown;
+    if (what & 8) for (auto& slot : stage.views) slot = c_Unknown;
+}
+SBoundStage* BoundStage(SD3DShaderVTable* pVT)
+{
+    if (!g_BoundStagesInitialised)
+    {
+        ForgetStage(g_BoundStages[0], 15);
+        ForgetStage(g_BoundStages[1], 15);
+        g_BoundStagesInitialised = true;
+    }
+    if (pVT == &g_vtVS) return &g_BoundStages[0];
+    if (pVT == &g_vtPS) return &g_BoundStages[1];
+    return nullptr;
+}
+// True when the range already holds these objects; otherwise records them.
+template <typename T>
+bool SameRange(uintptr_t* bound, size_t boundCount, uint32_t start, uint32_t count, T* const* objects)
+{
+    if (!bound || start + count > boundCount) return false;
+    bool same = true;
+    for (uint32_t i = 0; i < count; ++i)
+        if (bound[start + i] != reinterpret_cast<uintptr_t>(objects[i])) { same = false; break; }
+    if (!same)
+        for (uint32_t i = 0; i < count; ++i) bound[start + i] = reinterpret_cast<uintptr_t>(objects[i]);
+    return same;
+}
+}
+
 // Set the shader and dependent state (SRVs, samplers, UAVs, interfaces)
 void CEffect::ApplyShaderBlock(_In_ SShaderBlock *pBlock)
 {
     SD3DShaderVTable *pVT = pBlock->pVT;
+    SBoundStage *pBound = BoundStage(pVT);
 
     // Apply constant buffers first (tbuffers are done later)
     SShaderCBDependency *pCBDep = pBlock->pCBDeps;
@@ -165,7 +218,8 @@ void CEffect::ApplyShaderBlock(_In_ SShaderBlock *pBlock)
             CheckAndUpdateCB_FX(m_pContext, (SConstantBuffer*)pCBDep->ppFXPointers[i]);
         }
 
-        (m_pContext->*(pVT->pSetConstantBuffers))(pCBDep->StartIndex, pCBDep->Count, pCBDep->ppD3DObjects);
+        if (!pBound || !SameRange(pBound->buffers, _countof(pBound->buffers), pCBDep->StartIndex, pCBDep->Count, pCBDep->ppD3DObjects))
+            (m_pContext->*(pVT->pSetConstantBuffers))(pCBDep->StartIndex, pCBDep->Count, pCBDep->ppD3DObjects);
     }
 
     // Next, apply samplers
@@ -184,7 +238,8 @@ void CEffect::ApplyShaderBlock(_In_ SShaderBlock *pBlock)
                 pSampDep->ppD3DObjects[i] = pSampDep->ppFXPointers[i]->pD3DObject;
             }
         }
-        (m_pContext->*(pVT->pSetSamplers))(pSampDep->StartIndex, pSampDep->Count, pSampDep->ppD3DObjects);
+        if (!pBound || !SameRange(pBound->samplers, _countof(pBound->samplers), pSampDep->StartIndex, pSampDep->Count, pSampDep->ppD3DObjects))
+            (m_pContext->*(pVT->pSetSamplers))(pSampDep->StartIndex, pSampDep->Count, pSampDep->ppD3DObjects);
     }
 
     // Set the UAVs
@@ -238,7 +293,8 @@ void CEffect::ApplyShaderBlock(_In_ SShaderBlock *pBlock)
             pResourceDep->ppD3DObjects[i] = pResourceDep->ppFXPointers[i]->pShaderResource;
         }
 
-        (m_pContext->*(pVT->pSetShaderResources))(pResourceDep->StartIndex, pResourceDep->Count, pResourceDep->ppD3DObjects);
+        if (!pBound || !SameRange(pBound->views, _countof(pBound->views), pResourceDep->StartIndex, pResourceDep->Count, pResourceDep->ppD3DObjects))
+            (m_pContext->*(pVT->pSetShaderResources))(pResourceDep->StartIndex, pResourceDep->Count, pResourceDep->ppD3DObjects);
     }
 
     // Update Interface dependencies
@@ -271,7 +327,11 @@ void CEffect::ApplyShaderBlock(_In_ SShaderBlock *pBlock)
     }
 
     // Now set the shader
-    (m_pContext->*(pVT->pSetShader))(pBlock->pD3DObject, ppClassInstances, Interfaces);
+    if (!pBound || Interfaces || pBound->shader != reinterpret_cast<uintptr_t>(pBlock->pD3DObject))
+    {
+        (m_pContext->*(pVT->pSetShader))(pBlock->pD3DObject, ppClassInstances, Interfaces);
+        if (pBound) pBound->shader = Interfaces ? c_Unknown : reinterpret_cast<uintptr_t>(pBlock->pD3DObject);
+    }
 }
 
 // Returns true if the block D3D data was recreated
@@ -715,4 +775,14 @@ void CEffect::HandleLocalTimerRollover()
     }
 }
 
+}
+
+// [Blur1PCDX11] stages: bit 0 vertex, bit 1 pixel. what: 1 shader, 2 constant
+// buffers, 4 samplers, 8 shader resource views.
+void D3DX11InvalidateBoundState(unsigned stages, unsigned what)
+{
+    using namespace D3DX11Effects;
+    BoundStage(nullptr);
+    if (stages & 1) ForgetStage(g_BoundStages[0], what);
+    if (stages & 2) ForgetStage(g_BoundStages[1], what);
 }

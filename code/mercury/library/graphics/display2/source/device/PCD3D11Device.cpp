@@ -294,6 +294,8 @@ bool C_Device::CreateSurface(U32 width, U32 height, U32 flags, E_SurfaceFormat f
         FAILED(m_pd3dDevice->CreateTexture2D(&desc, nullptr, &surface->m_pd3dSurface))) return false;
     if (FAILED(D3D11TextureFormats::SetPCFormat(surface->m_pd3dSurface,static_cast<D3DFORMAT>(format))))
     { surface->m_pd3dSurface->Release(); surface->m_pd3dSurface = nullptr; return false; }
+    // [Blur1PCDX11] Keep this surface's target views with it (D3D11Formats).
+    Display::D3D11::RegisterTextureViewOwner(surface->m_pd3dSurface);
     surface->SetFlags(flags);
     return true;
 }
@@ -306,6 +308,7 @@ bool C_Device::CreateDepthStencilSurface(U32 width, U32 height, U32 flags, E_Sur
                                          C_Surface* surface, void* memory, U32 memorySize)
 { return CreateSurface(width, height, flags | E_Flags_DepthStencil, format, samples, params, surface, memory, memorySize); }
 void C_Device::DestroySurface(C_Surface* surface)
-{ if (surface && surface->m_pd3dSurface) { surface->m_pd3dSurface->Release(); surface->m_pd3dSurface = nullptr; } }
+{ if (surface && surface->m_pd3dSurface) { Display::D3D11::ReleaseTextureViewOwner(surface->m_pd3dSurface);
+  surface->m_pd3dSurface->Release(); surface->m_pd3dSurface = nullptr; } }
 void C_Device::Destroy(C_Surface* surface) { DestroySurface(surface); }
 } // namespace Display2

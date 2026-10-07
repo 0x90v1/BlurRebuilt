@@ -2,7 +2,10 @@
 #include "Display2/Device/D3D11TextureFormats.h"
 #include <wrl/client.h>
 #include <mutex>
+#include <atomic>
 #include <unordered_map>
+#include <vector>
+#include <cstring>
 
 namespace Display { namespace D3D11 {
 
@@ -14,10 +17,26 @@ namespace
 struct S_TextureViews
 {
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> views[2];
+    // [Blur1PCDX11] Recorded with the first view: the device it belongs to and
+    // whether the format has an sRGB form, so later binds skip the descriptor work.
+    ID3D11Device* device = nullptr;
+    int gammaCapable = -1;
+    struct S_Target
+    {
+        ID3D11Device* device;
+        bool hasDesc;
+        D3D11_RENDER_TARGET_VIEW_DESC colourDesc;
+        D3D11_DEPTH_STENCIL_VIEW_DESC depthDesc;
+        Microsoft::WRL::ComPtr<ID3D11View> view;
+    };
+    std::vector<S_Target> targets;
 };
 std::unordered_map<ID3D11Resource*, S_TextureViews> g_textureViewOwners;
 std::mutex g_textureViewOwnersMutex;
+std::atomic<unsigned> g_textureViewOwnerGeneration(0);
 }
+
+unsigned TextureViewOwnerGeneration() { return g_textureViewOwnerGeneration.load(std::memory_order_relaxed); }
 
 void RegisterTextureViewOwner(ID3D11Resource* resource)
 {
@@ -30,6 +49,59 @@ void ReleaseTextureViewOwner(ID3D11Resource* resource)
 {
     std::lock_guard<std::mutex> lock(g_textureViewOwnersMutex);
     g_textureViewOwners.erase(resource);
+    g_textureViewOwnerGeneration.fetch_add(1, std::memory_order_relaxed);
+}
+
+namespace
+{
+template <class T_Desc, class T_View, class T_Create>
+HRESULT GetTargetView(ID3D11Device* device, ID3D11Resource* resource, const T_Desc* desc,
+                      T_View** view, T_Desc S_TextureViews::S_Target::* field, T_Create create)
+{
+    if (!device || !resource || !view) return E_INVALIDARG;
+    *view = nullptr;
+    T_Desc key;
+    memset(&key, 0, sizeof(key));
+    if (desc) key = *desc;
+    std::lock_guard<std::mutex> lock(g_textureViewOwnersMutex);
+    const auto owner = g_textureViewOwners.find(resource);
+    if (owner == g_textureViewOwners.end()) return create(desc, view);
+    for (const auto& target : owner->second.targets)
+        if (target.device == device && target.hasDesc == (desc != nullptr) &&
+            memcmp(&(target.*field), &key, sizeof(key)) == 0)
+        {
+            *view = static_cast<T_View*>(target.view.Get());
+            (*view)->AddRef();
+            return S_FALSE;
+        }
+    const HRESULT result = create(desc, view);
+    if (SUCCEEDED(result))
+    {
+        S_TextureViews::S_Target target = {};
+        target.device = device;
+        target.hasDesc = desc != nullptr;
+        target.*field = key;
+        target.view = *view;
+        owner->second.targets.push_back(target);
+    }
+    return result;
+}
+}
+
+HRESULT GetRenderTargetView(ID3D11Device* device, ID3D11Resource* resource,
+                            const D3D11_RENDER_TARGET_VIEW_DESC* desc, ID3D11RenderTargetView** view)
+{
+    return GetTargetView(device, resource, desc, view, &S_TextureViews::S_Target::colourDesc,
+        [&](const D3D11_RENDER_TARGET_VIEW_DESC* d, ID3D11RenderTargetView** v)
+        { return device->CreateRenderTargetView(resource, d, v); });
+}
+
+HRESULT GetDepthStencilView(ID3D11Device* device, ID3D11Resource* resource,
+                            const D3D11_DEPTH_STENCIL_VIEW_DESC* desc, ID3D11DepthStencilView** view)
+{
+    return GetTargetView(device, resource, desc, view, &S_TextureViews::S_Target::depthDesc,
+        [&](const D3D11_DEPTH_STENCIL_VIEW_DESC* d, ID3D11DepthStencilView** v)
+        { return device->CreateDepthStencilView(resource, d, v); });
 }
 
 bool GetFormatLayout(D3DFORMAT source, C_FormatLayout* layout)
@@ -172,10 +244,54 @@ static bool SameTextureView(const D3D11_SHADER_RESOURCE_VIEW_DESC& a,
 
 HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
                           bool srgb, ID3D11ShaderResourceView** view,
-                          ID3D11ShaderResourceView* existing)
+                          ID3D11ShaderResourceView* existing, bool* owned)
 {
+    if (owned) *owned = false;
     if (!device || !resource || !view) return E_INVALIDARG;
     *view = nullptr;
+    // [Blur1PCDX11] Per-thread direct-mapped copy of recent owner lookups. Owned
+    // views stay alive until some owner is released, which changes the generation.
+    struct S_RecentView
+    {
+        ID3D11Resource* resource; ID3D11Device* device; unsigned generation;
+        int gammaCapable; ID3D11ShaderResourceView* views[2];
+    };
+    static thread_local S_RecentView recent[256] = {};
+    S_RecentView& slot = recent[(reinterpret_cast<uintptr_t>(resource) >> 6) & 255];
+    {
+        // [Blur1PCDX11] A generation check alone cannot retain a raw view:
+        // the loader can erase its owner between the check and AddRef. Hold
+        // the owner mutex across both, including direct-cache hits.
+        std::lock_guard<std::mutex> lock(g_textureViewOwnersMutex);
+        const unsigned generation = g_textureViewOwnerGeneration.load(std::memory_order_relaxed);
+        if (slot.resource == resource && slot.device == device && slot.generation == generation)
+        {
+            ID3D11ShaderResourceView* retained = slot.views[srgb && slot.gammaCapable ? 1 : 0];
+            if (retained)
+            {
+                retained->AddRef();
+                *view = retained;
+                if (owned) *owned = true;
+                return S_FALSE;
+            }
+        }
+        const auto owner = g_textureViewOwners.find(resource);
+        if (owner != g_textureViewOwners.end() && owner->second.device == device &&
+            owner->second.gammaCapable >= 0)
+        {
+            ID3D11ShaderResourceView* retained =
+                owner->second.views[srgb && owner->second.gammaCapable ? 1 : 0].Get();
+            if (retained)
+            {
+                slot = { resource, device, generation, owner->second.gammaCapable,
+                         { owner->second.views[0].Get(), owner->second.views[1].Get() } };
+                retained->AddRef();
+                *view = retained;
+                if (owned) *owned = true;
+                return S_FALSE;
+            }
+        }
+    }
     D3D11_RESOURCE_DIMENSION dimension;
     resource->GetType(&dimension);
     D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
@@ -272,11 +388,18 @@ HRESULT CreateTextureView(ID3D11Device* device, ID3D11Resource* resource,
         {
             retained->AddRef();
             *view = retained.Get();
+            if (owned) *owned = true;
             return S_FALSE;
         }
     }
     const HRESULT result = device->CreateShaderResourceView(resource, &desc, view);
-    if (SUCCEEDED(result)) retained = *view;
+    if (SUCCEEDED(result))
+    {
+        if (owned) *owned = true;
+        retained = *view;
+        owner->second.device = device;
+        owner->second.gammaCapable = gammaFormat != DXGI_FORMAT_UNKNOWN ? 1 : 0;
+    }
     return result;
 }
 

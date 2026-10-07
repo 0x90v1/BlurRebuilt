@@ -625,6 +625,7 @@ void I_HighDynamicRange::ResolveLuminance() const
 			if (context)
 			{
 				context->CopySubresourceRegion(destination, 0, 0, 0, 0, source, 0, nullptr);
+				Display2::D3D11ResourceWritten(destination, context); // [Blur1PCDX11] system-memory readback ring
 				context->Release();
 			}
 		}

@@ -986,6 +986,7 @@ bool CloneTexture2D(C_Texture* pSrc, C_Texture* pDst)
 	if(!pContext)
 		return false;
 	pContext->CopyResource(pDstTexture, pSrcTexture);
+	D3D11ResourceWritten(pDstTexture, pContext); // [Blur1PCDX11]
 	pContext->Release();
 #else
 	memcpy(pDst->GetAddress(), pSrc->GetAddress(), pDst->GetSize());
