@@ -168,6 +168,8 @@ void I_PostProcess::DisplayFinal(const Display::C_PixelShader* pPixelShader, Dis
 						rawContext->RSSetState(rawRasterState.Get());
 						Blur2PCAutomation::LogF("DX11 raw draw issued");
 						rawContext->Draw(3, 0);
+						// [Blur1PCDX11] The diagnostic bypassed the device's geometry setters.
+						Display::Device()->InvalidateNativeInputBindings();
 					}
 					if (rawContext) rawContext->Release();
 				}

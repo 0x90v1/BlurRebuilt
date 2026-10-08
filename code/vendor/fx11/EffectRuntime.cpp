@@ -800,3 +800,17 @@ void D3DX11InvalidateBoundState(unsigned stages, unsigned what)
     if (stages & 1) ForgetStage(g_BoundStages[0], what);
     if (stages & 2) ForgetStage(g_BoundStages[1], what);
 }
+
+// [Blur1PCDX11] A device-owned buffer (notably alpha state at PS b13)
+// changes only these slots. Keep the other FX buffer bindings memoized.
+void D3DX11InvalidateBoundConstantBuffers(unsigned stages, unsigned start, unsigned count)
+{
+    using namespace D3DX11Effects;
+    const unsigned slots = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+    if (start >= slots || count > slots - start) return;
+    BoundStage(nullptr);
+    for (unsigned stage = 0; stage < 2; ++stage)
+        if (stages & (1u << stage))
+            for (unsigned slot = start; slot < start + count; ++slot)
+                g_BoundStages[stage].buffers[slot] = c_Unknown;
+}

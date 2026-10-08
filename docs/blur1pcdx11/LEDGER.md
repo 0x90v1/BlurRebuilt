@@ -792,3 +792,30 @@ Blockers/limits: PresentMon ETW access denied; timestamp spans do not prove GPU 
 User requested committing the delivered upload/sampler optimization pass, GPU fixture corrections, queued original/clone constant readback, and owning-phase performance/decision records. Retained completed standard Release errsum0, verified EXE/PDB delivery, 60 FPS/unlocked driving and hardware/WARP checks. No engine edits since that verification; git diff --check passes. Fullscreen benchmark average improves about2.5%; parity remains open. Existing crowd linkage errors and baseline billboard full-suite failure remain documented. No push requested.
 
 Next: matched final/original fullscreen8x-AA Career-grid profiling, separating FX submission/traversal and GPU busy time; diagnose the baseline billboard prepass failure before claiming broad shader coverage. Ownership released for continuation.
+
+
+## 2026-10-07 - session Codex T187 assessment - remaining roughly30% FPS gap
+
+Did: assessed current committed renderer against DX9 and ranked remaining causes in analysis.md. Found in / Belongs to Blur1PCDX11. Identified alpha-state b13 rebinding invalidating all PS constant-buffer slots, repeated FX binding/dependency traversal, native VB/IB setters missing DX9 equality checks, remaining legacy constant uploads, and unmeasured GPU alpha/resolve/composition costs. No engine, shader, settings, build or delivery changes; no commit or push.
+
+Verified: two queued minimized fullscreen1080p/8x-AA, vsync-off, unlocked races on delivered DX11/DX9 executables exit0. Approximately ten-second main-thread profiles after initial diagnostics contain606/611 samples: BeginPass11.55/3.76%, Present0.50/25.20%; overlapping sample shares, not expected speedups. Native confirms hardware/debug0. Recomputed existing throughput excluding30s readbacks; gap persists. Source comparison and Microsoft API contracts checked. Scratch scripts/logs/profiles and metric summaries: _work/t187/oct07_assessment/. git diff --check passes.
+
+Limits: one-car DebugRb is not full Career grid; sampling perturbs execution and ends at game exit before requested20s. No new throughput claim or GPU-busy attribution; ETW access unavailable. Existing broad billboard probe/crowd linkage limits remain. This requested assessment is complete; T187 performance parity remains open.
+
+Next: quantify changed/redundant PS CB bindings around the b13 handoff and FX binding traversal, plus VB/IB/layout calls; validate targeted changes with alternating matched Career-grid runs and diagnostics disabled. Isolate GPU contribution with resolution/AA scaling and per-pass timings. Task ownership released.
+
+Files touched: docs/blur1pcdx11/{analysis,BOARD,LEDGER}.md only.
+
+## 2026-10-07 - session Codex T187 bindings - implementation delivered
+
+Did: implemented pre-resolved FX function/shared sampler bindings, PS b13-only FX invalidation, and redundant native VB/IB/input-layout elision with reset/diagnostic invalidation. Extended queued GPU constants coverage. Recorded implementation, decisions and complete benchmark evidence in the owning phase. Released ownership; T187 parity remains open. No commit or push.
+Verified: standard Release and probe builds (zero errors); hardware/WARP texture/queued-constants and dynamic-buffer probes (all exit 0); ten alternating fullscreen stationary runs plus 60 FPS/unlocked driving (all exit 0), reviewed stills, and hash-matched standard EXE/PDB delivery. Existing two id343 crowd-linkage errors persist in both driving checks. Median FPS 375.81 -> 387.52, but a retained unexplained 243.30 FPS new-build outlier makes the all-run mean worse; overall FPS gain remains inconclusive. Evidence: _work/t187/oct07_bindings/ and phase analysis.
+Blocked: no implementation/delivery blocker; full Career-grid attribution and the intermittent slow launch remain unverified. Existing broader billboard/linkage limitations remain.
+Next: reproduce a slow launch with CPU/driver and GPU telemetry; count attempted/changed FX and geometry bindings; run per-change A/B on the user's full Career grid with recurring diagnostics disabled before claiming a reliable gain or DX9 parity.
+Files touched: NativeFX11.cpp; D3D11GameDevice.h/.cpp/Native.cpp; render/postprocess/Interface.cpp diagnostic boundary; vendor/fx11/EffectRuntime.cpp; dx11_probe/texture_view_reference.cpp; phase BOARD/LEDGER/analysis/decisions; ignored _work/t187/oct07_bindings and standard build/run outputs.
+
+## 2026-10-07 - session Codex T187 commit - binding/input checkpoint
+
+User requested committing the delivered binding/input optimization pass and owning-phase assessment, decisions and validation records. No engine edits since verification. Rechecked standard Release errsum0, hardware/WARP probe exit0 records, completed fullscreen comparisons and 60 FPS/unlocked driving, and matching standard build/delivered EXE/PDB SHA256 hashes. Staged diff whitespace check required before commit. No push requested.
+
+The measured FPS gain remains inconclusive because the unexplained slow launch is retained; DX9 parity, full Career-grid attribution and existing crowd/billboard limitations remain open. Ownership released. Next: reproduce the slow launch with CPU/driver and GPU telemetry, then count bindings and run per-change A/B on the user's full Career grid.

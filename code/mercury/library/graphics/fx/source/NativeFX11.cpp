@@ -102,6 +102,27 @@ struct S_Shared
     bool matrix;
 };
 
+// [Blur1PCDX11] Function metadata is immutable after effect loading. Resolve
+// its parameter interfaces once, but read the live source bytes on every bind.
+// unordered_map rehashing preserves the S_Param node addresses.
+struct S_FunctionBinding
+{
+    const FunctionBinding* binding;
+    const char* name;
+    S_Param* param;
+    bool matrix;
+};
+struct S_FunctionBindings
+{
+    const FunctionBinding* base = nullptr;
+    int count = -1;
+    std::vector<S_FunctionBinding> entries;
+};
+struct S_PassBindings
+{
+    S_FunctionBindings vertex, pixel;
+};
+
 struct S_Technique
 {
     const char* name = nullptr;
@@ -109,6 +130,7 @@ struct S_Technique
     Display::D3D11::C_D3D11Effect* native = nullptr;
     std::vector<ID3DX11EffectPass*> passes;
     std::vector<bool> passesResolved;
+    std::vector<S_PassBindings> bindings;
     std::unordered_map<const char*, S_Param> params;
     // Shared parameters the native effect declares, rebuilt if the shared effect changes.
     std::vector<S_Shared> shared;
@@ -214,6 +236,7 @@ S_Technique* Find(const Effect* effect, int technique)
         const int passes = effect->Techniques[technique].Passes.Size();
         found->passes.assign(passes, nullptr);
         found->passesResolved.assign(passes, false);
+        found->bindings.resize(passes);
     }
     return found->native ? found.get() : nullptr;
 }
@@ -303,10 +326,10 @@ HRESULT SetRawParameter(S_Technique& technique, const char* name, const void* da
 
 void BindTexture(const Effect* effect, S_Technique& technique,
                  const char* sampler, ID3D11Resource* texture, const char* techniqueName,
-                 int samplerState, bool immediate = false)
+                 int samplerState, bool immediate = false, S_Param* resolved = nullptr)
 {
     // [Blur1PCDX11] FX sampler values are GPUTexture pointers (Display2: ID3D11Resource), as D3D9's were IDirect3DBaseTexture9.
-    const S_Param& param = TextureParam(technique, sampler);
+    const S_Param& param = resolved ? *resolved : TextureParam(technique, sampler);
     const char* name = param.texture;
     // [Blur1PCDX11] Diagnostic options are set before launch; do not scan the
     // process environment for every texture or constant bound while rendering.
@@ -494,6 +517,8 @@ void BindSharedParameters(const Effect* effect, S_Technique& technique,
             const uintptr_t address = reinterpret_cast<uintptr_t>(parameter.Data);
             if (address < start || address - start > totalBytes ||
                 static_cast<size_t>(parameter.Size) * sizeof(U32) > totalBytes - (address - start)) continue;
+            if (parameter.Type == NGLFX_PARAM_SAMPLER)
+                TextureParam(technique, parameter.Name.Chars());
             technique.shared.push_back({ i, address - start, &param, IsTracedMatrix(parameter.Name.Chars()) });
         }
     }
@@ -515,7 +540,8 @@ void BindSharedParameters(const Effect* effect, S_Technique& technique,
         {
             const auto* sampler = reinterpret_cast<const nglFXParam_Sampler*>(data);
             BindTexture(effect, technique, parameter.Name.Chars(),
-                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), techniqueName, sampler->iSamplerState);
+                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), techniqueName, sampler->iSamplerState,
+                        false, shared.param);
         }
         else
         {
@@ -530,27 +556,46 @@ void BindSharedParameters(const Effect* effect, S_Technique& technique,
 }
 
 void BindFunction(const Effect* effect, S_Technique& technique,
-                  const Function& function, void* const* sources, const char* techniqueName)
+                  const Function& function, S_FunctionBindings& resolved,
+                  void* const* sources, const char* techniqueName)
 {
-    for (int i = 0; i < function.Bindings.Size(); ++i)
+    const int count = function.Bindings.Size();
+    const FunctionBinding* base = count ? &function.Bindings[0] : nullptr;
+    if (resolved.base != base || resolved.count != count)
     {
-        const FunctionBinding& binding = function.Bindings[i];
-        if (binding.ParameterIdx >= effect->Parameters.Size() ||
-            binding.Source > NGLFX_BIND_SHARED || !sources[binding.Source]) continue;
-        const char* name = binding.Name && binding.Name[0]
-            ? binding.Name : effect->Parameters[binding.ParameterIdx].Name.Chars();
-        if (!name || !name[0]) continue;
+        resolved.base = base;
+        resolved.count = count;
+        resolved.entries.clear();
+        resolved.entries.reserve(count);
+        for (int i = 0; i < count; ++i)
+        {
+            const FunctionBinding& binding = base[i];
+            if (binding.ParameterIdx >= effect->Parameters.Size() || binding.Source > NGLFX_BIND_SHARED) continue;
+            const char* name = binding.Name && binding.Name[0]
+                ? binding.Name : effect->Parameters[binding.ParameterIdx].Name.Chars();
+            if (!name || !name[0] || (binding.Type != NGLFX_BIND_SAMPLER && !binding.Count)) continue;
+            S_Param& param = binding.Type == NGLFX_BIND_SAMPLER
+                ? TextureParam(technique, name) : RawParam(technique, name);
+            resolved.entries.push_back({ &binding, name, &param, IsTracedMatrix(name) });
+        }
+    }
+    for (const S_FunctionBinding& entry : resolved.entries)
+    {
+        const FunctionBinding& binding = *entry.binding;
+        if (!sources[binding.Source]) continue;
+        const char* name = entry.name;
         const U8* data = static_cast<const U8*>(sources[binding.Source]) + binding.Offset;
         if (binding.Type == NGLFX_BIND_SAMPLER)
         {
             const auto* sampler = reinterpret_cast<const nglFXParam_Sampler*>(data);
             BindTexture(effect, technique, name,
-                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), techniqueName, sampler->iSamplerState);
+                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), techniqueName, sampler->iSamplerState,
+                        false, entry.param);
         }
         else if (binding.Count)
         {
             static unsigned localMatricesTraced = 0;
-            if (localMatricesTraced < 12 && IsTracedMatrix(name))
+            if (localMatricesTraced < 12 && entry.matrix)
             {
                 ++localMatricesTraced;
                 const F32* floats = reinterpret_cast<const F32*>(data);
@@ -569,7 +614,9 @@ void BindFunction(const Effect* effect, S_Technique& technique,
                     floats[0], floats[1], floats[2], floats[3]);
             }
             TraceVehicleParameter(effect, name, data, binding.Count * 16U, "function");
-            const HRESULT result = SetRawParameter(technique, name, data, binding.Count * 16U);
+            const UINT bytes = binding.Count * 16U;
+            const HRESULT result = entry.param->raw ? entry.param->raw->SetRawValue(data, 0,
+                bytes < entry.param->rawBytes ? bytes : entry.param->rawBytes) : HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
             if (FAILED(result)) { static unsigned failures = 0; if (failures++ < 24)
                 Blur2PCAutomation::LogF("DX11 FX parameter binding failed %s / %s result=%08x", effect->Name.Chars(), name, static_cast<unsigned>(result)); }
         }
@@ -626,8 +673,8 @@ bool NativeFX11Apply(const Effect* effect, const Pass* pass, int technique,
     const int index = PassIndex(effect, pass, technique);
     if (!found || index < 0 || !sources) return false;
     BindSharedParameters(effect, *found, sources, found->name);
-    BindFunction(effect, *found, pass->VertexShader, sources, found->name);
-    BindFunction(effect, *found, pass->PixelShader, sources, found->name);
+    BindFunction(effect, *found, pass->VertexShader, found->bindings[index].vertex, sources, found->name);
+    BindFunction(effect, *found, pass->PixelShader, found->bindings[index].pixel, sources, found->name);
     const bool queued = QueuePass(effect, *found, index);
     // [Blur1PCDX11] The 20 s window is an opt-in trace; reading the clock per apply costs frame time.
     static const bool traceWindow = getenv("BLUR_DX11_TRACE_APPLY") != nullptr;

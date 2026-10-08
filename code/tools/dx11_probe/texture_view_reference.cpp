@@ -10,6 +10,7 @@
 
 // [Blur1PCDX11] Raw context resets must also forget FX binding memoization.
 extern void D3DX11InvalidateBoundState(unsigned stages, unsigned what);
+extern void D3DX11InvalidateBoundConstantBuffers(unsigned stages, unsigned start, unsigned count);
 using Microsoft::WRL::ComPtr;
 
 // [Blur1PCDX11] A resource-owned marker proves that the registry does not
@@ -233,14 +234,15 @@ technique11 Material { pass p0 {
 }
 
 // [Blur1PCDX11] Queue all draws before readback. Two independently updated
-// effects (including a clone) must retain each draw's complete constants.
+// effects (including a clone) must retain each draw's complete constants,
+// including b13 restoration after device-owned constant-buffer bindings.
 static bool CheckQueuedConstants(Display::D3D11::C_D3D11Device& device)
 {
     const char* source = R"(
-float4 changing;
-float4 preserved;
+cbuffer MaterialState : register(b0) { float4 changing; float4 preserved; };
+cbuffer DeviceState : register(b13) { float4 deviceValue; };
 float4 VS(uint id:SV_VertexID):SV_Position { return float4(id==2?3:-1,id==1?3:-1,0,1); }
-float4 PS():SV_Target { return changing + preserved; }
+float4 PS():SV_Target { return changing + preserved + deviceValue; }
 technique11 Material { pass p0 {
  SetVertexShader(CompileShader(vs_5_0,VS())); SetPixelShader(CompileShader(ps_5_0,PS()));
 } }
@@ -251,8 +253,16 @@ technique11 Material { pass p0 {
     if (FAILED(D3DX11CreateEffectFromMemory(code->GetBufferPointer(),code->GetBufferSize(),0,device.Device(),&effects[0])) ||
         FAILED(effects[0]->CloneEffect(0,&effects[1]))) return false;
     const float preserved[2][4] = {{1,2,4,8},{16,32,64,128}};
+    const float deviceValues[3][4] = {{2,4,8,16},{32,64,128,256},{512,256,128,64}};
     for (unsigned i=0;i<2;++i)
-        if (FAILED(effects[i]->GetVariableByName("preserved")->SetRawValue(preserved[i],0,sizeof(preserved[i])))) return false;
+        if (FAILED(effects[i]->GetVariableByName("preserved")->SetRawValue(preserved[i],0,sizeof(preserved[i]))) ||
+            FAILED(effects[i]->GetVariableByName("deviceValue")->SetRawValue(deviceValues[i],0,sizeof(deviceValues[i])))) return false;
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.ByteWidth = sizeof(deviceValues[2]); bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    D3D11_SUBRESOURCE_DATA initial = {}; initial.pSysMem = deviceValues[2];
+    ComPtr<ID3D11Buffer> deviceBuffer;
+    if (FAILED(device.Device()->CreateBuffer(&bufferDesc,&initial,&deviceBuffer))) return false;
     const unsigned count = 128;
     ComPtr<ID3D11Texture2D> target, staging;
     ComPtr<ID3D11RenderTargetView> rtv;
@@ -271,10 +281,16 @@ technique11 Material { pass p0 {
     context->RSSetState(raster.Get()); context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     for (unsigned draw=0;draw<count;++draw)
     {
-        auto* effect=effects[draw%2].Get();
+        auto* effect=effects[(draw/4)%2].Get();
         const float value[4] = {float(draw),float(draw+1),float(draw+2),float(draw+3)};
         if (FAILED(effect->GetVariableByName("changing")->SetRawValue(value,0,sizeof(value))) ||
             FAILED(effect->GetTechniqueByName("Material")->GetPassByIndex(0)->Apply(0,context))) return false;
+        if (draw%3 == 0)
+        {
+            ID3D11Buffer* buffer = deviceBuffer.Get();
+            context->PSSetConstantBuffers(13,1,&buffer);
+            D3DX11InvalidateBoundConstantBuffers(2,13,1);
+        }
         const D3D11_VIEWPORT viewport={float(draw),0,1,1,0,1}; context->RSSetViewports(1,&viewport);
         context->Draw(3,0);
     }
@@ -285,9 +301,10 @@ technique11 Material { pass p0 {
     const float* pixels=static_cast<const float*>(mapped.pData);
     for (unsigned draw=0;draw<count;++draw)
         for (unsigned channel=0;channel<4;++channel)
-            if (pixels[draw*4+channel] != float(draw+channel)+preserved[draw%2][channel]) passed=false;
+            if (pixels[draw*4+channel] != float(draw+channel)+preserved[(draw/4)%2][channel]+
+                deviceValues[draw%3 == 0 ? 2 : (draw/4)%2][channel]) passed=false;
     context->Unmap(staging.Get(),0); context->ClearState(); D3DX11InvalidateBoundState(3,15);
-    std::printf("Queued constants: %u alternating original/clone draws, partial updates: %s\n",count,passed?"passed":"FAILED");
+    std::printf("Queued constants: %u grouped original/clone draws, partial updates and external b13 interop: %s\n",count,passed?"passed":"FAILED");
     return passed;
 }
 

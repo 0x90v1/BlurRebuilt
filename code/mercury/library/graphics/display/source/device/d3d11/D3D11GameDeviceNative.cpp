@@ -63,6 +63,20 @@ struct NativeState
     bool blendDirty = true, depthDirty = true, rasterDirty = true;
     D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
     bool defaultVertexInputsBound = false;
+    // [Blur1PCDX11] Mirror DX9's unchanged-input elision, comparing native
+    // resources as a wrapper can acquire a replacement buffer in place.
+    struct VertexInputMemo
+    {
+        ID3D11Buffer* buffer = nullptr;
+        UINT stride = 0, offset = 0;
+        bool known = false;
+    };
+    VertexInputMemo vertexInputs[E_Stream_Count];
+    ID3D11Buffer* indexInput = nullptr;
+    DXGI_FORMAT indexFormat = DXGI_FORMAT_UNKNOWN;
+    bool indexInputKnown = false, inputLayoutKnown = false;
+    const C_VertexDeclaration* inputDeclaration = nullptr;
+    const C_VertexShader* inputShader = nullptr;
     // [Blur1PCDX11] depth.FrontFace/BackFace retain the PC CW/CCW banks.
     bool stencilTwoSided = false, stencilTriangles = true;
     UINT stencilRef = 0xff;
@@ -496,7 +510,7 @@ void BindAlphaTest(C_D3D11GameDevice* device)
     if (g_alphaConstantsBound) return;
     ID3D11Buffer* buffer = state.alphaConstants.Get();
     context->PSSetConstantBuffers(13, 1, &buffer);
-    D3DX11InvalidateBoundState(2u, 2u);
+    D3DX11InvalidateBoundConstantBuffers(2u, 13, 1);
     g_alphaConstantsBound = true;
 }
 void BindRenderTargets(C_D3D11GameDevice* game)
@@ -752,26 +766,43 @@ bool TryDraw(ID3D11DeviceContext* context, UINT count, UINT start, bool indexed,
     }
 }
 
+void C_D3D11GameDevice::InvalidateNativeInputBindings()
+{
+    NativeState& state = State(this);
+    for (auto& input : state.vertexInputs) input.known = false;
+    state.indexInputKnown = state.inputLayoutKnown = state.defaultVertexInputsBound = false;
+    state.topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+}
+
 void C_D3D11GameDevice::SetVertexBuffer(U32 stream, const C_VertexBuffer* buffer, U32 offset, U32 stride)
 {
     if (stream >= E_Stream_Count) return;
     m_Stream[stream].m_pVertexBuffer = buffer; m_Stream[stream].m_VertexOffset = offset; m_Stream[stream].m_VertexStride = stride;
-    auto context = Context(m_pd3dDevice); if (!context) return;
     ID3D11Buffer* raw = buffer ? buffer->m_pd3dVertexBuffer : nullptr;
+    auto& memo = State(this).vertexInputs[stream];
+    if (memo.known && memo.buffer == raw && memo.stride == stride && memo.offset == offset) return;
+    auto context = Context(m_pd3dDevice); if (!context) return;
     context->IASetVertexBuffers(stream, 1, &raw, &stride, &offset);
+    memo.buffer = raw; memo.stride = stride; memo.offset = offset; memo.known = true;
 }
 void C_D3D11GameDevice::SetIndexBuffer(const C_IndexBuffer* buffer)
 {
-    m_pIndexBuffer = buffer; auto context = Context(m_pd3dDevice); if (!context) return;
-    context->IASetIndexBuffer(buffer ? buffer->m_pd3dIndexBuffer : nullptr,
-        buffer && buffer->GetFormat() == Display2::E_IndexFormat_32 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT, 0);
+    m_pIndexBuffer = buffer;
+    auto& state = State(this);
+    ID3D11Buffer* raw = buffer ? buffer->m_pd3dIndexBuffer : nullptr;
+    const DXGI_FORMAT format = buffer && buffer->GetFormat() == Display2::E_IndexFormat_32 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
+    if (state.indexInputKnown && state.indexInput == raw && state.indexFormat == format) return;
+    auto context = Context(m_pd3dDevice); if (!context) return;
+    context->IASetIndexBuffer(raw, format, 0);
+    state.indexInput = raw; state.indexFormat = format; state.indexInputKnown = true;
 }
 void C_D3D11GameDevice::SetVertexDeclaration(const C_VertexDeclaration* declaration)
 {
     m_pVertexDeclaration = declaration;
-    auto context = Context(m_pd3dDevice); if (!context) return;
     // [Blur1PCDX11] Supply the fixed values used by absent D3D9 semantics.
     NativeState& state = State(this);
+    if (state.inputLayoutKnown && state.inputDeclaration == declaration && state.inputShader == m_pVertexShader) return;
+    auto context = Context(m_pd3dDevice); if (!context) return;
     const U32 defaults[3][4] = {
         {0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 0x3f800000}
     };
@@ -800,7 +831,7 @@ void C_D3D11GameDevice::SetVertexDeclaration(const C_VertexDeclaration* declarat
     ID3D11InputLayout* nativeLayout = nullptr;
     if (declaration && m_pVertexShader && !m_pVertexShader->m_Bytecode.empty())
     {
-        auto& layouts = State(this).inputLayouts;
+        auto& layouts = state.inputLayouts;
         const auto key = std::make_pair(declaration, m_pVertexShader);
         auto found = layouts.find(key);
         if (found == layouts.end())
@@ -816,6 +847,8 @@ void C_D3D11GameDevice::SetVertexDeclaration(const C_VertexDeclaration* declarat
         if (found != layouts.end()) nativeLayout = found->second.Get();
     }
     context->IASetInputLayout(nativeLayout);
+    state.inputDeclaration = declaration; state.inputShader = m_pVertexShader;
+    state.inputLayoutKnown = nativeLayout || !declaration || !m_pVertexShader;
 }
 void C_D3D11GameDevice::SetVertexShader(const C_VertexShader* shader)
 {

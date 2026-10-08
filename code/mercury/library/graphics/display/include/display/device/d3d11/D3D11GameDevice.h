@@ -35,6 +35,7 @@ namespace D3D11
 // 4 samplers, 8 shader resource views.
 }}
 void D3DX11InvalidateBoundState(unsigned stages, unsigned what);
+void D3DX11InvalidateBoundConstantBuffers(unsigned stages, unsigned start, unsigned count);
 namespace Display { namespace D3D11 {
 // g_FlushNativeFX returns true when it applied a pass.
 extern bool (*g_FlushNativeFX)();
@@ -83,6 +84,8 @@ public:
 	C_D3D11GameDevice();
 	~C_D3D11GameDevice();
 	void SetNativeFXActive(bool active);
+	// [Blur1PCDX11] Reset IA binding memos after context resets or raw diagnostic draws.
+	void InvalidateNativeInputBindings();
 
 	/**************************************************************************************************
 	- Public cross-platform functions.

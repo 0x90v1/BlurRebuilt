@@ -69,6 +69,8 @@ C_D3D11GameDevice::~C_D3D11GameDevice()
 void C_D3D11GameDevice::InvalidateState()
 {
 	C_DeviceBase::InvalidateState();
+	// [Blur1PCDX11] The next geometry submission must bind all requested inputs.
+	InvalidateNativeInputBindings();
 
 	m_BlendHighPrecisionEnable = E_Bool_Unknown;
 	
