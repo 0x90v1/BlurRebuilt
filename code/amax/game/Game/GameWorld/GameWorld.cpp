@@ -2208,7 +2208,20 @@ void C_GameWorld::RenderSplitscreenWithoutAA()
 
 void C_GameWorld::EndRenderSplitscreenWithoutAA()
 {
+#if PLATFORM_PC
+	// [Blur2PC] Retail 0x0067a3c0 refreshes view-dependent FX before post-processing (T232).
+	ViewDependentFXUpdate(Framework::C_ApplicationBase::GetInstance()->GetCurrentSplitscreenView());
+#endif
+
 	C_GameWorldPostProcess::EndRenderSplitscreenWithoutAA();
+
+#if PLATFORM_PC
+	// [Blur2PC] T232: recovered retail EndRenderSplitscreenWithoutAA, 0x00420a70 ->
+	// 0x0067a3c0. After post-processing, single-view detail 2-4 restores the prepass
+	// depth/stencil for view index 1. The fullscreen UI uses this scene stencil.
+	if ((m_pViewManager->GetNumViews() == 1) && m_GraphicalDetail > 1)
+		Display::Device()->SetDepthStencilSurface(m_pViewManager->m_pLightingPrepass->GetDepthStencilSurface(1));
+#endif
 
 #ifdef PLATFORM_XENON
 	const S32 viewIndex = Framework::C_ApplicationBase::GetInstance()->GetCurrentSplitscreenView();

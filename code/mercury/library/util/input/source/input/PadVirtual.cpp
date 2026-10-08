@@ -115,6 +115,7 @@ C_PadVirtual360::C_PadVirtual360( C_DeviceManager* pDeviceManager, const S32 use
 	, m_SupportsSensor(false)
 	, m_StickDeadzone(0.2f)
 {
+	m_DeviceType = E_Device_PadVirtual360;	// [Blur2PC] see C_Device::GetDeviceType
 }
 
 C_PadVirtual360::~C_PadVirtual360()

@@ -6,6 +6,7 @@
 #include "Render/State/RenderState.h"
 
 #include "SceneGraph/View.h"
+#include "Display/Device/Device.h"	// [Blur2PC] T174: the track strip draws through the device
 
 #include "../../../../../../amax/game/Game/GameWorld/ViewType.h"
 
@@ -234,9 +235,17 @@ void C_TrackRenderer::BindPixelConstants(const SceneGraph::C_View& view, Display
 		Display::Device()->SetPixelShaderParameterF(m_LuminanceParam, (F32*)&hdrParam);
 }
 
+// [Blur2PC] T174: retail PC (Blur.exe 1.2, C_TrackRenderer::OnRender 0x005d8860) draws only while this
+// debug value is set (registered at 0x00e17840, default on; value byte 0x011453b8); the snapshot has no
+// such value.
+Debug::Bool g_TyreTrackEnable("Vehicle.Effects.Wheel.TyreTrackEnable", true);
+
 void C_TrackRenderer::OnRender(const C_View& view, Display::C_Context* pDisplay, const C_CompositeRenderNode& batch, const U32 states) const
 {
 	PERF_EVENT("TrackRenderer.Render");
+
+	if(!g_TyreTrackEnable)	// [Blur2PC] T174
+		return;
 
 	U32 vertexCount = 0;
 
@@ -286,7 +295,10 @@ void C_TrackRenderer::OnRender(const C_View& view, Display::C_Context* pDisplay,
 
 	const C_Particle* pParticle;
 	const C_Particle* pPrev = NULL;
-	Vertex* pVertices = (Vertex*)pDisplay->BeginVertices(Display::E_PrimitiveType_TriangleStrip, vertexCount, sizeof(Vertex), Vertex::m_pDeclaration);
+	// [Blur2PC] T174: retail PC writes the strip through the device (0x005d8860: Device BeginVertices
+	// 0x005abb80 with checkUsage false, EndVertices 0x005abbe0). The PC context's BeginVertices is a stub
+	// that returns NULL (Context_D3D9.cpp), so through the context no track was ever drawn on PC.
+	Vertex* pVertices = (Vertex*)Display::Device()->BeginVertices(Display::E_PrimitiveType_TriangleStrip, vertexCount, sizeof(Vertex), Vertex::m_pDeclaration, false);
 
 	if(pVertices)
 	{
@@ -357,7 +369,7 @@ void C_TrackRenderer::OnRender(const C_View& view, Display::C_Context* pDisplay,
 			}	
 		}
 			
-		pDisplay->EndVertices();
+		Display::Device()->EndVertices();	// [Blur2PC] T174
 	}
 }
 

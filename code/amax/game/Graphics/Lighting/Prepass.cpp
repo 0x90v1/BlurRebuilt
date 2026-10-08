@@ -496,6 +496,12 @@ const Display::C_Texture2D* C_LightingPrepass::GetNormalTexture(const S32 iView)
 	return m_pDeferredManager->GetColourTexture(iView, 0);
 }
  	
+// [Blur2PC] Recovered retail PC 0x004a2290 forwards to Deferred::C_Manager (0x0059b7f0).
+const Display::C_Surface* C_LightingPrepass::GetDepthStencilSurface(const S32 iView) const
+{
+	return m_pDeferredManager->GetDepthStencilSurface(iView);
+}
+
 const Display::C_Texture2D* C_LightingPrepass::GetDepthTexture(const S32 iView) const
 {
 #if PLATFORM_PC

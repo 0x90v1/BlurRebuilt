@@ -92,6 +92,7 @@ function UISetup( initParam )
 		Profile.AllowProfileChanges( false )
 		Profile.ActOnProfileChanges( false )
 		Profile.AllowAllPadInput( false )
+		GameProfile.ClearGameProfile( UIGlobals.ProfilePressedStart, true )	-- [Blur2PC] T230: apply the profile's controls
 		
 		Amax.SetGameMode(UIEnums.GameMode.SinglePlayer)
 		

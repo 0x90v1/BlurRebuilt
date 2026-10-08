@@ -328,6 +328,7 @@ C_KeyboardPC::C_KeyboardPC( C_DeviceManager* pDeviceManager, const S32 userIndex
     , m_Acquired(false)
 	, m_pDirectInputKeyboard(NULL)
 {
+	m_DeviceType = E_Device_Keyboard;	// [Blur2PC] retail 0x008451a0
 	C_DeviceManagerPC* pDeviceManagerPC = (C_DeviceManagerPC*)pDeviceManager;
 	_IDirectInput* pDirectInput = pDeviceManagerPC->GetDirectInput();
 	HWND hWnd = pDeviceManagerPC->GetWindowHandle();

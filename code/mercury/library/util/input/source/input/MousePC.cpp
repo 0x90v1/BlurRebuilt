@@ -12,6 +12,7 @@ Debug::Float g_debugMouseSensitivity("Mouse.Sensitivity", 0.25f, Debug::Range(0.
 C_MousePC::C_MousePC( C_DeviceManager* pDeviceManager, const S32 userIndex )
 	: C_Mouse( pDeviceManager, userIndex )
 {
+	m_DeviceType = E_Device_Mouse;	// [Blur2PC] retail 0x00845c50
 	for(U32 i=0; i<E_Axis_Count; i++)
 	{
 		m_AccumAxisState[i] = 0.0f;

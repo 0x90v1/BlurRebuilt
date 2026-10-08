@@ -33,6 +33,8 @@ Never kill processes you do not own. Queue every automated game run through tool
 
 Continue until the task is complete, user input is required, or an unrecoverable condition prevents progress. Do not stop merely to report progress. Post-commit summaries omit other agents' pending uncommitted work.
 
+Whenever applicable, when a task is considered done, end up the handover by providing a link to the verification screenshot used as the approval.
+
 ## Context and verification
 
 Use scoped rg searches and relevant file ranges. Return tool output and necessary status fields rather than whole result objects; keep shell results around 2,000-4,000 tokens and batch output bounded. Save full logs under _work/, report exit status and a useful error excerpt, and read further ranges if needed. Use process/session waits rather than repeated empty polls. Run required checks; repeat them only after changes, failures, or unresolved concerns.

@@ -308,6 +308,9 @@ function MessageUpdate( message, arg1, arg2, arg3, arg4 )
 		Profile.AllowProfileChanges( false )
 		Profile.ActOnProfileChanges( false )
 		Profile.AllowAllPadInput( false )
+		-- [Blur2PC] T230: apply the profile's controls (keyboard layout and pad configuration) to this slot;
+		-- UI::SetupPlayerControls skips them while every pad drives the menus, as it did at InitPrimary above.
+		GameProfile.ClearGameProfile( arg1, true )
 		
 		GUI.entering_debug_menu = true
 		
