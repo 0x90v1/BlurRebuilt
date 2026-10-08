@@ -46,6 +46,9 @@ public:
 	const Display::C_Texture2D* GetNormalTexture(const S32 iView) const;
  
 	const Display::C_Texture2D* GetDepthTexture(const S32 iView) const;
+
+	// [Blur2PC] Recovered retail PC getter, Blur.exe 1.2 0x004a2290 (T232).
+	const Display::C_Surface* GetDepthStencilSurface(const S32 iView) const;
  
 	const Display::C_Texture2D* GetLightingTexture(const S32 iView) const;
 
