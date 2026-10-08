@@ -118,6 +118,11 @@ void C_LightingPrepass::SetupRenderTargets()
 
 	// lighting
 	setup.eColourFormat[0]		= Display::E_Format_A8R8G8B8;
+#if defined(BLUR_USE_DX11)
+	// [Blur2PC][HDR] Additive light radiance must survive before material exposure.
+	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
+		setup.eColourFormat[0] = Display::E_Format_A16B16G16R16F;
+#endif
 	setup.eColourFormat[1]		= Display::E_Format_Unknown;
 	setup.eColourFormat[2]		= Display::E_Format_Unknown;
 	setup.eColourFormat[3]		= Display::E_Format_Unknown;

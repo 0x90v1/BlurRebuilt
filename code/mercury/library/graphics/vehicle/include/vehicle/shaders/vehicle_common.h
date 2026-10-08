@@ -45,6 +45,7 @@
 #endif
 
 #include <Shader/Core.h>
+#include <Shader/Common/HDRRange.h> // [Blur2PC][HDR] Material range extension.
 #undef SHNODE_IN_VERTEX_CONSTANT
 #undef LODFADE_IN_VERTEX_CONSTANT
 #include <Shader/Globals.h>
@@ -1171,7 +1172,7 @@ VSOutput MainVS( VSInput input )
 	output.vLighting.r = dot(g_LocalSpaceSHNode.m_vRedCoeffs, ambientOccusionSH);
 	output.vLighting.g = dot(g_LocalSpaceSHNode.m_vGreenCoeffs, ambientOccusionSH);
 	output.vLighting.b = dot(g_LocalSpaceSHNode.m_vBlueCoeffs, ambientOccusionSH);
-	output.vLighting = saturate(output.vLighting);
+	output.vLighting = BlurHDRLighting(output.vLighting); // [Blur2PC][HDR]
 
 	output.vLighting.w = doubleAmbientOcclusionSH.x;
 
@@ -1270,7 +1271,8 @@ PSOutput MainPS( VSOutput input )
 
 	surface.m_vSurfaceColour = surfaceColour;
 
-	real3 reflection =  clamp(pow(bloomTexture.xyz, g_vScreenSettingsPS.x) * g_vScreenSettingsPS.y, 0.0h, g_vScreenSettingsPS.z);
+	// [Blur2PC][HDR] Retain the authored reflection curve without its SDR ceiling.
+	real3 reflection = BlurHDRReflection(pow(bloomTexture.xyz, g_vScreenSettingsPS.x) * g_vScreenSettingsPS.y, g_vScreenSettingsPS.z);
 
 	#if defined(_USE_ALBEDO)
 	output.colour.xyz			= lerp(surface.m_vSurfaceColour.xyz, reflection.xyz, 1.0h - surface.m_vAlbedoTex.w);

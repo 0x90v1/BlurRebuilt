@@ -867,3 +867,34 @@ Verified: previous final standard build errsum0 and delivered EXE/PDB remain cur
 Outstanding: none for this requested commit. Cross-display and sustained-panel behavior remain documented verification limits. No parent/lower-phase edits, merge or push.
 
 Exact next step: report the resulting HDR-child commit; continue only when the user requests further changes.
+
+
+## 2026-10-08 - session Codex HDR range audit - T238 remaining over-white limits
+
+Did: reviewed the HDR child at 2fbde954 at the user's request. Traced active scene/effects/reflection/postprocess/presentation storage and relevant shader clamps. Found three reachable raw-RGB A8 intermediates: point/spot-light prepass accumulation, both planar-reflection blur targets, and bloom feedback history. Also documented vehicle SH saturation, the conditional interior-glass reflection ceiling and the RGBM vehicle-light cubemap's maximum of eight. Recorded exact source paths, consumers, scope and exclusions in analysis.md. Found in / Belongs to DX11 HDR child. Phase docs only; no implementation, generated assets, runtime settings or delivery changed.
+
+Verified: source allocation-to-consumer tracing and native UNORM mapping; recovered retail vehicle dp4_sat operations and compiler preference; active DOF/motion-blur inheritance of FP16. git diff --check passes. No new build or runtime test was needed for this audit. Actual above-limit input frequency and visual severity remain unmeasured; no new verification screenshot exists, and prior HDR screenshots are not evidence for these pass-specific findings. Startup luminance nonfinite-value unknown remains separate.
+
+Outstanding: requested audit complete; identified range limits remain unfixed. No commit, push or parent/lower-phase changes. No blocker to reporting the source findings.
+
+Exact next step: report the three storage ceilings and separate material limits. If implementation is requested, capture ranges for the three actual passes, preserve HDR range through their creation/reset paths, and verify at 60 Hz and unlocked rendering with SDR comparison; evaluate retail vehicle material bounds separately before changing their semantics.
+
+
+## 2026-10-08 - session Codex HDR range fixes - T238 complete
+
+- Owner: session Codex HDR range fixes. Found in / Belongs to DX11 HDR child. User requested fixing all six source-audited limits; no lower-phase fault correction or commit/push requested.
+- Changed dynamic-light accumulation, planar reflection blur and bloom history to FP16 for the float native container. Extended vehicle light RGBM using RGBA16F and actual worker row pitch; original decoder retained. Shared vehicle SH/interior-glass helpers remove upper bounds only with active HDR; all 102 recovered vehicle FX sources receive the targeted SH extension at generation. Native HDR state binds VS/PS b12 and presentation restores both independently.
+- Verification: standard Release and HDR probe builds exit0/errsum0; 693 built-ins regenerate without failures; hardware/WARP production-shader range references pass, old vehicle negative control fails as intended. Tokyo moving gameplay and HDR startup at60/unlocked, HDR-off startup60 and resolution/MSAA recreation all exit0 with no DX11 validation messages; final HDR readbacks finite/nonnegative. Source/SDR-helper checks retain retail bounds. Details and limits in analysis.md.
+- Delivered Amax.exe/PDB and 4985 generated FXOs to _work/run; SHA256 matches in _work/t238/range_fixes/delivery.log. Preview: _work/t238/range_fixes/hdr_tokyo60/race.png. No commit/push.
+- Blockers: none for these fixes/delivery. Physical HDR visual approval, WININT runtime reachability and the earlier luminance-reduction unknown are unverified. Exact next step: optional user physical-display review of the delivered build; no required implementation action remains.
+
+
+## 2026-10-08 - session Codex HDR commit - T238 range repairs and base sync
+
+Did: user authorizes committing the range repairs and incorporating Blur1PC changes since branching. Reviewed only this session's HDR engine/shader/compiler/probe changes and phase records for staging. Current Blur1PC tip 4ec6226e and DX11 tip e46ee524 are already ancestors of the HDR child; there are no incoming committed changes. No new merge or lower-phase changes are needed.
+
+Verified: ancestry check exit0, HEAD..blur1pc and HEAD..blur1pcdx11 empty. Existing standard Release errsum0, hardware/WARP range checks, 60Hz/unlocked HDR startup/Tokyo gameplay, SDR fallback and reset results remain current; no functional source change since verification/delivery. EXE/PDB and generated FXOs delivered and hash-verified. Screenshot: _work/t238/range_fixes/hdr_tokyo60/race.png. Recorded WININT/physical HDR/luminance intermediate limitations remain unchanged.
+
+Outstanding: none for the requested commit/base synchronization. No push requested.
+
+Exact next step: report the resulting range-fix commit and that all current committed Blur1PC fixes are already incorporated.

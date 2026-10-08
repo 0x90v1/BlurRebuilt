@@ -58,8 +58,19 @@ static bool Check(ID3D11Device* device, IDXGISwapChain* chain, C_HDROutput& outp
     ComPtr<ID3D11RenderTargetView> originalTarget;
     if (FAILED(device->CreateRenderTargetView(frame.Get(), nullptr, &originalTarget))) return false;
     ID3D11RenderTargetView* original = originalTarget.Get(); context->OMSetRenderTargets(1, &original, nullptr);
+    // [Blur2PC][HDR] Compose must restore both material shader stages' b12.
+    ComPtr<ID3D11Buffer> vertexState, pixelState;
+    D3D11_BUFFER_DESC stateDesc = {}; stateDesc.ByteWidth = 16; stateDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    if (FAILED(device->CreateBuffer(&stateDesc, nullptr, &vertexState)) || FAILED(device->CreateBuffer(&stateDesc, nullptr, &pixelState))) return false;
+    ID3D11Buffer* vertexRaw = vertexState.Get(); context->VSSetConstantBuffers(12, 1, &vertexRaw);
+    ID3D11Buffer* pixelRaw = pixelState.Get(); context->PSSetConstantBuffers(12, 1, &pixelRaw);
     D3D11_VIEWPORT vp = {3, 4, 12, 13, 0, 1}; context->RSSetViewports(1, &vp);
     output.Compose(device);
+    ComPtr<ID3D11Buffer> restoredVertexState, restoredPixelState;
+    context->VSGetConstantBuffers(12, 1, &restoredVertexState); context->PSGetConstantBuffers(12, 1, &restoredPixelState);
+    if (restoredVertexState.Get() != vertexState.Get() || restoredPixelState.Get() != pixelState.Get()) {
+        puts("HDR Compose failed to restore VS/PS b12 independently"); return false;
+    }
     if (g_CheckLinkage) {
         ComPtr<ID3D11PixelShader> restoredPS; ComPtr<ID3D11ClassInstance> restoredInstance; UINT restoredCount = 1;
         context->PSGetShader(&restoredPS, &restoredInstance, &restoredCount);
@@ -102,6 +113,7 @@ static bool Check(ID3D11Device* device, IDXGISwapChain* chain, C_HDROutput& outp
     return okay;
 }
 #include "hdr_scene_reference.h"
+#include "hdr_range_reference.h"
 
 int main(int argc, char** argv)
 {
@@ -147,5 +159,6 @@ int main(int argc, char** argv)
     SetEnvironmentVariableA("BLUR_DX11_HDR_PAPER_WHITE_NITS", "-1"); C_HDROutput invalid(window); invalid.Refresh(device.Get(), true);
     if (argc > 2 && !CheckSceneRange(device.Get(), chain.Get(), window, argv[2])) return 8;
     if (argc > 3 && !CheckEmissiveRange(device.Get(), chain.Get(), window, argv[3])) return 9;
+    if (argc > 4 && !CheckIntermediateRange(device.Get(), chain.Get(), window, argv[2], argv[4])) return 10;
     DestroyWindow(window); puts("HDR production presenter GPU references passed"); return 0;
 }

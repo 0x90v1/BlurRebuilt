@@ -133,12 +133,18 @@ bool C_ReflectionView::OnCreate()
 bool C_ReflectionView::OnCreateVolatile()
 {
 	RESOURCE_MEMORY_ID("Reflection");
+	Display::E_Format blurFormat = Display::E_Format_A8R8G8B8;
+#if defined(BLUR_USE_DX11)
+	// [Blur2PC][HDR] Match sharp reflection storage through both blur writes/reset paths.
+	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
+		blurFormat = Display::E_Format_A16B16G16R16F;
+#endif
 
 #if PLATFORM_PC
 	// [Blur2PC] Retail PC (Blur.exe 1.2 0x00426500): the blur textures at half the reflection target, then the
 	// black frame; the target itself belongs to OnCreate.
-	Display::Device()->CreateRenderTexture2D(m_TargetWidth >> 1, m_TargetHeight >> 1, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, 0, &m_BlurAuxReflectionTexture);
-	Display::Device()->CreateRenderTexture2D(m_TargetWidth >> 1, m_TargetHeight >> 1, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, 0, &m_BlurReflectionTexture);
+	Display::Device()->CreateRenderTexture2D(m_TargetWidth >> 1, m_TargetHeight >> 1, 1, Display::E_Usage_Colour, blurFormat, Display::E_Multisample_None, 0, &m_BlurAuxReflectionTexture);
+	Display::Device()->CreateRenderTexture2D(m_TargetWidth >> 1, m_TargetHeight >> 1, 1, Display::E_Usage_Colour, blurFormat, Display::E_Multisample_None, 0, &m_BlurReflectionTexture);
 
 	#if TRACK_DISPLAY2_RESOURCES
 	Display2::Device()->SetRenderTexture2DName(&m_BlurAuxReflectionTexture, "_ReflectionViewBlurAuxRT");
@@ -194,8 +200,8 @@ bool C_ReflectionView::OnCreateVolatile()
 	m_RenderGroupSettings.SetNumWorkers(1);
 	m_RenderGroupSettings.SetMultisample(multisample);
 
-	Display::Device()->CreateRenderTexture2D(reflectionResolutionX/2, reflectionResolutionY/2, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, 0, &m_BlurAuxReflectionTexture);
-	Display::Device()->CreateRenderTexture2D(reflectionResolutionX/2, reflectionResolutionY/2, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, 0, &m_BlurReflectionTexture);
+	Display::Device()->CreateRenderTexture2D(reflectionResolutionX/2, reflectionResolutionY/2, 1, Display::E_Usage_Colour, blurFormat, Display::E_Multisample_None, 0, &m_BlurAuxReflectionTexture);
+	Display::Device()->CreateRenderTexture2D(reflectionResolutionX/2, reflectionResolutionY/2, 1, Display::E_Usage_Colour, blurFormat, Display::E_Multisample_None, 0, &m_BlurReflectionTexture);
 
 	#if TRACK_DISPLAY2_RESOURCES
 	Display2::Device()->SetRenderTexture2DName(&m_BlurAuxReflectionTexture, "_ReflectionViewBlurAuxRT");

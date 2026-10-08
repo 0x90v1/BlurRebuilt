@@ -14,6 +14,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dx11_shadercompile
 from alpha_test import inject_effect_alpha_test
 
 
+def extend_vehicle_hdr(source: str) -> str:
+    # [Blur2PC][HDR] Only the recovered SH dp4_sat operations lose radiance.
+    # Preserve the recovery files and all other retail saturated instructions.
+    source, count = re.subn(r"saturate(?=\(\(dot\(\(g_LocalSpaceSHNode\[)",
+                            "BlurHDRLighting", source)
+    if count:
+        source = ('// [Blur2PC][HDR] SH range extension; SDR retains retail dp4_sat.\n'
+                  '#define BLUR_DX11 1\n#include <Shader/Common/HDRRange.h>\n' + source)
+    return source
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--top", required=True, type=Path)
@@ -68,8 +79,11 @@ def main() -> int:
         if recovered.is_file():
             output.parent.mkdir(parents=True, exist_ok=True)
             transformed = output.with_suffix(".retail.fx5.fx")
-            transformed.write_text(inject_effect_alpha_test(recovered.read_text(encoding="utf-8")), encoding="utf-8")
-            command = [str(args.fxc), "/nologo", "/T", "fx_5_0", "/Fo", str(output), str(transformed)]
+            transformed.write_text(inject_effect_alpha_test(extend_vehicle_hdr(
+                recovered.read_text(encoding="utf-8"))), encoding="utf-8")
+            command = [str(args.fxc), "/nologo", "/T", "fx_5_0", "/I",
+                       str(top / "code/mercury/library/graphics/shader/include"),
+                       "/Fo", str(output), str(transformed)]
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     text=True, encoding="utf-8", errors="replace")
             if result.returncode == 0:

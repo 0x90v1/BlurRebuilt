@@ -29,3 +29,7 @@ T238 lamp-square scope (2026-10-08, user explicitly requested): the earlier defe
 
 
 T238 completion (2026-10-08): user confirms the additional manifestation is gone and authorizes committing the HDR implementation and lamp-square repair together on the HDR child. Retain the separate child branch; no merge into the original DX11 branch or push was requested. Recorded verification limitations remain unchanged.
+
+T238 remaining range fixes (2026-10-08): accepted, user explicitly requests fixing all limits identified by the source audit. Extend HDR storage through dynamic-light accumulation, planar-reflection blur and bloom feedback. Extend vehicle SH lighting and interior-glass reflection above their retail upper bounds only in the active HDR branch, retaining their lower bound and authored light/reflection calculation. Replace the finite RGBM vehicle-light encoding with floating storage for the HDR container, retaining the existing RGBM decoder and SDR compatibility. No guessed intensity gain, simulation/adaptation cadence change, lower-phase edit or commit is authorized by this follow-up.
+
+T238 range-fix commit/base synchronization (2026-10-08): user explicitly authorizes committing the repairs and incorporating later Blur1PC fixes. The committed base is already current at 4ec6226e; retain the HDR child and record the ancestry check. No push requested.

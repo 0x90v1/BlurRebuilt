@@ -92,7 +92,12 @@ bool C_BloomFeedbackGhost::CreateVolatile()
 		C_View& view = m_Manager.GetView(i);
 		const U32 iWidth = view.GetWidth() / 8;
 		const U32 iHeight = view.GetHeight() / 8;
-		const Display::E_Format eFormat = Display::E_Format_A8R8G8B8;
+		Display::E_Format eFormat = Display::E_Format_A8R8G8B8;
+#if defined(BLUR_USE_DX11)
+		// [Blur2PC][HDR] Preserve the current bloom's range in next-frame feedback.
+		if (Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
+			eFormat = Display::E_Format_A16B16G16R16F;
+#endif
 
 		Display::C_RenderTexture2D* pRenderTexture = new Display::C_RenderTexture2D;
 		if (!Device()->CreateRenderTexture2D(iWidth, iHeight, 1, Display::E_Usage_Colour, eFormat, E_Multisample_None, NULL, pRenderTexture))

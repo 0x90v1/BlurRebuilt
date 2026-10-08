@@ -189,6 +189,7 @@ public:
     void Bind(ID3D11DeviceContext* context)
     {
         ID3D11Buffer* buffer = m_Constants.Get(); context->PSSetConstantBuffers(12, 1, &buffer);
+        context->VSSetConstantBuffers(12, 1, &buffer); // [Blur2PC][HDR] Vehicle SH is evaluated in VS.
     }
     void Compose(ID3D11Device* device)
     {
@@ -197,7 +198,7 @@ public:
         Ptr<ID3D11VertexShader> vs; Ptr<ID3D11PixelShader> ps; Ptr<ID3D11GeometryShader> gs;
         Ptr<ID3D11InputLayout> layout; Ptr<ID3D11RasterizerState> raster;
         Ptr<ID3D11BlendState> blend; Ptr<ID3D11DepthStencilState> depth;
-        Ptr<ID3D11ShaderResourceView> view; Ptr<ID3D11Buffer> constants;
+        Ptr<ID3D11ShaderResourceView> view; Ptr<ID3D11Buffer> constants, vertexConstants;
         ID3D11RenderTargetView* targets[8] = {}; ID3D11DepthStencilView* dsv = nullptr;
         UINT stencil = 0, mask = 0; FLOAT factors[4] = {};
         D3D11_PRIMITIVE_TOPOLOGY topology; D3D11_VIEWPORT ports[16]; UINT portCount = 16;
@@ -211,6 +212,7 @@ public:
         context->RSGetState(&raster); context->RSGetViewports(&portCount, ports);
         context->OMGetBlendState(&blend, factors, &mask); context->OMGetDepthStencilState(&depth, &stencil);
         context->PSGetShaderResources(0, 1, &view); context->PSGetConstantBuffers(12, 1, &constants);
+        context->VSGetConstantBuffers(12, 1, &vertexConstants); // [Blur2PC][HDR]
         // Drop the frame's RTV before reading it; output uses the actual swap-chain buffer.
         ID3D11RenderTargetView* output = m_Output.Get(); context->OMSetRenderTargets(1, &output, nullptr);
         D3D11_TEXTURE2D_DESC desc = {}; m_Frame->GetDesc(&desc);
@@ -223,6 +225,7 @@ public:
         context->Draw(3, 0);
         ID3D11ShaderResourceView* oldView = view.Get(); context->PSSetShaderResources(0, 1, &oldView);
         ID3D11Buffer* oldConstants = constants.Get(); context->PSSetConstantBuffers(12, 1, &oldConstants);
+        ID3D11Buffer* oldVertexConstants = vertexConstants.Get(); context->VSSetConstantBuffers(12, 1, &oldVertexConstants); // [Blur2PC][HDR]
         context->VSSetShader(vs.Get(), vsClasses, vsCount); context->PSSetShader(ps.Get(), psClasses, psCount); context->GSSetShader(gs.Get(), gsClasses, gsCount);
         for (UINT i = 0; i < vsCount; ++i) if (vsClasses[i]) vsClasses[i]->Release();
         for (UINT i = 0; i < psCount; ++i) if (psClasses[i]) psClasses[i]->Release();

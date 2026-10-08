@@ -1,4 +1,8 @@
 #include <stdafx.h>
+#if defined(BLUR_USE_DX11)
+#include <misc_shared/types/Float16.h> // [Blur2PC][HDR] Native floating light-cube packing.
+#include <Game/GameWorld/VehicleLightRGBM.h>
+#endif
 
 #ifndef PLATFORM_SPU
 #include <Core/Maths/HVec/New/IncludeMinimal.h>
@@ -920,26 +924,49 @@ namespace Game
 							pixelValue += factor * rimGeneratorVector[j].m_Colour;
 						}
 
-						//Convert to RGBM (Max 8.f)
-						Maths::HF32 maxValue = Maths::Max(pixelValue.X(), Maths::Max(pixelValue.Y(), pixelValue.Z()));
-						maxValue = Maths::Max(quarter, Maths::Min(eight, maxValue));
+#if defined(BLUR_USE_DX11)
+						if (lightCubeInfo[i].m_FloatRGBM)
+						{
+							const Maths::C_RGBA_F32 radiance((Maths::HVec4(pixelValue)));
+							float encoded[4];
+							EncodeExtendedVehicleLightRGBM(radiance.R(), radiance.G(), radiance.B(), encoded);
+							// [Blur2PC][HDR] RGBA16F has RGBA order and two U32 words per texel.
+							U16* pixel = (U16*)pLockedMemory;
+							pixel[0] = Half::F16(encoded[0]).m_U16;
+							pixel[1] = Half::F16(encoded[1]).m_U16;
+							pixel[2] = Half::F16(encoded[2]).m_U16;
+							pixel[3] = Half::F16(encoded[3]).m_U16;
+							pLockedMemory += 2;
+						}
+						else
+#endif
+						{
+							//Convert to RGBM (Max 8.f)
+							Maths::HF32 maxValue = Maths::Max(pixelValue.X(), Maths::Max(pixelValue.Y(), pixelValue.Z()));
+							maxValue = Maths::Max(quarter, Maths::Min(eight, maxValue));
 
-						Maths::HVec4 clampedPixelValueColour(Maths::Min(vOne, pixelValue/maxValue));
-						clampedPixelValueColour.W(maxValue * eighth);
-						
-						const Maths::C_RGBA_F32 pixelValueColour(clampedPixelValueColour);
+							Maths::HVec4 clampedPixelValueColour(Maths::Min(vOne, pixelValue/maxValue));
+							clampedPixelValueColour.W(maxValue * eighth);
 
-						U8 r = (U8)(pixelValueColour.R() * 255.0f);
-						U8 g = (U8)(pixelValueColour.G() * 255.0f);
-						U8 b = (U8)(pixelValueColour.B() * 255.0f);
-						U8 a = (U8)(pixelValueColour.A() * 255.0f);
+							const Maths::C_RGBA_F32 pixelValueColour(clampedPixelValueColour);
 
-						*pLockedMemory = (a << 24) + (r << 16) + (g << 8) + (b << 0);
-						//*pLockedMemory = Maths::RGBA(x,y,U32(face),1);
-						pLockedMemory++;
+							U8 r = (U8)(pixelValueColour.R() * 255.0f);
+							U8 g = (U8)(pixelValueColour.G() * 255.0f);
+							U8 b = (U8)(pixelValueColour.B() * 255.0f);
+							U8 a = (U8)(pixelValueColour.A() * 255.0f);
+
+							*pLockedMemory = (a << 24) + (r << 16) + (g << 8) + (b << 0);
+							//*pLockedMemory = Maths::RGBA(x,y,U32(face),1);
+							pLockedMemory++;
+						}
 					}
 
+					// [Blur2PC][HDR] Row pitch is bytes; float RGBM consumes two words per pixel.
+#if defined(BLUR_USE_DX11)
+					pLockedMemory += pitch - GameWorld_LightCubeMapSize * (lightCubeInfo[i].m_FloatRGBM ? 2 : 1);
+#else
 					pLockedMemory += (pitch - GameWorld_LightCubeMapSize);
+#endif
 				}
 #ifdef PLATFORM_SPU
 				//DMA out to the texture

@@ -1102,6 +1102,12 @@ bool C_GameWorld::CreateCrowdSystem()
 bool C_GameWorld::CreateVehicleLightCubeMaps()
 {
 	bool success = true;
+	Display::E_Format lightCubeFormat = Display::E_Format_A8R8G8B8;
+#if defined(BLUR_USE_DX11)
+	// [Blur2PC][HDR] Floating RGBM permits the multiplier to exceed the retail ceiling.
+	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
+		lightCubeFormat = Display::E_Format_A16B16G16R16F;
+#endif
 
 	//Create LightCubemaps
 	U32 flags = Display::E_Format_Linear | Display::E_Usage_Dynamic;
@@ -1117,9 +1123,9 @@ bool C_GameWorld::CreateVehicleLightCubeMaps()
 		for (U32 i = 0; i < m_NumVehicleLightCubeMapTexture; i++)
 		{
 			
-			success = success && Display::Device()->CreateTextureCube(GameWorld_LightCubeMapSize, 1,  flags , Display::E_Format_A8R8G8B8, &m_VehicleLightCubeMapTexture[i][0]);
+			success = success && Display::Device()->CreateTextureCube(GameWorld_LightCubeMapSize, 1,  flags , lightCubeFormat, &m_VehicleLightCubeMapTexture[i][0]);
 			BIZ_ASSERT(success);
-			success = success &&  Display::Device()->CreateTextureCube(GameWorld_LightCubeMapSize, 1, flags , Display::E_Format_A8R8G8B8, &m_VehicleLightCubeMapTexture[i][1]);
+			success = success &&  Display::Device()->CreateTextureCube(GameWorld_LightCubeMapSize, 1, flags , lightCubeFormat, &m_VehicleLightCubeMapTexture[i][1]);
 			BIZ_ASSERT(success);
 
 			//Clean to black the textures
@@ -3322,6 +3328,10 @@ void C_GameWorld::BeginCarEffectTasks()
 					BIZ_ASSERT(lockedRect.GetBits());
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_MemoryLocked[5] = lockedRect.GetBits();
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_Pitch = lockedRect.GetPitch();
+#if defined(BLUR_USE_DX11)
+					// [Blur2PC][HDR] Carry the actual texture format into the worker's row packing.
+					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_FloatRGBM = pLightCubeMap->GetFormat() == Display2::E_TextureFormat_A16B16G16R16F;
+#endif
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_pTextureCube = pLightCubeMap;
 
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_Position = pVehicleActor->GetMatrix().AW();
