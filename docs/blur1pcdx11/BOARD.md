@@ -13,3 +13,9 @@ Claim a task before working on it. One task per agent. Keep rows short; details 
 
 | T186 | propagation | Inherit base one-sided ray mask fix; no phase-specific engine change | session Codex Business Bay | done (66a7afac merged via 6bd5e080; standard build errsum0 and EXE/PDB delivered) | inherited RayTriangle.inl; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md; _work/t186/ | none |
 | T187 | M11 | Bring native DX11 frame rate to parity with Blur1PC D3D9 (user: 1080p vsync off, first Career race start, ~50 fps vs ~500 fps) | unclaimed | in progress (binding/input optimization checkpoint committed and delivered; FPS gain inconclusive, DX9 parity and full-grid attribution open) | Blur1PCDX11: fx/NativeFX11.cpp, display/d3d11 native device, render/postprocess/Interface.cpp diagnostic boundary, vendor/fx11/EffectRuntime.cpp, dx11_probe texture reference, phase docs; _work/t187 | — |
+
+## HDR child branch
+
+| ID | Milestone | Task | Owner | Status | Files / scope | Blocked on |
+|---|---|---|---|---|---|---|
+| T238 | HDR | Native HDR output from unclipped scene lighting, display detection/calibration and SDR fallback on child branch `uKER/blur1pcdx11-hdr` | session Codex HDR | done (implementation delivered; lamp artifacts user confirmed; commit requested) | Found in / Belongs to DX11 HDR child: native PC device/header and shader/common/Hdr.h retail exposure gamma fix (parent startup clean), GameWorld reduced effects and postprocess downsample targets, Racification shader and dx11_fxcompile binding preservation, native final-composition shaders and render windows, dx11_probe, owning phase docs; _work/ | none |

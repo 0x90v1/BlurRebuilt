@@ -105,7 +105,10 @@ def main() -> int:
     # FX9 binds independent vertex/pixel c-register files. FX5 packs global
     # values into constant buffers, so the old explicit register assignments
     # collide. The native renderer addresses parameters by reflected name.
-    source = re.sub(r":\s*register\s*\([^)]*\)", "", source)
+    # [Blur2PC][HDR] Native buffers (HDR b12, alpha test b13) must keep
+    # their device binding; only legacy FX9 c/s register files are repacked.
+    source = re.sub(r":\s*register\s*\(([^)]*)\)",
+                    lambda match: match[0] if re.fullmatch(r"b\d+", match[1].strip()) else "", source)
     # FX5 ignores the original FX9 min/mag/mip sampler properties. The game
     # uses either point for all three or linear for all three in every sampler.
     # The old sRGB flag belongs on the DX11 texture view, so keep a sidecar

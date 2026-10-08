@@ -15,3 +15,17 @@ Found in / Belongs to Blur1PCDX11. The user authorized this follow-up after the 
 The engine's PS b13 alpha-state bind invalidates only that FX constant-buffer slot. Preserve FX/device buffer restoration and the existing alpha-test values and comparisons. Keep full-stage invalidation for callers that change whole categories of state.
 
 Skip unchanged native vertex/index buffer and input-layout submissions, following DX9's existing binding checks. Compare raw buffers as well as stride/offset/format. Input layouts retain the existing immutable declaration/shader pair key. Device state invalidation and the raw postprocess diagnostic draw invalidate these memos; failed layout creation remains retryable. Preserve multithread protection, constant upload policy and the accepted fullscreen presentation path.
+
+## T238 — native HDR on a separate DX11 child branch (2026-10-07)
+
+Status: accepted scope, explicitly requested by the user. Found in / Belongs to the DX11 HDR child branch. Create `uKER/blur1pcdx11-hdr` from `blur1pcdx11`, leaving the parent and all lower phases unchanged. Implement scene-derived HDR with automatic display detection and arbitrary positive peak/paper-white calibration. The user explicitly rejected treating 80 nits as a display output limit.
+
+Use FP16/scRGB presentation and retain existing retail exposed scene RGB. Add an explicitly new HDR extension to the final bounded grade, plus a continuous hue-preserving shoulder above paper white. SDR values retain authored grade processing. Keep the existing BGRA8/fullscreen blt path for launch-time HDR off and SDR fallback when native output capabilities are unavailable. HDR exclusive fullscreen uses windowed creation followed by transition/resize before acquiring views, satisfying the flip-model contract without changing the parent's accepted SDR presentation decision. Details and calibration controls are in hdr.md. No simulation or exposure-adaptation timing changes.
+
+T238 follow-up scope (user confirmed): all emissive categories and the sky must be able to exceed paper white. Remove intermediate RGB/storage ceilings under HDR and preserve authored lighting/exposure; do not use a global scene gain or guessed material/sky multipliers to stand in for recovered values. Extend racification RGB only with active HDR; keep its retail SDR saturation. Preserve explicit native FX constant-buffer slots and bind device HDR state after FX application. Validate actual source/grade shaders in addition to the output container. Physical visual approval remains outstanding following the user's report; clipped previews cannot provide that approval. Lamppost square artifacts are explicitly deferred.
+
+
+T238 lamp-square scope (2026-10-08, user explicitly requested): the earlier deferral ends for the lamp-head black blocks. Match the actual retail FXB exposure rsq/rcp magnitude semantics in native shaders, keeping positive HDR radiance unbounded and MSAA enabled. Do not use intensity guesses, disable lighting effects, or alter simulation/adaptation timing. Final trace-free build is delivered; broader HDR physical review remains pending. This adds the requested defect repair without reversing the accepted HDR direction.
+
+
+T238 completion (2026-10-08): user confirms the additional manifestation is gone and authorizes committing the HDR implementation and lamp-square repair together on the HDR child. Retain the separate child branch; no merge into the original DX11 branch or push was requested. Recorded verification limitations remain unchanged.

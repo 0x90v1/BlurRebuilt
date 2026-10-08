@@ -215,6 +215,12 @@ target_link_libraries(dx11_probe PRIVATE blur_dx11 blur_fx11)
 add_dependencies(dx11_probe dx11_shaders_all dx11_fx_all)
 set_target_properties(dx11_probe PROPERTIES FOLDER "dx11")
 
+# [Blur2PC][HDR] Exercise the production scRGB presenter across display peaks.
+add_executable(dx11_hdr_reference ${BLUR_TOP}/code/tools/dx11_probe/hdr_output_reference.cpp)
+target_compile_features(dx11_hdr_reference PRIVATE cxx_std_17)
+target_link_libraries(dx11_hdr_reference PRIVATE blur_dx11)
+set_target_properties(dx11_hdr_reference PROPERTIES FOLDER "dx11")
+
 # [Blur1PCDX11] Isolated reference probe for legacy texel semantics. This is
 # deliberately separate from blur_dx11 and the game's native-only link graph.
 add_executable(d3d9_sampling_reference

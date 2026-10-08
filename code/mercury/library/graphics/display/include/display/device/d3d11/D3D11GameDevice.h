@@ -86,6 +86,8 @@ public:
 	void SetNativeFXActive(bool active);
 	// [Blur1PCDX11] Reset IA binding memos after context resets or raw diagnostic draws.
 	void InvalidateNativeInputBindings();
+	// [Blur2PC][HDR] Display calibration occupies b12, outside legacy b0-b7.
+	virtual void BindHDROutputConstants() {}
 
 	/**************************************************************************************************
 	- Public cross-platform functions.

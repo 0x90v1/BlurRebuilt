@@ -461,6 +461,7 @@ void BindConstants(C_D3D11GameDevice* device, bool vertex)
     if (vertex) context->VSSetConstantBuffers(0, 8, raw);
     else context->PSSetConstantBuffers(0, 8, raw);
     D3DX11InvalidateBoundState(vertex ? 1u : 2u, 2u);
+    if (!vertex) device->BindHDROutputConstants(); // [Blur2PC][HDR]
 }
 // [Blur1PCDX11] D3D9 compares alpha at render target 0's precision: 0 float32,
 // 1 float16, otherwise the UNORM bit count. Measured on the D3D9 HAL for
@@ -1300,6 +1301,7 @@ void C_D3D11GameDevice::DrawPrimitive(E_PrimitiveType type, U32 start, U32 count
           State(this).blend.RenderTarget[0].BlendEnable);
   } }
   if (!State(this).nativeFXActive) { BindConstants(this, true); BindConstants(this, false); }
+  else BindHDROutputConstants(); // [Blur2PC][HDR] Bind after the FX11 pass flushes its own buffers.
   BindAlphaTest(this);
   // [Blur1PCDX11] Inspect actual built-in bindings at one requested trace draw.
   // This includes deferred light passes, which do not use the FX material path.
@@ -1485,6 +1487,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
           m_pVertexShader, LastGameInputLayoutDiagnostic());
   } }
   if (!State(this).nativeFXActive) { BindConstants(this, true); BindConstants(this, false); }
+  else BindHDROutputConstants(); // [Blur2PC][HDR] Bind after the FX11 pass flushes its own buffers.
   BindAlphaTest(this);
   static bool testPSChecked = false;
   static ComPtr<ID3D11PixelShader> testPS;

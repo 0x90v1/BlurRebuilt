@@ -13,10 +13,12 @@ namespace Display
 {
 namespace D3D11
 {
+class C_HDROutput;
 
 class C_PCD3D11GameDevice : public C_D3D11GameDevice
 {
 public:
+	void BindHDROutputConstants() override;
 
 	C_PCD3D11GameDevice();
 	~C_PCD3D11GameDevice();
@@ -126,6 +128,7 @@ private:
 	bool					m_Lost;
 	bool					m_Valid;
 	IDXGISwapChain*			m_pSwapChain;
+	C_HDROutput*			m_HDROutput;
 
 	U32						m_BeginVerticesUsage;
 	U32						m_MaxBeginVerticesUsage;

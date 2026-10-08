@@ -3,6 +3,11 @@
 #include <Shader/Common/HDR.h>
 #include <Shader/Misc/Resolve.h>
 
+#ifdef BLUR_DX11
+// [Blur2PC][HDR] Display state, shared with the native final tone mapper.
+cbuffer BlurHDROutput : register(b12) { float4 g_BlurHDROutput; }
+#endif
+
 #ifdef LOD
 	#ifdef SCROLLDISTORT
 		#undef SCROLLDISTORT
@@ -310,7 +315,13 @@ C_PixelOutput MainPS(in C_VertexOutput input)
 	#endif
 	#endif
 
+#ifdef BLUR_DX11
+	// [Blur2PC][HDR] Retail's SDR ceiling discards bright additive sources.
+	// Keep its exact SDR clamp while allowing positive extended HDR radiance.
+	output.m_vColour.rgb = g_BlurHDROutput.x > 0 ? max(output.m_vColour.rgb, 0.0) : saturate(output.m_vColour.rgb);
+#else
 	output.m_vColour.rgb = saturate(output.m_vColour.rgb);
+#endif
 	output.m_vColour.a = lerp((1.0f / 255.0f) * sign(output.m_vColour.a), output.m_vColour.a, g_fAlphaFactor);
 
 	return output;

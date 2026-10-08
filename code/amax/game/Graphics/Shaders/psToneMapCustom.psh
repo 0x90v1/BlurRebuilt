@@ -8,6 +8,11 @@ sampler3D	lookupTexture			: register(s8);
 sampler2D	reducedAlphaTexture		: register(s9);
 sampler2D	overlayTexture : register(s10);
 
+#ifdef BLUR_DX11
+// [Blur2PC][HDR] Scene grading must preserve values outside the SDR LUT cube.
+cbuffer BlurHDROutput : register(b12) { float4 g_BlurHDROutput; }
+#endif
+
 #if defined(PS3)
 #pragma texformat colourTexture RGBA8
 #pragma texformat luminanceTexture FLOAT_R32
@@ -137,17 +142,31 @@ PS_OUTPUT main(PS_INPUT input)
 	vColour = vColour + vBloom * vBloom;
 
 #ifndef TONEMAP_COMBINE
+	#ifdef BLUR_DX11
+	if (g_BlurHDROutput.x > 0) vColour = max(vColour, 0.0);
+	#endif
 	vColour	= ApplyGamma(vColour);
 #endif
 
 #ifndef PS_2_0
+	#ifdef BLUR_DX11
+	float hdrGradeScale = g_BlurHDROutput.x > 0 ? max(1.0, max(vColour.r, max(vColour.g, vColour.b))) : 1.0;
+	vColour /= hdrGradeScale;
+	#endif
 	real3	vUVW	= vColour.rgb * (31.0h / 32.0h) + (0.5h / 32.0h);
 			vColour	= tex3Dlod(lookupTexture, real4(vUVW, 0.0h)).rgb;
 
 #ifndef TONEMAP_COMBINE
+	#ifdef BLUR_DX11
+	vColour = g_BlurHDROutput.x > 0 ? max(mul(real4(vColour, 1.0h), g_mColour).rgb, 0.0) : saturate(mul(real4(vColour, 1.0h), g_mColour).rgb);
+	#else
 	vColour = saturate(mul(real4(vColour, 1.0h), g_mColour).rgb);
+	#endif
 #endif
 	vColour	= ApplyFilmGrainVignette(vColour, vScreenCoord, fDistance);
+	#ifdef BLUR_DX11
+	vColour *= hdrGradeScale;
+	#endif
 #endif
 
 	output.m_Colour = real4(vColour, 1.0h);

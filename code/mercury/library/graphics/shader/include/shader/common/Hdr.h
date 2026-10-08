@@ -19,6 +19,19 @@ static const real3	vFourLuminance		= real3(0.8500h, 2.8616h, 0.2884h);
 static const real	fDelta				= 0.0001h;
 static const real	fFrameBufferDelta	= 0.004h;
 
+// [Blur2PC][HDR][retail-recovered] Retail ps_3_0 exposure emits rsq then
+// rcp per channel (Default_LN_NB_NL_NV/MaterialLights). D3D9 rsq takes
+// abs(source); SM5 sqrt of a negative lighting value instead produces NaN.
+// Preserve the retail magnitude conversion without limiting HDR radiance.
+real3 ExposureGamma(real3 value)
+{
+#if defined(BLUR_DX11)
+    return sqrt(abs(value));
+#else
+    return sqrt(value);
+#endif
+}
+
 // defines
 #define			g_fGain						g_vLuminance.x
 #define			g_fInvGain					g_vLuminance.y
@@ -58,7 +71,7 @@ real4 GetExposure(real4 vRGBA, real fAlpha)
 	real4	vColour		= 0.0h;
 	
 	vColour.rgb = vRGBA.rgb * g_fExposure;
-	vColour.rgb = sqrt(vColour.rgb);
+	vColour.rgb = ExposureGamma(vColour.rgb);
 
 	#ifdef ALPHA_AND_ADDITIVE
 		vColour = real4(vColour.rgb * vRGBA.a, (1.0h - fAlpha) * vRGBA.a); 
@@ -89,7 +102,7 @@ real4 GetExposure(real4 vRGBA, real fAlpha)
 #ifdef ALPHA
 	// exposes value but doesnt contribute to luminance
 	vColour.rgb = vRGBA.rgb * g_fExposure;
-	vColour.rgb = sqrt(vColour.rgb);
+	vColour.rgb = ExposureGamma(vColour.rgb);
 
 	// need to do alpha premultiply after gamma
 	#ifdef ALPHA_AND_ADDITIVE
@@ -105,7 +118,7 @@ real4 GetExposure(real4 vRGBA, real fAlpha)
 	// exposes value and writes luminance to alpha channel
 	vColour.a = GetLuminanceScaled(vRGBA.rgb);
 	vColour.rgb = vRGBA.rgb * g_fExposure;
-	vColour.rgb = sqrt(vColour.rgb);
+	vColour.rgb = ExposureGamma(vColour.rgb);
 #endif
 
 	return vColour;

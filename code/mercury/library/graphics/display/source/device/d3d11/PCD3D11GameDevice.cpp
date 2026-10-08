@@ -10,12 +10,17 @@
 #include <dxgi1_5.h>
 #include <vector>
 #include <string>
+#include "Display/Device/D3D11/D3D11HDROutput.h"
 // [Blur1PCDX11] Supplied by fx, without introducing a display header dependency.
 namespace FX { const char* NativeFX11CurrentPass(); }
 namespace Display { namespace D3D11 {
 namespace
 {
 ID3D11Device* g_ExceptionDevice = nullptr;
+// [Blur2PC][HDR] Existing debug-variable UI/persistence supplies live calibration.
+Debug::Bool g_HDROutputEnable("Graphics.Render.HDR.Display.Enable", true, Debug::Persist());
+Debug::Float g_HDROutputPeak("Graphics.Render.HDR.Display.PeakNits", 0.0f, Debug::Persist());
+Debug::Float g_HDROutputWhite("Graphics.Render.HDR.Display.PaperWhiteNits", 0.0f, Debug::Persist());
 
 // [Blur1PCDX11] The D3D11 debug layer raises 0x87D on the corruption it finds and the
 // message text only exists inside its queue, so log it before the crash handler runs.
@@ -64,6 +69,7 @@ LONG CALLBACK LogNativeException(EXCEPTION_POINTERS* info)
 }
 }
 C_PCD3D11GameDevice::C_PCD3D11GameDevice() : m_Lost(false),m_Valid(false),m_pSwapChain(nullptr),
+    m_HDROutput(nullptr),
     m_BeginVerticesUsage(0),m_MaxBeginVerticesUsage(0),m_UserBeginVerticesUsage(0),
     m_UserMaxBeginVerticesUsage(0),m_BeginVerticesLocked(false)
 {
@@ -72,7 +78,13 @@ C_PCD3D11GameDevice::C_PCD3D11GameDevice() : m_Lost(false),m_Valid(false),m_pSwa
 #endif
     SetDepthFlip(true,false);
 }
-C_PCD3D11GameDevice::~C_PCD3D11GameDevice() {}
+C_PCD3D11GameDevice::~C_PCD3D11GameDevice() { delete m_HDROutput; }
+void C_PCD3D11GameDevice::BindHDROutputConstants()
+{
+    if (!m_HDROutput) return;
+    ID3D11DeviceContext* context = nullptr; m_pd3dDevice->GetImmediateContext(&context);
+    m_HDROutput->Bind(context); context->Release();
+}
 namespace {
 // [Blur1PCDX11] D3D9 presents a windowed swap chain with PRESENT_INTERVAL_IMMEDIATE
 // at any rate. A DXGI blt-model (DISCARD) windowed swap chain is composed by DWM
@@ -99,11 +111,13 @@ void C_PCD3D11GameDevice::SetPresentParamsD3D11()
     m_d3dPresentParams.BufferDesc.Width=m_DeviceParams.m_Width;
     m_d3dPresentParams.BufferDesc.Height=m_DeviceParams.m_Height;
     m_d3dPresentParams.BufferDesc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
+    if (m_HDROutput && m_HDROutput->FloatSwapChain()) // [Blur2PC][HDR]
+        m_d3dPresentParams.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT;
     m_d3dPresentParams.SampleDesc.Count=1;
     m_d3dPresentParams.BufferUsage=DXGI_USAGE_RENDER_TARGET_OUTPUT;
     m_d3dPresentParams.BufferCount=1;
     m_d3dPresentParams.OutputWindow=m_DeviceParams.m_hWnd;
-    m_d3dPresentParams.Windowed=m_DeviceParams.m_Windowed;
+    m_d3dPresentParams.Windowed=m_HDROutput && m_HDROutput->FloatSwapChain() ? TRUE : m_DeviceParams.m_Windowed;
     m_d3dPresentParams.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
     if(!g_legacySwapChain)
     {
@@ -120,7 +134,8 @@ bool C_PCD3D11GameDevice::CreateD3D11()
     // to a 1920x1080 game, mismatched its depth target and failed Present.
     // Windowed creation can use flip; retain this choice across device resets
     // because ResizeBuffers cannot change a swap chain's presentation model.
-    g_legacySwapChain = !m_DeviceParams.m_Windowed;
+    delete m_HDROutput; m_HDROutput = new C_HDROutput(m_DeviceParams.m_hWnd);
+    g_legacySwapChain = !m_DeviceParams.m_Windowed && !m_HDROutput->FloatSwapChain();
     SetPresentParamsD3D11();
     char debugSetting[2] = {};
     UINT flags=D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -138,6 +153,7 @@ bool C_PCD3D11GameDevice::CreateD3D11()
     {
         Blur2PCAutomation::LogF("DX11 flip-model swap chain failed %08x; using the blt model", static_cast<unsigned>(hr));
         g_legacySwapChain = true;
+        m_HDROutput->FallBack(); // [Blur2PC][HDR] Preserve SDR on older DXGI implementations.
         SetPresentParamsD3D11();
         hr=D3D11CreateDeviceAndSwapChain(nullptr,driver,nullptr,flags,features,4,D3D11_SDK_VERSION,
             &m_d3dPresentParams,&m_pSwapChain,&m_pd3dDevice,&selected,&context);
@@ -201,17 +217,45 @@ bool C_PCD3D11GameDevice::CreateD3D11()
 bool C_PCD3D11GameDevice::CreateDevice()
 {
     if(!CreateD3D11())return false;
+    // [Blur2PC][HDR] Flip chains enter exclusive fullscreen only AFTER creation,
+    // then resize before any back-buffer views are acquired (DXGI contract).
+    if (m_HDROutput->FloatSwapChain() && !m_DeviceParams.m_Windowed)
+    {
+        HRESULT hr = m_pSwapChain->SetFullscreenState(TRUE, nullptr);
+        if (SUCCEEDED(hr))
+        {
+            DXGI_MODE_DESC mode = m_d3dPresentParams.BufferDesc;
+            mode.Format = DXGI_FORMAT_UNKNOWN;
+            mode.RefreshRate.Numerator = m_DeviceParams.m_RefreshRate;
+            mode.RefreshRate.Denominator = mode.RefreshRate.Numerator ? 1 : 0;
+            m_pSwapChain->ResizeTarget(&mode);
+            hr = m_pSwapChain->ResizeBuffers(m_d3dPresentParams.BufferCount, m_DeviceParams.m_Width,
+                m_DeviceParams.m_Height, m_d3dPresentParams.BufferDesc.Format, m_d3dPresentParams.Flags);
+        }
+        if (FAILED(hr)) Blur2PCAutomation::LogF("HDR initial fullscreen transition failed %08x", (unsigned)hr);
+    }
     Display2::Device(&m_Display2);
     Display2::C_DeviceParams params;params.m_pd3dDevice=m_pd3dDevice;params.m_pd3dObject=m_pd3dObject;
     m_Display2.SetParams(params);
     if(!m_Display2.Create() || !m_Display2.CreateVolatile())return false;
     C_BackBuffer* back=new C_BackBuffer();
     back->m_Width=m_DeviceParams.m_Width;back->m_Height=m_DeviceParams.m_Height;
-    back->m_ColourFormat=m_DeviceParams.m_ColourFormat;
+    back->m_ColourFormat=m_HDROutput->FloatSwapChain() ? E_Format_A16B16G16R16F : m_DeviceParams.m_ColourFormat;
     back->m_DepthStencilFormat=m_DeviceParams.m_DepthStencilFormat;
     back->m_Multisample=E_Multisample_None;
-    if(FAILED(m_pSwapChain->GetBuffer(0,__uuidof(ID3D11Texture2D),
-        reinterpret_cast<void**>(&back->m_ColourSurface.m_pd3dSurface)))) {delete back;return false;}
+    HRESULT outputResult = m_HDROutput->CreateTargets(m_pd3dDevice, m_pSwapChain,
+        reinterpret_cast<ID3D11Texture2D**>(&back->m_ColourSurface.m_pd3dSurface));
+    if (FAILED(outputResult) && m_HDROutput->FloatSwapChain())
+    {
+        Blur2PCAutomation::LogF("HDR output unavailable %08x; falling back to SDR", (unsigned)outputResult);
+        m_HDROutput->FallBack(); SetPresentParamsD3D11();
+        outputResult = m_pSwapChain->ResizeBuffers(m_d3dPresentParams.BufferCount, back->m_Width, back->m_Height,
+            m_d3dPresentParams.BufferDesc.Format, m_d3dPresentParams.Flags);
+        if (SUCCEEDED(outputResult)) outputResult = m_HDROutput->CreateTargets(m_pd3dDevice, m_pSwapChain,
+            reinterpret_cast<ID3D11Texture2D**>(&back->m_ColourSurface.m_pd3dSurface));
+        back->m_ColourFormat = m_DeviceParams.m_ColourFormat;
+    }
+    if(FAILED(outputResult)) {delete back;return false;}
     m_BackBuffers.PushBack(back);
     if(!m_Display2.CreateDepthStencilSurface(back->m_Width,back->m_Height,E_Usage_DepthStencil,
         static_cast<Display2::E_SurfaceFormat>(back->m_DepthStencilFormat),Display2::E_Multisample_None,nullptr,
@@ -248,6 +292,7 @@ bool C_PCD3D11GameDevice::CreateDeviceVolatile()
     {
         // D3D9 Reset switches the display mode with the back buffer; DXGI needs the target resized too.
         DXGI_MODE_DESC mode=m_d3dPresentParams.BufferDesc;
+        if (m_HDROutput->FloatSwapChain()) mode.Format = DXGI_FORMAT_UNKNOWN;
         mode.RefreshRate.Numerator=m_DeviceParams.m_RefreshRate;mode.RefreshRate.Denominator=m_DeviceParams.m_RefreshRate ? 1 : 0;
         const HRESULT hr=m_pSwapChain->ResizeTarget(&mode);
         if(FAILED(hr))Blur2PCAutomation::LogF("DX11 ResizeTarget %ux%u failed %08x",mode.Width,mode.Height,(unsigned)hr);
@@ -256,11 +301,11 @@ bool C_PCD3D11GameDevice::CreateDeviceVolatile()
         m_d3dPresentParams.BufferDesc.Format,m_d3dPresentParams.Flags);
     if(FAILED(hr)){Blur2PCAutomation::LogF("DX11 ResizeBuffers %ux%u failed %08x",m_DeviceParams.m_Width,m_DeviceParams.m_Height,(unsigned)hr);return false;}
     back->m_Width=m_DeviceParams.m_Width;back->m_Height=m_DeviceParams.m_Height;
-    back->m_ColourFormat=m_DeviceParams.m_ColourFormat;
+    back->m_ColourFormat=m_HDROutput->FloatSwapChain() ? E_Format_A16B16G16R16F : m_DeviceParams.m_ColourFormat;
     back->m_DepthStencilFormat=m_DeviceParams.m_DepthStencilFormat;
     back->m_Multisample=E_Multisample_None;
-    if(FAILED(m_pSwapChain->GetBuffer(0,__uuidof(ID3D11Texture2D),
-        reinterpret_cast<void**>(&back->m_ColourSurface.m_pd3dSurface))))return false;
+    if(FAILED(m_HDROutput->CreateTargets(m_pd3dDevice, m_pSwapChain,
+        reinterpret_cast<ID3D11Texture2D**>(&back->m_ColourSurface.m_pd3dSurface))))return false;
     if(!m_Display2.CreateDepthStencilSurface(back->m_Width,back->m_Height,E_Usage_DepthStencil,
         static_cast<Display2::E_SurfaceFormat>(back->m_DepthStencilFormat),Display2::E_Multisample_None,nullptr,
         &back->m_DepthStencilSurface))return false;
@@ -277,12 +322,14 @@ void C_PCD3D11GameDevice::DestroyDeviceVolatile()
     ID3D11DeviceContext* context=nullptr;
     if(m_pd3dDevice)m_pd3dDevice->GetImmediateContext(&context);
     if(context){context->OMSetRenderTargets(0,nullptr,nullptr);context->Flush();context->Release();}
+    if (m_HDROutput) m_HDROutput->ReleaseTargets(); // [Blur2PC][HDR]
     for(S32 i=0;i<m_BackBuffers.Size();++i)
     {m_Display2.DestroySurface(&m_BackBuffers[i]->m_DepthStencilSurface);
      m_Display2.DestroySurface(&m_BackBuffers[i]->m_ColourSurface);}
 }
 void C_PCD3D11GameDevice::DestroyDevice()
 {
+    if (m_HDROutput) { delete m_HDROutput; m_HDROutput = nullptr; }
     ClearWindows();m_DynamicVertexBuffer.Destroy();
     for(S32 i=0;i<m_BackBuffers.Size();++i)
     {m_Display2.DestroySurface(&m_BackBuffers[i]->m_DepthStencilSurface);
@@ -296,6 +343,7 @@ extern unsigned g_dx11TraceFrame; // [Blur1PCDX11] Temporary, defined in D3D11Ga
 bool C_PCD3D11GameDevice::Present()
 {
     if(!m_pSwapChain)return false;
+    if (m_HDROutput) m_HDROutput->Compose(m_pd3dDevice); // [Blur2PC][HDR]
     {
         ID3D11InfoQueue* queue = nullptr;
         if (SUCCEEDED(m_pd3dDevice->QueryInterface(__uuidof(ID3D11InfoQueue),
@@ -328,7 +376,8 @@ bool C_PCD3D11GameDevice::Present()
             reinterpret_cast<void**>(&back));
         if (SUCCEEDED(shotResult))
         {
-            TakeD3D11BackBufferScreenshot(shot, back);
+            TakeD3D11BackBufferScreenshot(shot, back, m_HDROutput && m_HDROutput->FloatSwapChain(),
+                m_HDROutput ? m_HDROutput->PaperWhiteScale() : 1.0f);
             back->Release();
         }
 		else Blur2PCAutomation::LogF("DX11 shot GetBuffer failed %08x", static_cast<unsigned>(shotResult));
@@ -402,6 +451,11 @@ bool C_PCD3D11GameDevice::Present()
     }
     m_Valid=SUCCEEDED(hr);m_Lost=hr==DXGI_ERROR_DEVICE_REMOVED || hr==DXGI_ERROR_DEVICE_RESET;
     m_DynamicVertexBuffer.Swap();m_BeginVerticesUsage=m_UserBeginVerticesUsage=0;
+    if (m_HDROutput)
+    {
+        m_HDROutput->Calibrate(g_HDROutputEnable, g_HDROutputPeak, g_HDROutputWhite);
+        m_HDROutput->Refresh(m_pd3dDevice); // elapsed-time capability refresh
+    }
     return !m_Lost && m_Valid;
 }
 bool C_PCD3D11GameDevice::GetLost(){return m_Lost;}
@@ -527,6 +581,7 @@ bool C_PCD3D11GameDevice::CreateWindows()
     for(S32 i=0;i<m_Windows.Size();++i)
     {
         C_Window* window=m_Windows[i];window->m_Multisample=m_DeviceParams.m_WindowBufferMultisample;
+        if (m_HDROutput && m_HDROutput->FloatSwapChain()) window->m_ColourFormat = E_Format_A16B16G16R16F;
         if(!CreateRenderTexture2D(window->m_Width,window->m_Height,1,E_Usage_Colour,
             window->m_ColourFormat,window->m_Multisample,nullptr,&window->m_ColourRenderTexture))return false;
         if(!CreateDepthStencilSurface(window->m_Width,window->m_Height,E_Usage_DepthStencil,

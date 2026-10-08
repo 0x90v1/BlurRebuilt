@@ -1367,7 +1367,15 @@ bool C_GameWorld::Create( Actor::C_ActorFactory* pActorFactory, const S32 numVie
 
 	{
 		LOADING_PERF("CreateReducedRender");
+#if defined(BLUR_USE_DX11)
+		// [Blur2PC][HDR] Particles and lens/light flares are composed through
+		// these reduced targets BEFORE the final tone mapper. UNORM storage
+		// clips their exposed radiance, even with an FP16 main scene/output.
+		const bool hdrStorage = Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F;
+		m_pReducedRender = new Render::Reduced::C_Manager(hdrStorage);
+#else
 		m_pReducedRender = new Render::Reduced::C_Manager();
+#endif
 
 		const S32 viewCount = Render::C_ViewManager::Instance().GetViewCount();
 		for (S32 viewNo = 0; viewNo < viewCount; ++viewNo)

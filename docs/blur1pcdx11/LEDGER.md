@@ -819,3 +819,51 @@ Files touched: NativeFX11.cpp; D3D11GameDevice.h/.cpp/Native.cpp; render/postpro
 User requested committing the delivered binding/input optimization pass and owning-phase assessment, decisions and validation records. No engine edits since verification. Rechecked standard Release errsum0, hardware/WARP probe exit0 records, completed fullscreen comparisons and 60 FPS/unlocked driving, and matching standard build/delivered EXE/PDB SHA256 hashes. Staged diff whitespace check required before commit. No push requested.
 
 The measured FPS gain remains inconclusive because the unexplained slow launch is retained; DX9 parity, full Career-grid attribution and existing crowd/billboard limitations remain open. Ownership released. Next: reproduce the slow launch with CPU/driver and GPU telemetry, then count bindings and run per-change A/B on the user's full Career grid.
+
+## 2026-10-07 — session Codex HDR — T238
+
+Did: created Orca branch/worktree `uKER/blur1pcdx11-hdr` from `blur1pcdx11` e46ee524. Implemented native display-aware FP16/scRGB HDR, preserved extended scene values through final grading and FP16 windows/composition, added arbitrary peak/paper-white calibration with persistence and SDR fallback, restored all presenter state including shader class instances, and added float screenshot evidence and a production GPU reference probe. Corrected the old HDR assessment and recorded owning-phase facts/decision. No commit or push. Original parent/lower-phase sources unchanged.
+
+Verified: standard Release `tools/build.sh` errsum0; shader/header and native blob regeneration completed (retail693/693, no shader failures). Standard-tree `dx11_hdr_reference` hardware/WARP exit0, eight peak calibrations80..10000 plus fractional live calibration/disable/resize/state checks; synthetic dynamic linkage verified on WARP only. Four queued minimized debug-menu Observatory runs (HDR60 windowed, HDR unlocked fullscreen, SDR-off unlocked fullscreen, HDR unlocked1600x900/noAA reset) exit0. Final standard EXE/PDB delivered to this child's `_work/run` with native FX assets and SHA256 matches; final delivered-build60-cap repeat exit0, peak470 nits and10104 pixels above240-nit paper white. PFM floats finite with minimum0. Reviewed stills, final verification preview `_work/t238/hdr60/race.png`; actual float evidence `_work/t238/hdr60/race.tga.pfm`. `git diff --check` passes. Evidence/logs in `_work/t238` and analysis.md. The queued final repeat completed before an attempted cancellation; no process was stopped.
+
+Blocked: no HDR implementation/build/delivery blocker. Existing two id343 crowd linkage errors remain in HDR and SDR, broader billboard/marker artifacts remain outside this task. Hardware access violation in the optional synthetic class-linkage probe fixture is unresolved; WARP coverage is explicit. Other-panel visual appearance, monitor migration/live Windows HDR toggles, sustained luminance and performance impact are unverified.
+
+Next: launch this child worktree's play.bat with Windows HDR enabled and review the physical panel. If metadata disagrees with measured display output, set Graphics.Render.HDR.Display.PeakNits and PaperWhiteNits through existing debug variables or documented launch overrides. Optional next validation: migrate the game between HDR/SDR displays and toggle Windows HDR during a race. Commit only if requested.
+
+Files touched: native PC DX11 device/header and base native constant-binding hook; new D3D11HDROutput/D3D11HDRShaders headers; psToneMapCustom; Screenshot header/source; dx11_probe/hdr_output_reference; cmake/dx11.cmake (source list regenerated, unchanged); phase BOARD/LEDGER/analysis/decisions/hdr.md; ignored _work build/run/t238 assets and logs.
+
+## 2026-10-07 — session Codex HDR — T238 emissive/sky follow-up
+
+Did: reopened after the user's correct-launcher report of no visible HDR. Promoted reduced particle/lens-flare and postprocess downsample/bloom targets to FP16 for the floating output container. Removed racification's RGB upper clamp only with active HDR, preserved native FX b-registers through preprocessing/compilation, and bound HDR b12 after FX buffer flush. Added executable-local hdr_output.log for ordinary launches. Extended the GPU probe to actual sky/grade/presenter shaders and the actual racification FX5 pass, including binding reflection and rejection of shader fixture debug errors. No guessed source intensity boost. Lamppost square artifacts deferred as requested. Switched approval scenes to Tokyo Shutoko and LA Downtown as requested.
+
+Verified: latest standard Release build errsum0, shader/header/blob regeneration; generated24 racification variants retain b12. Production GPU references hardware/WARP exit0 at peaks80..10000 and fractional calibration; actual sky radiance0/1/4/16 produces0/200/646.875/990 nits at white200/peak1000; actual FX5 RGB4/2/1 stays extended in HDR and clamps1/1/1 in SDR. Older delivered FX5 fails b12 regression. Initial fixture resource-slot/signature mismatches corrected before accepting results. Tokyo60, Tokyo unlocked fullscreen, Tokyo SDR off, Tokyo resize to1600x900/noAA, Downtown unlocked HDR and start-screen showroom all exit0, no queued DX11 validation messages. HDR data finite/nonnegative. Tokyo lamp441.46, lit windows310.20, neon425.50 and pickup447.49 photometric nits against white240; body median45.27. Source-specific measurements/caveats in analysis.md; full metrics `_work/t238/followup_results.json`.
+
+Delivered: standard Amax.exe/PDB and native FX assets to this child's `_work/run`, matching EXE/PDB hashes in `delivery_lights_final.log`. Same child play.bat. Current verification preview `_work/t238/tokyo60/race.png` and float race.tga.pfm; brighter-sky scene `_work/t238/downtown_hdr/race.png`. Previews are clipped SDR and do not prove physical HDR appearance. `git diff --check` passes. No commit/push; original worktree clean.
+
+Outstanding: physical HDR visual review after the user's report remains required; task is implemented/delivered awaiting that input. Sky range is preserved but sampled retail clouds remain below paper white; no claim every asset/lighting state produces HDR highlights. Synthetic dynamic class-linkage fixture remains WARP-only as previously documented. Cross-display/live Windows-HDR-toggle behavior, sustained panel brightness and performance impact remain unverified.
+
+Exact next step: relaunch `C:/Users/uKER/orca/workspaces/Blur2PC/blur1pcdx11-hdr/play.bat` with Windows HDR enabled and review Tokyo Shutoko windows/neon/pickups/car lights and LA Downtown sky on the panel. If expected sources still look flat, collect this build's hdr_output.log plus the exact route/light and trace that source through scene/grade output; do not infer success from container maxima. Commit only on request.
+
+
+## 2026-10-08 — session Codex HDR — T238 lamp-square fix
+
+Did: investigated the user's startup lamp-head blocks and gameplay report. Whole-target FP16 scanning corrected an initial blob-shadow hypothesis to Default/MaterialLights exposure gamma. Matched actual retail FXB rsq/rcp semantics in native shader/common/Hdr.h using sqrt(abs(value)); preserved extended positive radiance, MSAA and existing exposure timing. Regenerated built-ins/native FX assets. Removed all temporary device/FX tracing and diagnostic shader replacements before final delivery.
+
+Verified: parent startup and true HDR-off startup clean; HDR+8x reproduces. Actual pass textures/constants finite, staged shader diagnostic isolates exposure. Standard final build errsum0,693/693 built-ins. Queued HDR+8x startup60/unlocked finite scans:389/388 draws, no scene/DOF/bloom invalid RGB; separately recorded small luminance-reduction nonfinite values remain unverified. Tokyo Shutoko unlocked moving scan:944 checked draws, all RGB finite. Final production startup/unlocked Tokyo and SDR-off60 startup each exit0, no queued DX11 validation messages, reviewed stills clean. Final presented HDR PFM finite/nonnegative. Details and numeric limits in analysis.md and `_work/t238/square_fix_results.json`.
+
+Delivered: standard EXE/PDB and generated native effects to this child's `_work/run`. Matching executable hash F9BCC4896FE62F4EA7CC91DC3DFF8F4A73F40635E57C1FDDD76D0DA622DFA244; matching PDB hashes in `_work/t238/delivery_square_fix_final.log`. Verification screenshots: `_work/t238/squares_final_startup/startup.png`, `_work/t238/squares_final_tokyo/race.png`. Same child play.bat. No commit/push or parent changes.
+
+Outstanding: broader physical HDR review and the user's as-yet undescribed second issue. Startup luminance intermediate nonfinite values are recorded unknowns; do not infer they caused these lamp squares or introduce guessed clamps.
+
+Exact next step: user relaunches `C:/Users/uKER/orca/workspaces/Blur2PC/blur1pcdx11-hdr/play.bat` to review the fixed lamp heads, then describes the second issue. If blocks recur, capture the exact scene/settings and locate the first invalid actual pass with the preserved diagnostic backups under this child's _work/t238; do not compare draw ordinals between separate runs. Commit only if requested.
+
+
+## 2026-10-08 — session Codex HDR — T238 user-approved commit
+
+Did: user confirms the second manifestation is gone and requests commit. Reviewed and staged only the HDR implementation, probes, regenerated CMake source list and owning phase docs on uKER/blur1pcdx11-hdr. Marked T238 complete for the delivered implementation and confirmed artifact repair.
+
+Verified: previous final standard build errsum0 and delivered EXE/PDB remain current; no source changes since the successful startup60/unlocked, Tokyo moving and SDR fallback checks. User confirms artifacts no longer occur. Staged whitespace check passes; temporary tracing is absent. Verification stills: _work/t238/squares_final_startup/startup.png and _work/t238/squares_final_tokyo/race.png. Existing numeric/hardware limits and startup luminance intermediate unknowns remain recorded in analysis.md.
+
+Outstanding: none for this requested commit. Cross-display and sustained-panel behavior remain documented verification limits. No parent/lower-phase edits, merge or push.
+
+Exact next step: report the resulting HDR-child commit; continue only when the user requests further changes.

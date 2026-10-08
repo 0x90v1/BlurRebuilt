@@ -5,6 +5,9 @@
 #if defined(BLUR_USE_DX11)
 #include <d3d11sdklayers.h>
 #include <vector>
+#include <string>
+#include <algorithm>
+#include <DirectXPackedVector.h>
 #endif
 
 enum E_DisplayScreenShot
@@ -27,7 +30,7 @@ namespace Display
 
 #if defined(BLUR_USE_DX11)
 // [Blur1PCDX11] Copy the current D3D11 target to CPU memory and write TGA.
-static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* source)
+static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* source, bool scRGB = false, F32 paperWhiteScale = 1.0f)
 {
 	if (!source) return;
 	ID3D11Device* device = Display::Device()->GetD3DDevice();
@@ -47,6 +50,7 @@ static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* 
 	if (resolveFormat != DXGI_FORMAT_B8G8R8A8_UNORM &&
 		desc.Format != DXGI_FORMAT_B8G8R8A8_UNORM_SRGB &&
 		resolveFormat != DXGI_FORMAT_R8G8B8A8_UNORM &&
+		desc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
 		desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
 		desc.Format != DXGI_FORMAT_R32_FLOAT)
 	{
@@ -84,6 +88,25 @@ static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* 
 		D3D11_MAPPED_SUBRESOURCE mapped = {};
 		if (SUCCEEDED(context->Map(staging, 0, D3D11_MAP_READ, 0, &mapped)))
 		{
+			// [Blur2PC][HDR] Preserve floating-point evidence alongside the SDR preview.
+			if (desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT && scRGB)
+			{
+				std::string floatPath(path.Chars()); floatPath += ".pfm";
+				FILE* pfm = nullptr; fopen_s(&pfm, floatPath.c_str(), "wb");
+				float peak = 0; U32 highlights = 0;
+				if (pfm) fprintf(pfm, "PF\n%u %u\n-1.0\n", desc.Width, desc.Height);
+				for (U32 y = desc.Height; y-- > 0;)
+					for (U32 x = 0; x < desc.Width; ++x)
+					{
+						const U16* pixel = reinterpret_cast<const U16*>(static_cast<const U8*>(mapped.pData) + y * mapped.RowPitch) + x * 4;
+						float rgb[3]; for (int c = 0; c < 3; ++c) rgb[c] = DirectX::PackedVector::XMConvertHalfToFloat(pixel[c]);
+						const float maximum = (std::max)(rgb[0], (std::max)(rgb[1], rgb[2]));
+						peak = (std::max)(peak, maximum); highlights += maximum > paperWhiteScale;
+						if (pfm) fwrite(rgb, sizeof(float), 3, pfm);
+					}
+				if (pfm) fclose(pfm);
+				Blur2PCAutomation::LogF("HDR capture maxChannelNits=%.2f abovePaperWhitePixels=%u pfm=%s", peak * 80, highlights, floatPath.c_str());
+			}
 			FILE* file = nullptr;
 			fopen_s(&file, path.Chars(), "wb");
 			if (!file) Blur2PCAutomation::LogF("DX11 shot file open failed");
@@ -113,6 +136,17 @@ static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* 
 							const F32 value = *reinterpret_cast<const F32*>(pixel);
 							const U8 grey = static_cast<U8>(Maths::Clamp(value, 0.0f, 1.0f) * 255.0f);
 							bgra[0] = bgra[1] = bgra[2] = grey;
+							bgra[3] = 255;
+						}
+						if (desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+						{
+							const U16* fp = reinterpret_cast<const U16*>(row) + x * 4;
+							for (int c = 0; c < 3; ++c)
+							{
+								float value = DirectX::PackedVector::XMConvertHalfToFloat(fp[c]);
+								if (scRGB) { value = (std::max)(0.0f, value / paperWhiteScale); value = value <= 0.0031308f ? 12.92f * value : 1.055f * powf(value, 1.0f / 2.4f) - 0.055f; }
+								bgra[2 - c] = static_cast<U8>(Maths::Clamp(value, 0.0f, 1.0f) * 255 + 0.5f);
+							}
 							bgra[3] = 255;
 						}
 						fwrite(bgra, 1, 4, file);
@@ -151,10 +185,10 @@ static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* 
 	context->Release();
 }
 
-void TakeD3D11BackBufferScreenshot(const char* fileName, ID3D11Texture2D* source)
+void TakeD3D11BackBufferScreenshot(const char* fileName, ID3D11Texture2D* source, bool scRGB, F32 paperWhiteScale)
 {
 	if (fileName && source)
-		SaveNativeTargetAsTGA(Sys::C_FilePath(fileName), source);
+		SaveNativeTargetAsTGA(Sys::C_FilePath(fileName), source, scRGB, paperWhiteScale);
 }
 #endif
 

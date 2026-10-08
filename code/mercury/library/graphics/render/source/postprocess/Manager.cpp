@@ -172,6 +172,13 @@ bool C_Manager::CreateRenderTextures()
 {
 	RESOURCE_MEMORY_ID("PostProcess");
 
+	Display::E_Format eSecondaryFormat = Display::E_Format_A8R8G8B8;
+#if defined(BLUR_USE_DX11)
+	// [Blur2PC][HDR] Bloom/downsample filtering must retain extended scene radiance.
+	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
+		eSecondaryFormat = Display::E_Format_A16B16G16R16F;
+#endif
+
 	assert(m_RenderTargets.Size() == 0);
 	assert(m_RenderTargetMapping.Size() == 0);
 	assert(m_ViewMapping.Size() == 0);
@@ -237,9 +244,9 @@ bool C_Manager::CreateRenderTextures()
 				for(U32 iDownsample = 0, iScale = 1; iDownsample < m_Views[iView].nDownsamples; ++iDownsample)
 				{
 					iScale *= 2;
-					iRequired += Display::GetTexture2DSize(m_Views[iView].iWidth / iScale, m_Views[iView].iHeight / iScale, iSecondaryUsageFlags, Display::E_Format_A8R8G8B8);
+					iRequired += Display::GetTexture2DSize(m_Views[iView].iWidth / iScale, m_Views[iView].iHeight / iScale, iSecondaryUsageFlags, eSecondaryFormat);
 					if(iSecondaryUsageFlags & Display::E_Usage_ReadWrite)
-						iRequired += Display::GetTexture2DSize(m_Views[iView].iWidth / iScale, m_Views[iView].iHeight / iScale, iSecondaryUsageFlags, Display::E_Format_A8R8G8B8);
+						iRequired += Display::GetTexture2DSize(m_Views[iView].iWidth / iScale, m_Views[iView].iHeight / iScale, iSecondaryUsageFlags, eSecondaryFormat);
 				}
 				if(iRequired > m_iSecondaryTextureBufferSize)
 				{
@@ -363,12 +370,12 @@ bool C_Manager::CreateRenderTextures()
 				pRenderTexture->SetLevels(1);
 				pRenderTexture->SetFlags(iSecondaryUsageFlags);
 				pRenderTexture->SetMultisample(Display::GetMultisample2(Display::E_Multisample_None));
-				pRenderTexture->SetColourFormat(0, Display::GetTextureFormat2(Display::E_Format_A8R8G8B8));
+				pRenderTexture->SetColourFormat(0, Display::GetTextureFormat2(eSecondaryFormat));
 
 				if(!Display2::Device()->CreateRenderBuffer(pRenderTexture, renderBufferSetup))
 #else
 				Display::C_RenderTexture2D* pRenderTexture = new Display::C_RenderTexture2D;
-				if(!Display::Device()->CreateRenderTexture2D(m_Views[iView].iWidth / iScale, m_Views[iView].iHeight / iScale, 1, iSecondaryUsageFlags, Display::E_Format_A8R8G8B8, Display::E_Multisample_None, NULL, pRenderTexture, pTextureBuffer, iTextureBufferSize))
+				if(!Display::Device()->CreateRenderTexture2D(m_Views[iView].iWidth / iScale, m_Views[iView].iHeight / iScale, 1, iSecondaryUsageFlags, eSecondaryFormat, Display::E_Multisample_None, NULL, pRenderTexture, pTextureBuffer, iTextureBufferSize))
 #endif
 				{
 					delete pRenderTexture;
