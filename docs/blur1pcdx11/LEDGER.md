@@ -827,3 +827,11 @@ Verified: x64 Speed and Master builds errsum0; unlocked start-screen transition 
 Blocked: none.
 Next: none for T247. The coloured orbs the user also reported are a separate HDR issue.
 Files touched: display occlusion/d3d11/D3D11OcclusionQuery.{h,cpp}; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md.
+
+
+## 2026-10-18 19:45 — session Claude x64 — T249
+Did: traced the car shadow that vanished about 0.1-0.5 s after the first Enter on the start screen in the x64 Master build (user report; HDR x86 unaffected). Bisected with real-speed runs and amplified-shadow stills (temporary, removed): x64 Speed kept the shadow, x64 Master lost it, so the fault is configuration dependent, not x64. Blob shadow inputs, casters, parameters and the screen-pass state matched between builds; GPU readbacks showed the blob texture passes drawing with blending off in Master because `SetBlendMode(AlphaPreMultiply)` found that mode cached after the UI changed blending through Display2. The D3D11 `BeginScene`/`EndScene` lacked retail's `Reset()`; restored it (`D3D11GameDevice.cpp`). Applied the identical working-copy edit in HDR and x64 for delivery.
+Verified: Blur1PCDX11 Release, HDR Release, x64 Release and x64 Master errsum 0. x64 Master diagnostic run with the fix: every blob pass draws with ONE/INV_SRC_ALPHA and the blob texture stays at 11.2 after Enter (was 1.6). HDR old/new start-screen and menu stills match. x64 Speed Observatory races unlocked and at 60 Hz exit 0 with the debug layer on and 0 DX11 validation messages. Delivered EXE/PDB to Blur1PCDX11, HDR and x64 `_work/run` (x64 Master) and x64 `run_dev` (Speed); hashes match the build outputs. User confirmed the shadow on the x64 Master build.
+Blocked: none.
+Next: none for T249. Committed on Blur1PCDX11 at the user's request and merged through HDR and x64.
+Files touched: Blur1PCDX11 display `source/device/d3d11/D3D11GameDevice.cpp`; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md.
