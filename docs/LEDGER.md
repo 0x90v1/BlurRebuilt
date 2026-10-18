@@ -623,3 +623,11 @@ Limits: controlled career SetupResults/SpFinished path; no natural finish, split
 T232 user approval (2026-10-07): user confirms the result looks more like retail and requests commit. Retail binding implementation and verification accepted. Commit this base fix and propagate by merges through blur1multi, blurx and blur1pcdx11; retain the delivered base executable and approval still above. No push requested.
 
 T232 commit/propagation verified: implementation committed as a0fdb590 (Restore retail stencil binding for race letterboxing). Merged into blur1multi (2651ffd8), then blurx (17e87043), and the independent base-derived blur1pcdx11 (3f63e163). Git ancestry checks pass for all three. Regenerated jam-derived source lists/CMake targets and cp/cv/sp headers in each worktree; no generated changes. Existing base Release delivery and 60-Hz/unlocked verification stand; no upper-phase build/runtime verification is claimed. User-approved screenshot: _work/t232/verify60/finish.png. No push. Next: no remaining T232 implementation work.
+
+## 2026-10-18 — session Claude x64 — T246
+
+Did: extracted retail Blur.exe's only icon group (101, 32x32/24bpp) to `_work/vendor/retail_icons/blur_101.ico` (`extract_icons.py` beside it) and embedded it in Amax through `cmake/overrides.cmake` (generated `amax_icon.rc`, used only when the icon exists). User asked for it here and propagated to Blur1Multi, BlurX, Blur1PCDX11, its HDR child and the x64 child.
+Verified: standard tools/build.sh errsum 0; the built exe's resources are RT_ICON 1, RT_GROUP_ICON 101, RT_MANIFEST 1; the extracted icon renders as retail's "b" logo; Amax.exe/pdb delivered to `_work/run`. Runtime launch not needed (resource-only change; ApplicationPC already loads 101).
+Blocked: none.
+Next: none for Blur1PC; higher phases merge this commit.
+Files touched: cmake/overrides.cmake, docs/{BOARD,analysis,LEDGER}.md; untracked `_work/vendor/retail_icons/`.
