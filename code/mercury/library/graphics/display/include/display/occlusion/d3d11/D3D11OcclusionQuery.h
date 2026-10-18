@@ -20,6 +20,7 @@ public:
     E_OcclusionQueryResult Visible(F32& fraction) const;
 private:
     ID3D11Query* m_Query;
+    bool m_Issued; // [Blur1PCDX11] End() has been called since the last Begin()
 };
 } }
 #endif
