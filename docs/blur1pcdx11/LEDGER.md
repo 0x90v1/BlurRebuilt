@@ -898,3 +898,11 @@ Verified: ancestry check exit0, HEAD..blur1pc and HEAD..blur1pcdx11 empty. Exist
 Outstanding: none for the requested commit/base synchronization. No push requested.
 
 Exact next step: report the resulting range-fix commit and that all current committed Blur1PC fixes are already incorporated.
+
+## 2026-10-18 - session Claude x64 - T247 occlusion-query wait
+
+Did: found the cause of the x64 showroom headlight/lamp flare flicker the user reported (flares gone for one frame, frames 295-297 of their capture). DynamicEffect::Light::C_Manager reads each light's occlusion query two passes after issuing it and treats an unavailable result as visibility 0. Counted reads per second with temporary instrumentation (reverted) at an unlocked rate: Blur1PC D3D9 0 not-ready, Blur1PCDX11 x86 0, HDR x86 0-23/s, x64 35-95% of reads. D3D11 C_OcclusionQuery::Visible used GetData with DONOTFLUSH and no wait; it now flushes and waits once End has been called since Begin, matching what D3D9 delivered. Also committed the T245 board row left uncommitted with 0cb00815.
+Verified: x64 Speed and Master builds errsum0; unlocked start-screen transition and unlocked Observatory race exit0 with 0 DX11 validation messages; user confirmed the headlight flicker is gone on the x64 Master build. Frame-rate cost of the wait not measured. Why x64 runs the GPU a frame deeper than HDR x86 at the same fps is unknown.
+Blocked: none.
+Next: none for T247. The coloured orbs the user also reported are a separate HDR issue.
+Files touched: display occlusion/d3d11/D3D11OcclusionQuery.{h,cpp}; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md.
