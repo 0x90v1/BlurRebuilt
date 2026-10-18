@@ -27,3 +27,16 @@ target_compile_definitions(JpegHelper PRIVATE XMD_H)
 # the exe). Lived in CMakeLists.txt until the 2026-09-24 split; it is a
 # per-target addition, so it belongs here.
 target_sources(Amax PRIVATE ${BLUR_TOP}/code/vendor/crash-handler/crash_handler.cpp)
+
+# [Blur2PC] Retail Blur.exe's icon. Retail carries one icon group, resource 101
+# (32x32, 24 bpp), which C_Application loads for the window (ApplicationPC.cpp,
+# LoadIcon 101) and Explorer shows for the exe. It is extracted from the user's
+# retail install into the shared vendor folder (_work/vendor/retail_icons, made
+# by extract_icons.py there), so the image itself is not in the repository.
+set(BLUR_RETAIL_ICON ${BLUR_VENDOR}/retail_icons/blur_101.ico CACHE FILEPATH "Retail Blur.exe icon group 101")
+if(EXISTS ${BLUR_RETAIL_ICON})
+    file(WRITE ${CMAKE_BINARY_DIR}/amax_icon.rc "101 ICON \"${BLUR_RETAIL_ICON}\"\n")
+    target_sources(Amax PRIVATE ${CMAKE_BINARY_DIR}/amax_icon.rc)
+else()
+    message(WARNING "Retail icon not found at ${BLUR_RETAIL_ICON}; Amax.exe builds without it")
+endif()
