@@ -1258,9 +1258,9 @@ void C_D3D11GameDevice::SetNativeVertexTexture(U32 slot, ID3D11Resource* texture
     D3DX11InvalidateBoundState(1u, 8u);
 }
 void C_D3D11GameDevice::SetVertexShaderConstantF(U32 start, const F32* data, U32 count)
-{ if (!data || start + count > 256) return; memcpy(State(this).vertexData + start * 4, data, count * 4 * sizeof(F32)); State(this).vertexDirty = true; }
+{ if (!data || start >= 256 || count > 256 - start) return; /* [Blur1PCDX11] UINT_MAX (missing parameter) wrapped start + count past the check */ memcpy(State(this).vertexData + start * 4, data, count * 4 * sizeof(F32)); State(this).vertexDirty = true; }
 void C_D3D11GameDevice::SetPixelShaderConstantF(U32 start, const F32* data, U32 count)
-{ if (!data || start + count > 256) return; memcpy(State(this).pixelData + start * 4, data, count * 4 * sizeof(F32)); State(this).pixelDirty = true; }
+{ if (!data || start >= 256 || count > 256 - start) return; /* [Blur1PCDX11] UINT_MAX (missing parameter) wrapped start + count past the check */ memcpy(State(this).pixelData + start * 4, data, count * 4 * sizeof(F32)); State(this).pixelDirty = true; }
 void C_D3D11GameDevice::SetVertexShaderParameterF(C_VertexShaderParameter param, const F32* data, U32 count)
 { SetVertexShaderConstantF(param.m_RegisterIndex, data, count); }
 void C_D3D11GameDevice::SetPixelShaderParameterF(C_PixelShaderParameter param, const F32* data)
