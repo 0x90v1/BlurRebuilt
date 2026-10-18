@@ -636,8 +636,33 @@ const C_FrontBuffer& C_D3D11GameDevice::GetSwappedFrontBuffer() const { return *
 const C_RenderTarget& C_D3D11GameDevice::GetRenderTarget() const { return m_RenderTarget; }
 const S32 C_D3D11GameDevice::GetWindowCount() const { return m_Windows.Size(); }
 C_Window* C_D3D11GameDevice::GetWindow(S32 index) { return m_Windows[index]; }
-bool C_D3D11GameDevice::BeginScene() { m_InScene = true; return true; }
-void C_D3D11GameDevice::EndScene() { m_InScene = false; }
+// [Blur2PC] As C_D3D9Device::BeginScene/EndScene: both reset the device, so each frame starts from the
+// default states with every setter cache invalidated. Display2 contexts (the UI) change blend state through
+// the plain setters and leave the cached E_BlendMode behind; without the reset, the AlphaPreMultiply the
+// front-end composite left cached turned the next frame's SetBlendMode(AlphaPreMultiply) into a no-op, and
+// the blob shadow texture drew with blending off (T249). Non-Master builds hid it: C_DebugLayer invalidates.
+bool C_D3D11GameDevice::BeginScene()
+{
+	m_pView = NULL;
+	m_InScene = true;
+	SetColourSurface();
+	SetDepthStencilSurface();
+	Reset();
+	return true;
+}
+void C_D3D11GameDevice::EndScene()
+{
+	m_pView = NULL;
+	Reset();
+	m_InScene = false;
+}
+void C_D3D11GameDevice::Reset()
+{
+	InvalidateState();
+	DefaultStates();
+	Unbind();
+	SetView(m_pView);
+}
 // [Blur1PCDX11] As C_D3D9Device::Unbind: shaders, declaration, streams, indices and textures only.
 // Render targets, viewport and render states stay bound (ClearState would drop them).
 void C_D3D11GameDevice::Unbind()
