@@ -7,9 +7,7 @@
 
 #include "Display2/Context/Context.h"
 
-#if DEVICE_XB2
-#include "Display2/Buffer/XB2Buffer.h"
-#elif DEVICE_GCM
+#if DEVICE_GCM
 #include "Display2/Buffer/GCMBuffer.h"
 #endif
 

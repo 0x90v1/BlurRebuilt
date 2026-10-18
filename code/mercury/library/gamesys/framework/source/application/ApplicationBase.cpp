@@ -1,7 +1,5 @@
 #include "FrameworkPch.h"
-#if defined(BLUR_USE_DX11)
 #include <system/debug/Blur2PCAutomation.h>
-#endif
 #include "Framework/Application/ApplicationBase.h"
 #include "Framework/Application/CaptureService.h"
 #include "Framework/Application/CoreSystems.h"
@@ -1128,11 +1126,6 @@ void C_ApplicationBase::SetupDeviceMemoryParams()
 	m_DisplayDeviceParams.m_MainDeviceMemorySize	= 1024*1024*4;				// How much of main memory the device can use for internal render targets
 	m_DisplayDeviceParams.m_LocalDeviceMemorySize	= 1024*1024*30;				// How much of local memory the device can use for internal render targets
 	m_DisplayDeviceParams.m_UniqueBackBuffer		= true;
-#elif PLATFORM_XENON
-	m_DisplayDeviceParams.m_LargeHeapSize			= 1024*1024*256;			// Allocs greater than 8K
-	m_DisplayDeviceParams.m_DynamicHeapSize			= 1024*1024*40;				// Allocs requiring PAGE_WRITECOMBINE flag
-	m_DisplayDeviceParams.m_SmallHeapSize			= 1024*1024*5;				// Allocs less than or equal to 8K
-	m_DisplayDeviceParams.m_DeviceMemorySize		= 1024*1024*19;				// How much of the large heap the device can use for internal render targets
 #endif
 }
 
@@ -1144,14 +1137,12 @@ void C_ApplicationBase::SetupDeviceParams()
 	if(!m_pDisplayManager->GetVideoMode(&videoMode))
 		return;
 
-	#if defined(PLATFORM_PS3) || defined(PLATFORM_XENON)
+	#if defined(PLATFORM_PS3)
 	m_DisplayDeviceParams.m_HiDef = videoMode.m_HiDef;
 	m_DisplayDeviceParams.m_WideScreen = videoMode.m_WideScreen;
 	#endif
 
-	#if defined(PLATFORM_XENON)
-	Display::E_Multisample windowMultisample = Display::E_Multisample_4;
-	#elif defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 	Display::E_Multisample windowMultisample = Display::E_Multisample_2;
 	#else
 	Display::E_Multisample windowMultisample = Display::E_Multisample_None;
@@ -1204,7 +1195,7 @@ HRESULT C_ApplicationBase::CreateInputManager(const C_ApplicationParams& params)
 	{
 		#if defined(PLATFORM_PS3)
 		m_pInputDeviceManager->CreateDevice(i, Input::E_Device_PadPS3, &m_pPadList[i]);
-		#elif defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+		#elif defined(PLATFORM_PC)
 		m_pInputDeviceManager->CreateDevice(i, Input::E_Device_Pad360, &m_pPadList[i]);
 		#endif
 
@@ -1413,11 +1404,9 @@ void C_ApplicationBase::ScheduleSplitscreen()
 		Display::C_Window* pWindow = m_pDisplayDevice->GetWindow(viewIndex);
 		Render::SetGlobalColourBuffer(pWindow->GetColourTexture());
 		Render::SetGlobalDepthStencilBuffer(pWindow->GetDepthStencilTexture());
-		#if defined(BLUR_USE_DX11)
 		static int dx11ScheduleDepthLogCount = 0;
 		if (dx11ScheduleDepthLogCount++ < 12)
 			Blur2PCAutomation::LogF("DX11 Schedule depth view=%d colour=%p depth=%p", viewIndex, pWindow->GetColourTexture(), pWindow->GetDepthStencilTexture());
-		#endif
 		#ifdef PLATFORM_PC
 		Render::SetGlobalStencilBuffer(pWindow->GetMaskTexture());	// [Blur2PC] retail Blur PC (0x0084de00, 0x006a1970)
 		#endif
@@ -2052,11 +2041,8 @@ void C_ApplicationBase::ResizeDisplayWindows()
 			m_pDisplayDevice->m_DeviceParams.m_WindowBufferHeight			= pResolution->m_Height;
 			m_pDisplayDevice->m_DeviceParams.m_WindowBufferMultisample		= pResolution->m_Multisample;
 			
-			#ifdef PLATFORM_XENON
-			m_pDisplayDevice->Unbind();
-			#endif
 
-			#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+			#if defined(PLATFORM_PS3)
 			m_pDisplayDevice->BlockUntilIdle();
 			#endif
 

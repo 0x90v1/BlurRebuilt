@@ -334,8 +334,8 @@ void EncodeContacts(const C_CollisionResult<MaxPatches, MaxContacts>& result, Sh
 	pResult->m_TotalContacts = (U8)collisionCount;
 
 	//Final bit - write the data to the stream!!!!
-	U32 addy((U32)(dataStream + 15));
-	dataStream = (U8*)(addy & 0xfffffff0);
+	INTPTR addy((INTPTR)(dataStream + 15));	// [Blur2PC][x64] align the full address
+	dataStream = (U8*)(addy & ~(INTPTR)0xf);
 	pResult->m_OffsetToEnd = dataStream - &tempData[0];
 
 #if 0 //def PLATFORM_SPU
@@ -414,8 +414,8 @@ void EncodeContactsSpu(const C_CollisionResult<MaxPatches, MaxContacts>& result,
 	pResult->m_TotalContacts = (U8)collisionCount;
 
 	//Final bit - write the data to the stream!!!!
-	U32 addy((U32)(dataStream + 15));
-	dataStream = (U8*)(addy & 0xfffffff0);
+	INTPTR addy((INTPTR)(dataStream + 15));	// [Blur2PC][x64] align the full address
+	dataStream = (U8*)(addy & ~(INTPTR)0xf);
 	pResult->m_OffsetToEnd = dataStream - &tempData[0];
 
 	U8* writeData = stream.LockMemorySpu(pResult->m_OffsetToEnd);

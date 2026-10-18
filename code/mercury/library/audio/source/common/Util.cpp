@@ -43,9 +43,6 @@ void Audio::SetDebugLevels( const ::DebugLevel::Level core, const ::DebugLevel::
 #include <stdarg.h> //vsprintf
 #include <string.h>
 
-#ifdef _XBOX360
-#include "Xtl.h"
-#endif
 
 #ifdef AUDIO_OPTIMIZE_OFF
 bool gAudioSystemOptimized = false;

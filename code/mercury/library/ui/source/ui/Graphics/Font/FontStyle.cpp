@@ -493,7 +493,7 @@ void C_FontStyleBaseRenderInfo::AddShape( const U32 sceneIndex, const char* grou
 
 				for ( S32 i = 0; i < pShape->m_FillData.Size(); i++ )
 				{
-					gSimple2D.AddSprite( layer, drawPos + offset, drawSizeX * scale, drawSizeY * scale, fillColour, panel, E_SpriteType_TriList, renderState, (U32)pShape->m_FillData[i] );
+					gSimple2D.AddSprite( layer, drawPos + offset, drawSizeX * scale, drawSizeY * scale, fillColour, panel, E_SpriteType_TriList, renderState, (INTPTR)pShape->m_FillData[i] );	// [Blur2PC][x64]
 					gSimple2D.AddTexUVs(0, gUITextureManager.GetTextureByName("null"), 0.0f, 0.0f, 1.0f, 1.0f);
 				}
 			}
@@ -517,7 +517,7 @@ void C_FontStyleBaseRenderInfo::AddShape( const U32 sceneIndex, const char* grou
 					renderState.m_EffectParam = ( pShape->m_OutlineData[i]->m_uVertexCount << 8 );
 					renderState.m_EffectIndex = E_Effect_PolygonStrokeIntensityAsAlpha;
 
-					gSimple2D.AddSprite( layer, drawPos + offset, drawSizeX * scale, drawSizeY * scale, strokeColour, panel, E_SpriteType_TriStrip, renderState, (U32)pShape->m_OutlineData[i] );
+					gSimple2D.AddSprite( layer, drawPos + offset, drawSizeX * scale, drawSizeY * scale, strokeColour, panel, E_SpriteType_TriStrip, renderState, (INTPTR)pShape->m_OutlineData[i] );	// [Blur2PC][x64]
 					gSimple2D.AddTexUVs(0, gUITextureManager.GetTextureByName("null"), 0.0f, 0.0f, 1.0f, 1.0f);
 				}
 			}

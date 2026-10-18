@@ -938,10 +938,11 @@ void C_CameraSystem::StopPhotoCamera()
 // in a cool branchless way :-)
 static inline U32 PointerToMask(void* pointer)
 {
-	const S32 pos = (S32)pointer;
-	const S32 neg = -pos;
-	const S32 np  = pos | neg;
-	const S32 sat = np >> 31;
+	// [Blur2PC][x64] Test the whole pointer; its low 32 bits alone can be zero.
+	const S64 pos = (S64)(INTPTR)pointer;
+	const S64 neg = -pos;
+	const S64 np  = pos | neg;
+	const S64 sat = np >> 63;
 	return (U32)sat;
 }
 

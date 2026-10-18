@@ -15,7 +15,7 @@ class StopWatch
 public:
 	StopWatch()
 	{
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		#ifndef CFG_GOLD
 		QueryPerformanceFrequency(&m_TicksPerSecond);	
 		m_s64StartTime.QuadPart = 0;
@@ -32,7 +32,7 @@ public:
 	}
 	inline void Start() 
 	{ 
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		#ifndef CFG_GOLD
 		QueryPerformanceCounter(&m_s64StartTime);	
 		#endif
@@ -50,7 +50,7 @@ public:
 	// can be called repeatedly.
 	inline F32 Time()
 	{
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		#ifndef CFG_GOLD
 		LARGE_INTEGER s64EndTime;
 		QueryPerformanceCounter(&s64EndTime); 
@@ -77,7 +77,7 @@ public:
 	}
 
 public:
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	#ifndef CFG_GOLD
 	LARGE_INTEGER m_s64StartTime;
 	LARGE_INTEGER m_TicksPerSecond;

@@ -16,12 +16,8 @@ namespace Display
 
 #if defined(DEVICE_PCGL)
 Util::C_String g_PixelShaderExt = "pcglp";
-#elif defined(DEVICE_PCD3D9)
-Util::C_String g_PixelShaderExt = "pcp";
 #elif defined(PLATFORM_PS3)
 Util::C_String g_PixelShaderExt = "p3p";
-#elif defined(PLATFORM_XENON)
-Util::C_String g_PixelShaderExt = "xep";
 #else
 Util::C_String g_PixelShaderExt = "";
 #endif

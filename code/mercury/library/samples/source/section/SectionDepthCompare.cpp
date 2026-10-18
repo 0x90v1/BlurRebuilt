@@ -2,15 +2,9 @@
 #include "Samples/Section/SectionDepthCompare.h"
 #include "Render/Utils/Globals.h"
 
-#if defined(DEVICE_XB2D3D9)
-#include "Shaders/XB2/vsOutputDepth.shader"
-#include "Shaders/XB2/psOutputDepth.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Shaders/PS3/vsOutputDepth.shader"
 #include "Shaders/PS3/psOutputDepth.shader"
-#elif defined(DEVICE_PCD3D9)
-#include "Shaders/PCD3D9/vsOutputDepth.shader"
-#include "Shaders/PCD3D9/psOutputDepth.shader"
 #endif
 
 namespace Samples

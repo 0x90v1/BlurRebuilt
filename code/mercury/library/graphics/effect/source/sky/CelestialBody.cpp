@@ -203,7 +203,7 @@ void C_CelestialBody::Render() const
 
 bool C_CelestialBody::ReloadTexture()
 {
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	Display::Device()->BlockUntilIdle();
 	#endif
 

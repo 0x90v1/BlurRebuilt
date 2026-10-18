@@ -13,29 +13,7 @@ EXTERN_SHADER(psMesh3);
 EXTERN_SHADER(psMesh4);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Mesh/PCD3D9/vsMesh0.shader"
-#include "Render/Shaders/Mesh/PCD3D9/vsMesh1.shader"
-#include "Render/Shaders/Mesh/PCD3D9/vsMesh2.shader"
-#include "Render/Shaders/Mesh/PCD3D9/vsMesh3.shader"
-#include "Render/Shaders/Mesh/PCD3D9/vsMesh4.shader"
-#include "Render/Shaders/Mesh/PCD3D9/psMesh0.shader"
-#include "Render/Shaders/Mesh/PCD3D9/psMesh1.shader"
-#include "Render/Shaders/Mesh/PCD3D9/psMesh2.shader"
-#include "Render/Shaders/Mesh/PCD3D9/psMesh3.shader"
-#include "Render/Shaders/Mesh/PCD3D9/psMesh4.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Mesh/XB2/vsMesh0.shader"
-#include "Render/Shaders/Mesh/XB2/vsMesh1.shader"
-#include "Render/Shaders/Mesh/XB2/vsMesh2.shader"
-#include "Render/Shaders/Mesh/XB2/vsMesh3.shader"
-#include "Render/Shaders/Mesh/XB2/vsMesh4.shader"
-#include "Render/Shaders/Mesh/XB2/psMesh0.shader"
-#include "Render/Shaders/Mesh/XB2/psMesh1.shader"
-#include "Render/Shaders/Mesh/XB2/psMesh2.shader"
-#include "Render/Shaders/Mesh/XB2/psMesh3.shader"
-#include "Render/Shaders/Mesh/XB2/psMesh4.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Mesh/PS3/vsMesh0.shader"
 #include "Render/Shaders/Mesh/PS3/vsMesh1.shader"
 #include "Render/Shaders/Mesh/PS3/vsMesh2.shader"

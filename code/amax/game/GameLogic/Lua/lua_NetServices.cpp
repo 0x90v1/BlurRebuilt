@@ -108,16 +108,7 @@ namespace Game
 		BIZ_ASSERT_MSG(primaryUserIndex != -1, "No primary user defined.");
 		BIZ_ASSERT_MSG(numProfiles != 0, "No active game profiles");
 
-#if defined ( PLATFORM_XENON )
-		// for xbox360 the primary players profile should be set to be online and not be a guest.
-		if (-1 != primaryUserIndex && numProfiles > 0)
-		{
-			const SysProfile::FullProfile& fp = UI::C_ProfileInterface::Instance().GetPadProfile(primaryUserIndex);
-			if (fp.Active() && SysProfile::eProfileStateOnline == fp.m_State && !fp.m_IsGuest)
-				possible = true;
-		}
-
-#elif defined ( PLATFORM_PS3 ) 
+#if defined ( PLATFORM_PS3 )
 		// for ps3 if the primary user has a psn account created
 		if (-1 != primaryUserIndex && numProfiles > 0)
 			possible = SysProfile::C_Manager::Instance().NetworkPlatformAccountAvailable();
@@ -419,30 +410,11 @@ namespace Game
 
 		RacerNet::C_NetServices::Instance().EnterLock();
 
-#if defined (PLATFORM_XENON)
-		const S32 primary = SysProfile::C_Manager::Instance().GetPrimaryPadNo();
-		for (S32 i=0; i<XUSER_MAX_COUNT; i++)
-		{
-			if (i == primary)
-				SysProfile::C_Manager::Instance().SetPresence(i, static_cast<RacerNet::eRichPresence> (value), false);
-			else
-			{
-				bool isPlaying = false;
-				Lua::Call( UI::g_pUILua->GetState(), "Presence_IsPlayingSplitscreen", "i>b", i, &isPlaying );
-
-				if ( isPlaying )
-					SysProfile::C_Manager::Instance().SetPresence(i, RacerNet::eRichPresence_SplitScreen, false);
-				else
-					SysProfile::C_Manager::Instance().SetPresence(i, RacerNet::eRichPresence_Idle, false);
-			}
-		}
-#else
 		// Join in progress is disabled when its a private game.
 		const bool ranked = C_GameApp::GetInstance()->GetRaceBookLayer()->GetGameModePtr()->IsRanked();
 		
 		// user not really applicable on ps3 and Pc.
 		SysProfile::C_Manager::Instance().SetPresence(0, static_cast<RacerNet::eRichPresence> (value), ranked );
-#endif
 		RacerNet::C_NetServices::Instance().Exitlock();
 
 		return 0;
@@ -457,11 +429,7 @@ namespace Game
 
 		RacerNet::C_NetServices::Instance().EnterLock();
 
-#if defined (PLATFORM_XENON)
-		SysProfile::C_Manager::Instance().SetPresence(sPad, RacerNet::eRichPresence_SplitScreen, false);
-#else
 		SysProfile::C_Manager::Instance().SetPresence(0, RacerNet::eRichPresence_SplitScreen, false);
-#endif
 		RacerNet::C_NetServices::Instance().Exitlock();
 
 		return 0;
@@ -469,15 +437,6 @@ namespace Game
 
 	static S32 ShowSystemCommunityUI(lua_State* pState)
 	{
-#if defined ( PLATFORM_XENON )
-		const S32 primaryUserIndex = SysProfile::C_Manager::Instance().GetPrimaryPadNo();
-		const U32 numProfiles = UI::C_ProfileInterface::Instance().NumActive();
-		if (-1 != primaryUserIndex && 0 != numProfiles)
-		{
-			const SysProfile::FullProfile& fp = UI::C_ProfileInterface::Instance().GetPadProfile(primaryUserIndex);
-			XShowCommunitySessionsUI(fp.m_UserIndex, XSHOWCOMMUNITYSESSION_SHOWPARTY); 
-		}
-#endif
 		return 0;
 	}
 
@@ -526,7 +485,7 @@ namespace Game
 			{
 				if ( inv.m_Active == true ) // need an online connection to proceed
 				{
-#if defined(PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 					SysProfile::UserIdentifier userID;
 					userID.m_Uid = inv.m_InviteData.xuidInvitee;
 					userID.m_IsGuest = false;
@@ -590,32 +549,7 @@ namespace Game
 			//	ret = 1;
 			//else
 			{
-#if defined ( PLATFORM_XENON )
-				
-				if (online)
-				{
-					if ( fp.m_OnlineMultiplayerPrivilege && fp.m_State == SysProfile::eProfileStateOnline )
-					{
-						ret = 0; // Online Gold account
-					}
-					else
-					if ( fp.m_State == SysProfile::eProfileStateBlagged )
-					{
-						ret = 2; // Not signed in
-					}
-					else
-					if ( !fp.m_OnlineMultiplayerPrivilege && fp.m_State == SysProfile::eProfileStateOnline )
-					{
-						ret = 3; // Online Silver/Gold account without privs
-					}
-					else
-					if ( fp.m_State == SysProfile::eProfileStateOffline )
-					{
-						ret = 4; // Not connected to live
-					}
-				}
-
-#elif defined ( PLATFORM_PS3 )
+#if defined ( PLATFORM_PS3 )
 				
 				if (online)
 				{
@@ -657,18 +591,6 @@ namespace Game
 	static S32 CanViewGamerCard(lua_State* pState)
 	{
 		bool viewable = false;
-#if defined ( PLATFORM_XENON )
-		if (lua_isnumber(pState,1))
-		{
-			const U32 userIndex = (U32)lua_tointeger(pState, 1);
-			if (userIndex < XUSER_MAX_COUNT)
-			{
-				const SysProfile::FullProfile& fp = UI::C_ProfileInterface::Instance().GetPadProfile(userIndex);
-				if (fp.Active())
-					viewable = fp.m_ProfileViewingPrivilege ? true : false;
-			}
-		}
-#endif
 
 		lua_pushboolean(pState, viewable);
 		return 1;
@@ -682,140 +604,27 @@ namespace Game
 	*/ 
 	static S32 ViewGamerCard(lua_State* pState)
 	{
-#if defined ( PLATFORM_XENON )
-		if (lua_isnumber(pState, 1) && lua_isnumber(pState, 2) && lua_isboolean(pState, 3) && lua_isboolean(pState, 4))
-		{
-			const U32 userIndex = (U32)lua_tointeger(pState, 1);
-			const U8 joinRef = (U8)lua_tointeger(pState, 2);
-			const bool partySession = lua_toboolean(pState, 3) ? true : false;
-			const bool inRace = lua_toboolean(pState, 4) ? true : false;
-
-			if (userIndex < XUSER_MAX_COUNT)
-			{
-				RacerNet::C_NetServices& ns = RacerNet::C_NetServices::Instance();
-				if (ns.IsInitialised())
-				{
-					if (!inRace)
-					{
-						// if in ui look in main net player list
-						RacerNet::C_NetPlayerManager& mgr = ns.PlayerManager();
-						RacerNet::C_NetPlayer* p = mgr.FindFromJoinId(joinRef, partySession);
-						if (p)
-							XShowGamerCardUI(userIndex, p->m_User.m_Uid);
-					}
-					else
-					{
-						// if on results screen we reference the level state since the player may have left so he won't be listed in
-						// the net players list anymore.
-						Game::C_LevelState& levelState = C_GameApp::GetInstance()->GetGame()->GetLevelState();
-						for (U32 i=0; i<levelState.mNumCars; i++)
-						{
-							if (joinRef == levelState.mCars[i].mNetJoinId)
-							{
-								XShowGamerCardUI(userIndex, levelState.mCars[i].mSystemPlayerId.m_Uid);
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-#endif
 		return 0;
 	}
 
 	static S32 ViewScoreboardGamerCard(lua_State* pState)
 	{
-#if defined ( PLATFORM_XENON )
-
-		if (lua_isnumber(pState, 1) && lua_isnumber(pState, 2))
-		{
-			int user_index=lua_tonumber(pState,1);
-			int scoreboard_row=lua_tonumber(pState,2);
-
-			XShowGamerCardUI(user_index, Game::C_ScoreboardManager::Instance().GetCurrentRowData(scoreboard_row-1).m_Userdata.m_Uid);
-		}
-#endif
 		return 0;
 	}
 
 	static S32 ViewSessionScoreboardGamerCard(lua_State* pState)
 	{
-#if defined ( PLATFORM_XENON )
-
-		if (lua_isnumber(pState, 1) && lua_isnumber(pState, 2))
-		{
-			int user_index=lua_tonumber(pState,1);
-			int scoreboard_row=lua_tonumber(pState,2);
-
-			Btl::Vector<Game::SessionScoreboardData>& Data = Game::C_ScoreboardManager::Instance().GetSessionScoreboardData();
-			if( (scoreboard_row-1) < Data.Size())
-			{
-				XShowGamerCardUI(user_index, Data[scoreboard_row-1].m_Uid);
-			}
-		}
-#endif
 		return 0;
 	}
 
 	static S32 ViewRaceSummaryGamerCard(lua_State* pState)
 	{
-#if defined ( PLATFORM_XENON )
-
-		if (lua_isnumber(pState, 1) && lua_isnumber(pState, 2))
-		{
-			int user_index = lua_tonumber(pState,1);
-			int race_position = lua_tonumber(pState,2);
-
-			Game::C_SocialNetworkManager& socialNetworkManager = Game::C_SocialNetworkManager::Instance();
-
-			int store_index=socialNetworkManager.GetPrevRaceHistoryStoreIndex();
-			if(lua_isnumber(pState, 3))
-			{
-				store_index=lua_tonumber(pState,3);
-			}
-
-			if ( !socialNetworkManager.mRaceHistoryStore.Empty() )
-			{
-				Btl::Vector<Game::AmaxSocialNetworkRaceVehicleStore, Btl::VectorParameters_Array<MAX_VEHICLES> >::Iterator vehicleIterator;
-	
-				if( !socialNetworkManager.mRaceHistoryStore[store_index].mVehicles.Empty() )
-				{
-					for ( vehicleIterator = socialNetworkManager.mRaceHistoryStore[store_index].mVehicles.Begin(); 
-						vehicleIterator != socialNetworkManager.mRaceHistoryStore[store_index].mVehicles.End(); vehicleIterator++)
-					{
-						if( (vehicleIterator) != NULL && (vehicleIterator)->mPosition == race_position)
-						{	
-							XShowGamerCardUI(user_index, (vehicleIterator)->mSysProfile.m_Uid);							
-							break;
-						}
-					}
-				}				
-			}
-
-			
-		}
-#endif
 		return 0;
 	}
 
 	static S32 CanSubmitPlayerReview(lua_State* pState)
 	{
 		bool review = false;
-#if defined ( PLATFORM_XENON )
-		if ( lua_type( pState, 1 ) == LUA_TNUMBER )
-		{
-			RacerNet::C_NetServices& ns = RacerNet::C_NetServices::Instance();
-
-			const U32 userIndex = (U32)lua_tointeger(pState, 1);
-			if (userIndex < XUSER_MAX_COUNT)
-			{
-				const SysProfile::FullProfile& fp = UI::C_ProfileInterface::Instance().GetPadProfile(userIndex);
-				if ( fp.m_State == SysProfile::eProfileStateOnline && ns.IsInitialised() )
-					review = true;
-			}
-		}
-#endif
 
 		lua_pushboolean(pState, review);
 		return 1;
@@ -828,42 +637,6 @@ namespace Game
 	*/ 
 	static S32 SubmitPlayerReview(lua_State* pState)
 	{
-#if defined ( PLATFORM_XENON )
-		if ( lua_type( pState, 1 ) == LUA_TNUMBER && lua_type( pState, 2 ) == LUA_TNUMBER && lua_type( pState, 3 ) == LUA_TBOOLEAN && lua_type( pState, 4 ) == LUA_TBOOLEAN )
-		{
-			const U32 userIndex = (U32)lua_tointeger(pState, 1);
-			const U8 joinRef = (U8)lua_tointeger(pState, 2);
-			const bool inRace = lua_toboolean(pState, 3) ? true : false;
-			const bool partyLobby = lua_toboolean(pState, 4) ? true : false;
-
-			RacerNet::C_NetServices& ns = RacerNet::C_NetServices::Instance();
-			if ( ns.IsInitialised() ) // TODO : check where online. This isnt going to be easy until the new backend goes in
-			{
-				if (!inRace)
-				{
-					// if in ui look in main net player list
-					RacerNet::C_NetPlayerManager& mgr = ns.PlayerManager();
-					RacerNet::C_NetPlayer* p = mgr.FindFromJoinId(joinRef, partyLobby);
-					if (p)
-						XShowPlayerReviewUI(userIndex, p->m_User.m_Uid);
-				}
-				else
-				{
-					// if on results screen we reference the level state since the player may have left so he won't be listed in
-					// the net players list anymore.
-					Game::C_LevelState& levelState = C_GameApp::GetInstance()->GetGame()->GetLevelState();
-					for (U32 i=0; i<levelState.mNumCars; i++)
-					{
-						if (joinRef == levelState.mCars[i].mNetJoinId)
-						{
-							XShowPlayerReviewUI(userIndex, levelState.mCars[i].mSystemPlayerId.m_Uid);
-							break;
-						}
-					}
-				}
-			}
-		}
-#endif
 		return 0;
 	}
 

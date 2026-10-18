@@ -22,8 +22,6 @@ bool LoadMesh(const Util::C_String fileName, C_Mesh* pMesh, const E_VertexShader
 
 	#if defined(PLATFORM_PC)
 	filePath += ".pcm";
-	#elif defined(PLATFORM_XENON)
-	filePath += ".xem";
 	#elif defined(PLATFORM_PS3)
 	filePath += ".p3m";
 	#endif

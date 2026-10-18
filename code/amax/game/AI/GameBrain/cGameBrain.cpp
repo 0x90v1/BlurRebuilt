@@ -330,9 +330,6 @@ namespace airacingtech
 	{
 		//PERF_EVENT("AI.Driver.CalculateCommonVehicleData");
 
-#ifdef _XENON
-		//	PixEvent pix(0xffffffff, "CDriverAI::CalculateCommonVehicleData()");
-#endif
 		if (m_pIData->GetState().m_pIVehicleState)
 		{
 			DataState &myDataState = m_pIData->GetState();
@@ -432,9 +429,6 @@ namespace airacingtech
 
 	void CGameBrain::CalculateSteerState()
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CDriverAI::CalculateSteerState()");
-#endif
 		DataState &myDataState = m_pIData->GetState();
 
 		if (Maths::Abs(myDataState.m_frontWheelSlip) < 0.08f && Maths::Abs(myDataState.m_rearWheelSlip) < 0.08f )

@@ -656,9 +656,6 @@ void Context::SetPass(RenderPass renderPass)
 				m_pDisplay->SetDepthEnable(Display::E_Bool_True);
 				m_pDisplay->SetBlendEnable(Display::E_Bool_False);
 				m_pDisplay->SetDepthWriteEnable(Display::E_Bool_True);
-				#ifdef PLATFORM_XENON
-				m_pDisplay->SetBlendHighPrecisionEnable(Display::E_Bool_False);
-				#endif
 				break;
 			}
 			case RENDER_PASS_OVERLAY:
@@ -668,9 +665,6 @@ void Context::SetPass(RenderPass renderPass)
 				m_pDisplay->SetDepthEnable(Display::E_Bool_True);
 				m_pDisplay->SetBlendEnable(Display::E_Bool_True);
 				m_pDisplay->SetDepthWriteEnable(Display::E_Bool_False);
-				#ifdef PLATFORM_XENON
-				m_pDisplay->SetBlendHighPrecisionEnable(Display::E_Bool_True);
-				#endif
 				break;
 			}
 			case RENDER_PASS_MAX:	// custom pass
@@ -956,7 +950,7 @@ void Context::SetVertexDeclaration(const Display2::C_VertexDeclaration* pvd)
 #else
 	m_pDisplay->SetVertexDeclaration(pvd);
 #endif
-	RenderingStatistics::Instance().SetVertexDeclaration((U32)pvd);
+	RenderingStatistics::Instance().SetVertexDeclaration((U32)(INTPTR)pvd);	// [Blur2PC][x64] statistics key: the low 32 bits
 }
 
 void Context::SetStreamData(S32 streamIndex, const Display2::C_VertexBuffer* pVertexBuffer, S32 vertexOffset, S32 frequency, S32 vertexSize, S32 vertexBufferIndex)
@@ -978,7 +972,7 @@ void Context::SetStreamData(S32 streamIndex, const Display2::C_VertexBuffer* pVe
 		m_pDisplay->SetVertexBuffer(streamIndex, pVertexBuffer, vertexOffset, vertexSize);
 #endif
 	}
-	RenderingStatistics::Instance().SetVertexBuffer((U32)pVertexBuffer);
+	RenderingStatistics::Instance().SetVertexBuffer((U32)(INTPTR)pVertexBuffer);	// [Blur2PC][x64] statistics key: the low 32 bits
 }
 
 void Context::SetIndexBuffer(const Display2::C_IndexBuffer* pIndexBuffer)
@@ -998,7 +992,7 @@ void Context::SetIndexBuffer(const Display2::C_IndexBuffer* pIndexBuffer)
 #endif
 	}
 
-	RenderingStatistics::Instance().SetIndexBuffer((U32)pIndexBuffer);
+	RenderingStatistics::Instance().SetIndexBuffer((U32)(INTPTR)pIndexBuffer);	// [Blur2PC][x64] statistics key: the low 32 bits
 }
 
 void Context::DrawIndexedPrimitive(Display::E_PrimitiveType primitiveType, S32 minIndex, S32 nVertices, S32 startIndex, S32 nIndices)

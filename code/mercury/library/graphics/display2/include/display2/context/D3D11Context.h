@@ -36,23 +36,6 @@ void D3D11ResourceWritten(ID3D11Resource* resource, ID3D11DeviceContext* context
 #define ALIGNMENT_VERTEXSHADER					VERTEXSHADER_ALIGNMENT
 #define ALIGNMENT_PIXELSHADER					PIXELSHADER_ALIGNMENT
 
-#if defined(PLATFORM_XENON)
-
-#if defined(_DEBUG)
-
-#define GPUCOMMON_DEBUG_INTREFCOUNT_MASK        D3DCOMMON_DEBUG_INTREFCOUNT_MASK
-#define GPUCOMMON_DEBUG_INTREFCOUNT_SHIFT       D3DCOMMON_DEBUG_INTREFCOUNT_SHIFT
-
-#else
-
-#define GPUCOMMON_DEBUG_INTREFCOUNT_MASK        0x0001F000
-#define GPUCOMMON_DEBUG_INTREFCOUNT_SHIFT       12
-
-#endif
-
-#define GPUCOMMON_DEBUG_INTREFCOUNT(_common)	(((_common) & GPUCOMMON_DEBUG_INTREFCOUNT_MASK) >> GPUCOMMON_DEBUG_INTREFCOUNT_SHIFT)
-
-#endif
 
 //------------------------------------------------------------------------------
 // Macros
@@ -217,11 +200,8 @@ enum E_CullMode
 enum E_DeviceType
 {
 	E_DeviceType_HAL							= D3DDEVTYPE_HAL,
-	#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+	#if DEVICE_D3D11_PC
 	E_DeviceType_REF							= D3DDEVTYPE_REF,
-	#endif
-	#if DEVICE_XB2
-	E_DeviceType_CommandBuffer					= D3DDEVTYPE_COMMAND_BUFFER,
 	#endif
 	E_DeviceType_Unknown						= UINT_MAX,
 };
@@ -270,10 +250,6 @@ enum E_IndexFormat
 {
 	E_IndexFormat_16 							= D3DFMT_INDEX16,
 	E_IndexFormat_32 							= D3DFMT_INDEX32,
-	#if DEVICE_XB2
-	E_IndexFormat_LE_16 						= D3DFMT_LE_INDEX16,
-	E_IndexFormat_LE_32 						= D3DFMT_LE_INDEX32,
-	#endif
 	E_IndexFormat_Unknown						= UINT_MAX,
 };
 
@@ -310,10 +286,6 @@ enum E_PrimitiveType
 	E_PrimitiveType_TriangleList				= D3DPT_TRIANGLELIST,
 	E_PrimitiveType_TriangleStrip				= D3DPT_TRIANGLESTRIP,
 	E_PrimitiveType_TriangleFan					= D3DPT_TRIANGLEFAN,
-	#if DEVICE_XB2
-	E_PrimitiveType_QuadList					= D3DPT_QUADLIST,
-	E_PrimitiveType_RectList					= D3DPT_RECTLIST,
-	#endif
 	E_PrimitiveType_Unknown						= UINT_MAX,
 };
 
@@ -361,21 +333,12 @@ enum E_RenderState
 
 enum E_Resolve
 {
-	#if DEVICE_XB2
-	E_Resolve_RenderTarget0						= D3DRESOLVE_RENDERTARGET0,
-	E_Resolve_RenderTarget1						= D3DRESOLVE_RENDERTARGET1,
-	E_Resolve_RenderTarget2						= D3DRESOLVE_RENDERTARGET2,
-	E_Resolve_RenderTarget3						= D3DRESOLVE_RENDERTARGET3,
-	E_Resolve_DepthStencil						= D3DRESOLVE_DEPTHSTENCIL,
-	E_Resolve_AllFragments						= D3DRESOLVE_ALLFRAGMENTS,
-	#else
 	E_Resolve_RenderTarget0,
 	E_Resolve_RenderTarget1,
 	E_Resolve_RenderTarget2,
 	E_Resolve_RenderTarget3,
 	E_Resolve_DepthStencil,
 	E_Resolve_AllFragments,
-	#endif
 };
 
 //! E_ResourceType
@@ -388,13 +351,8 @@ enum E_ResourceType
 	E_ResourceType_TextureCube					= D3DRTYPE_CUBETEXTURE,
 	E_ResourceType_VertexBuffer					= D3DRTYPE_VERTEXBUFFER,
 	E_ResourceType_IndexBuffer					= D3DRTYPE_INDEXBUFFER,
-	#if DEVICE_XB2
-	E_ResourceType_VertexShader					= D3DRTYPE_VERTEXSHADER,
-	E_ResourceType_PixelShader					= D3DRTYPE_PIXELSHADER,
-	#else
 	E_ResourceType_VertexShader,
 	E_ResourceType_PixelShader,
-	#endif
 	E_ResourceType_Unknown						= D3DRTYPE_FORCE_DWORD,
 };
 
@@ -498,14 +456,6 @@ enum E_SurfaceFormat
 	E_SurfaceFormat_G8R8_G8B8 					= D3DFMT_G8R8_G8B8,
 	E_SurfaceFormat_R8G8_B8G8 					= D3DFMT_R8G8_B8G8,
 	E_SurfaceFormat_YUY2						= D3DFMT_YUY2,
-	#if DEVICE_XB2
-	E_SurfaceFormat_R6G5B5 						= D3DFMT_R6G5B5,
-	E_SurfaceFormat_Q4W4V4U4 					= D3DFMT_Q4W4V4U4,
-	E_SurfaceFormat_G8R8 						= D3DFMT_G8R8,
-	E_SurfaceFormat_R16F_EXPAND					= D3DFMT_R16F_EXPAND,
-	E_SurfaceFormat_LE_LIN_UYVY					= D3DFMT_LE_UYVY,
-	E_SurfaceFormat_LE_LIN_YUY2					= D3DFMT_LE_YUY2,
-	#endif
 
 	// 32bpp:
 	E_SurfaceFormat_A8R8G8B8 					= D3DFMT_A8R8G8B8,
@@ -525,50 +475,19 @@ enum E_SurfaceFormat
 	E_SurfaceFormat_D24X8						= D3DFMT_D24X8,
 	E_SurfaceFormat_D24FS8						= D3DFMT_D24FS8,
 	E_SurfaceFormat_D32							= D3DFMT_D32,
-	#if DEVICE_XB2
-	E_SurfaceFormat_X2R10G10B10 				= D3DFMT_X2R10G10B10,
-	E_SurfaceFormat_A16L16 						= D3DFMT_A16L16,
-	E_SurfaceFormat_R10G11B11 					= D3DFMT_R10G11B11,
-	E_SurfaceFormat_R11G11B10 					= D3DFMT_R11G11B10,
-	E_SurfaceFormat_W10V11U11 					= D3DFMT_W10V11U11,
-	E_SurfaceFormat_W11V11U10					= D3DFMT_W11V11U10,
-	E_SurfaceFormat_G16R16F_EXPAND				= D3DFMT_G16R16F_EXPAND,
-	E_SurfaceFormat_L32							= D3DFMT_L32,
-	#endif
 
 	// 64bpp:
 	E_SurfaceFormat_A16B16G16R16 				= D3DFMT_A16B16G16R16,
 	E_SurfaceFormat_Q16W16V16U16 				= D3DFMT_Q16W16V16U16,
 	E_SurfaceFormat_A16B16G16R16F				= D3DFMT_A16B16G16R16F,
 	E_SurfaceFormat_G32R32F						= D3DFMT_G32R32F,
-	#if DEVICE_XB2
-	E_SurfaceFormat_A16B16G16R16F_EXPAND		= D3DFMT_A16B16G16R16F_EXPAND,
-	E_SurfaceFormat_A32L32 						= D3DFMT_A32L32,
-	E_SurfaceFormat_G32R32 						= D3DFMT_G32R32,
-	E_SurfaceFormat_V32U32 						= D3DFMT_V32U32,
-	#endif
 
 	// 128bpp:
-	#if DEVICE_XB2
-	E_SurfaceFormat_A32B32G32R32 				= D3DFMT_A32B32G32R32,
-	E_SurfaceFormat_Q32W32V32U32 				= D3DFMT_Q32W32V32U32,
-	#endif
 	E_SurfaceFormat_A32B32G32R32F				= D3DFMT_A32B32G32R32F,
 
 	// EDRAM only:
-	#if DEVICE_XB2
-	E_SurfaceFormat_A2B10G10R10F_EDRAM			= D3DFMT_A2B10G10R10F_EDRAM,
-	E_SurfaceFormat_G16R16_EDRAM				= D3DFMT_G16R16_EDRAM,
-	E_SurfaceFormat_A16B16G16R16_EDRAM			= D3DFMT_A16B16G16R16_EDRAM,
-	#endif
 
 	// Front buffer formats have to be little endian:
-	#if DEVICE_XB2
-	E_SurfaceFormat_LE_X8R8G8B8 				= D3DFMT_LE_X8R8G8B8,
-	E_SurfaceFormat_LE_A8R8G8B8 				= D3DFMT_LE_A8R8G8B8,
-	E_SurfaceFormat_LE_X2R10G10B10 				= D3DFMT_LE_X2R10G10B10,
-	E_SurfaceFormat_LE_A2R10G10B10 				= D3DFMT_LE_A2R10G10B10,
-	#endif
 
 	E_SurfaceFormat_Unknown						= UINT_MAX,
 };
@@ -606,13 +525,6 @@ enum E_TextureFormat
 	E_TextureFormat_DXT3 						= D3DFMT_DXT3,
 	E_TextureFormat_DXT4 						= D3DFMT_DXT4,
 	E_TextureFormat_DXT5 						= D3DFMT_DXT5,
-	#if DEVICE_XB2
-	E_TextureFormat_DXT3A						= D3DFMT_DXT3A,
-	E_TextureFormat_DXT3A_1111					= D3DFMT_DXT3A_1111,
-	E_TextureFormat_DXT5A						= D3DFMT_DXT5A,
-	E_TextureFormat_DXN							= D3DFMT_DXN,
-	E_TextureFormat_CTX1						= D3DFMT_CTX1,
-	#endif
 
 	// 8bpp:
 	E_TextureFormat_A8 							= D3DFMT_A8,
@@ -634,14 +546,6 @@ enum E_TextureFormat
 	E_TextureFormat_G8R8_G8B8 					= D3DFMT_G8R8_G8B8,
 	E_TextureFormat_R8G8_B8G8 					= D3DFMT_R8G8_B8G8,
 	E_TextureFormat_YUY2						= D3DFMT_YUY2,
-	#if DEVICE_XB2
-	E_TextureFormat_R6G5B5 						= D3DFMT_R6G5B5,
-	E_TextureFormat_Q4W4V4U4 					= D3DFMT_Q4W4V4U4,
-	E_TextureFormat_G8R8 						= D3DFMT_G8R8,
-	E_TextureFormat_R16F_EXPAND					= D3DFMT_R16F_EXPAND,
-	E_TextureFormat_LE_LIN_UYVY					= D3DFMT_LE_UYVY,
-	E_TextureFormat_LE_LIN_YUY2					= D3DFMT_LE_YUY2,
-	#endif
 
 	// 32bpp:
 	E_TextureFormat_A8R8G8B8 					= D3DFMT_A8R8G8B8,
@@ -661,51 +565,19 @@ enum E_TextureFormat
 	E_TextureFormat_D24X8						= D3DFMT_D24X8,
 	E_TextureFormat_D24FS8						= D3DFMT_D24FS8,
 	E_TextureFormat_D32							= D3DFMT_D32,
-	#if DEVICE_XB2
-	E_TextureFormat_X2R10G10B10 				= D3DFMT_X2R10G10B10,
-	E_TextureFormat_A16L16 						= D3DFMT_A16L16,
-	E_TextureFormat_R10G11B11 					= D3DFMT_R10G11B11,
-	E_TextureFormat_R11G11B10 					= D3DFMT_R11G11B10,
-	E_TextureFormat_W10V11U11 					= D3DFMT_W10V11U11,
-	E_TextureFormat_W11V11U10					= D3DFMT_W11V11U10,
-	E_TextureFormat_G16R16F_EXPAND				= D3DFMT_G16R16F_EXPAND,
-	E_TextureFormat_L32							= D3DFMT_L32,
-	#endif
 
 	// 64bpp:
 	E_TextureFormat_A16B16G16R16 				= D3DFMT_A16B16G16R16,
 	E_TextureFormat_Q16W16V16U16 				= D3DFMT_Q16W16V16U16,
 	E_TextureFormat_A16B16G16R16F				= D3DFMT_A16B16G16R16F,
 	E_TextureFormat_G32R32F						= D3DFMT_G32R32F,
-	#if DEVICE_XB2
-	E_TextureFormat_A16B16G16R16F_EXPAND		= D3DFMT_A16B16G16R16F_EXPAND,
-	E_TextureFormat_A16B16G16R16_UINT			= D3DFMT_A16B16G16R16_UINT,
-	E_TextureFormat_A32L32 						= D3DFMT_A32L32,
-	E_TextureFormat_G32R32 						= D3DFMT_G32R32,
-	E_TextureFormat_V32U32 						= D3DFMT_V32U32,
-	#endif
 
 	// 128bpp:
 	E_TextureFormat_A32B32G32R32F				= D3DFMT_A32B32G32R32F,
-	#if DEVICE_XB2
-	E_TextureFormat_A32B32G32R32 				= D3DFMT_A32B32G32R32,
-	E_TextureFormat_Q32W32V32U32 				= D3DFMT_Q32W32V32U32,
-	#endif
 	
 	// EDRAM only:
-	#if DEVICE_XB2
-	E_TextureFormat_A2B10G10R10F_EDRAM			= D3DFMT_A2B10G10R10F_EDRAM,
-	E_TextureFormat_G16R16_EDRAM				= D3DFMT_G16R16_EDRAM,
-	E_TextureFormat_A16B16G16R16_EDRAM			= D3DFMT_A16B16G16R16_EDRAM,
-	#endif
 
 	// Front buffer formats have to be little endian:
-	#if DEVICE_XB2
-	E_TextureFormat_LE_X8R8G8B8 				= D3DFMT_LE_X8R8G8B8,
-	E_TextureFormat_LE_A8R8G8B8 				= D3DFMT_LE_A8R8G8B8,
-	E_TextureFormat_LE_X2R10G10B10 				= D3DFMT_LE_X2R10G10B10,
-	E_TextureFormat_LE_A2R10G10B10 				= D3DFMT_LE_A2R10G10B10,
-	#endif
 
 	E_TextureFormat_Unknown						= UINT_MAX,
 };
@@ -740,18 +612,9 @@ enum E_VertexElementType
 	
 	// Not cross-platform
 	E_VertexElementType_S16_4N					= D3DDECLTYPE_SHORT4N,
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	E_VertexElementType_U10_3					= D3DDECLTYPE_UDEC3,
 	E_VertexElementType_S10_3N					= D3DDECLTYPE_DEC3N,
-#endif
-#if DEVICE_D3D9_XB2
-    E_VertexElementType_U16_2					= D3DDECLTYPE_USHORT2,
-    E_VertexElementType_U16_4					= D3DDECLTYPE_USHORT4,
-    E_VertexElementType_U10_3N					= D3DDECLTYPE_UDEC3N,
-	E_VertexElementType_U10_4N					= D3DDECLTYPE_UDEC4N,
-	E_VertexElementType_SHHD_3					= D3DDECLTYPE_HEND3,
-	E_VertexElementType_SHHD_3N					= D3DDECLTYPE_HEND3N,
-	E_VertexElementType_U32_1					= D3DDECLTYPE_UINT1,
 #endif
 
 	// Cross-platform
@@ -778,7 +641,7 @@ enum E_VertexElementUsage
 	E_VertexElementUsage_TessFactor				= D3DDECLUSAGE_TESSFACTOR,
 	E_VertexElementUsage_Depth					= D3DDECLUSAGE_DEPTH,
 	E_VertexElementUsage_Sample					= D3DDECLUSAGE_SAMPLE,
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	E_VertexElementUsage_PositionT				= D3DDECLUSAGE_POSITIONT,
 #endif
 
@@ -879,16 +742,9 @@ extern GPUDevice* g_pd3dDevice;
 		(_primitiveType) == E_PrimitiveType_TriangleList || \
 		(_primitiveType) == E_PrimitiveType_TriangleStrip \
 
-#if DEVICE_XB2
-#define GPU_ASSERT_PRIMITIVETYPE(_primitiveType) \
-	BIZ_ASSERT( \
-		D3D_ASSERT_PRIMITIVETYPE(_primitiveType) || \
-		(_primitiveType) == E_PrimitiveType_QuadList);
-#else
 #define GPU_ASSERT_PRIMITIVETYPE(_primitiveType) \
 	BIZ_ASSERT( \
 		D3D_ASSERT_PRIMITIVETYPE(_primitiveType));
-#endif
 
 #define GPU_ASSERT_STENCILOP(_stencilOp) \
 	BIZ_ASSERT( \
@@ -918,14 +774,7 @@ extern GPUDevice* g_pd3dDevice;
 		(_textureFilter) == E_TextureFilter_Linear || \
 		(_textureFilter) == E_TextureFilter_Anisotropic);
 
-#if DEVICE_XB2
-#define GPU_ASSERT_TEXTUREBORDERCOLOUR(_textureBorderColour) \
-	BIZ_ASSERT( \
-		(_textureBorderColour) == 0x00000000 || \
-		(_textureBorderColour) == 0xFFFFFFFF);
-#else
 #define GPU_ASSERT_TEXTUREBORDERCOLOUR(_textureBorderColour)
-#endif
 
 //------------------------------------------------------------------------------
 // Functions
@@ -1118,11 +967,7 @@ struct C_VertexBuffer
 	void* Lock();
 	void Unlock();
 
-	#if DEVICE_XB2
-	GPUVertexBuffer								m_d3dVertexBuffer;
-	#else
 	GPUVertexBuffer*							m_pd3dVertexBuffer;
-	#endif
 
 	U32											m_Flags;
 };
@@ -1152,11 +997,7 @@ struct C_IndexBuffer
 	void* Lock();
 	void Unlock();
 
-	#if DEVICE_XB2
-	GPUIndexBuffer				m_d3dIndexBuffer;
-	#else
 	GPUIndexBuffer*				m_pd3dIndexBuffer;
-	#endif
 
 	U32							m_Flags;
 	E_IndexFormat				m_Format; // [Blur1PCDX11] D3D11 index buffers do not encode element width.
@@ -1254,9 +1095,6 @@ struct C_PixelShader
 	U32							m_Size; // [Blur1PCDX11] Shader bytecode length is kept by the engine.
 	std::vector<U8>					m_Bytecode;
 
-	#if DEVICE_XB2
-	void*						m_pAddress;
-	#endif
 };
 
 
@@ -1320,11 +1158,7 @@ struct C_ConstLockedBox
 
 struct C_Surface;
 
-#if DEVICE_XB2
-struct C_SurfaceParams : public D3DSURFACE_PARAMETERS
-#else
 struct C_SurfaceParams
-#endif
 {
 	C_SurfaceParams();
 	~C_SurfaceParams();
@@ -1362,11 +1196,7 @@ struct C_Surface
 	C_LockedRect LockRect(const U32 flags = 0);
 	void UnlockRect();
 
-	#if DEVICE_XB2
-	GPUSurface					m_d3dSurface;
-	#else
 	GPUSurface*					m_pd3dSurface;
-	#endif
 	U32							m_Flags;
 	U32							m_Subresource; // [Blur1PCDX11] mip/array slice for native views.
 };
@@ -1430,17 +1260,7 @@ struct C_Texture
 	U32							m_Size;
 	U32							m_Flags;
 
-	#if DEVICE_XB2
-	union
-	{
-		GPUTexture				m_d3dTexture;
-		GPUTexture2D			m_d3dTexture2D;
-		GPUTexture3D			m_d3dTexture3D;
-		GPUTextureCube			m_d3dTextureCube;
-	};
-	#else
 	GPUTexture*					m_pd3dTexture;
-	#endif
 };
 
 //! C_RenderTexture2D
@@ -1460,7 +1280,7 @@ struct C_RenderTexture2D
 	C_Surface& GetSurface(const U32 level = 0);
 	const C_Surface& GetSurface(const U32 level = 0) const;
 
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC // [Blur1PCDX11] Preserve PC read/write target slots.
+#if DEVICE_D3D11_PC // [Blur1PCDX11] Preserve PC read/write target slots.
 	mutable U16						m_TextureIndex;
 	mutable U16						m_SurfaceIndex;
 	C_Texture						m_Texture[2];
@@ -1473,7 +1293,7 @@ struct C_RenderTexture2D
 	Btl::Vector<C_Surface>			m_Surfaces;
 #endif
 	U32								m_Flags;
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	U32								m_Multisample;	// [Blur2PC] retail +0x50: D3DMULTISAMPLE_TYPE of the render surface
 #endif
 };
@@ -1502,11 +1322,7 @@ struct C_RenderTextureCube
 
 //! C_VideoMode
 
-#if DEVICE_XB2
-struct C_VideoMode : public XVIDEO_MODE
-#else
 struct C_VideoMode
-#endif
 {
 };
 
@@ -1671,7 +1487,7 @@ struct C_SamplerState
 	void SetTextureBorderColour(const U32 textureBorderColour);
 	void SetTextureLodBias(const S8 textureLodBias);
 	
-	#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+	#if DEVICE_D3D11_PC
 	void SetTextureGamma(const E_Bool textureGamma);
 	#endif
 	
@@ -1685,7 +1501,7 @@ struct C_SamplerState
 			U32							m_TextureFilterMag		: GPU_TEXTURE_FILTERMAG_BITCOUNT; // E_TextureFilter
 			U32							m_TextureFilterMin		: GPU_TEXTURE_FILTERMIN_BITCOUNT; // E_TextureFilter
 			U32							m_TextureFilterMip		: GPU_TEXTURE_FILTERMIP_BITCOUNT; // E_TextureFilter
-			#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+			#if DEVICE_D3D11_PC
 			U32							m_TextureGamma			: GPU_TEXTURE_GAMMA_BITCOUNT; // E_Bool
 			#endif
 		};

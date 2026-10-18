@@ -245,9 +245,6 @@ namespace airacingtech
 
 	void CDriverAI::Update()
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, " CDriverAI::Update()");
-#endif
 		if (m_pIData)
 		{
 
@@ -401,9 +398,6 @@ namespace airacingtech
 
 	void CDriverAI::PreUpdate()
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CDriverAI::PreUpdate()");
-#endif
 
 		if (m_pIData)
 		{
@@ -484,9 +478,6 @@ namespace airacingtech
 
 #ifndef PERF_REMOVE_POST_UPDATE_AS_BLUR_DOES_NOT_HAVE_IMPORTANT_CODE_HERE
 
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CDriverAI::PostUpdate()");
-#endif
 
 		if (m_pIData)
 		{
@@ -529,9 +520,6 @@ namespace airacingtech
 
 	void CDriverAI::CalculateSteerState()
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CDriverAI::CalculateSteerState()");
-#endif
 		DataState &myDataState = m_pIData->GetState();
 
 		if (Maths::Abs(myDataState.m_frontWheelSlip) < 0.08f && Maths::Abs(myDataState.m_rearWheelSlip) < 0.08f )
@@ -576,9 +564,6 @@ namespace airacingtech
 	{
 		PERF_EVENT("AI.Driver.CalculateCommonVehicleData");
 
-#ifdef _XENON
-	//	PixEvent pix(0xffffffff, "CDriverAI::CalculateCommonVehicleData()");
-#endif
 		if (m_pIData->GetState().m_pIVehicleState)
 		{
 			DataState &myDataState = m_pIData->GetState();

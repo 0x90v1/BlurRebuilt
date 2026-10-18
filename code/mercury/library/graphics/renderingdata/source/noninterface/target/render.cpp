@@ -52,8 +52,6 @@ PlatformType GetPlatformType()
 	return PLATFORM_TYPE_PS3;
 #elif PLATFORM_PC
 	return PLATFORM_TYPE_PC;
-#elif PLATFORM_XENON
-	return PLATFORM_TYPE_360;
 #else
 	assert(0);
 	return PLATFORM_TYPE_UNKNOWN;

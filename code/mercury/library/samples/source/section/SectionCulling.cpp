@@ -57,24 +57,6 @@ void C_SectionMovie::OnInput(const C_Input& input, const C_Timer& timer)
 	}
 	#endif
 
-	#ifdef PLATFORM_XENON
-	if(input.IsButtonDn(Samples::E_Button_A))
-	{
-		m_Movie.SetAudio(!m_Movie.GetAudio());
-	}
-	if(input.IsButtonDn(Samples::E_Button_B))
-	{
-		m_Movie.SetVideo(!m_Movie.GetVideo());
-	}
-	if(input.IsButtonDn(Samples::E_Button_X))
-	{
-		m_Movie.SetPaused(!m_Movie.GetPaused());
-	}
-	//if(input.IsButtonDn(Samples::E_Button_B))
-		//m_Movie.SetLooping(!m_Movie.GetLooping());
-	//if(input.IsButtonDn(Samples::E_Button_Y))
-		//m_Movie.Rewind();
-	#endif
 }
 
 void C_SectionMovie::OnUpdate(const C_Input& input, const C_Timer& timer)

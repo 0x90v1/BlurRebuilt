@@ -5,13 +5,7 @@ EXTERN_SHADER(vsShadowMapStandardDepth);
 EXTERN_SHADER(psShadowMapStandardDepth);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Shadow/PCD3D9/vsShadowMapStandardDepth.shader"
-#include "Render/Shaders/Shadow/PCD3D9/psShadowMapStandardDepth.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Shadow/XB2/vsShadowMapStandardDepth.shader"
-#include "Render/Shaders/Shadow/XB2/psShadowMapStandardDepth.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Shadow/PS3/vsShadowMapStandardDepth.shader"
 #include "Render/Shaders/Shadow/PS3/psShadowMapStandardDepth.shader"
 #endif
@@ -27,11 +21,7 @@ C_StandardMapShaders C_StandardMap::m_Shaders;
 C_StandardMap::C_StandardMap()
 {
 	m_Levels				= 1;
-	#if defined(PLATFORM_XENON)
-	m_ColourFormat			= Display::E_Format_D24FS8;
-	#else
 	m_ColourFormat			= Display::E_Format_R32F;
-	#endif
 	m_DepthStencilFormat	= Display::Device()->GetBackBuffer().GetDepthStencilFormat();
 
 	Display::MatrixSetIdentity(&m_LightMatrix);
@@ -88,11 +78,7 @@ void C_StandardMap::SetShaders()
 {
 	Display::Device()->SetVertexShader(&m_Shaders.m_vsDepth);
 	
-	#if defined(PLATFORM_XENON)
-	Display::Device()->SetPixelShader(NULL);
-	#else
 	Display::Device()->SetPixelShader(&m_Shaders.m_psDepth);
-	#endif
 }
 
 void C_StandardMap::SetTexture(const U32 sampler, const U32 lightMatrixRegister, const U32 shadowMatrixRegister)
@@ -136,14 +122,6 @@ void C_StandardMap::Bind()
 
 void C_StandardMap::Unbind()
 {
-	#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = m_Width;
-	rect.y2 = m_Height;
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_DEPTHSTENCIL, &rect, m_RenderTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	#endif
 
 	C_ShadowMap::Unbind();
 }

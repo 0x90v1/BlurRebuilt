@@ -83,9 +83,7 @@ void C_PerfStats::Setup()
 			for (S32 iNode = 0; iNode < m_pRouteStats->memBudgets->budgets[iBudget].trackerName.count; iNode++)
 			{
 				Util::C_String trackerName	= m_pRouteStats->memBudgets->budgets[iBudget].trackerName[iNode].Text();
-#if defined(PLATFORM_XENON)
-				S32 budget			= (S32)(m_pRouteStats->memBudgets->budgets[iBudget].size.platform360*1024*1024);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 				S32 budget			= (S32)(m_pRouteStats->memBudgets->budgets[iBudget].size.platformPS3*1024*1024);
 #elif defined(PLATFORM_PC)			
 				S32 budget			= (S32)(m_pRouteStats->memBudgets->budgets[iBudget].size.platformPC*1024*1024);

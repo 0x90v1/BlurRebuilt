@@ -78,11 +78,7 @@ void C_UIFriends::Initialise( const S32 sContext, const S32 sActivateButton, con
 	m_sPadNo = -1;
 
 	m_fAutoRefreshTimer = 0.0f;
-#if PLATFORM_XENON
-	m_bAutoRefresh = true;
-#else
 	m_bAutoRefresh = false;
-#endif
 
 	m_fNextOpenDelayTimer = 0.0f;
 
@@ -341,15 +337,7 @@ const WCHAR* C_UIFriends::GetFriendPresenceString( const U32 uIndex )
 	//if ( m_Presence[ uAdjustedIndex ].Length() == 0 )	// build this every frame now
 	{
 		// build the string we should render
-	#ifdef PLATFORM_XENON
-		m_Presence[ uAdjustedIndex ] = GetFriendPresence( uIndex ).m_DisplayString;
-
-		// check for new lines and replace with spaces
-		m_Presence[ uAdjustedIndex ].ReplaceCharacter( 0xa, L' ' );
-		m_Presence[ uAdjustedIndex ].ReplaceCharacter( 0xd, L' ' );
-	#else
 		Interface().BuildPresenceString( uIndex, m_Presence[ uAdjustedIndex ] );
-	#endif
 
 		if ( m_Presence[ uAdjustedIndex ].Length() == 0 )
 		{
@@ -383,13 +371,7 @@ SysProfile::GameInvite& C_UIFriends::GetFriendInvite( const U32 uIndex )
 
 bool C_UIFriends::CanViewGamerCards()
 {
-#ifdef PLATFORM_XENON
-	// check profile viewing privilege
-	SysProfile::FullProfile& profile = C_ProfileInterface::Instance().GetPadProfile( m_sPadNo );
-	return profile.m_ProfileViewingPrivilege;
-#else
 	return false;
-#endif
 }
 
 bool C_UIFriends::CanInviteSystem( const U32 uIndex )
@@ -420,12 +402,7 @@ bool C_UIFriends::CanJoinSessionInProgress( const U32 uIndex )
 
 void C_UIFriends::ViewGamerCard( const U32 uIndex )
 {
-#ifdef PLATFORM_XENON
-	if ( CanViewGamerCards() )
-		XShowGamerCardUI( (DWORD)m_sPadNo, GetFriendProfile( uIndex ).m_Uid );
-#else
 	// TODO?
-#endif
 }
 
 void C_UIFriends::SendInvite( const U32 uIndex )

@@ -88,13 +88,7 @@ namespace NetPlay
 		bool					m_QuickEnumeration;
 		U32						m_NumFriendsEnumerated;
 		S32						m_UserIndex;
-#if defined(PLATFORM_XENON) 
-		// for 360 we need to store what player is in control of the session
-		C_AsyncTask*			m_pAsyncTask;
-		XUID					m_Xuid;
-		XONLINE_FRIEND			m_Friends[MAX_FRIENDS];
-		HANDLE					m_EnumeratorHandle;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		bool					m_RequestStarted;
 #elif defined(PLATFORM_PC)
 		bdRemoteTaskRef		m_AsyncTask;

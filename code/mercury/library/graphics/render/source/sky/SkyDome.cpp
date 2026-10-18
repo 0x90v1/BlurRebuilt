@@ -79,7 +79,7 @@ bool C_SkyDome::OnCreate()
 		return false;
 	if(!Display::Device()->CreateIndexBuffer(m_IndexCount * sizeof(U16), 0, Display::E_Format_Index16, &m_IndexBuffer))
 		return false;
-	#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+	#if defined(DEVICE_PS3GCM)
 	if(!Display::CreateVertexShaderFromFunc("Shaders/vsSkyDome", 0, &m_VertexShader, REF_SHADER(vsSkyDome)))
 		return false;
 	if(!Display::CreatePixelShaderFromFunc("Shaders/psSkyDome", 0, &m_PixelShader[E_SkyDomeShader_Default], REF_SHADER(psSkyDome)))
@@ -108,15 +108,6 @@ bool C_SkyDome::OnCreate()
 		Display::CreateTexture2DFromFile(Util::C_String("DontShip/") + m_TextureFileName, &m_Texture);
 	
 
-#if defined(PLATFORM_XENON)
-	//if (m_bSRGB)
-	{
-		if (m_Texture.IsCreated())
-		{
-			m_Texture.SetSRGB();
-		}
-	}
-#endif
 
 	return true;
 }

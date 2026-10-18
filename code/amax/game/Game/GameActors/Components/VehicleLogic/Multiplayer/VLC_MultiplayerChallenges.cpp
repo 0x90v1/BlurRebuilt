@@ -373,7 +373,7 @@ namespace Components
 									if(blindfireIter->id == msg->mUniqueID)
 									{
 										//Magical value that implies the blindfire has hit. Need to check if this is safe!!!!!
-										blindfireIter->id = (U32)Maths::Constants<U32>::Max;
+										blindfireIter->id = (U32)(INTPTR)Maths::Constants<U32>::Max;	// [Blur2PC][x64] retail compares against the address of Max(); keep its low 32 bits
 										break;
 									}
 									++blindfireIter;
@@ -899,7 +899,7 @@ namespace Components
 		Btl::List<BlindfireInformation>::Iterator blindfireIter = m_RecentBlindfiresFired.Begin();
 		while(blindfireIter != m_RecentBlindfiresFired.End())
 		{
-			if(blindfireIter->id != (U32)Maths::Constants<U32>::Max && blindfireIter->timeDestroyed >= 0.001f && m_pRLC->GetRaceTime() - blindfireIter->timeDestroyed > 1.0f)
+			if(blindfireIter->id != (U32)(INTPTR)Maths::Constants<U32>::Max && blindfireIter->timeDestroyed >= 0.001f && m_pRLC->GetRaceTime() - blindfireIter->timeDestroyed > 1.0f)
 			{
 				deletionPoint = i;
 			}
@@ -924,7 +924,7 @@ namespace Components
 			Btl::List<BlindfireInformation>::Iterator blindfireIter = m_RecentBlindfiresFired.Begin();
 			while(blindfireIter != m_RecentBlindfiresFired.End())
 			{
-				if(blindfireIter->id == (U32)Maths::Constants<U32>::Max)
+				if(blindfireIter->id == (U32)(INTPTR)Maths::Constants<U32>::Max)	// [Blur2PC][x64] retail compares against the address of Max(); keep its low 32 bits
 				{
 					chosenOneProgress++;
 					if(chosenOneProgress >= m_pMultiplayerProfile->GetChallengeSystem().GetChallenge(UI::E_MULTIPLAYER_CHALLENGE_TYPE_CHOSEN_ONE).GetTargetAmount())

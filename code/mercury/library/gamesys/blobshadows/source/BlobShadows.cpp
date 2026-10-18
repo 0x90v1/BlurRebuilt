@@ -222,33 +222,6 @@ bool C_BlobShadows::CreateRenderTarget(U32 index, U32 resolution, const Display:
 
 	//Create remap textures
 #ifdef BLOBSHADOW_PER_CHANNEL
-#ifdef PLATFORM_XENON
-	blobTexture.m_RemapTextures[0] = blobTexture.m_Texture.GetTexture();
-	blobTexture.m_RemapTextures[1] = blobTexture.m_Texture.GetTexture();
-	blobTexture.m_RemapTextures[2] = blobTexture.m_Texture.GetTexture();
-	blobTexture.m_RemapTextures[3] = blobTexture.m_Texture.GetTexture();
-
-	//Remap
- 	blobTexture.m_RemapTextures[0].m_d3dTexture.Format.SwizzleX = GPUSWIZZLE_Z;
- 	blobTexture.m_RemapTextures[0].m_d3dTexture.Format.SwizzleY = GPUSWIZZLE_Z;
- 	blobTexture.m_RemapTextures[0].m_d3dTexture.Format.SwizzleZ = GPUSWIZZLE_Z;
- 	blobTexture.m_RemapTextures[0].m_d3dTexture.Format.SwizzleW = GPUSWIZZLE_Z;
- 
- 	blobTexture.m_RemapTextures[1].m_d3dTexture.Format.SwizzleX = GPUSWIZZLE_Y;
- 	blobTexture.m_RemapTextures[1].m_d3dTexture.Format.SwizzleY = GPUSWIZZLE_Y;
- 	blobTexture.m_RemapTextures[1].m_d3dTexture.Format.SwizzleZ = GPUSWIZZLE_Y;
- 	blobTexture.m_RemapTextures[1].m_d3dTexture.Format.SwizzleW = GPUSWIZZLE_Y;
- 	
- 	blobTexture.m_RemapTextures[2].m_d3dTexture.Format.SwizzleX = GPUSWIZZLE_X;
- 	blobTexture.m_RemapTextures[2].m_d3dTexture.Format.SwizzleY = GPUSWIZZLE_X;
- 	blobTexture.m_RemapTextures[2].m_d3dTexture.Format.SwizzleZ = GPUSWIZZLE_X;
- 	blobTexture.m_RemapTextures[2].m_d3dTexture.Format.SwizzleW = GPUSWIZZLE_X;
- 	
- 	blobTexture.m_RemapTextures[3].m_d3dTexture.Format.SwizzleX = GPUSWIZZLE_W;
- 	blobTexture.m_RemapTextures[3].m_d3dTexture.Format.SwizzleY = GPUSWIZZLE_W;
- 	blobTexture.m_RemapTextures[3].m_d3dTexture.Format.SwizzleZ = GPUSWIZZLE_W;
- 	blobTexture.m_RemapTextures[3].m_d3dTexture.Format.SwizzleW = GPUSWIZZLE_W;
-#endif
 #endif
 
 	#if TRACK_DISPLAY2_RESOURCES
@@ -257,9 +230,6 @@ bool C_BlobShadows::CreateRenderTarget(U32 index, U32 resolution, const Display:
 
 	Display::C_SurfaceParams surfaceParams;
 
-	#ifdef PLATFORM_XENON
-	surfaceParams.AfterSurface(&blobTexture.m_Texture.GetSurface());
-	#endif
 
 	//Create blur texture
 	if (!m_BlurBlobRenderTexture[auxTextureIndex].IsCreated())
@@ -688,14 +658,6 @@ void C_BlobShadows::RenderBlobTexture( const C_ProcessShadow& processShadow )
 		m_pContext->End();
 
 		//Unbind
-#ifdef PLATFORM_XENON
-		D3DRECT rect;
-		rect.x1 = 0;
-		rect.y1 = 0;
-		rect.x2 = blobRenderTexture.GetTexture().GetWidth();
-		rect.y2 = blobRenderTexture.GetTexture().GetHeight();
-		Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, blobRenderTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-#endif
 
 		Display::Device()->SetView(NULL, false);
 		Display::Device()->SetBlendMode(Display::E_BlendMode_Solid);
@@ -801,14 +763,6 @@ void C_BlobShadows::RenderBlobTexture( const C_ProcessShadow& processShadow )
 		}
 
 		//Unbind
-#ifdef PLATFORM_XENON
-		D3DRECT rect;
-		rect.x1 = 0;
-		rect.y1 = 0;
-		rect.x2 = blobRenderTexture.GetTexture().GetWidth();
-		rect.y2 = blobRenderTexture.GetTexture().GetHeight();
-		Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, blobRenderTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-#endif
 
 		Display::Device()->SetView(NULL, false);
 
@@ -918,11 +872,7 @@ void C_BlobShadows::RenderScreenShadow( const C_ProcessShadow& processShadow, Di
 				subTextureIndex = renderTextureIndex & 3;
 				renderTextureIndex /= 4;
 
-				#if defined(PLATFORM_XENON)
-					pBlobTexture = &m_BlobRenderTexture[renderTextureIndex].m_RemapTextures[subTextureIndex];
-				#else
 					pBlobTexture = &m_BlobRenderTexture[renderTextureIndex].m_Texture.GetTexture();
-				#endif
 			#else
 				pBlobTexture = &m_BlobRenderTexture[renderTextureIndex].m_Texture.GetTexture();
 			#endif
@@ -1039,54 +989,7 @@ void C_BlobShadows::RenderScreenShadow( const C_ProcessShadow& processShadow, Di
 #endif
 
 	//Stencil
-#if PLATFORM_XENON
-	Display::C_Texture2D* pDisplayTexture = const_cast<Display::C_Texture2D*>(pContext->GetDepthStencilTexture());
-
-	IDirect3DTexture9* pSrcDepthStencilTexture = (IDirect3DTexture9*)pDisplayTexture->Get();
-
-	XGTEXTURE_DESC srcTextureDesc;
-
-	XGGetTextureDesc(pSrcDepthStencilTexture, 0, &srcTextureDesc);
-
-	UINT Width = srcTextureDesc.Width;
-	UINT Height = srcTextureDesc.Height;
-	UINT Levels = 1;
-	DWORD Usage = 0;
-	D3DFORMAT Format = D3DFMT_A8R8G8B8;
-	D3DPOOL Pool = 0;
-	UINT BaseOffset = 0;
-	UINT MipOffset = 0;
-	UINT Pitch = srcTextureDesc.Width * 4;//srcTextureDesc.RowPitch;
-	UINT *pBaseSize = NULL;
-	UINT *pMipSize = NULL;
-
-	IDirect3DTexture9 d3dStencilTexture;
-	UINT size =  XGSetTextureHeader(Width,
-		Height,
-		Levels,
-		Usage,
-		Format,
-		Pool,
-		BaseOffset,
-		MipOffset,
-		Pitch,
-		&d3dStencilTexture,
-		pBaseSize,
-		pMipSize);
-
-	XGOffsetResourceAddress(&d3dStencilTexture, pDisplayTexture->GetAddress());
-
-	pContext->SetTexture(2, &d3dStencilTexture);
-
-	
-	Display::C_SamplerState stencilSample;
-	stencilSample.SetDefaultStates();
-	stencilSample.SetTextureAddress(Display2::E_TextureAddress_Clamp);
-	stencilSample.SetTextureFilter(Display2::E_TextureFilter_Linear);
-	pContext->SetSamplerState(2, &stencilSample);
-
-	pContext->SetHalfPixelOffset(Display::E_Bool_True);
-#elif PLATFORM_PS3
+#if PLATFORM_PS3
 
 #endif
 
@@ -1158,9 +1061,6 @@ void C_BlobShadows::RenderScreenShadow( const C_ProcessShadow& processShadow, Di
 	pContext->SetTexture(2, 0);
 	pContext->SetSamplerState(2, &defaultSample);
 
-#ifdef PLATFORM_XENON
-	pContext->SetHalfPixelOffset(Display::E_Bool_False);
-#endif
 }
 
 void C_BlobShadows::Render(Display::C_Context* pContext, U32 visibilityFlags) const
@@ -1186,7 +1086,7 @@ void C_BlobShadows::Render(Display::C_Context* pContext, U32 visibilityFlags) co
 	stencilState.m_StencilEnable = Display::E_Bool_False;
 	pContext->SetStencilState(stencilState);
 
-#if PLATFORM_XENON || PLATFORM_PC // I have no idea why I have to do this, CW should work fine on all platforms
+#if PLATFORM_PC // I have no idea why I have to do this, CW should work fine on all platforms
 	// [Blur2PC] retail PC (Blur.exe 1.2 0x00732d20) culls CW as well: the box's far faces draw, so the shadow
 	// shows with the camera inside it (showroom, countdown shots); CCW left only the near faces (T115)
 	pContext->SetCullMode(Display::E_CullMode_Cw);

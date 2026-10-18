@@ -1693,7 +1693,6 @@ namespace RacerNet
 	{
 		if (!m_Initialised || !m_Running)
 			return;
-#if !defined (PLATFORM_XENON)
 		SecurityKeyIds activeKeyIds;
 		C_NetPlayerManager& mgr = **m_ppPlayerMgr;
 
@@ -1718,7 +1717,6 @@ namespace RacerNet
 		}
 
 		m_pSessionKeyTracker->Poll(activeKeyIds);
-#endif
 	}
 
 	void C_NetParty::PollVoice(void)
@@ -2482,7 +2480,6 @@ namespace RacerNet
 				if (timeOut)
 					(*m_ppPlayerMgr)->PeerMigrationTimeout(true);
 
-#if !defined (PLATFORM_XENON)
 				// when using demonware we need to add players into the session again since they won't be migrated over like on xbox360
 				for (U8 i=0; i<(*m_ppPlayerMgr)->TotalSize(); i++)
 				{
@@ -2491,7 +2488,6 @@ namespace RacerNet
 						p->m_PartyConnection.m_AddedToOnlineSession = false;
 				}
 				m_MatchingToRemove.Clear(); // sanity.. no point removing players now as we have just created a new session
-#endif
 				LOGINFO(g_Log, "C_NetParty::PollMatchingServerMigration() - Host : process complete.");
 				m_Migrating = false;
 			}
@@ -2512,7 +2508,6 @@ namespace RacerNet
 			{
 				if (m_MatchingMigrationNotificationId == m_pMatchingMigrationNotification->m_Id)
 				{
-#if !defined (PLATFORM_XENON)
 					// when using demonware we need to add players into the session again since they won't be migrated over like on xbox360
 					for (U8 i=0; i<(*m_ppPlayerMgr)->TotalSize(); i++)
 					{
@@ -2521,7 +2516,6 @@ namespace RacerNet
 							p->m_PartyConnection.m_AddedToOnlineSession = false;
 					}
 					m_MatchingToRemove.Clear(); // sanity.. no point removing players now as we have just created a new session
-#endif
 					// get the new security keys from the migrated session.
 					NetPlay::SessionSecurity newSec;
 					if ((*m_ppPartyMatchmaking)->GetSecurityInfo(newSec))

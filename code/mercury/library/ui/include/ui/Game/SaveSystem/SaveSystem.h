@@ -152,10 +152,6 @@ public:
 	C_SaveFileInfo(
 		  const U32 uFileSize
 		, const Util::C_FixedString< SAVE_FILENAME_SIZE >& fileName			// on PS3 this _MUST_ be 0-9, A_Z, -, _
-	#ifdef PLATFORM_XENON													// -- well, the docs say _ but i get an invalid filename error back!
-		, const Util::C_String32& internalName
-		, const C_WideString64& displayName
-	#endif
 		, const bool bOptional = false
 		, const S32 sUserData = -1
 	#ifdef PLATFORM_PS3
@@ -164,10 +160,6 @@ public:
 	)
 		: m_uFileSize( uFileSize )
 		, m_FileName( fileName )
-	#ifdef PLATFORM_XENON
-		, m_InternalName( internalName )
-		, m_DisplayName( displayName )
-	#endif
 		, m_bOptional( bOptional )
 		, m_sUserData( sUserData )
 	#ifdef PLATFORM_PS3
@@ -180,10 +172,6 @@ public:
 public:
 	U32											m_uFileSize;		// 200 * 1024
 	Util::C_FixedString< SAVE_FILENAME_SIZE >	m_FileName;			// "TEST_SAVE"
-#ifdef PLATFORM_XENON
-	Util::C_String32							m_InternalName;		// "SAVE:\\savegame"
-	C_WideString64								m_DisplayName;		// UI::C_TextStringID( "PRO_SAVE_GAME_NAME" ).String()
-#endif
 	bool										m_bOptional;
 	S32											m_sUserData;
 #ifdef PLATFORM_PS3
@@ -238,17 +226,13 @@ public:
 	S32								m_sEnumeration;
 	Btl::Vector< C_SaveFileInfo >	m_FileInfo;
 
-#if PLATFORM_XENON || PLATFORM_PC
+#if PLATFORM_PC
 public:
 	bool							m_bCheckOverwrites;
 	Util::C_String					m_SaveRoot;						// "SAVE"
 	Util::C_String					m_EnumerationFileExtension;		// "replay"
 #endif
 
-#ifdef PLATFORM_XENON
-public:
-	bool							m_bRoamable;											// true
-#endif
 #ifdef PLATFORM_PS3
 public:
 	Util::C_String					m_TitleId;												// "ABCD12345"

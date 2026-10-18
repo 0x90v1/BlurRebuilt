@@ -2368,7 +2368,7 @@ void Audio::Object::SetFrameSkip(U32 frameSkip)
 ////////////////////////////////////////////////////////////////////////////////
 void Audio::Object::IncrementInstanceCounter()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	InterlockedIncrement((volatile long*)&m_u32ActiveInstanceCount);
 #else
 	cellAtomicIncr32((std::uint32_t*)&m_u32ActiveInstanceCount);
@@ -2381,7 +2381,7 @@ void Audio::Object::IncrementInstanceCounter()
 ////////////////////////////////////////////////////////////////////////////////
 void Audio::Object::DecrementInstanceCounter()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	InterlockedDecrement((volatile long*)&m_u32ActiveInstanceCount);
 #else
 	cellAtomicDecr32((std::uint32_t*)&m_u32ActiveInstanceCount);
@@ -2394,7 +2394,7 @@ void Audio::Object::DecrementInstanceCounter()
 ////////////////////////////////////////////////////////////////////////////////
 void Audio::Object::IncrementSuspendedInstanceCounter()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	InterlockedIncrement((volatile long*)&m_u32SuspendedInstanceCount);
 #else
 	cellAtomicIncr32((std::uint32_t*)&m_u32SuspendedInstanceCount);
@@ -2407,7 +2407,7 @@ void Audio::Object::IncrementSuspendedInstanceCounter()
 ////////////////////////////////////////////////////////////////////////////////
 void Audio::Object::DecrementSuspendedInstanceCounter()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	if (m_u32SuspendedInstanceCount)
 		InterlockedDecrement((volatile long*)&m_u32SuspendedInstanceCount);
 #else
@@ -2422,7 +2422,7 @@ void Audio::Object::DecrementSuspendedInstanceCounter()
 ////////////////////////////////////////////////////////////////////////////////
 void Audio::Object::IncrementMutedInstanceCounter()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	InterlockedIncrement((volatile long*)&m_u32MutedInstanceCount);
 #else
 	cellAtomicIncr32((std::uint32_t*)&m_u32MutedInstanceCount);
@@ -2435,7 +2435,7 @@ void Audio::Object::IncrementMutedInstanceCounter()
 ////////////////////////////////////////////////////////////////////////////////
 void Audio::Object::DecrementMutedInstanceCounter()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	if (m_u32MutedInstanceCount)
 		InterlockedDecrement((volatile long*)&m_u32MutedInstanceCount);
 #else

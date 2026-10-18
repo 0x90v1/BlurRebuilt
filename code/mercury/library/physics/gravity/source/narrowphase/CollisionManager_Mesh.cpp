@@ -91,7 +91,7 @@ namespace Collision
 	
 	if(b_Shape == E_Continuous_Shape)
 	{
-		b->m_pShape = (Collision::C_Shape*)Spu::Get((U32*)&((Collision::C_ContinuousShape*)b->m_pShape)->m_pDiscreteShape);
+		b->m_pShape = (Collision::C_Shape*)Spu::Get((INTPTR*)&((Collision::C_ContinuousShape*)b->m_pShape)->m_pDiscreteShape);	// [Blur2PC][x64] pointer-wide
 		b_Shape = Spu::Get((U32*)&b->m_pShape->m_ShapeType);
 	}
 

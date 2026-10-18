@@ -467,9 +467,6 @@ void C_AmaxWorldLayer::UnloadUILutRamPak()
 
 HRESULT C_AmaxWorldLayer::Create(bool quickRestart)
 {
-#ifdef PLATFORM_XENON
-	IoSuspendFileCaching();
-#endif
 
 	const Game::C_LevelState& levelState = C_Game::GetInstance()->GetLevelState();
 
@@ -796,9 +793,6 @@ HRESULT C_AmaxWorldLayer::Create(bool quickRestart)
 	if(C_GameApp::GetInstance()->GetGameAudioLayer() && C_GameApp::GetInstance()->GetGameAudioLayer()->GetSystem())
 		C_GameApp::GetInstance()->GetGameAudioLayer()->GetSystem()->SetStaggeredInstanceCreation(false);
 
-#ifdef PLATFORM_XENON
-	IoResumeFileCaching();
-#endif
 
 #ifdef DISABLE_RENDERMUTEX_TO_PREVENT_UI_STALLS
 	if (C_GameApp::GetInstance()->GetRaceBookLayer()->GetLoadState() == Game::E_LoadState_IntoRace)
@@ -1160,11 +1154,8 @@ HRESULT C_AmaxWorldLayer::Destroy(bool quickRestart)
 	}
 
 	Display::Device()->AcquireThreadOwnership();
-#if defined(PLATFORM_XENON)
-	Display::Device()->Unbind();
-#endif
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 	Display::Device()->ReleaseThreadOwnership();

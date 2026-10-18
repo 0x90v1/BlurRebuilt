@@ -350,104 +350,16 @@ void GetHalfBilinearGaussianSamples(F32* fWeights, F32 fDeviation = 2.0f, F32 fM
 
 INLINE void SetTextureExpanded(const U32 sampler, Display::C_Texture2D* pTexture)
 {
-#if defined(PLATFORM_XENON)
-	Display::Device()->SetTexture(sampler, 0);
-	Display::Device()->GetD3DDevice()->SetTexture(sampler, 0);
-	{
-		IDirect3DTexture9* pD3DTexture = (IDirect3DTexture9*)pTexture->Get();
-
-		XGTEXTURE_DESC xgTextureDesc;
-		XGGetTextureDesc(pD3DTexture, 0, &xgTextureDesc);
-		if(xgTextureDesc.Format == D3DFMT_A16B16G16R16F)
-			xgTextureDesc.Format = D3DFMT_A16B16G16R16F_EXPAND;
-		if(xgTextureDesc.Format == D3DFMT_LIN_A16B16G16R16F)
-			xgTextureDesc.Format = D3DFMT_LIN_A16B16G16R16F_EXPAND;
-		if(xgTextureDesc.Format == D3DFMT_G16R16F)
-			xgTextureDesc.Format = D3DFMT_G16R16F_EXPAND;
-		if(xgTextureDesc.Format == D3DFMT_LIN_G16R16F)
-			xgTextureDesc.Format = D3DFMT_LIN_G16R16F_EXPAND;
-
-		static IDirect3DTexture9 d3dTexture;
-		U32 size =  XGSetTextureHeader(xgTextureDesc.Width, xgTextureDesc.Height, 1, 0, xgTextureDesc.Format, 0, 0, 0, xgTextureDesc.Width * 8, &d3dTexture, 0, 0);
-
-		XGOffsetResourceAddress(&d3dTexture, pTexture->GetAddress());
-		Display::Device()->GetD3DDevice()->SetTexture(sampler, &d3dTexture);
-	}
-#else
 	Display::Device()->SetTexture(sampler, pTexture);
-#endif
 }
 
 INLINE void SetTextureUnexpanded(const U32 sampler, Display::C_Texture2D* pTexture)
 {
-#if defined(PLATFORM_XENON)
-	Display::Device()->SetTexture(sampler, 0);
-	Display::Device()->GetD3DDevice()->SetTexture(sampler, 0);
-	{
-		IDirect3DTexture9* pD3DTexture = (IDirect3DTexture9*)pTexture->Get();
-
-		XGTEXTURE_DESC xgTextureDesc;
-		XGGetTextureDesc(pD3DTexture, 0, &xgTextureDesc);
-		if(xgTextureDesc.Format == D3DFMT_A16B16G16R16F_EXPAND)
-			xgTextureDesc.Format = D3DFMT_A16B16G16R16F;
-		if(xgTextureDesc.Format == D3DFMT_LIN_A16B16G16R16F_EXPAND)
-			xgTextureDesc.Format = D3DFMT_LIN_A16B16G16R16F;
-		if(xgTextureDesc.Format == D3DFMT_G16R16F_EXPAND)
-			xgTextureDesc.Format = D3DFMT_G16R16F;
-		if(xgTextureDesc.Format == D3DFMT_LIN_G16R16F_EXPAND)
-			xgTextureDesc.Format = D3DFMT_LIN_G16R16F;
-
-		static IDirect3DTexture9 d3dTexture;
-		U32 size =  XGSetTextureHeader(xgTextureDesc.Width, xgTextureDesc.Height, 1, 0, xgTextureDesc.Format, 0, 0, 0, xgTextureDesc.Width * 8, &d3dTexture, 0, 0);
-
-		XGOffsetResourceAddress(&d3dTexture, pTexture->GetAddress());
-		Display::Device()->GetD3DDevice()->SetTexture(sampler, &d3dTexture);
-	}
-#else
 	Display::Device()->SetTexture(sampler, pTexture);
-#endif
 }
 
 INLINE void DownsampleResolve(Display::C_Texture2D* pTexture)
 {
-#if defined(PLATFORM_XENON)
-	const Display::C_RenderTarget& renderTarget = Display::Device()->GetRenderTarget();
-	const Display::C_Surface* pColourSurface = renderTarget.GetColourSurface();
-
-	U32 size = 0;
-
-	XGTEXTURE_DESC xgColourSurfaceDesc;
-	XGGetSurfaceDesc((D3DSurface*)&pColourSurface->m_d3dSurface, &xgColourSurfaceDesc);
-
-	static D3DSurface d3dColourSurface;
-
-	D3DSURFACE_PARAMETERS d3dSurfaceParams;
-	d3dSurfaceParams.Base = pColourSurface->m_d3dSurface.ColorInfo.ColorBase;
-	d3dSurfaceParams.ColorExpBias = pColourSurface->m_d3dSurface.ColorInfo.ColorExpBias;
-	d3dSurfaceParams.HierarchicalZBase = 0;
-	d3dSurfaceParams.HiZFunc = D3DHIZFUNC_DEFAULT;
-
-	size =  XGSetSurfaceHeader(xgColourSurfaceDesc.Width / 2,
-								xgColourSurfaceDesc.Height / 2,
-								xgColourSurfaceDesc.Format,
-								D3DMULTISAMPLE_4_SAMPLES,
-								&d3dSurfaceParams,
-								&d3dColourSurface,
-								0);
-	XGOffsetSurfaceAddress(&d3dColourSurface, 0, 0);
-
-	D3DSURFACE_DESC textureDesc;
-	((D3DTexture*)pTexture->GetGPUTexture())->GetLevelDesc(0, &textureDesc);
-
-	U32 colourExpBias = 0;
-	if(textureDesc.Format == D3DFMT_A16B16G16R16_UINT)
-		colourExpBias = D3DRESOLVE_EXPONENTBIAS(+11);
-
-	Display::Device()->SetColourDepthStencilSurface(0, 0);
-	Display::Device()->GetD3DDevice()->SetRenderTarget(0, 0);
-	Display::Device()->GetD3DDevice()->SetRenderTarget(0, &d3dColourSurface);
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS | colourExpBias, 0, (D3DBaseTexture*)pTexture->GetGPUTexture(), 0, 0, 0, 0, 0.0f, 0, 0);
-#endif
 }
 
 } // namespace PostProcess

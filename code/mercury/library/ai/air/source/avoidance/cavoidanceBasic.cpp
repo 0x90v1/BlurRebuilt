@@ -177,9 +177,6 @@ namespace airacingtech
 
 		PERF_EVENT("AI.Avoidance.PreUpdate");
 
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CAvoidanceBasic::PreUpdate()");
-#endif
 
 #ifdef AI_DEBUG
 		CObjectId Myid = GetObjectId();

@@ -11,8 +11,8 @@ namespace SharedPhysics
 inline U8* C_ContactStream::LockMemory(const U32 size)
 {
 	//Need to do some atomic increment stuff
-	U8* pStreamEnd = (U8*)Spu::Get((U32*)&m_pStreamEnd);
-	U8* res = (U8*)MT::AtomicAdd((U32*)(&m_pCurrentWritePoint), size);
+	U8* pStreamEnd = (U8*)Spu::Get((INTPTR*)&m_pStreamEnd);	// [Blur2PC][x64] pointer-wide
+	U8* res = (U8*)MT::AtomicAdd((INTPTR*)(&m_pCurrentWritePoint), (INTPTR)size);	// [Blur2PC][x64] pointer-wide
 	//assert(m_pCurrentWritePoint <= m_pStreamEnd);
 	bool bOverflow = (res + size) > pStreamEnd;
 	BIZ_ASSERT(!bOverflow);

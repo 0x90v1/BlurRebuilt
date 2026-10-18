@@ -1,6 +1,6 @@
 SubDir TOP Code Mercury Library ;
 
-SupportedTargets WIN32 XBOX_360 PS3 ;
+SupportedTargets WIN32 PS3 ;
 
 ExportVcproj MercuryLibs ;
 

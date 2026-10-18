@@ -58,7 +58,7 @@ void C_TextureManager::Update( )
 	lua_newtable( m_pState );
 	if(lua_type( m_pState, -1) != LUA_TTABLE)
 	{
-		LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_TEXTURE_TABLE_NAME, (U32) m_pState, lua_gettop( m_pState) );
+		LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_TEXTURE_TABLE_NAME, (U32)(INTPTR) m_pState, lua_gettop( m_pState) );	// [Blur2PC][x64] log only
 		return;
 	}
 
@@ -68,7 +68,7 @@ void C_TextureManager::Update( )
 	if(lua_type( m_pState, -1 ) != LUA_TTABLE)
 	{
 		lua_pop( m_pState, 1 );
-		LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_TEXTURE_TABLE_NAME, (U32) m_pState, lua_gettop( m_pState) );
+		LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_TEXTURE_TABLE_NAME, (U32)(INTPTR) m_pState, lua_gettop( m_pState) );	// [Blur2PC][x64] log only
 		return;
 	}
 
@@ -148,7 +148,7 @@ const U32 C_TextureManager::CountTextures()
 
 const bool C_TextureManager::RemoveResourceBundle( const C_ResourceIndex index )
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 

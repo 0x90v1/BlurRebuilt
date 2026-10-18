@@ -10,12 +10,6 @@ namespace Scheduler
 
 #if PLATFORM_PPU_SPU
 #define REORDER_BARRIER() __asm__ volatile ( "":::"memory" )
-#elif PLATFORM_XENON
-    // With VC++ 2003 you need to declare _ReadWriteBarrier
-    extern "C" void _ReadWriteBarrier();
-	// Tell the compiler that this is an intrinsic, not a function.
-	#pragma intrinsic(_ReadWriteBarrier)
-	#define REORDER_BARRIER() _ReadWriteBarrier()
 #else
 	#define REORDER_BARRIER()
 #endif
@@ -32,7 +26,7 @@ void jqAtomicQueue::Init(jqAtomicQueue* SharedFreeList)
 	ThisPtr = this;
 
 	// Initialize the free list.
-	_FreeList.Val64 = 0;
+	_FreeList = NodePointerType();	// [Blur2PC][x64] zero pair
 	if (SharedFreeList)
 		FreeListPtr = SharedFreeList->FreeListPtr;
 	else
@@ -54,34 +48,38 @@ void jqAtomicQueue::Push(const Task& Data)
 
 	// Using two atomics to fill in the node structure, to avoid trashing the Count field in its Next pointer.
 	Spu::Store(&Node->Data, &Data, sizeof(Task));
+#if defined(_WIN64)
+	Node->Next.Ptr = NULL;	// [Blur2PC][x64] the node is still private; Count is untouched
+#else
 	Spu::Set((U32*)&Node->Next.Ptr, NULL);
+#endif
 
 	for (;;)
 	{
 		REORDER_BARRIER();
 
 		// Get the current pointer to the tail node.
-		NodePointerType CurTail(Spu::Get((U64*)&ThisPtr->Tail));
+		NodePointerType CurTail(jqPtrLoad(&ThisPtr->Tail));
 
 		// Get the tail node's next pointer.  If NULL, the tail node pointer correctly points to the end of the queue.
 		// Otherwise, we have to scan the tail forward in order to find the true end.
-		NodePointerType Next(Spu::Get((U64*)&CurTail.Ptr->Next));
+		NodePointerType Next(jqPtrLoad(&CurTail.Ptr->Next));
 
 		REORDER_BARRIER();
 		MT::MemoryFence();
-		if (CurTail.Val64 == Spu::Get((U64*)&ThisPtr->Tail))
+		if (jqPtrEqual(CurTail, jqPtrLoad(&ThisPtr->Tail)))
 		{
 			if (Next.Ptr == NULL)
 			{
 				// Next was NULL, meaning CurTailPtr was the actual tail and we can attempt to append after CurTailPtr.  
 				// If the compare and swap succeeds we have appended, otherwise we'll try again.
 				REORDER_BARRIER();
-				if (MT::AtomicCompareAndSwap(&CurTail.Ptr->Next.Val64, NodePointerType(Node, Next.Count+1).Val64, Next.Val64))
+				if (jqPtrCompareAndSwap(&CurTail.Ptr->Next, NodePointerType(Node, Next.Count+1), Next))
 				{
 					// Now that we have added a node successfully, make a single attempt to advance the tail node pointer
 					// to point at the new node.
 					REORDER_BARRIER();
-					MT::AtomicCompareAndSwap(&ThisPtr->Tail.Val64, NodePointerType(Node, CurTail.Count+1).Val64, CurTail.Val64);
+					jqPtrCompareAndSwap(&ThisPtr->Tail, NodePointerType(Node, CurTail.Count+1), CurTail);
 					return;
 				}
 			}
@@ -89,7 +87,7 @@ void jqAtomicQueue::Push(const Task& Data)
 			{
 				// Next was not NULL, meaning CurTail has fallen behind the true tail.  Attempt to advance it.
 				REORDER_BARRIER();
-				MT::AtomicCompareAndSwap(&ThisPtr->Tail.Val64, NodePointerType(Next.Ptr, CurTail.Count+1).Val64, CurTail.Val64);
+				jqPtrCompareAndSwap(&ThisPtr->Tail, NodePointerType(Next.Ptr, CurTail.Count+1), CurTail);
 			}
 		}
 	}
@@ -103,13 +101,13 @@ bool jqAtomicQueue::Pop(Task *p)
 		REORDER_BARRIER();
 
 		// Get the Head, Tail and Head->Next pointers.
-		NodePointerType CurHead(Spu::Get((U64*)&ThisPtr->Head));
-		NodePointerType CurTail(Spu::Get((U64*)&ThisPtr->Tail));
-		NodePointerType Next(Spu::Get((U64*)&CurHead.Ptr->Next));
+		NodePointerType CurHead(jqPtrLoad(&ThisPtr->Head));
+		NodePointerType CurTail(jqPtrLoad(&ThisPtr->Tail));
+		NodePointerType Next(jqPtrLoad(&CurHead.Ptr->Next));
 
 		REORDER_BARRIER();
 		MT::MemoryFence();
-		if (CurHead.Val64 == Spu::Get((U64*)&ThisPtr->Head))
+		if (jqPtrEqual(CurHead, jqPtrLoad(&ThisPtr->Head)))
 		{
 			// If Head is equal to Tail, the queue might be empty or else Tail might have fallen behind the real tail.
 			if (CurHead.Ptr == CurTail.Ptr)
@@ -121,7 +119,7 @@ bool jqAtomicQueue::Pop(Task *p)
 				// The Head node had a Next node, which means the Tail pointer must be falling behind.
 				// Attempt to advance it by one node.
 				REORDER_BARRIER();
-				MT::AtomicCompareAndSwap(&ThisPtr->Tail.Val64, NodePointerType(Next.Ptr, CurTail.Count+1).Val64, CurTail.Val64);
+				jqPtrCompareAndSwap(&ThisPtr->Tail, NodePointerType(Next.Ptr, CurTail.Count+1), CurTail);
 			}
 			else if (Next.Ptr != NULL)
 			{
@@ -132,7 +130,7 @@ bool jqAtomicQueue::Pop(Task *p)
 				// data copy happens before the CAS.
 				MT::MemoryFence();
 				REORDER_BARRIER();
-				if (MT::AtomicCompareAndSwap(&ThisPtr->Head.Val64, NodePointerType(Next.Ptr, CurHead.Count+1).Val64, CurHead.Val64))
+				if (jqPtrCompareAndSwap(&ThisPtr->Head, NodePointerType(Next.Ptr, CurHead.Count+1), CurHead))
 				{
 					REORDER_BARRIER();
 					MT::MemoryFence();
@@ -154,8 +152,7 @@ jqAtomicQueue::NodeType* jqAtomicQueue::AllocateNode()
 	for (;;)
 	{
 		REORDER_BARRIER();
-		NodePointerType OldFreeList;
-		OldFreeList.Val64 = Spu::Get((U64*)FreeListPtr);
+		NodePointerType OldFreeList(jqPtrLoad(FreeListPtr));
 
 		// If the free list pointer is NULL, attempt to allocate a new block of nodes and try again.
 		if (OldFreeList.Ptr == NULL)
@@ -166,12 +163,12 @@ jqAtomicQueue::NodeType* jqAtomicQueue::AllocateNode()
 		{
 			// Free list is not empty.  
 			// Attempt to advance the free list pointer by one and return the old free list head as the new block.
-			NodePointerType OldFreeListNext(Spu::Get((U64*)&OldFreeList.Ptr->Next));
+			NodePointerType OldFreeListNext(jqPtrLoad(&OldFreeList.Ptr->Next));
 			MT::MemoryFence();
 			REORDER_BARRIER();	// ensure the item's next pointer is older than the free list ptr
 								// this means that if the free list ptr hasn't changed then the next ptr won't have changed either
 
-			if (MT::AtomicCompareAndSwap(&FreeListPtr->Val64, NodePointerType(OldFreeListNext.Ptr, OldFreeList.Count+1).Val64, OldFreeList.Val64))
+			if (jqPtrCompareAndSwap(FreeListPtr, NodePointerType(OldFreeListNext.Ptr, OldFreeList.Count+1), OldFreeList))
 				return OldFreeList.Ptr;
 		}
 	}
@@ -189,12 +186,16 @@ void jqAtomicQueue::FreeNode(NodeType* Node)
 		REORDER_BARRIER();
 
 		// Link the node to the current free list head.
-		NodePointerType OldFreeList(Spu::Get((U64*)FreeListPtr));
+		NodePointerType OldFreeList(jqPtrLoad(FreeListPtr));
+#if defined(_WIN64)
+		Node->Next.Ptr = OldFreeList.Ptr;	// [Blur2PC][x64] one aligned 64-bit store; Count is untouched
+#else
 		Spu::Set((U32*)&Node->Next.Ptr, (U32)OldFreeList.Ptr);
+#endif
 		// Attempt to replace the free list head with this node.
 		MT::MemoryFence();
 		REORDER_BARRIER();
-		if (MT::AtomicCompareAndSwap(&FreeListPtr->Val64, NodePointerType(Node, OldFreeList.Count+1).Val64, OldFreeList.Val64))
+		if (jqPtrCompareAndSwap(FreeListPtr, NodePointerType(Node, OldFreeList.Count+1), OldFreeList))
 			return;
 	} 
 }
@@ -223,12 +224,12 @@ void jqAtomicQueue::AllocateNodeBlock(int Count)
 	// Attempt to install the new block at the head of the free list.  If somebody else got here first and
 	//  changed the free list, we have to release our block and start over again (although there will most
 	//  likely now be nodes available, at least).
-	NodePointerType OldFreeList(Spu::Get((U64*)FreeListPtr));
+	NodePointerType OldFreeList(jqPtrLoad(FreeListPtr));
 	OldFreeList.Ptr = NULL; // make sure the list is still empty, to avoid a memory leaks
 
 	MT::MemoryFence();
 	REORDER_BARRIER();
-	if (!MT::AtomicCompareAndSwap(&FreeListPtr->Val64, NodePointerType(NodeBlock, OldFreeList.Count+1).Val64, OldFreeList.Val64))
+	if (!jqPtrCompareAndSwap(FreeListPtr, NodePointerType(NodeBlock, OldFreeList.Count+1), OldFreeList))
 	{
 		REORDER_BARRIER();
 		BizAlignedFree(NodeBlock);

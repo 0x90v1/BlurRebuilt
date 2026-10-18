@@ -125,7 +125,7 @@ NOALIAS __forceinline T_Vector< t_ElementBits, t_Dimensions, t_Metric >::T_Vecto
 {
     if ( t_ElementBits == t_CopyElementBits )
     {
-        #if defined( PLATFORM_XENON ) || defined( PLATFORM_PC )
+        #if defined(PLATFORM_PC)
         ForEachVec4<0>( &TypeVector::CopyVec4, this, copy );
         #else
         for ( S32 i=0; i<TypeVector::m_Vectors; i++ )
@@ -183,7 +183,7 @@ NOALIAS __forceinline const T_Vector< t_ElementBits, t_Dimensions, t_Metric >&
 {
     if ( t_ElementBits == t_CopyElementBits )
     {
-        #if defined( PLATFORM_XENON ) || defined( PLATFORM_PC )
+        #if defined(PLATFORM_PC)
         ForEachVec4<0>( &TypeVector::CopyVec4, this, copy );
         #else
         for ( S32 i=0; i<TypeVector::m_Vectors; i++ )

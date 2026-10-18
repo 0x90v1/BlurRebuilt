@@ -23,9 +23,6 @@ Audio::Core::FileStreamFileWrapper::FileStreamFileWrapper()
 	m_bFlaggedForRelease = false;
 	m_u32StreamRefCount = 0;
 	m_strFilename[0] = 0;
-#ifdef PLATFORM_XENON
-	m_u32CurrentLayer = 0;
-#endif
 }
 
 

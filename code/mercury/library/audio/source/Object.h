@@ -1,9 +1,6 @@
 #ifndef _OBJECT_H_
 #define _OBJECT_H_
 
-#ifdef _XBOX360
-#include "xtl.h"
-#endif // _XBOX360
 
 namespace Audio
 {

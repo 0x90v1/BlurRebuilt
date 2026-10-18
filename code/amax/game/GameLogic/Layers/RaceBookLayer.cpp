@@ -261,11 +261,6 @@ HRESULT C_RaceBookLayer::Create()
 #ifdef PLATFORM_PC
 
 #endif
-#ifdef PLATFORM_XENON
-	// This is created automatically by the io system now
-	// if(XMountUtilityDrive(false, 32*1024, 64 * 1024) == ERROR_SUCCESS)
-	m_UtilityDirectoryCreated = true;
-#endif
 #if (defined(PLATFORM_PS3))
 
 #endif
@@ -455,9 +450,6 @@ HRESULT C_RaceBookLayer::Update()
 	if(g_debugGiveGamerPic)
 	{
 		g_debugGiveGamerPic=false;
-#ifdef PLATFORM_XENON
-		XUserAwardGamerPicture(0,g_debugGiveGamerPicIndex,0,0);
-#endif
 	}
 
 	if(g_debugGiveAvatarAward)

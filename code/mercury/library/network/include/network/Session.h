@@ -39,7 +39,7 @@ namespace NetPlay
 	class C_DemonwareSession;
 
 	// or together and pass into Create() in the sessionFlags parameter
-#if defined PLATFORM_XENON || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	const  U32 SESSION_CREATE_HOST                          =	XSESSION_CREATE_HOST;							// Set only on the host of a multi player session. The user who sets the host flag is the user that interacts with Live
 	const  U32 SESSION_CREATE_USES_PRESENCE                 =	XSESSION_CREATE_USES_PRESENCE;					// Session is used across games to keep players together. Advertises state via Presence
 	const  U32 SESSION_CREATE_USES_STATS                    =	XSESSION_CREATE_USES_STATS;						// Session is used for stats tracking
@@ -405,7 +405,7 @@ namespace NetPlay
 
 		bool				m_Migrating;
 		// platform specific data..
-#if defined(PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		HANDLE				m_SessionHandle;			// These gets initialized when we create the session.
 		XSESSION_INFO		m_SessionInfo;
 		XSESSION_INFO		m_MigrationInfo;

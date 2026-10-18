@@ -75,10 +75,6 @@ bool C_ShadowMap::OnCreateVolatile()
 	RESOURCE_MEMORY_ID("ShadowMap");
 
 	Display::C_SurfaceParams surfaceParams;
-	#ifdef PLATFORM_XENON
-	if(!g_debugUseDepthStencilTexture)
-		surfaceParams.AfterSurface(&m_RenderTexture.GetSurface());
-	#endif
 	
 	U32 depthStencilFlags = m_Flags | Display::E_Usage_DepthStencil;
 	if(!Display::Device()->CreateDepthStencilSurface(m_Width, m_Height, depthStencilFlags, m_DepthStencilFormat, Display::E_Multisample_None, &surfaceParams, &m_DepthStencilSurface))
@@ -132,56 +128,30 @@ void C_ShadowMap::Bind()
 {
 	assert(!m_Bound);
 
-	#ifdef PLATFORM_XENON
-	Display::Device()->SetDepthFlip(false);
-	#endif
 
-	#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_DEPTHBIAS, FtoDW(m_Setup.m_DepthBias));
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, FtoDW(m_Setup.m_SlopeScaledBias));
-	#endif
 	
 	#ifdef PLATFORM_PS3
 	cellGcmSetPolygonOffsetFillEnable(CELL_GCM_TRUE);
 	cellGcmSetPolygonOffset(m_Setup.m_PolygonOffsetFactor, m_Setup.m_PolygonOffsetUnits);
 	#endif
 
-	#ifdef PLATFORM_XENON
-	if(g_debugUseDepthStencilTexture)
-		Display::Device()->SetColourDepthStencilSurface(NULL, &m_DepthStencilSurface);
-	else
-		Display::Device()->SetColourDepthStencilSurface(&m_RenderTexture.GetSurface(), &m_DepthStencilSurface);
-	#else
 	#ifdef USE_HARDWARESHADOWMAP
 	Display::Device()->SetColourDepthStencilSurface(0, &m_DepthStencilSurface);	
 	#else
 	Display::Device()->SetColourDepthStencilSurface(&m_RenderTexture.GetSurface(), &m_DepthStencilSurface);
 	#endif	
-	#endif
 
-	#ifdef PLATFORM_XENON
-	if(g_debugUseDepthStencilTexture)
-		Display::Device()->SetColourWriteEnable(0);
-	#else	
 	#ifdef USE_HARDWARESHADOWMAP
 	Display::Device()->SetColourWriteEnable(0);
-	#endif
 	#endif
 
 	Display::Device()->SetView(&m_View);
 	Display::Device()->SetViewport(m_Viewport);
 
-	#ifdef PLATFORM_XENON
-	if(g_debugUseDepthStencilTexture)
-		Display::Device()->Clear(Display::E_Clear_Depth);
-	else
-		Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth, Maths::RGBA(255, 255, 0, 0));
-	#else
 	#ifdef USE_HARDWARESHADOWMAP
 	Display::Device()->Clear(Display::E_Clear_Depth);
 	#else
 	Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth, Maths::RGBA(255, 255, 0, 0));
-	#endif
 	#endif
 
 	Display::Device()->SetCullMode(Display::E_CullMode_Default);
@@ -199,10 +169,6 @@ void C_ShadowMap::Unbind()
 {
 	assert(m_Bound);
 
-	#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_DEPTHBIAS, 0);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, 0);
-	#endif
 
 	#ifdef PLATFORM_PS3
 	cellGcmSetPolygonOffsetFillEnable(CELL_GCM_FALSE);
@@ -212,18 +178,10 @@ void C_ShadowMap::Unbind()
 
 	Display::Device()->SetColourDepthStencilSurface();
 
-	#ifdef PLATFORM_XENON
-	if(g_debugUseDepthStencilTexture)
-		Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_Default);
-	#else
 	#ifdef USE_HARDWARESHADOWMAP
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_Default);
 	#endif
-	#endif
 
-	#ifdef PLATFORM_XENON
-	Display::Device()->SetDepthFlip(true);
-	#endif
 
 	if (m_Setup.m_MatrixType == E_ShadowMapMatrixType_Trapezoid)
 	{

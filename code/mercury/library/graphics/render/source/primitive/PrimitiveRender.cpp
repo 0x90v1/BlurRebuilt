@@ -9,15 +9,7 @@ EXTERN_SHADER(vsPrimitive3DLit);
 EXTERN_SHADER(psPrimitive);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Debug/PCD3D9/vsPrimitive2D.shader"
-#include "Render/Shaders/Debug/PCD3D9/vsPrimitive3D.shader"
-#include "Render/Shaders/Debug/PCD3D9/psPrimitive.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Debug/XB2/vsPrimitive2D.shader"
-#include "Render/Shaders/Debug/XB2/vsPrimitive3D.shader"
-#include "Render/Shaders/Debug/XB2/psPrimitive.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Debug/PS3/vsPrimitive2D.shader"
 #include "Render/Shaders/Debug/PS3/vsPrimitive3D.shader"
 #include "Render/Shaders/Debug/PS3/psPrimitive.shader"
@@ -99,9 +91,6 @@ void C_PrimitiveDrawCall::Destroy()
 	if (m_pIndexBufferMemoryZero)
 		m_pIndexBuffer->Unlock();
 
-	#ifdef PLATFORM_XENON
-	m_pIndexBuffer->GetGPUIndexBuffer()->BlockUntilNotBusy();
-	#endif
 
 	Display::Device()->DestroyIndexBuffer(m_pIndexBuffer);
 	
@@ -171,9 +160,6 @@ void C_PrimitiveVertexBuffer::Destroy()
 	if (m_pVertexBufferMemoryZero)
 		m_pVertexBuffer->Unlock();
 
-	#ifdef PLATFORM_XENON
-	m_pVertexBuffer->GetGPUVertexBuffer()->BlockUntilNotBusy();
-	#endif
 
 	Display::Device()->DestroyVertexBuffer(m_pVertexBuffer);
 	delete m_pVertexBuffer;

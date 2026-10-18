@@ -67,9 +67,6 @@ void AccumulateTotals(C_TextureTotals& ioTotals, const Util::C_String& name, con
 		{
 		case Display::E_Format_DXT3:
 		case Display::E_Format_DXT5:
-#if PLATFORM_XENON
-		case Display::E_Format_DXN:
-#endif
 #if !PLATFORM_PS3
 		case Display::E_Format_A8L8:
 #endif

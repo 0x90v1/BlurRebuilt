@@ -19,3 +19,9 @@ Claim a task before working on it. One task per agent. Keep rows short; details 
 | ID | Milestone | Task | Owner | Status | Files / scope | Blocked on |
 |---|---|---|---|---|---|---|
 | T238 | HDR | Native HDR output from unclipped scene lighting, display detection/calibration and SDR fallback on child branch `uKER/blur1pcdx11-hdr` | session Codex HDR commit | done (all six audited limits fixed, verified and delivered; commit authorized, Blur1PC current) | Found in / Belongs to DX11 HDR child; three color stages FP16, extended float RGBM, HDR SH/glass helpers and recovered FX transformations; _work/t238/range_fixes | Release/errsum0; hardware/WARP range probes pass; 60Hz/unlocked gameplay/startup and reset exit0; SDR fallback checked; physical visual review and WININT runtime reachability remain unverified |
+
+## x64 child branch
+
+| ID | Milestone | Task | Owner | Status | Files / scope | Blocked on |
+|---|---|---|---|---|---|---|
+| T244 | x64 | Convert the DX11/HDR build to 64-bit on child branch `uKER/blur1pcdx11-x64` (from `uKER/blur1pcdx11-hdr` 3223bbc7); per user also remove all D3D9 and Xbox 360 code | session Claude x64 | done (x64 build errsum0 and delivered; startup/menus and Observatory 60Hz/unlocked races exit0 with zero DX11 validation messages; D3D9/Xbox removed; committed on uKER/blur1pcdx11-x64) | Found in / Belongs to DX11 x64 child; docs/blur1pcdx11/x64.md; cmake, code/tools/demonware_cmake, engine/game sources and jamfiles; _work/t244 | proposed build.sh architecture option (T245 committed 0cb00815 and merged through HDR) |

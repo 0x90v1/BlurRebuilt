@@ -55,17 +55,6 @@ public:
 										{
 											return m_Height; 
 										}
-#if PLATFORM_XENON
-	Display::C_Texture2D&				GetTexture() 
-										{ 
-											return m_ColourTexture; 
-										}
-
-	const Display::C_Texture2D&			GetTexture() const 
-										{ 
-											return m_ColourTexture; 
-										}
-#else
 	Display::C_Texture2D&				GetTexture() 
 										{ 
 											return m_ColourRenderTexture.GetTexture(); 
@@ -75,7 +64,6 @@ public:
 										{ 
 											return m_ColourRenderTexture.GetTexture(); 
 										}
-#endif
 
 	Display::C_Texture2D&				GetDepthTexture() 
 										{ 
@@ -99,12 +87,7 @@ private:
 	Display::C_Surface					m_DepthStencilSurface;
 	Display::C_Texture2D				m_DepthStencilTexture;
 
-#ifdef PLATFORM_XENON
-	Display::C_Surface					m_ColourSurface;
-	Display::C_Texture2D				m_ColourTexture;
-#else
 	Display::C_RenderTexture2D			m_ColourRenderTexture;
-#endif
 };
 
 };

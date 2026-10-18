@@ -66,8 +66,8 @@ C_RingBufferBlock* C_RingBuffer::Allocate(const U32 size, const U32 alignment)
 		WaitForFreeSpace(pAllocPos, allocSize);
 	}
 
-	const U32 alignmentMask = alignment - 1;
-	pAllocPos = (U8*)((U32)(pAllocPos + alignmentMask) & ~alignmentMask);
+	const INTPTR alignmentMask = alignment - 1;	// [Blur2PC][x64] align the full address
+	pAllocPos = (U8*)((INTPTR)(pAllocPos + alignmentMask) & ~alignmentMask);
 
 	m_pPosition	= pAllocTop;
 

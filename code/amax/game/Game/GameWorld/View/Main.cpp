@@ -311,13 +311,6 @@ void C_MainView::UpdateView(const C_View& gameView)
 	Display::C_TileSetup* pTileSetup = NULL;
 
 	// if we are using tiling then tell the main view to calculate predication masks for us
-#ifdef PLATFORM_XENON
-	const S32 viewIndex = pFrameworkView->m_View.m_UserIndex;
-	Display::C_Window* pWindow = Display::Device()->GetWindow(viewIndex);
-
-	if(pWindow->m_TileSetup.m_TileCount > 1)
-		pTileSetup = &pWindow->m_TileSetup;
-#endif
 	
 	m_pMain->SetViewData(pFrameworkView->m_View.GetViewSettings3D());
 	m_pMain->SetViewFrustum(pFrameworkView->m_View.GetViewFrustum(), pTileSetup);
@@ -945,16 +938,6 @@ void C_MainView::RenderWithAA(C_View& view)
 	Display::Device()->InvalidateState();
 	Display::Device()->DefaultStates();
 
-#ifdef PLATFORM_XENON
-	// this hack fixes the high-precision blending being on
-	DbUtil::DefaultDebugRenderSys()->Immediate()->Draw2dLine(Maths::HVec2(-1.f,-1.f), Maths::HVec2(-1.f,-1.f), Maths::RGBA(1,1,1,1));
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HIGHPRECISIONBLENDENABLE, FALSE);
-	DbUtil::DefaultDebugRenderSys()->Immediate()->Draw2dLine(Maths::HVec2(-1.f,-1.f), Maths::HVec2(-1.f,-1.f), Maths::RGBA(1,1,1,1));
-
-	// this is a hack to flush the setting of the rendertarget
-	// without this line, the rendertarget is sometimes not set before flushing the first commandbuffer
-	DbUtil::DefaultDebugRenderSys()->Immediate()->Draw2dLine(Maths::HVec2(-1.f,-1.f), Maths::HVec2(-1.f,-1.f), Maths::RGBA(1,1,1,1));
-#endif
 
 	S32 totalLights = m_pMain->GetVisiblePointLightList().Size() + m_pMain->GetVisibleSpotLightList().Size() + m_pMain->GetVisibleDropShadowsList().Size();
 	bool prepassEnable = g_PrepassEnable && totalLights != 0;
@@ -1160,7 +1143,6 @@ void C_MainView::RenderPrepass1(C_View& gameView)
 	// Since the depth texture (m_pDepthTexture) is set as RenderTarget #1, we cannot safely use it as an input texture, so
 	// we must reset the appropriate target...
 	
-	 #if defined(BLUR_USE_DX11) // [Blur1PCDX11] Keep MRT slot 0 and unbind slot 1 natively.
 	 ID3D11DeviceContext* context = nullptr;
 	 Display::Device()->GetD3DDevice()->GetImmediateContext(&context);
 	 if (context)
@@ -1173,9 +1155,6 @@ void C_MainView::RenderPrepass1(C_View& gameView)
 		 if (depth) depth->Release();
 		 context->Release();
 	 }
-	 #else
-	 Display::Device()->GetD3DDevice()->SetRenderTarget(1,NULL);
-	 #endif
 
 	 // We also need to unbind any other textures used as render targets...
 	 //  - DX release will not report a problem but results are undefined.

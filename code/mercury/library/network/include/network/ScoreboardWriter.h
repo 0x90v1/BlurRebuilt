@@ -88,7 +88,7 @@ namespace Scoreboard
 		U32		m_NumColumnsToWrite;			// how many columns have been setup ready for writing
 		void*	m_pScoreboardData;
 
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		void*	m_pColumnData;
 		void*	m_pAsyncTask;
 #else

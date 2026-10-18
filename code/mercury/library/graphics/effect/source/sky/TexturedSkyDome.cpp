@@ -201,7 +201,7 @@ void C_TexturedSkyDome::ReloadTexture()
 {
 	RESOURCE_MEMORY_ID("TexturedSkyDome");
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 

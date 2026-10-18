@@ -1,7 +1,7 @@
 #include "Common/XtPch.h"
 #include "XtGameImpl.h"
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PC) || defined(PLATFORM_PS3)
 
 #if defined(PLATFORM_PS3)
 #include <cell/atomic.h>
@@ -172,7 +172,7 @@ void XtDumpMemoryStats(void*)
 		{
 			XtRecordHeader* header = XtGetRecordHeader(record);
 
-			XtU32 overheadBytes	= (XtU32)header - (XtU32)header->top;
+			XtU32 overheadBytes	= (XtU32)((XtU8*)header - header->top);	// [Blur2PC][x64] byte distance
 			XtU32 recordBytes	= XtGetRecordSize(record);
 
 			item->bytes		+= header->size;

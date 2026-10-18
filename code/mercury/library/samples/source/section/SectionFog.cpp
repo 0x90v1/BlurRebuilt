@@ -74,11 +74,6 @@ bool C_SectionFog::OnCreate()
 	if (!m_Fog.Create())
 		return false;
 
-#ifdef PLATFORM_XENON
-	const Display::C_View& view = *Display::Device()->GetView(0);
-	if (!Display::Device()->CreateTexture2D(view.GetViewport().GetW(), view.GetViewport().GetH(), 1, 0, Display::E_Format_D24FS8, &m_DepthTexture))
-		return false;
-#endif
 
 	m_Mesh.AddInstance();
 
@@ -87,9 +82,6 @@ bool C_SectionFog::OnCreate()
 
 void C_SectionFog::OnDestroy()
 {
-#ifdef PLATFORM_XENON
-	Display::Device()->Destroy(&m_DepthTexture);
-#endif
 
 	m_Fog.Destroy();
 	m_Mesh.Destroy();
@@ -132,15 +124,6 @@ void C_SectionFog::OnRenderGameViewWithAA(const C_Input& input, const C_Timer& t
 
 void C_SectionFog::OnRenderGameViewWithoutAA(const C_Input& input, const C_Timer& timer)
 {
-#ifdef PLATFORM_XENON
-	Render::g_pDepthStencilBuffer = &m_DepthTexture;
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = Display::Device()->GetView()->GetViewport().GetW();
-	rect.y2 = Display::Device()->GetView()->GetViewport().GetH();
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_DEPTHSTENCIL, &rect, m_DepthTexture.m_pd3dTexture, NULL, 0, 0, NULL, 1.f, 0, NULL);
-#endif
 
 	m_Fog.Render();
 

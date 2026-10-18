@@ -244,14 +244,6 @@ void C_ModelInstance::DebugRender(const C_VisibleNode& node) const
 		{
 			DbUtil::DefaultDebugRenderSys()->Deferred()->Draw3dText(sphere.Centre(), m_pszFriendlyName);
 		}
-	#ifdef PLATFORM_XENON
-		if(g_BoundsPredication)
-		{
-			Util::C_String predication;
-			predication.Printf("%u", node.GetPredication());
-			DbUtil::DefaultDebugRenderSys()->Deferred()->Draw3dText(sphere.Centre(), predication);
-		}
-	#endif
 	}
 }
 
@@ -376,10 +368,6 @@ void C_ModelInstanceBasicCullNode::Gather(const C_View& view) const
 
 					U32 predication = 0;
 
-				#ifdef PLATFORM_XENON
-					if(view.GetViewData().pTileSetup && g_UsePredication)
-						predication = view.GetViewFrustum().CalculateSpherePredication4(centreW, radius);
-				#endif
 
 					m_pModelInstance->Gather(view, predication, volatileNodeInfo.data);
 					m_pModelInstance->SetVisible(view.GetTypeFlag());

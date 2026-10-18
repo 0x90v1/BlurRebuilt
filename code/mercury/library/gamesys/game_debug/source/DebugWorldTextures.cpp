@@ -108,38 +108,6 @@ bool C_DebugWorldTextures::OnCreateVolatile()
 
 void C_DebugWorldTextures::SetSampleGamma()
 {
-	#ifdef PLATFORM_XENON
-	for (S32 i = 0; i < c_DebugTextureBufferSize; ++i)
-	{
-		if(m_AlbedoGamma)
-		{
-			m_AlbedoSample[i].Get()->Format.SignX = 3;
-			m_AlbedoSample[i].Get()->Format.SignY = 3;
-			m_AlbedoSample[i].Get()->Format.SignZ = 3;		
-		}
-
-		if(m_NormalGamma)
-		{
-			m_NormalSample[i].Get()->Format.SignX = 3;
-			m_NormalSample[i].Get()->Format.SignY = 3;
-			m_NormalSample[i].Get()->Format.SignZ = 3;		
-		}
-
-		if(m_SpecularGamma)
-		{
-			m_SpecularSample[i].Get()->Format.SignX = 3;
-			m_SpecularSample[i].Get()->Format.SignY = 3;
-			m_SpecularSample[i].Get()->Format.SignZ = 3;
-		}
-
-		if(m_EmissiveGamma)
-		{
-			m_EmissiveSample[i].Get()->Format.SignX = 3;
-			m_EmissiveSample[i].Get()->Format.SignY = 3;
-			m_EmissiveSample[i].Get()->Format.SignZ = 3;
-		}
-	}
-	#endif
 }
 
 void C_DebugWorldTextures::OnDestroy()
@@ -312,7 +280,7 @@ bool C_DebugWorldTextures::UpdateSample(const U32 colour, Display::C_Texture2D* 
 
 bool C_DebugWorldTextures::UpdateTexture(const Util::C_String& fileName, Display::C_Texture2D* pTexture, const bool srgb)
 {
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	Display::Device()->BlockUntilIdle();
 	#endif
 
@@ -323,14 +291,6 @@ bool C_DebugWorldTextures::UpdateTexture(const Util::C_String& fileName, Display
 	if (!Display::CreateTexture2DFromFile(fileName, pTexture))
 		return false;
 
-#ifdef PLATFORM_XENON
-	if(srgb)
-	{
-		pTexture->Get()->Format.SignX = 3;
-		pTexture->Get()->Format.SignY = 3;
-		pTexture->Get()->Format.SignZ = 3;		
-	}
-#endif
 
 	return true;
 }

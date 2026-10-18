@@ -134,9 +134,7 @@ bool C_ResourceBundleReaderImpl1::Read(
 	newHeader.stringTableOffset = header.stringTableOffset;
 	newHeader.flags = 0;
 
-	#if defined(PLATFORM_XENON)
-	assert(header.platformCode == kBRP_Xbox360);
-	#elif defined(PLATFORM_PC)
+	#if defined(PLATFORM_PC)
 	assert(header.platformCode == kBRP_PC);
 	#elif defined(PLATFORM_PS3)
 	assert(header.platformCode == kBRP_PS3_OpenGL || header.platformCode == kBRP_PS3_LibGCM);
@@ -212,7 +210,7 @@ bool C_ResourceBundleReaderImpl1::Read(
 			if (!pResHeader->m_offsetNext)
 				break;
 
-			pResHeader = (BIZ_RESOURCE_HEADER*)(U32(pResHeader) + pResHeader->m_offsetNext);
+			pResHeader = (BIZ_RESOURCE_HEADER*)((U8*)pResHeader + pResHeader->m_offsetNext);	// [Blur2PC][x64]
 		}
 		//Set our count so that our bundle can allocate any memory it needs to.
 		bundle.OnCreateHeader(
@@ -301,7 +299,7 @@ bool C_ResourceBundleReaderImpl1::Read(
 		}
 		if (!pResHeader->m_offsetNext)
 			break;
-		pResHeader = (BIZ_RESOURCE_HEADER*)(U32(pResHeader) + pResHeader->m_offsetNext);
+		pResHeader = (BIZ_RESOURCE_HEADER*)((U8*)pResHeader + pResHeader->m_offsetNext);	// [Blur2PC][x64]
 	}
 
 	return true;

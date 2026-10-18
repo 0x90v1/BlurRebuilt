@@ -71,9 +71,7 @@ void C_MirrorView::Create()
 	m_pView->GetGroup(0)->SetName("MirrorView");
 	m_pView->GetGroup(1)->SetName("MirrorViewAlpha");
 
-#if defined(PLATFORM_XENON)
-	Display::E_Multisample multisample = Display::E_Multisample_4;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::E_Multisample multisample = Display::E_Multisample_2;
 #else
 	Display::E_Multisample multisample = Display::E_Multisample_None;

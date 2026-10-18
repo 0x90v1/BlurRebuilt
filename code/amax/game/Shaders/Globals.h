@@ -73,23 +73,6 @@ shared real4	g_vDebugColour		: register(CCP_SHADER_DEBUG_COLOUR);
 #endif
 
 #ifndef CFG_SPEED
-#ifdef PLATFORM_XENON
-#if !defined(CFG_CONVERTER)
-
-struct C_DebugToggles
-{
-	bool			m_bShowLumels;
-	bool			m_bShowTangentNormal;
-	bool			m_bShowSpecular;
-	bool			m_bNoLighting;
-	bool			m_bShowWorldTangent;
-	bool			m_bShowLightmapRange;
-};
-
-C_DebugToggles g_DebugToggles : register(b96);
-
-#endif
-#endif
 #endif
 
 // shared defines

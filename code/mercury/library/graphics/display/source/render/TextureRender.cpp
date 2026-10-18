@@ -4,13 +4,7 @@
 #include "Display/Render/FontRender.h"
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Display/Shaders/Render/PCD3D9/psTextureRenderRGB.shader"
-#include "Display/Shaders/Render/PCD3D9/psTextureRenderA.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Display/Shaders/Render/XB2/psTextureRenderRGB.shader"
-#include "Display/Shaders/Render/XB2/psTextureRenderA.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Display/Shaders/Render/PS3/psTextureRenderRGB.shader"
 #include "Display/Shaders/Render/PS3/psTextureRenderA.shader"
 #endif
@@ -77,11 +71,7 @@ Util::C_String C_TextureRender::GetDetails(const S32 centerTexture, const S32 to
 	const Display2::E_TextureFormat eTextureFormat = pTexture->GetFormat();
 	Util::C_String format = Display2::GetTextureFormatAsString(eTextureFormat);
 
-	#ifdef PLATFORM_XENON
-	U32 address = (U32)pTexture->GetAddress();
-	#else
 	U32 address = 0;
-	#endif
 
 	Util::C_String details;
 
@@ -99,10 +89,6 @@ Util::C_String C_TextureRender::GetDetails(const S32 centerTexture, const S32 to
 	details += " / ";
 	details += format;
 	details += " / ";
-#if PLATFORM_XENON
-	details += pTexture->GetFlags() & Display2::E_Flags_Linear ? "Linear" : "Tiled";
-	details += " / ";
-#endif
 	details += "'";
 	details += pResourceInfo ? pResourceInfo->m_Name.Chars() : "Unknown";
 	details += "'";
@@ -129,9 +115,6 @@ Util::C_String C_TextureRender::GetFormatName(const Display2::E_TextureFormat fo
 	case Display2::E_TextureFormat_DXT1:			return "DXT1";
 	case Display2::E_TextureFormat_DXT3:			return "DXT3";
 	case Display2::E_TextureFormat_DXT5:			return "DXT5";
-#if PLATFORM_XENON
-	case Display2::E_TextureFormat_DXN:				return "DXN";
-#endif
 	default:										return "Unknown";
 	}
 }
@@ -142,7 +125,7 @@ bool C_TextureRender::OnCreate()
 
 	RESOURCE_MEMORY_ID("BasicRender");
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
+#if defined(DEVICE_PCD3D11) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
 	if(!CreatePixelShaderFromFunc("Shaders/psTextureRenderRGB", 0, &m_PixelShader[E_TextureRenderPixelShader_RGB], REF_SHADER(psTextureRenderRGB)))
 		return false;
 	if(!CreatePixelShaderFromFunc("Shaders/psTextureRenderA", 0, &m_PixelShader[E_TextureRenderPixelShader_A], REF_SHADER(psTextureRenderA)))
@@ -443,21 +426,12 @@ void C_TextureRender::Draw()
 				case E_Format_DXT5:
 					strcpy_s(format, sizeof(format), "DXT5");
 					break;
-#if PLATFORM_XENON
-				case E_Format_DXN:
-					strcpy_s(format, sizeof(format), "DXN");
-					break;
-#endif
 				default:
 					strcpy_s(format, sizeof(format), "Unknown");
 					break;
 				}
 
-				#ifdef PLATFORM_XENON
-				U32 address = (U32)iCenterTexture->GetAddress();
-				#else
 				U32 address = 0;
-				#endif
 
 				char temp[256];
 				
@@ -551,11 +525,6 @@ void C_TextureRender::Draw()
 				case E_Format_DXT5:
 					strcpy_s(format, sizeof(format), "DXT5");
 					break;
-#if PLATFORM_XENON
-				case E_Format_DXN:
-					strcpy_s(format, sizeof(format), "DXN");
-					break;
-#endif
 				default:
 					strcpy_s(format, sizeof(format), "Unknown");
 					break;

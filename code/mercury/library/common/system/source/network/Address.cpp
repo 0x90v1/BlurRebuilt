@@ -69,23 +69,7 @@ int GetPS3NetworkAdapterID()
 /// set the outward facing network ip address of the local host
 LocalHost::LocalHost()
 {
-#if defined( PLATFORM_XENON )
-	// use special xenon function to get the host ip address
-	XNADDR addr;
-	int iResult;
-	do
-	{
-		iResult = XNetGetDebugXnAddr(&addr);
-	}
-	while (iResult & XNET_GET_XNADDR_PENDING);
-
-	m_IPAddr.Destroy();
-
-	struct in_addr tmpaddr;
-	memcpy(&tmpaddr, &addr.ina, sizeof(struct in_addr));
-	m_IPAddr.PushBack( tmpaddr );
-
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 	// get the network address of the first network adapter
 	int id = GetPS3NetworkAdapterID();
 	if (id != -1)
@@ -145,23 +129,6 @@ void Address::SetAddress(const char *host)
 	if (SetIPAddress(host))
 		return;
 
-#if defined( PLATFORM_XENON )
-	// use Xenon-specific DNS lookup
-	if (host)
-	{
-		XNDNS *pDNS;
-		WSAEVENT event = WSACreateEvent();	/// FIX THIS - IT DOESNT WORK
-		XNetDnsLookup(host, &event, &pDNS);
-		WaitForSingleObject(event, INFINITE);
-		// success - copy the resulting host IP addresses
-		for (U32 i=0; i<pDNS->cina; i++)
-		{
-			struct in_addr addr;
-			memcpy(&addr, &pDNS->aina[i].S_un, sizeof(addr));
-			m_IPAddr.PushBack( addr );
-		}
-	}
-#else
 	// try to set as hostname
 	struct hostent *hp;
 	hp = gethostbyname(host);
@@ -172,7 +139,6 @@ void Address::SetAddress(const char *host)
 			m_IPAddr.PushBack( **bptr );
 		return;
 	}
-#endif
 
 	// fail - initialize to 0.0.0.0
 	m_IPAddr.PushBack();
@@ -186,14 +152,7 @@ Util::C_String GetHostName()
 #ifndef CFG_GOLD
 	char buffer[4096] = "";
 
-#if defined( PLATFORM_XENON )
-	// get xbox name using specific xenon function
-	DWORD namelen = 4096;
-	if (DmGetXboxName(buffer, &namelen) == XBDM_NOERR)
-		return Util::C_String(buffer);
-	else
-		return Util::C_String("??? Xenon");
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 	// get the name of the first network adapter
 	int id = GetPS3NetworkAdapterID();
 //#warning ==========>error: 'SYS_NET_CC_GET_DEVICE_NAME' was not declared in this scope

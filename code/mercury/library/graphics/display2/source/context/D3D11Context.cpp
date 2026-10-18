@@ -565,10 +565,6 @@ U32 GetSurfaceSizeFromHeightAndPitch(U32 height, const U32 pitch, const U32 flag
 
 U32 GetSurfaceSize(const U32 width, const U32 height, const U32 flags, const E_SurfaceFormat format, const E_Multisample multisample)
 {
-#if PLATFORM_XENON
-	if(!(flags & E_Flags_Raw))
-		return XGSurfaceSize(width, height, (D3DFORMAT)format, (D3DMULTISAMPLE_TYPE)multisample);
-#endif
 
 	const U32 pitch = GetSurfacePitchFromWidth(width, flags, format, multisample);
 	return GetSurfaceSizeFromHeightAndPitch(height, pitch, flags, format, multisample);
@@ -656,10 +652,6 @@ U32 GetTextureSlicePitch(U32 width, U32 height, U32 levels, const U32 flags, con
 
 U32 GetTexture2DSize(const U32 width, const U32 height, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	if(!(flags & E_Flags_Raw))
-		return XGSetTextureHeader(width, height, 1, 0, (D3DFORMAT)format, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-#endif
 
 	const U32 pitch = GetTexturePitchFromWidth(width, flags, format);
 	return GetTextureSizeFromHeightAndPitch(height, pitch, flags, format);
@@ -667,10 +659,6 @@ U32 GetTexture2DSize(const U32 width, const U32 height, const U32 flags, const E
 
 U32 GetTexture2DSize(U32 width, U32 height, const U32 levels, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	if(!(flags & E_Flags_Raw))
-		return XGSetTextureHeader(width, height, levels, 0, (D3DFORMAT)format, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-#endif
 
 	U32 size = 0;
 	for(U32 level=0; level<levels; level++)
@@ -692,20 +680,12 @@ void GetTexture2DSizeAndPitch(const U32 width, const U32 height, const U32 level
 
 U32 GetTexture3DSize(const U32 width, const U32 height, const U32 depth, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	if(!(flags & E_Flags_Raw))
-		return XGSetVolumeTextureHeader(width, height, depth, 1, 0, (D3DFORMAT)format, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-#endif
 
 	return GetTexture2DSize(width, height, flags, format) * depth;
 }
 
 U32 GetTexture3DSize(U32 width, U32 height, const U32 depth, const U32 levels, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	if(!(flags & E_Flags_Raw))
-		return XGSetVolumeTextureHeader(width, height, depth, 1, 0, (D3DFORMAT)format, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-#endif
 
 	U32 size = 0;
 	for(U32 level = 0; level < levels; level++)
@@ -727,10 +707,6 @@ void GetTexture3DSizeAndPitch(const U32 width, const U32 height, const U32 depth
 
 U32 GetTextureCubeSize(const U32 width, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	if(!(flags & E_Flags_Raw))
-		return XGSetCubeTextureHeader(width, 1, 0, (D3DFORMAT)format, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-#endif
 
 	U32 size = 0;
 	for(U32 i=0; i<6; i++)
@@ -742,10 +718,6 @@ U32 GetTextureCubeSize(const U32 width, const U32 flags, const E_TextureFormat f
 
 U32 GetTextureCubeSize(U32 width, const U32 levels, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	if(!(flags & E_Flags_Raw))
-		return XGSetCubeTextureHeader(width, levels, 0, (D3DFORMAT)format, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-#endif
 
 	U32 size = 0;
 	for(U32 i=0; i<6; i++)
@@ -763,9 +735,6 @@ void GetTextureCubeSizeAndPitch(const U32 width, const U32 levels, const U32 fla
 
 U32 GetTexture2DLevelOffset(const U32 level, U32 width, U32 height, const U32 levels, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	BIZ_ASSERT_FAIL("TODO: Implement me!");
-#endif
 
 	U32 offset = 0;
 
@@ -789,9 +758,6 @@ U32 GetTexture2DLevelOffset(const U32 level, U32 width, U32 height, const U32 le
 
 U32 GetTexture3DLevelOffset(const U32 level, U32 width, U32 height, U32 depth, const U32 levels, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	BIZ_ASSERT_FAIL("TODO: Implement me!");
-#endif
 
 	U32 offset = 0;
 
@@ -817,9 +783,6 @@ U32 GetTexture3DLevelOffset(const U32 level, U32 width, U32 height, U32 depth, c
 
 U32 GetTextureCubeLevelOffset(const E_CubeMapFace face, const U32 level, U32 width, const U32 levels, const U32 flags, const E_TextureFormat format)
 {
-#if PLATFORM_XENON
-	BIZ_ASSERT_FAIL("TODO: Implement me!");
-#endif
 
 	U32 offset = 0;
 
@@ -846,124 +809,12 @@ U32 GetTextureCubeLevelOffset(const E_CubeMapFace face, const U32 level, U32 wid
 	return offset;
 }
 
-#if PLATFORM_XENON
-
-U32 SetTexture2DHeader(const U32 width, const U32 height, const U32 levels, const U32 flags, const E_TextureFormat format, const U32 pitch, GPUTexture2D* pTexture)
-{
-	BIZ_ASSERT(pTexture);
-	
-	DWORD d3dUsage = 0;
-	if(!(flags & E_Flags_Dynamic))
-		d3dUsage = D3DUSAGE_CPU_CACHED_MEMORY;
-
-	#if !CFG_SPEED
-	d3dUsage |= D3DUSAGE_RUNCOMMANDBUFFER_TIMESTAMP;
-	#endif
-	
-	D3DFORMAT d3dFormat = (D3DFORMAT)format;
-	if(flags & E_Flags_Linear)
-		d3dFormat = (D3DFORMAT)MAKELINFMT(d3dFormat);
-	
-	U32 size = XGSetTextureHeader(width, height, levels, d3dUsage, d3dFormat, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, pTexture, NULL, NULL);
-
-	U32 intRefCount = GPUCOMMON_DEBUG_INTREFCOUNT(pTexture->Common);
-	BIZ_ASSERT_MSG_SPEED(intRefCount == 0, "intRefCount %i", intRefCount);
-
-	return size;
-}
-
-U32 SetTexture3DHeader(const U32 width, const U32 height, const U32 depth,const U32 levels, const U32 flags, const E_TextureFormat format, const U32 pitch, GPUTexture3D* pTexture)
-{
-	BIZ_ASSERT(pTexture);
-
-	DWORD d3dUsage = 0;
-	if(!(flags & E_Flags_Dynamic))
-		d3dUsage = D3DUSAGE_CPU_CACHED_MEMORY;
-
-	#if !CFG_SPEED
-	d3dUsage |= D3DUSAGE_RUNCOMMANDBUFFER_TIMESTAMP;
-	#endif
-
-	D3DFORMAT d3dFormat = (D3DFORMAT)format;
-	if(flags & E_Flags_Linear)
-		d3dFormat = (D3DFORMAT)MAKELINFMT(d3dFormat);
-	
-	return XGSetVolumeTextureHeader(width, height, depth, levels, d3dUsage, d3dFormat, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, pTexture, NULL, NULL);
-}
-
-U32 SetTextureCubeHeader(const U32 width, const U32 levels, const U32 flags, const E_TextureFormat format, const U32 pitch, GPUTextureCube* pTexture)
-{
-	BIZ_ASSERT(pTexture);
-
-	DWORD d3dUsage = 0;
-	if(!(flags & E_Flags_Dynamic))
-		d3dUsage = D3DUSAGE_CPU_CACHED_MEMORY;
-
-	#if !CFG_SPEED
-	d3dUsage |= D3DUSAGE_RUNCOMMANDBUFFER_TIMESTAMP;
-	#endif
-
-	D3DFORMAT d3dFormat = (D3DFORMAT)format;
-	if(flags & E_Flags_Linear)
-		d3dFormat = (D3DFORMAT)MAKELINFMT(d3dFormat);
-
-	return XGSetCubeTextureHeader(width, levels, d3dUsage, d3dFormat, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, pTexture, NULL, NULL);
-}
-
-#endif
 
 bool DebugCheckGPUTexture(const GPUTexture* pgpuTexture)
 {
 	if(!pgpuTexture)
 		return true;
 
-#if DEVICE_XB2
-	D3DBaseTexture* pBaseTexture = (D3DBaseTexture*)pgpuTexture;
-	if(pBaseTexture)
-	{
-		BIZ_ASSERT((pBaseTexture->Format.BaseAddress << GPU_TEXTURE_ADDRESS_SHIFT) != 0);
-		BIZ_ASSERT(pBaseTexture->GetLevelCount() > 0);
-		
-		if(pBaseTexture->GetType() == D3DRTYPE_TEXTURE)
-		{
-			D3DTexture* pTexture = (D3DTexture*)pBaseTexture;
-
-			D3DSURFACE_DESC surfaceDesc;
-			pTexture->GetLevelDesc(0, &surfaceDesc);
-			
-			BIZ_ASSERT(surfaceDesc.Type == D3DRTYPE_TEXTURE);
-			BIZ_ASSERT(surfaceDesc.Width > 0);
-			BIZ_ASSERT(surfaceDesc.Height > 0);
-		}
-		else
-		if(pBaseTexture->GetType() == D3DRTYPE_VOLUMETEXTURE)
-		{
-			D3DVolumeTexture* pVolumeTexture = (D3DVolumeTexture*)pBaseTexture;
-			
-			D3DVOLUME_DESC volumeDesc;
-			pVolumeTexture->GetLevelDesc(0, &volumeDesc);
-
-			BIZ_ASSERT(volumeDesc.Type == D3DRTYPE_VOLUMETEXTURE);
-			BIZ_ASSERT(volumeDesc.Width > 0);
-			BIZ_ASSERT(volumeDesc.Height > 0);
-			BIZ_ASSERT(volumeDesc.Depth > 0);
-		}
-		else
-		if(pBaseTexture->GetType() == D3DRTYPE_CUBETEXTURE)
-		{
-			D3DCubeTexture* pCubeTexture = (D3DCubeTexture*)pBaseTexture;
-			
-			D3DSURFACE_DESC surfaceDesc;
-			pCubeTexture->GetLevelDesc(0, &surfaceDesc);
-			BIZ_ASSERT(surfaceDesc.Type == D3DRTYPE_CUBETEXTURE);
-			BIZ_ASSERT(surfaceDesc.Width > 0);
-		}
-		else
-		{
-			BIZ_ASSERT_FAIL("Unsupported d3d resource type %i", pBaseTexture->GetType());
-		}
-	}
-#endif
 	
 	return true;
 }
@@ -1182,14 +1033,6 @@ const Util::C_String GetSurfaceFormatAsString(const E_SurfaceFormat format)
 	case E_SurfaceFormat_G8R8_G8B8: 			return "G8R8_G8B8";
 	case E_SurfaceFormat_R8G8_B8G8: 			return "R8G8_B8G8";
 	case E_SurfaceFormat_YUY2:					return "YUY2";
-	#if DEVICE_XB2
-	case E_SurfaceFormat_R6G5B5:				return "R6G5B5";
-	case E_SurfaceFormat_Q4W4V4U4:				return "Q4W4V4U4";
-	case E_SurfaceFormat_G8R8:					return "G8R8";
-	case E_SurfaceFormat_R16F_EXPAND: 			return "R16F_EXPAND";
-	case E_SurfaceFormat_LE_LIN_UYVY: 			return "LE_UYVY";
-	case E_SurfaceFormat_LE_LIN_YUY2: 			return "LE_YUY2";
-	#endif
 
 	// 32bpp:
 	case E_SurfaceFormat_A8R8G8B8: 				return "A8R8G8B8";
@@ -1209,50 +1052,19 @@ const Util::C_String GetSurfaceFormatAsString(const E_SurfaceFormat format)
 	case E_SurfaceFormat_D24X8:					return "D24X8";
 	case E_SurfaceFormat_D24FS8:				return "D24FS8";
 	case E_SurfaceFormat_D32:					return "D32";
-	#if DEVICE_XB2
-	case E_SurfaceFormat_X2R10G10B10:			return "X2R10G10B10";
-	case E_SurfaceFormat_A16L16:				return "A16L16";
-	case E_SurfaceFormat_R10G11B11: 			return "R10G11B11";
-	case E_SurfaceFormat_R11G11B10: 			return "R11G11B10";
-	case E_SurfaceFormat_W10V11U11: 			return "W10V11U11";
-	case E_SurfaceFormat_W11V11U10: 			return "W11V11U10";
-	case E_SurfaceFormat_G16R16F_EXPAND:		return "G16R16F_EXPAND";
-	case E_SurfaceFormat_L32:					return "L32";
-	#endif
 
 	// 64bpp:
 	case E_SurfaceFormat_A16B16G16R16: 			return "A16B16G16R16";
 	case E_SurfaceFormat_Q16W16V16U16: 			return "Q16W16V16U16";
 	case E_SurfaceFormat_A16B16G16R16F:			return "A16B16G16R16F";
 	case E_SurfaceFormat_G32R32F:				return "G32R32F";
-	#if DEVICE_XB2
-	case E_SurfaceFormat_A16B16G16R16F_EXPAND:	return "A16B16G16R16F_EXPAND";
-	case E_SurfaceFormat_A32L32: 				return "A32L32";
-	case E_SurfaceFormat_G32R32: 				return "G32R32";
-	case E_SurfaceFormat_V32U32: 				return "V32U32";
-	#endif
 
 	// 128bpp:
 	case E_SurfaceFormat_A32B32G32R32F:			return "A32B32G32R32F";
-	#if DEVICE_XB2
-	case E_SurfaceFormat_A32B32G32R32: 			return "A32B32G32R32";
-	case E_SurfaceFormat_Q32W32V32U32: 			return "Q32W32V32U32";
-	#endif
 	
 	// EDRAM only:
-	#if DEVICE_XB2
-	case E_SurfaceFormat_A2B10G10R10F_EDRAM:	return "A2B10G10R10F_EDRAM";
-	case E_SurfaceFormat_G16R16_EDRAM:			return "G16R16_EDRAM";
-	case E_SurfaceFormat_A16B16G16R16_EDRAM:	return "A16B16G16R16_EDRAM";
-	#endif
 
 	// Front buffer formats have to be little endian:
-	#if DEVICE_XB2
-	case E_SurfaceFormat_LE_X8R8G8B8: 			return "LE_X8R8G8B8";
-	case E_SurfaceFormat_LE_A8R8G8B8: 			return "LE_A8R8G8B8";
-	case E_SurfaceFormat_LE_X2R10G10B10: 		return "LE_X2R10G10B10";
-	case E_SurfaceFormat_LE_A2R10G10B10: 		return "LE_A2R10G10B10";
-	#endif
 
 	default:									return "Unknown";
 	}
@@ -1266,13 +1078,6 @@ const Util::C_String GetTextureFormatAsString(const E_TextureFormat format)
 	case E_TextureFormat_DXT1: 					return "DXT1";
 	case E_TextureFormat_DXT3: 					return "DXT3";
 	case E_TextureFormat_DXT5: 					return "DXT5";
-	#if DEVICE_XB2
-	case E_TextureFormat_DXT3A:					return "DXT3A";
-	case E_TextureFormat_DXT3A_1111:			return "DXT3A_1111";
-	case E_TextureFormat_DXT5A:					return "DXT5A";
-	case E_TextureFormat_DXN:					return "DXN";
-	case E_TextureFormat_CTX1:					return "CTX1";
-	#endif
 
 	// 8bpp:
 	case E_TextureFormat_A8: 					return "A8";
@@ -1294,14 +1099,6 @@ const Util::C_String GetTextureFormatAsString(const E_TextureFormat format)
 	case E_TextureFormat_G8R8_G8B8: 			return "G8R8_G8B8";
 	case E_TextureFormat_R8G8_B8G8: 			return "R8G8_B8G8";
 	case E_TextureFormat_YUY2:					return "YUY2";
-	#if DEVICE_XB2
-	case E_TextureFormat_R6G5B5:				return "R6G5B5";
-	case E_TextureFormat_Q4W4V4U4:				return "Q4W4V4U4";
-	case E_TextureFormat_G8R8:					return "G8R8";
-	case E_TextureFormat_R16F_EXPAND: 			return "R16F_EXPAND";
-	case E_TextureFormat_LE_LIN_UYVY: 			return "LE_UYVY";
-	case E_TextureFormat_LE_LIN_YUY2: 			return "LE_YUY2";
-	#endif
 
 	// 32bpp:
 	case E_TextureFormat_A8R8G8B8: 				return "A8R8G8B8";
@@ -1321,51 +1118,19 @@ const Util::C_String GetTextureFormatAsString(const E_TextureFormat format)
 	case E_TextureFormat_D24X8:					return "D24X8";
 	case E_TextureFormat_D24FS8:				return "D24FS8";
 	case E_TextureFormat_D32:					return "D32";
-	#if DEVICE_XB2
-	case E_TextureFormat_X2R10G10B10:			return "X2R10G10B10";
-	case E_TextureFormat_A16L16:				return "A16L16";
-	case E_TextureFormat_R10G11B11: 			return "R10G11B11";
-	case E_TextureFormat_R11G11B10: 			return "R11G11B10";
-	case E_TextureFormat_W10V11U11: 			return "W10V11U11";
-	case E_TextureFormat_W11V11U10: 			return "W11V11U10";
-	case E_TextureFormat_G16R16F_EXPAND:		return "G16R16F_EXPAND";
-	case E_TextureFormat_L32:					return "L32";
-	#endif
 
 	// 64bpp:
 	case E_TextureFormat_A16B16G16R16: 			return "A16B16G16R16";
 	case E_TextureFormat_Q16W16V16U16: 			return "Q16W16V16U16";
 	case E_TextureFormat_A16B16G16R16F:			return "A16B16G16R16F";
 	case E_TextureFormat_G32R32F:				return "G32R32F";
-	#if DEVICE_XB2
-	case E_TextureFormat_A16B16G16R16F_EXPAND:	return "A16B16G16R16F_EXPAND";
-	case E_TextureFormat_A16B16G16R16_UINT:		return "A16B16G16R16_UINT";
-	case E_TextureFormat_A32L32: 				return "A32L32";
-	case E_TextureFormat_G32R32: 				return "G32R32";
-	case E_TextureFormat_V32U32: 				return "V32U32";
-	#endif
 
 	// 128bpp:
 	case E_TextureFormat_A32B32G32R32F:			return "A32B32G32R32F";
-	#if DEVICE_XB2
-	case E_TextureFormat_A32B32G32R32: 			return "A32B32G32R32";
-	case E_TextureFormat_Q32W32V32U32: 			return "Q32W32V32U32";
-	#endif
 	
 	// EDRAM only:
-	#if DEVICE_XB2
-	case E_TextureFormat_A2B10G10R10F_EDRAM:	return "A2B10G10R10F_EDRAM";
-	case E_TextureFormat_G16R16_EDRAM:			return "G16R16_EDRAM";
-	case E_TextureFormat_A16B16G16R16_EDRAM:	return "A16B16G16R16_EDRAM";
-	#endif
 
 	// Front buffer formats have to be little endian:
-	#if DEVICE_XB2
-	case E_TextureFormat_LE_X8R8G8B8: 			return "LE_X8R8G8B8";
-	case E_TextureFormat_LE_A8R8G8B8: 			return "LE_A8R8G8B8";
-	case E_TextureFormat_LE_X2R10G10B10: 		return "LE_X2R10G10B10";
-	case E_TextureFormat_LE_A2R10G10B10: 		return "LE_A2R10G10B10";
-	#endif
 
 	default:									return "Unknown";
 	}
@@ -1483,11 +1248,7 @@ U32 C_VertexDeclaration::GetStride(U32 stream) const
 
 C_VertexBuffer::C_VertexBuffer() : m_Flags(0)
 {
-#if DEVICE_XB2
-	ZeroMemory(&m_d3dVertexBuffer, sizeof(GPUVertexBuffer));
-#else
 	m_pd3dVertexBuffer = NULL;
-#endif
 }
 
 C_VertexBuffer::~C_VertexBuffer()
@@ -1496,9 +1257,6 @@ C_VertexBuffer::~C_VertexBuffer()
 
 void C_VertexBuffer::SetSize(const U32 size)
 {
-#if DEVICE_XB2
-	m_d3dVertexBuffer.Format.Size = size;
-#endif
 }
 
 void C_VertexBuffer::SetFlags(const U32 flags)
@@ -1508,9 +1266,6 @@ void C_VertexBuffer::SetFlags(const U32 flags)
 
 void C_VertexBuffer::SetAddress(void* pAddress)
 {
-#if DEVICE_XB2
-	m_d3dVertexBuffer.Format.BaseAddress = (U32)pAddress;
-#endif
 }
 
 void* C_VertexBuffer::Lock(const U32 offset, const U32 size, const U32 flags)
@@ -1537,11 +1292,7 @@ void C_VertexBuffer::Unlock()
 
 C_IndexBuffer::C_IndexBuffer() : m_Flags(0)
 {
-#if DEVICE_XB2
-	ZeroMemory(&m_d3dIndexBuffer, sizeof(GPUIndexBuffer));
-#else
 	m_pd3dIndexBuffer = NULL;
-#endif
 }
 
 C_IndexBuffer::~C_IndexBuffer()
@@ -1550,9 +1301,6 @@ C_IndexBuffer::~C_IndexBuffer()
 
 void C_IndexBuffer::SetSize(const U32 size)
 {
-#if DEVICE_XB2
-	m_d3dIndexBuffer.Size = size;
-#endif
 }
 
 void C_IndexBuffer::SetFlags(const U32 flags)
@@ -1562,9 +1310,6 @@ void C_IndexBuffer::SetFlags(const U32 flags)
 
 void C_IndexBuffer::SetAddress(void* pAddress)
 {
-#if DEVICE_XB2
-	m_d3dIndexBuffer.Address = (U32)pAddress;
-#endif
 }
 
 void* C_IndexBuffer::Lock(const U32 offset, const U32 size, const U32 flags)
@@ -1693,9 +1438,6 @@ bool C_VertexShader::GetSemantics(Btl::Vector<C_ShaderSemantic>& semantics)
 
 C_PixelShader::C_PixelShader() : m_pd3dPixelShader(NULL), m_Flags(0)
 {
-#if DEVICE_XB2
-	m_pAddress = NULL;
-#endif
 }
 
 C_PixelShader::~C_PixelShader()
@@ -1709,9 +1451,6 @@ void C_PixelShader::SetFlags(const U32 flags)
 
 void C_PixelShader::SetAddress(U8* pAddress)
 {
-#if DEVICE_XB2
-	m_pAddress = pAddress;
-#endif
 }
 
 const C_ShaderParam C_PixelShader::GetParamFromName(const char* name) const
@@ -1769,16 +1508,6 @@ C_ConstLockedBox::C_ConstLockedBox()
 
 C_SurfaceParams::C_SurfaceParams()
 {
-#if DEVICE_XB2
-	Base				= 0;
-#if 1
-	HierarchicalZBase	= 0; // This needs to be zero or it don't work!
-#else
-	HierarchicalZBase	= 0xFFFFFFFF;
-#endif
-	ColorExpBias		= 0;
-	HiZFunc				= D3DHIZFUNC_DEFAULT;
-#endif
 }
 
 C_SurfaceParams::~C_SurfaceParams()
@@ -1787,40 +1516,21 @@ C_SurfaceParams::~C_SurfaceParams()
 
 void C_SurfaceParams::OverSurface(const C_Surface* pSurface)
 {
-#if DEVICE_XB2
-	BIZ_ASSERT(pSurface && pSurface->IsCreated());
-	
-	Base = pSurface->m_d3dSurface.ColorInfo.ColorBase;
-#endif
 }
 
 void C_SurfaceParams::AfterSurface(const C_Surface* pSurface)
 {
-#if DEVICE_XB2
-	BIZ_ASSERT(pSurface && pSurface->IsCreated());
-	
-	Base = pSurface->m_d3dSurface.ColorInfo.ColorBase + (pSurface->m_d3dSurface.Size / GPU_EDRAM_TILE_SIZE);
-#endif
 }
 
 void C_SurfaceParams::BeforeSurface(const C_Surface* pSurface)
 {
-#if DEVICE_XB2
-	BIZ_ASSERT(pSurface && pSurface->IsCreated());
-	
-	Base = pSurface->m_d3dSurface.ColorInfo.ColorBase - (pSurface->m_d3dSurface.Size / GPU_EDRAM_TILE_SIZE);
-#endif
 }
 
 // C_Surface
 
 C_Surface::C_Surface() : m_Flags(0), m_Subresource(0)
 {
-#if DEVICE_XB2
-	ZeroMemory(&m_d3dSurface, sizeof(GPUSurface));
-#else
 	m_pd3dSurface = NULL;
-#endif
 }
 
 C_Surface::~C_Surface()
@@ -1829,9 +1539,6 @@ C_Surface::~C_Surface()
 
 void C_Surface::SetSize(const U32 size)
 {
-#if DEVICE_XB2
-	m_d3dSurface.Size = size;
-#endif
 }
 
 void C_Surface::SetFlags(const U32 flags)
@@ -1864,11 +1571,7 @@ void C_Surface::UnlockRect()
 
 C_Texture::C_Texture() : m_Size(0), m_Flags(0)
 {
-#if DEVICE_XB2
-	ZeroMemory(&m_d3dTexture, sizeof(GPUTexture));
-#else
 	m_pd3dTexture = NULL;
-#endif
 }
 
 C_Texture::~C_Texture()
@@ -1887,9 +1590,6 @@ void C_Texture::SetFlags(const U32 flags)
 
 void C_Texture::SetAddress(U8* pAddress)
 {
-#if DEVICE_XB2
-	m_d3dTexture.Format.BaseAddress = (U32)pAddress >> GPU_TEXTURE_ADDRESS_SHIFT;
-#endif
 }
 
 void C_Texture::SetSRGB(const bool enable)
@@ -1898,21 +1598,11 @@ void C_Texture::SetSRGB(const bool enable)
 	{
 		m_Flags |= E_Flags_SRGB;
 
-		#if DEVICE_XB2
-		m_d3dTexture.Format.SignX = GPUSIGN_GAMMA;
-		m_d3dTexture.Format.SignY = GPUSIGN_GAMMA;
-		m_d3dTexture.Format.SignZ = GPUSIGN_GAMMA;
-		#endif
 	}
 	else
 	{
 		m_Flags &= ~E_Flags_SRGB;
 
-		#if DEVICE_XB2
-		BIZ_ASSERT(m_d3dTexture.Format.SignX != GPUSIGN_GAMMA);
-		BIZ_ASSERT(m_d3dTexture.Format.SignY != GPUSIGN_GAMMA);
-		BIZ_ASSERT(m_d3dTexture.Format.SignZ != GPUSIGN_GAMMA);
-		#endif
 	}
 }
 
@@ -1996,11 +1686,7 @@ void C_Texture::UnlockRectCube(const U32 face, const U32 level) const
 
 GPUTexture* C_Texture::Get()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTexture : NULL;
-#else
 	return m_pd3dTexture;
-#endif
 
 }
 const Util::C_String C_Texture::GetFileName() const
@@ -2033,7 +1719,7 @@ void C_Texture::Unlock(const U32 level) const
 
 C_RenderTexture2D::C_RenderTexture2D() : m_Flags(0)
 {
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC // [Blur1PCDX11] The native layout carries these slots too.
+#if DEVICE_D3D11_PC // [Blur1PCDX11] The native layout carries these slots too.
 	m_TextureIndex = 0;
 	m_SurfaceIndex = 0;
 	m_Multisample = D3DMULTISAMPLE_NONE;	// [Blur2PC]

@@ -16,7 +16,7 @@ C_Device* C_VirtualPadHandler::GetVirtualPad(S16 pad)
 {
 	if(m_VirtualPads[pad] == 0)
 	{
-		#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+		#if defined(PLATFORM_PC)
 			m_VirtualPads[pad] = new C_PadVirtual360(GetDeviceManager(),0);
 			m_VirtualPadState = new C_VirtualPadState(m_VirtualPads[pad]->GetButtonCount(), m_VirtualPads[pad]->GetAxisCount());
 			GetDeviceManager()->CreateDevice(pad, E_Device_PadVirtual360, &m_VirtualPads[0]);
@@ -102,7 +102,7 @@ void C_VirtualPadState::Reset()
 	}
 }
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 void C_PadVirtual360::SetState(C_VirtualPadState* state)
 {
 	m_PadState = state;

@@ -104,13 +104,7 @@ void C_ViewManager::Create(const S32 views, const bool mirrorEnabled, const bool
 	m_GhostDepthStates.renderFlagsFX.setBlendState = 0;
 
 	// on xenon set a null pixel shader, otherwise use colourwrite none
-#ifdef PLATFORM_XENON
-	m_GhostDepthStates.renderFlagsFX.setPixelShader = 0;
-	m_GhostDepthStates.setPixelShader = true;
-	m_GhostDepthStates.pPixelShader = 0;
-#else
 	m_GhostDepthStates.colourWriteEnable = Display::E_ColourWriteEnable_None;
-#endif
 
 	m_GhostDepthStates.setBlendMode = true;
 	m_GhostDepthStates.blendEnable = Display::E_Bool_False;

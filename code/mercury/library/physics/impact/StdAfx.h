@@ -5,15 +5,6 @@
 #pragma once
 #endif
 
-#ifdef _XBOX
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <xtl.h>
-#include <xgraphics.h>
-
-#endif
 
 #ifdef BUILD_CONFIG_SPEED
 #define assert(x)

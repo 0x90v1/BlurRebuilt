@@ -19,19 +19,11 @@ void C_RenderGroupSettings::SetWindow(const S32 windowIndex, const bool aa)
 	{
 		m_Multisample = pWindow->GetMultisample();
 		m_WindowIndex = windowIndex;
-	#ifdef PLATFORM_XENON
-		m_pColourSurface = &pWindow->m_ColourSurfaceWithAA;
-		m_pDepthStencilSurface = &pWindow->m_DepthStencilSurfaceWithAA;
-	#endif
 	}
 	else
 	{
 		m_WindowIndex = -1;
 		m_Multisample = Display::E_Multisample_None;
-	#ifdef PLATFORM_XENON
-		m_pColourSurface = &pWindow->m_ColourSurfaceWithoutAA;
-		m_pDepthStencilSurface = &pWindow->m_DepthStencilSurfaceWithoutAA;
-	#endif
 	}
 #else
 	// [Blur2PC] retail Blur PC (Blur.exe 1.2 0x0079f470): the window's multisample when drawing into it, and its

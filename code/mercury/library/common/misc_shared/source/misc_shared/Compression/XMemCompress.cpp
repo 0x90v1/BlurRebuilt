@@ -132,11 +132,6 @@ U32 XMemDecompress(U8* pInData, U32 nInSize, U8* pOutData, U32 nOutSize, void* p
 	SIZE_T decompressedSize = nOutSize;
 	hr = ::XMemDecompress(context, pOutData, &decompressedSize, pInData, nInSize);
 
-#ifdef PLATFORM_XENON
-	// flush the gpu cache
-	for(size_t offset=0; offset < decompressedSize; offset+=128)
-		__dcbf(offset, pOutData);
-#endif
 
     // Destroy the decompression context.
 	if (newContext)	

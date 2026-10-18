@@ -37,9 +37,7 @@ public:
 		Perf::BeginNamedEvent(pName);
 
 		#ifdef USE_D3D_PIX
-		#if defined (PLATFORM_XENON)
-			PIXBeginNamedEvent(0, pName);
-		#elif defined (PLATFORM_PC)
+		#if defined (PLATFORM_PC)
 			WCHAR wName[256];
 			memset(wName, 0, sizeof(wName));
 			mbstowcs(wName, pName, Maths::Min(strlen(pName), sizeof(wName)/sizeof(wName[0])));
@@ -70,9 +68,7 @@ public:
 		Perf::EndNamedEvent();
 
 		#ifdef USE_D3D_PIX
-		#if defined (PLATFORM_XENON)
-			PIXEndNamedEvent();
-		#elif defined (PLATFORM_PC)
+		#if defined (PLATFORM_PC)
 			D3DPERF_EndEvent();
 		#endif
 		#endif

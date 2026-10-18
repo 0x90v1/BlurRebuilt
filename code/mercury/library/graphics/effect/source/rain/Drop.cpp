@@ -181,9 +181,7 @@ bool C_DropRenderer::OnCreate()
 void C_DropRenderer::OnDestroy()
 {
 	Display::Device()->Destroy(&m_VertexBuffer);
-#ifndef PLATFORM_XENON
 	Display::Device()->Destroy(&m_IndexBuffer);
-#endif
 	if (m_pTexture && !(m_pTexture->GetFlags() & Display::E_Usage_Bundled))
 	{
 		Display::Device()->Destroy(m_pTexture);
@@ -206,9 +204,7 @@ bool C_DropRenderer::OnInitialise()
 	RESOURCE_MEMORY_ID("RainDrop");
 
 	assert(!m_VertexBuffer.IsCreated());
-#ifndef PLATFORM_XENON
 	assert(!m_IndexBuffer.IsCreated());
-#endif
 
 	U32 iAtlasSize = m_Parameters.iAtlasSize;
 	if(iAtlasSize == 0)
@@ -237,12 +233,8 @@ bool C_DropRenderer::OnInitialise()
 
 	m_iVertexCount = m_nParticles * 4;
 
-	#ifdef PLATFORM_XENON
-		m_ePrimitiveType = Display::E_PrimitiveType_QuadList;
-	#else
 		m_ePrimitiveType = Display::E_PrimitiveType_TriangleList;
 		m_iIndexCount = m_nParticles * 6;
-	#endif
 
 	
 	if(m_bSimple)
@@ -252,16 +244,12 @@ bool C_DropRenderer::OnInitialise()
 			return false;
 	
 	// we can save ~20k on xenon by not using index buffers... awesome!
-	#ifndef PLATFORM_XENON
 		if (!Display::Device()->CreateIndexBuffer(m_iIndexCount * sizeof(U16), 0, Display::E_Format_Index16, &m_IndexBuffer))
 			return false;
-	#endif
 		
 		Display::Vertex_XYZ_SUV* pVertices = (Display::Vertex_XYZ_SUV*)m_VertexBuffer.Lock();
 	
-	#ifndef PLATFORM_XENON
 		U16* pIndex = (U16*)m_IndexBuffer.Lock();
-	#endif
 
 		U32 iParticle = 0;
 		for(S32 x = 0; x < m_nSplits; ++x)
@@ -302,21 +290,17 @@ bool C_DropRenderer::OnInitialise()
 						pVertices->v = 1;
 						++pVertices;
 
-				#ifndef PLATFORM_XENON
 						*pIndex = iParticle * 4; pIndex++;
 						*pIndex = iParticle * 4 + 1; pIndex++;
 						*pIndex = iParticle * 4 + 2; pIndex++;
 						*pIndex = iParticle * 4 + 2; pIndex++;
 						*pIndex = iParticle * 4 + 3; pIndex++;
 						*pIndex = iParticle * 4; pIndex++;
-				#endif
 					}
 				} // z
 			} // y
 		} // x
-	#ifndef PLATFORM_XENON
 		m_IndexBuffer.Unlock();
-	#endif
 		m_VertexBuffer.Unlock();
 	}
 	else
@@ -324,16 +308,12 @@ bool C_DropRenderer::OnInitialise()
 		// use 28 byte vertex format which allows float uvs and size/colour variations
 		if (!Display::Device()->CreateVertexBuffer(m_iVertexCount * sizeof(Display::Vertex_XYZ_UV2), 0, &m_VertexBuffer))
 			return false;
-	#ifndef PLATFORM_XENON
 		if (!Display::Device()->CreateIndexBuffer(m_iIndexCount * sizeof(U16), 0, Display::E_Format_Index16, &m_IndexBuffer))
 			return false;
-	#endif
 		
 		Display::Vertex_XYZ_UV2* pVertices = (Display::Vertex_XYZ_UV2*)m_VertexBuffer.Lock();
 
-	#ifndef PLATFORM_XENON
 		U16* pIndex = (U16*)m_IndexBuffer.Lock();
-	#endif
 
 		F32 fCoordOffset = 1.0f / (F32)iAtlasSize;
 
@@ -389,21 +369,17 @@ bool C_DropRenderer::OnInitialise()
 						pVertices->v1 = fColourScale;
 						++pVertices;
 
-				#ifndef PLATFORM_XENON
 						*pIndex = iParticle * 4; pIndex++;
 						*pIndex = iParticle * 4 + 1; pIndex++;
 						*pIndex = iParticle * 4 + 2; pIndex++;
 						*pIndex = iParticle * 4 + 2; pIndex++;
 						*pIndex = iParticle * 4 + 3; pIndex++;
 						*pIndex = iParticle * 4; pIndex++;
-				#endif
 					}
 				} // z
 			} // y
 		} // x
-	#ifndef PLATFORM_XENON
 		m_IndexBuffer.Unlock();
-	#endif
 
 		m_VertexBuffer.Unlock();
 	}
@@ -445,10 +421,8 @@ void C_DropRenderer::OnShutdown()
 
 	if(m_VertexBuffer.IsCreated())
 		Display::Device()->Destroy(&m_VertexBuffer);
-#ifndef PLATFORM_XENON
 	if(m_IndexBuffer.IsCreated())
 		Display::Device()->Destroy(&m_IndexBuffer);
-#endif
 }
 
 void C_DropRenderer::AddOcclusionBox(const Maths::C_AxisBox& axisBox, const Maths::HMat43& transform, const Display::C_Texture2D* pTexture, const bool bFlipV)
@@ -578,9 +552,7 @@ void C_DropRenderer::Display() const
 		Display::Device()->SetTextureAddress(0, Display::E_TextureAddress_Wrap);
 		
 
-	#ifndef PLATFORM_XENON
 		Display::Device()->SetIndexBuffer(&m_IndexBuffer);
-	#endif
 		
 		// see which of the heightmaps we need to use for this rendering
 		Ut::Vector<U32>	occlusionBoxes;
@@ -680,16 +652,10 @@ void C_DropRenderer::Display() const
 
 			for(S32 iSplit = 0; iSplit < m_nSplitBoxes; ++iSplit)
 			{
-	#ifndef PLATFORM_XENON
 				S32 iVertexCount = m_nSplitParticles * 4;
 				S32 iIndexCount = m_nSplitParticles * 6;
 				S32 iStartIndex = iSplit * iIndexCount;
 				Display::Device()->DrawIndexedPrimitive(m_ePrimitiveType, 0, 0, iVertexCount, iStartIndex, iIndexCount);
-	#else
-				S32 iVertexCount = m_nSplitParticles * 4;
-				S32 iStartVertex = iSplit * iVertexCount;
-				Display::Device()->DrawPrimitive(m_ePrimitiveType, iStartVertex, iVertexCount);
-	#endif
 			}
 
 			fRainDensity -= 1.0f;

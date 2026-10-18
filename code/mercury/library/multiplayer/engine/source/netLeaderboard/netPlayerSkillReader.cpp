@@ -53,9 +53,6 @@ bool netPlayerSkillReader::startReading()
 
 	// game mode is leaderboard on the xbox
 	// as skills are read from scoreboards.
-#if defined(PLATFORM_XENON)
-	gameModeId = leaderboardId;
-#endif
 	
 	// start read
 	if(leaderboard.isNull() || !NetPlay::C_PlayerSkillReader::Start(users, usersCount, gameModeId))
@@ -105,7 +102,7 @@ bool netPlayerSkillReader::continueReading(bool& error)
 
 			// update player skill for that leaderboard
 			leaderboard->updateSkill(user, netPlatform::Core::instance()->getUserId(user), &userData);
-		#if defined(PLATFORM_XENON) || defined (PLATFORM_PC)
+		#if defined(PLATFORM_PC)
 			LOGINFO(netDebug::g_Log, "<netLeaderboardReader> lb(%d) : player(%llu), skill(%d).", id, user.m_Uid, userData.m_Skill);
 		#else
 			LOGINFO(netDebug::g_Log, "<netLeaderboardReader> lb(%d) : player(%s), skill(%d).", id, user.m_Uid.handle.data, userData.m_Skill);

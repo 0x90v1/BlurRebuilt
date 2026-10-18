@@ -14,14 +14,6 @@
 #include <winbase.h>
 #endif // PLATFORM_PC
 
-#ifdef _XBOX360
-#ifndef USE_XAUDIO2
-#include <XAudDefs.h>
-#include "mastereffect.h"
-#endif
-#include <xmp.h>
-#include "quadeffect.h"
-#endif // _XBOX360
 
 
 Debug::Bool g_bTestNoise("Audio.System.TestNoise", false);
@@ -39,9 +31,7 @@ Debug::Int	g_AudioFramesToRender("Audio.System.AudioFramesToRender", 1, Debug::R
 Debug::Bool g_bTestTone("Audio.System.RendererTestTone", false);
 #endif
 
-#ifndef _XBOX360
 Debug::Float g_MasterAttenuation("Audio.System.MasterEffectAttenuation", 1.0f, Debug::Range(0.f, 1.f));
-#endif
 
 bool g_bPrevReverbDisabled = false;
 
@@ -113,7 +103,7 @@ extern uint32_t _binary_mstream_dsp_i3dl2_pic_size;
 #define ENABLE_SURROUNDLFE_OUT
 //#define ENABLE_REVERB_OUT
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 #ifdef AUDIO_OPTIMIZE_OFF
 #pragma optimize ("", off) // AUDIO_OPTIMIZE_OFF
@@ -138,34 +128,8 @@ void FrameUpdateFinishInfo_AddMemCpy(FrameUpdateFinishInfo *pInfo, void *pDest, 
 
 #endif
 
-#ifdef PLATFORM_XENON
-#ifndef USE_XAUDIO2
-////////////////////////////////////////////////////////////////////////////////
-//	DSP
-////////////////////////////////////////////////////////////////////////////////
-const XAUDIOFXTABLEENTRY g_StaticEffectTableEntries[] =
-{
-    { XAUDIOFXID_SOURCE,     XAudioQuerySourceEffectSize,  XAudioCreateSourceEffect },
-    { XAUDIOFXID_ROUTER,     XAudioQueryRouterEffectSize,  XAudioCreateRouterEffect },
-    { XAUDIOFXID_RENDER,     XAudioQueryRenderEffectSize,  XAudioCreateRenderEffect },
-    { XAUDIOFXID_REVERB,     XAudioQueryReverbEffectSize,  XAudioCreateReverbEffect },
-    { MASTERINPUTEFFECT_ID,  QuerySizeMasterInputEffect,   CreateMasterInputEffect },
-    { QUADEFFECT_ID,         QuerySizeQuadEffect,          CreateQuadEffect },
-};
-const DWORD NUM_STATIC_EFFECTS = sizeof(g_StaticEffectTableEntries) / sizeof(g_StaticEffectTableEntries[0]);
-#else
-namespace Audio
-{
-	namespace Core
-	{
-		// global pointer to the xaudio2 device. the voice communicator library will reference this.
-		IXAudio2* g_pXAudio2 = NULL;
-	}
-}
-#endif // USE_XAUDIO2
-#endif // PLATFORM_XENON
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,9 +153,7 @@ void Audio::Core::Renderer::operator delete(void* ptr)
 ////////////////////////////////////////////////////////////////////////////////
 //	Renderer
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef PLATFORM_XENON
-Audio::Core::Renderer::Renderer(U32 uNumBuffers) : Thread(64, eAboveNormal, eCore2Thread0), m_uNumBuffers(uNumBuffers)
-#elif defined (PLATFORM_PC)
+#if defined (PLATFORM_PC)
 Audio::Core::Renderer::Renderer(U32 uNumBuffers) : Thread(64, eHighest), m_uNumBuffers(uNumBuffers)
 #else
 Audio::Core::Renderer::Renderer(U32 uNumBuffers) : Thread(64, eNormal), m_uNumBuffers(uNumBuffers)
@@ -446,454 +408,6 @@ bool Audio::Core::Renderer::Init(void* pContext, RenderCallback cbFrameStart, Re
 
 #endif
 
-#ifdef PLATFORM_XENON
-
-////////////////////////////////////////////////////////////////////////////////
-//	Init
-////////////////////////////////////////////////////////////////////////////////
-//#ifdef GAME_RACERNOTAMAX
-bool Audio::Core::Renderer::Init(void* pContext, RenderCallback cbFrameStart, RenderCallback cbFrameEnd, U32 uNumReverbs, bool bStereoReverb)
-{
-    if (m_bInited == false)
-    {
-		m_uNumReverbs = uNumReverbs;
-
-		U32 uSize;
-#ifdef ENABLE_MONO_OUT
-		U8* puMonoInput = new U8[ Core::Input::InputSize( 1, 0 ) ];
-		Input* pMonoInput = new(puMonoInput) Core::Input( m_pchName, 1, 0 );
-        uSize = 1 * (m_uNumBuffers + 1) * uFrameLength * sizeof(F32);
-		m_pfMonoBufferData = (F32*)System::Alloc(uSize + uFrameLength, 128);
-		pMonoInput->SetAltBuffer(m_pfMonoBufferData);
-		memset(m_pfMonoBufferData, 0, uSize);
-		m_pMonoInput = pMonoInput;
-#endif // ENABLE_MONO_OUT
-
-#ifdef ENABLE_STEREO_OUT
-		U8* puStereoInput = new U8[ Core::Input::InputSize( 2, 0 ) ];
-		Input* pStereoInput = new(puStereoInput) Core::Input( m_pchName, 2, 0 );
-        uSize = 2 * (m_uNumBuffers + 1) * uFrameLength * sizeof(F32);
-		m_pfStereoBufferData = (F32*)System::Alloc(uSize + uFrameLength, 128);
-		pStereoInput->SetAltBuffer(m_pfStereoBufferData);
-        memset(m_pfStereoBufferData, 0, uSize);
-		m_pStereoInput = pStereoInput;
-#endif // ENABLE_STEREO_OUT
-
-#ifdef ENABLE_SURROUND_OUT
-		U8* puSurroundInput = new U8[ Core::Input::InputSize( 5, 0 ) ];
-		Input* pSurroundInput = new(puSurroundInput) Core::Input( m_pchName, 5, 0 );
-        uSize = 5 * (m_uNumBuffers + 1) * uFrameLength * sizeof(F32);
-		m_pfSurroundBufferData = (F32*)System::Alloc(uSize + uFrameLength, 128);
-		pSurroundInput->SetAltBuffer(m_pfSurroundBufferData);
-        memset(m_pfSurroundBufferData, 0, uSize);
-		m_pSurroundInput = pSurroundInput;
-#endif // ENABLE_SURROUND_OUT
-
-#ifdef ENABLE_SURROUNDLFE_OUT
-		U8* puSurroundLFEInput = new U8[ Core::Input::InputSize( 6, 0 ) ];
-		Input* pSurroundLFEInput = new(puSurroundLFEInput) Core::Input( m_pchName, 6, 0 );
-        uSize = 6 * (m_uNumBuffers + 1) * uFrameLength * sizeof(F32);
-		m_pfSurroundLFEBufferData = (F32*)System::Alloc(uSize + uFrameLength, 128);
-		pSurroundLFEInput->SetAltBuffer(m_pfSurroundLFEBufferData);
-        memset(m_pfSurroundLFEBufferData, 0, uSize);
-		m_pSurroundLFEInput = pSurroundLFEInput;
-#endif // ENABLE_SURROUNDLFE_OUT
-
-        m_pContext = pContext;
-        m_cbFrameStart = cbFrameStart;
-        m_cbFrameEnd = cbFrameEnd;
-
-#ifdef USE_XAUDIO2
-
-#if !defined CFG_SPEED && !defined CFG_GOLD
-		if ( S_OK != XAudio2Create( &m_pXAudio2, XAUDIO2_DEBUG_ENGINE ) )
-#else
-		if ( S_OK != XAudio2Create( &m_pXAudio2 ) )
-#endif
-			AUDIO_CORE_ERROR("Error calling XAudio2Create");
-
-		// store global pointer so external systems can link with it.
-		g_pXAudio2 = m_pXAudio2;
-
-		if ( S_OK != m_pXAudio2->CreateMasteringVoice( &m_pMasterVoice, 6, 48000, 0, 0, NULL ) )
-			AUDIO_CORE_ERROR("Error calling CreateMasteringVoice");
-
-		WAVEFORMATEXTENSIBLE wfex;
-		wfex.Format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-		wfex.Format.nChannels = 6;
-		wfex.Format.nSamplesPerSec = 48000;
-		wfex.Format.nAvgBytesPerSec = 1152000;
-		wfex.Format.nBlockAlign = 24;
-		wfex.Format.wBitsPerSample = 32;
-		wfex.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-		wfex.Samples.wValidBitsPerSample = 32;
-		wfex.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
-
-        if( S_OK != m_pXAudio2->CreateSourceVoice( &m_pSourceVoice, (WAVEFORMATEX*)&wfex.Format, XAUDIO2_VOICE_NOPITCH | XAUDIO2_VOICE_NOSRC, XAUDIO2_DEFAULT_FREQ_RATIO, NULL, NULL, NULL ) )
-			AUDIO_CORE_ERROR("Error calling CreateSourceVoice");
-
-		//
-		// Create the effect chain
-		//
-		CRendererAPO* pSimpleAPO = NULL;
-		CRendererAPO::CreateInstance( NULL, 0, &pSimpleAPO );
-
-		XAUDIO2_EFFECT_DESCRIPTOR apoDesc[1] = {0};
-		apoDesc[0].InitialState = true;
-		apoDesc[0].OutputChannels = 6;
-		apoDesc[0].pEffect = static_cast<IXAPO*>(pSimpleAPO);
-
-		XAUDIO2_EFFECT_CHAIN chain = {0};
-		chain.EffectCount = sizeof(apoDesc) / sizeof(apoDesc[0]);
-		chain.pEffectDescriptors = apoDesc;
-
-		if( S_OK != m_pSourceVoice->SetEffectChain( &chain ))
-			AUDIO_CORE_ERROR("Error calling SetEffectChain");
-
-		// Don't need to keep them now that XAudio2 has ownership
-		pSimpleAPO->Release();
-
-		static RendererAPOParams params;
-		params.pRenderer = this;
-		m_pSourceVoice->SetEffectParameters( 0, &params, sizeof( RendererAPOParams ) );
-
-		static F32 data[ 6 * 1024 ] = { 0 };
-
-		XAUDIO2_BUFFER buffer = {0};
-		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
-		buffer.Flags = XAUDIO2_END_OF_STREAM;
-		buffer.AudioBytes = 6 * 1024 * sizeof(F32);
-		buffer.pAudioData = (BYTE*)data;
-
-		if( S_OK != m_pSourceVoice->SubmitSourceBuffer( &buffer ) )
-			AUDIO_CORE_ERROR("Error calling SubmitSourceBuffer");
-
-		m_pSourceVoice->Start( 0, 0 );
-#else
-		//  init effect for dry mastering
-		static MasterEffectInit DryVoiceEffectInit;
-		DryVoiceEffectInit.pRenderer = this;
-		DryVoiceEffectInit.sIndex = -1;
-
-		//	render effect
-		static const MASTER_INPUT_EFFECT_INIT DryMasterInputEffectInit = { MASTERINPUTEFFECT_ID, &DryVoiceEffectInit, 6 };
-        static const XAUDIOFXINIT* pDryMasteringVoiceEffectsInit[] = { (XAUDIOFXINIT*)&DryMasterInputEffectInit };
-        static const XAUDIOVOICEFXCHAIN DryMasteringVoiceEffectsChain = { 1, pDryMasteringVoiceEffectsInit };
-
-        XAUDIOENGINEINIT EngineInit = {0};
-        EngineInit.SubmixStageCount = 1;
-        EngineInit.MaxVoiceChannelCount = 6;
-        XAUDIOFXTABLE FullEffectsTable = {0};
-        FullEffectsTable.EffectCount = NUM_STATIC_EFFECTS;
-        FullEffectsTable.paEffects = &g_StaticEffectTableEntries[0];
-        XAUDIOMASTERINGVOICEINIT MasteringVoiceInit = {0};
-        MasteringVoiceInit.pEffectChain = 0;
-        EngineInit.pMasteringVoiceInit = &MasteringVoiceInit;
-        EngineInit.pEffectTable = &FullEffectsTable;
-		EngineInit.ThreadUsage = XAUDIOTHREADUSAGE_THREAD4;
-        XAudioInitialize(&EngineInit);
-
-		IXAudioMasteringVoice* iXAudioMasterVoice;
-		HRESULT res = XAudioGetMasteringVoice(&iXAudioMasterVoice);
-
-		Assert (res == S_OK);
-
-		// set up dry mastering voice
-		XAUDIOSOURCEFORMAT VoiceFormat = {0};
-		VoiceFormat.ChannelCount = 6;
-		VoiceFormat.SampleRate = 48000;
-		VoiceFormat.SampleType = XAUDIOSAMPLETYPE_FLOAT;
-
-		XAUDIOVOICEOUTPUT Output;
-		XAUDIOVOICEOUTPUTENTRY OutputEntry[ 1 ];
-		XAUDIOCHANNELMAP ChannelMap;
-		XAUDIOCHANNELMAPENTRY ChannelMapEntry[] = {
-			{ 0, 0, 1.0f },
-			{ 1, 1, 1.0f },
-			{ 2, 2, 1.0f },
-			{ 3, 3, 1.0f },
-			{ 4, 4, 1.0f },
-			{ 5, 5, 1.0f },
-		};
-		Output.EntryCount = 1;
-		Output.paEntries = OutputEntry;
-		OutputEntry[ 0 ].pDestVoice = iXAudioMasterVoice;
-		OutputEntry[ 0 ].pChannelMap = &ChannelMap;
-		ChannelMap.EntryCount = sizeof( ChannelMapEntry ) / sizeof( ChannelMapEntry[ 0 ] );
-		ChannelMap.paEntries = ChannelMapEntry;
-
-		XAUDIOSOURCEVOICEINIT DryVoiceInit = {0};
-		DryVoiceInit.Flags = XAUDIOSOURCEFLAGS_NOPITCH;
-		DryVoiceInit.Format = VoiceFormat;
-		DryVoiceInit.MaxChannelMapEntryCount = 6;
-		DryVoiceInit.MaxOutputVoiceCount = 1;
-		DryVoiceInit.MaxPitchShift = 0;
-		DryVoiceInit.pEffectChain = &DryMasteringVoiceEffectsChain;
-		DryVoiceInit.pVoiceOutput = &Output;
-
-		IXAudioSourceVoice* pDryXAudioVoice;
-		res = XAudioCreateSourceVoice(&DryVoiceInit, &pDryXAudioVoice);
-
-		Assert (res == S_OK);
-
-		pDryXAudioVoice->Start(0);
-
-		//	reverb
-		for (S32 i=0; i<m_uNumReverbs; i++)
-		{
-			U8* pMonoReverbMem = new U8[ Core::Input::InputSize( 1, 0 ) ];
-			Input* pMonoReverbInput = new(pMonoReverbMem) Core::Input(m_pchName, 1, 0);
-			uSize = (m_uNumBuffers + 1) * uFrameLength * sizeof(F32);
-			m_pfMonoReverbBufferData[i] = (F32*)System::Alloc(uSize + uFrameLength, 128);
-			pMonoReverbInput->SetAltBuffer(m_pfMonoReverbBufferData[i]);
-			memset(m_pfMonoReverbBufferData[i], 0, uSize);
-			m_pMonoReverbInput[i] = pMonoReverbInput;
-		}
-
-		//  init effect for reverb
-		static MasterEffectInit WetVoiceEffectInit;
-		WetVoiceEffectInit.pRenderer = this;
-		WetVoiceEffectInit.sIndex = 0;
-
-        static const XAUDIOFXINIT ReverbEffectInit = { XAUDIOFXID_REVERB, NULL };
-        static const XAUDIOFXINIT* pReverbVoiceEffectsInit[] = { &ReverbEffectInit };
-		static const MASTER_INPUT_EFFECT_INIT WetMasterInputEffectInit = { MASTERINPUTEFFECT_ID, &WetVoiceEffectInit, 1 };
-        static const XAUDIOFXINIT* pWetMasteringVoiceEffectsInit[] = { (XAUDIOFXINIT*)&WetMasterInputEffectInit, &ReverbEffectInit };
-        static const XAUDIOVOICEFXCHAIN WetMasteringVoiceEffectsChain = { 2, pWetMasteringVoiceEffectsInit };
-
-		//  init effect for reverb 2
-		static MasterEffectInit WetVoiceEffectInit2;
-		WetVoiceEffectInit2.pRenderer = this;
-		WetVoiceEffectInit2.sIndex = 1;
-
-		static const XAUDIOFXINIT ReverbEffectInit2 = { XAUDIOFXID_REVERB, NULL };
-        static const XAUDIOFXINIT* pReverbVoiceEffectsInit2[] = { &ReverbEffectInit2 };
-		static const MASTER_INPUT_EFFECT_INIT WetMasterInputEffectInit2 = { MASTERINPUTEFFECT_ID, &WetVoiceEffectInit2, 1 };
-        static const XAUDIOFXINIT* pWetMasteringVoiceEffectsInit2[] = { (XAUDIOFXINIT*)&WetMasterInputEffectInit2, &ReverbEffectInit2 };
-        static const XAUDIOVOICEFXCHAIN WetMasteringVoiceEffectsChain2 = { 2, pWetMasteringVoiceEffectsInit2 };
-
-		//  init effect for reverb 3
-		static MasterEffectInit WetVoiceEffectInit3;
-		WetVoiceEffectInit3.pRenderer = this;
-		WetVoiceEffectInit3.sIndex = 2;
-
-		static const XAUDIOFXINIT ReverbEffectInit3 = { XAUDIOFXID_REVERB, NULL };
-        static const XAUDIOFXINIT* pReverbVoiceEffectsInit3[] = { &ReverbEffectInit3 };
-		static const MASTER_INPUT_EFFECT_INIT WetMasterInputEffectInit3 = { MASTERINPUTEFFECT_ID, &WetVoiceEffectInit3, 1 };
-        static const XAUDIOFXINIT* pWetMasteringVoiceEffectsInit3[] = { (XAUDIOFXINIT*)&WetMasterInputEffectInit3, &ReverbEffectInit3 };
-        static const XAUDIOVOICEFXCHAIN WetMasteringVoiceEffectsChain3 = { 2, pWetMasteringVoiceEffectsInit3 };
-
-		if (m_uNumReverbs >= 1)
-		{
-			XAUDIOVOICEOUTPUT ReverbOutput;
-			XAUDIOVOICEOUTPUTENTRY ReverbOutputEntry[ 1 ];
-			XAUDIOCHANNELMAP ReverbChannelMap;
-			XAUDIOCHANNELMAPENTRY ReverbChannelMapEntry[] = {
-				{ 0, 0, 1.0f },	// fl
-				{ 0, 1, 1.0f },	// fr
-				//{ 0, 2, 0.7f },	// c
-				//{ 0, 2, 0.7f },	// c
-				{ 0, 4, 1.0f },	// rl
-				{ 0, 5, 1.0f },	// rr
-			};
-
-			if(bStereoReverb)
-			{
-				XAUDIOCHANNELMAPENTRY rearLeft= {0,0,1.0f};
-				XAUDIOCHANNELMAPENTRY rearRight = {0,1,1.0f};
-				ReverbChannelMapEntry[2] = rearLeft;
-				ReverbChannelMapEntry[3] = rearRight;
-			}
-
-			ReverbOutput.EntryCount = 1;
-			ReverbOutput.paEntries = ReverbOutputEntry;
-			ReverbOutputEntry[ 0 ].pDestVoice = iXAudioMasterVoice;
-			ReverbOutputEntry[ 0 ].pChannelMap = &ReverbChannelMap;
-			ReverbChannelMap.EntryCount = sizeof( ReverbChannelMapEntry ) / sizeof( ReverbChannelMapEntry[ 0 ] );
-			ReverbChannelMap.paEntries = ReverbChannelMapEntry;
-
-			XAUDIOSOURCEVOICEINIT WetVoiceInit = {0};
-			WetVoiceInit.Flags = XAUDIOSOURCEFLAGS_NOPITCH;
-			WetVoiceInit.Format.ChannelCount = 1;
-			WetVoiceInit.Format.SampleRate = 48000;
-			WetVoiceInit.Format.SampleType = XAUDIOSAMPLETYPE_FLOAT;
-			WetVoiceInit.MaxChannelMapEntryCount = 0;
-			WetVoiceInit.MaxOutputVoiceCount = 1;
-			WetVoiceInit.MaxPitchShift = 0;
-			WetVoiceInit.pEffectChain = &WetMasteringVoiceEffectsChain;
-			WetVoiceInit.pVoiceOutput = &ReverbOutput;
-
-			res = XAudioCreateSourceVoice(&WetVoiceInit, &m_pWetXAudioVoice[0]);
-
-			Assert (res == S_OK);
-
-			m_pWetXAudioVoice[0]->Start(0);
-		}
-
-		if (m_uNumReverbs >= 2)
-		{
-			// set up 2nd wet (reverb) mastering voice
-			XAUDIOVOICEOUTPUT ReverbOutput2;
-			XAUDIOVOICEOUTPUTENTRY ReverbOutputEntry2[ 1 ];
-			XAUDIOCHANNELMAP ReverbChannelMap2;
-			XAUDIOCHANNELMAPENTRY ReverbChannelMapEntry2[] = {
-				{ 0, 0, 1.0f },	// fl
-				{ 0, 1, 1.0f },	// fr
-				//{ 0, 2, 0.7f },	// c
-				//{ 0, 2, 0.7f },	// c
-				{ 0, 4, 1.0f },	// rl
-				{ 0, 5, 1.0f },	// rr
-			};
-			ReverbOutput2.EntryCount = 1;
-			ReverbOutput2.paEntries = ReverbOutputEntry2;
-			ReverbOutputEntry2[ 0 ].pDestVoice = iXAudioMasterVoice;
-			ReverbOutputEntry2[ 0 ].pChannelMap = &ReverbChannelMap2;
-			ReverbChannelMap2.EntryCount = sizeof( ReverbChannelMapEntry2 ) / sizeof( ReverbChannelMapEntry2[ 0 ] );
-			ReverbChannelMap2.paEntries = ReverbChannelMapEntry2;
-
-			XAUDIOSOURCEVOICEINIT WetVoiceInit2 = {0};
-			WetVoiceInit2.Flags = XAUDIOSOURCEFLAGS_NOPITCH;
-			WetVoiceInit2.Format.ChannelCount = 1;
-			WetVoiceInit2.Format.SampleRate = 48000;
-			WetVoiceInit2.Format.SampleType = XAUDIOSAMPLETYPE_FLOAT;
-			WetVoiceInit2.MaxChannelMapEntryCount = 0;
-			WetVoiceInit2.MaxOutputVoiceCount = 1;
-			WetVoiceInit2.MaxPitchShift = 0;
-			WetVoiceInit2.pEffectChain = &WetMasteringVoiceEffectsChain2;
-			WetVoiceInit2.pVoiceOutput = &ReverbOutput2;
-
-			res = XAudioCreateSourceVoice(&WetVoiceInit2, &m_pWetXAudioVoice[1]);
-
-			Assert (res == S_OK);
-
-			m_pWetXAudioVoice[1]->Start(0);
-		}
-
-		if (m_uNumReverbs >= 3)
-		{
-			// set up 3rd wet (reverb) mastering voice
-			XAUDIOVOICEOUTPUT ReverbOutput3;
-			XAUDIOVOICEOUTPUTENTRY ReverbOutputEntry3[ 1 ];
-			XAUDIOCHANNELMAP ReverbChannelMap3;
-			XAUDIOCHANNELMAPENTRY ReverbChannelMapEntry3[] = {
-				{ 0, 0, 1.0f },	// fl
-				{ 0, 1, 1.0f },	// fr
-				//{ 0, 2, 0.7f },	// c
-				//{ 0, 2, 0.7f },	// c
-				{ 0, 4, 1.0f },	// rl
-				{ 0, 5, 1.0f },	// rr
-			};
-			ReverbOutput3.EntryCount = 1;
-			ReverbOutput3.paEntries = ReverbOutputEntry3;
-			ReverbOutputEntry3[ 0 ].pDestVoice = iXAudioMasterVoice;
-			ReverbOutputEntry3[ 0 ].pChannelMap = &ReverbChannelMap3;
-			ReverbChannelMap3.EntryCount = sizeof( ReverbChannelMapEntry3 ) / sizeof( ReverbChannelMapEntry3[ 0 ] );
-			ReverbChannelMap3.paEntries = ReverbChannelMapEntry3;
-
-			XAUDIOSOURCEVOICEINIT WetVoiceInit3 = {0};
-			WetVoiceInit3.Flags = XAUDIOSOURCEFLAGS_NOPITCH;
-			WetVoiceInit3.Format.ChannelCount = 1;
-			WetVoiceInit3.Format.SampleRate = 48000;
-			WetVoiceInit3.Format.SampleType = XAUDIOSAMPLETYPE_FLOAT;
-			WetVoiceInit3.MaxChannelMapEntryCount = 0;
-			WetVoiceInit3.MaxOutputVoiceCount = 1;
-			WetVoiceInit3.MaxPitchShift = 0;
-			WetVoiceInit3.pEffectChain = &WetMasteringVoiceEffectsChain3;
-			WetVoiceInit3.pVoiceOutput = &ReverbOutput3;
-
-			res = XAudioCreateSourceVoice(&WetVoiceInit3, &m_pWetXAudioVoice[2]);
-
-			Assert (res == S_OK);
-
-			m_pWetXAudioVoice[2]->Start(0);
-		}
-
-#ifdef AUDIO_USE_XMP_CAPTURE
-
-		static const XAUDIOFXINIT QuadEffect = { QUADEFFECT_ID, NULL };
-		static const XAUDIOFXINIT* XMPVoiceEffectsInit[] = { &QuadEffect };
-		static const XAUDIOVOICEFXCHAIN XMPEffectsChain = { 1, XMPVoiceEffectsInit };
-
-		//	6ch voice
-		XAUDIOVOICEOUTPUT XMPOutput2;
-		XAUDIOVOICEOUTPUTENTRY XMPOutputEntry2[ 1 ];
-		XAUDIOCHANNELMAP XMPChannelMap2;
-		XAUDIOCHANNELMAPENTRY XMPChannelMapEntry2[] = {
-			{ 0, 0, 1.0f },
-			{ 1, 1, 1.0f },
-			{ 2, 2, 1.0f },
-			{ 3, 3, 1.0f },
-			{ 4, 4, 1.0f },
-			{ 5, 5, 1.0f },		};
-		XMPOutput2.EntryCount = 1;
-		XMPOutput2.paEntries = XMPOutputEntry2;
-		XMPOutputEntry2[ 0 ].pDestVoice = NULL;
-		XMPOutputEntry2[ 0 ].pChannelMap = &XMPChannelMap2;
-		XMPChannelMap2.EntryCount = sizeof( XMPChannelMapEntry2 ) / sizeof( XMPChannelMapEntry2[ 0 ] );
-		XMPChannelMap2.paEntries = XMPChannelMapEntry2;
-
-		XAUDIOSUBMIXVOICEINIT XMPVoiceInit2 = {0};
-		XMPVoiceInit2.Format.SampleType   = XAUDIOSAMPLETYPE_NATIVE;
-		XMPVoiceInit2.Format.ChannelCount = 6;
-		XMPVoiceInit2.Format.SampleRate   = XAUDIOSAMPLERATE_NATIVE;
-		XMPVoiceInit2.MaxChannelMapEntryCount = 6;
-		XMPVoiceInit2.MaxOutputVoiceCount = 1;
-		XMPVoiceInit2.pEffectChain = &XMPEffectsChain;
-		XMPVoiceInit2.pVoiceOutput = &XMPOutput2;
-
-		res = XAudioCreateSubmixVoice(&XMPVoiceInit2, &m_pXMPSubmixVoice);
-
-		Assert (res == S_OK);
-
-		//	2ch voice
-		XAUDIOVOICEOUTPUT XMPOutput;
-		XAUDIOVOICEOUTPUTENTRY XMPOutputEntry;
-		XAUDIOCHANNELMAP XMPChannelMap;
-		XAUDIOCHANNELMAPENTRY XMPChannelMapEntry[ XMP_CAPTURE_CHANNEL_COUNT ] = {
-			{0, 0, 1.0f},
-			{1, 1, 1.0f},
-		};
-		XMPOutput.EntryCount = 1;
-		XMPOutput.paEntries = &XMPOutputEntry;
-		XMPOutputEntry.pDestVoice = m_pXMPSubmixVoice;
-		XMPOutputEntry.pChannelMap = &XMPChannelMap;
-		XMPChannelMap.EntryCount = XMP_CAPTURE_CHANNEL_COUNT;
-		XMPChannelMap.paEntries = XMPChannelMapEntry;
-
-		XAUDIOSOURCEVOICEINIT XMPVoiceInit = { 0 };
-		XMPVoiceInit.Category = XAUDIOVOICECATEGORY_BGMUSIC;
-		XMPVoiceInit.MaxChannelMapEntryCount = XMP_CAPTURE_CHANNEL_COUNT;    // Set channel map count
-		XMPVoiceInit.MaxOutputVoiceCount = 1;
-		XMPVoiceInit.Format.SampleType   = XAUDIOSAMPLETYPE_NATIVE;
-		XMPVoiceInit.Format.ChannelCount = XMP_CAPTURE_CHANNEL_COUNT;
-		XMPVoiceInit.Format.SampleRate   = XAUDIOSAMPLERATE_NATIVE;
-		XMPVoiceInit.MaxPacketCount      = (XAUDIOPACKETINDEX)8;
-		XMPVoiceInit.pVoiceOutput        = &XMPOutput;
-		XMPVoiceInit.pEffectChain        = NULL;
-		XMPVoiceInit.Flags               = XAUDIOSOURCEFLAGS_NOPITCH;
-
-		res = XAudioCreateSourceVoice(&XMPVoiceInit, &m_pXMPSourceVoice);
-
-		Assert (res == S_OK);
-
-		XMPCaptureOutput( CaptureCallback, m_pXMPSourceVoice, TRUE, NULL );
-
-		m_pXMPSourceVoice->Start(0);
-
-		Assert (res == S_OK);
-
-#endif	//	AUDIO_USE_XMP_CAPTURE
-#endif	//	USE_XAUDIO2
-	}
-
-    return true;
-}
-
-#ifdef AUDIO_OPTIMIZE_OFF
-#pragma optimize ("", on) // AUDIO_OPTIMIZE_OFF
-#endif	//	AUDIO_OPTIMIZE_OFF
-
-#endif // _XBOX360
 
 #ifdef PLATFORM_PC
 void Audio::Core::Renderer::SetReverb(EAXREVERBPROPERTIES* efxReverb, U32 uIndex)
@@ -945,31 +459,6 @@ void Audio::Core::Renderer::SetReverb(CellMSFXI3DL2Params* pSettings, U32 uIndex
 #endif	//	PS3_OUTPUT_TO_MULTISTREAM
 #endif	//	PLATFORM_PS3
 
-#ifdef PLATFORM_XENON
-#ifdef AUDIO_USE_XMP_CAPTURE
-void Audio::Core::Renderer::SetXMPEffectVolume(F32 fVolume)
-{
-#ifndef USE_XAUDIO2
-    XAUDIOFXPARAM param;
-    param.Value = fVolume;
-    HRESULT hRes = m_pXMPSubmixVoice->SetEffectParam( 0, QUADFX_LEVEL_ID, XAUDIOFXPARAMTYPE_NUMERIC, &param );
-
-	Assert(hRes == S_OK);
-#endif	//	USE_XAUDIO2
-}
-
-void Audio::Core::Renderer::SetXMPEffectMode(U32 uMode)
-{
-#ifndef USE_XAUDIO2
-    XAUDIOFXPARAM param;
-	param.Flags = uMode;
-    HRESULT hRes = m_pXMPSubmixVoice->SetEffectParam( 0, QUADFX_MODE_ID, XAUDIOFXPARAMTYPE_FLAG, &param );
-
-	Assert(hRes == S_OK);
-#endif	//	USE_XAUDIO2
-}
-#endif	//	AUDIO_USE_XMP_CAPTURE
-#endif	//	PLATFORM_XENON
 
 #if defined (PLATFORM_PS3)
 ////////////////////////////////////////////////////////////////////////////////
@@ -1939,7 +1428,7 @@ void Audio::Core::Renderer::MainLoop()
 #endif	// ndef PS3_OUTPUT_TO_MULTISTREAM
 #endif // _PS3
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 #ifdef AUDIO_OPTIMIZE_OFF
 #pragma optimize ("", off) // AUDIO_OPTIMIZE_OFF
@@ -1991,22 +1480,6 @@ void Audio::Core::Renderer::Execute(void*)
 	{
 		//printf("writing locked frame %d (%d)\n", m_sNextWrite % m_uNumBuffers, m_sCurrRead % m_uNumBuffers);
 
-#ifdef PLATFORM_XENON
-#ifndef USE_XAUDIO2
-		if (g_bDisableReverb && g_bPrevReverbDisabled == false)
-		{
-			g_bPrevReverbDisabled = true;
-			for (U32 i=0; i<m_uNumReverbs; i++)
-				m_pWetXAudioVoice[i]->Stop(0);
-		}
-		else if ((! g_bDisableReverb) && g_bPrevReverbDisabled == true)
-		{
-			g_bPrevReverbDisabled = false;
-			for (U32 i=0; i<m_uNumReverbs; i++)
-				m_pWetXAudioVoice[i]->Stop(0);
-		}
-#endif // USE_XAUDIO2
-#endif // PLATFORM_XENON
 
 		if (m_bStarted)
 		{
@@ -2052,35 +1525,7 @@ void Audio::Core::Renderer::Execute(void*)
 			}
 #endif
             
-            #if defined( PLATFORM_XENON ) // JASOND
-			
-#ifdef ENABLE_SURROUNDLFE_OUT
-			XMemCpy(m_pfSurroundLFEBufferData + ((m_sNextWrite % m_uNumBuffers) + 1) * 6 * uFrameLength, m_pfSurroundLFEBufferData, 6 * uFrameLength * sizeof(F32));
-#endif
-#ifdef ENABLE_SURROUND_OUT
-			XMemCpy(m_pfSurroundBufferData + ((m_sNextWrite % m_uNumBuffers) + 1) * 5 * uFrameLength, m_pfSurroundBufferData, 5 * uFrameLength * sizeof(F32));
-#endif
-#ifdef ENABLE_STEREO_OUT
-			XMemCpy(m_pfStereoBufferData + ((m_sNextWrite % m_uNumBuffers) + 1) * 2 * uFrameLength, m_pfStereoBufferData, 2 * uFrameLength * sizeof(F32));
-#endif
-#ifdef ENABLE_MONO_OUT
-			XMemCpy(m_pfMonoBufferData + ((m_sNextWrite % m_uNumBuffers) + 1) * uFrameLength, m_pfMonoBufferData, uFrameLength * sizeof(F32));
-#endif
-
-#ifndef CFG_GOLD
-			//	profiler led level stuff
-			for (U32 uCh = 0; uCh < 6; uCh++)
-			{
-				for (U32 uSample = 0; uSample < uFrameLength; uSample++)
-					m_fPeak[ uCh ] = Maths::Max( m_fPeak[ uCh ], Maths::Abs( m_pfSurroundLFEBufferData[ uCh * uFrameLength + uSample ] ) );
-			}
-#endif
-
-			for (U32 i=0; i<m_uNumReverbs; i++)
-				XMemCpy(m_pfMonoReverbBufferData[i] + ((m_sNextReverbWrite[i] % m_uNumBuffers) + 1) * uFrameLength, m_pfMonoReverbBufferData[i], uFrameLength * sizeof(F32));
-			//XMemCpy(m_pfMonoReverbBufferData2 + ((m_sNextReverb2Write % m_uNumBuffers) + 1) * uFrameLength, m_pfMonoReverbBufferData2, uFrameLength * sizeof(F32));
-            
-			#elif defined( PLATFORM_PS3 ) && defined(SPU_MEMCPY)
+			#if defined( PLATFORM_PS3 ) && defined(SPU_MEMCPY)
 
 			// perform the copy on the SPU
 			FrameUpdateFinishInfo info;
@@ -2243,9 +1688,6 @@ void Audio::Core::Renderer::Execute(void*)
 						|| m_sNextReverbWrite[0] % m_uNumBuffers == m_sCurrReverbRead[0] % m_uNumBuffers
 #endif
 //#endif
-#ifdef PLATFORM_XENON
-						|| ((m_sNextReverbWrite[1] % m_uNumBuffers == m_sCurrReverbRead[1] % m_uNumBuffers) && m_pfMonoReverbBufferData[1])
-#endif
 						)
 					{
 						//printf("[sleep]    read=%d, write=%d\n", m_sCurrRead, m_sNextWrite);
@@ -2938,32 +2380,9 @@ void Audio::Core::Renderer::FoldDown(F32* pSamplesOut, U32 uChOut, F32* pSamples
 
 }
 
-#if defined(PLATFORM_XENON)
-#if defined(AUDIO_USE_XMP_CAPTURE)
-#ifndef USE_XAUDIO2
-void Audio::Core::Renderer::CaptureCallback(LPCXMP_CAPTURE_BUFFER pSampleBuffer, LPVOID pContext, BOOL fTitleRendering)
-{
-	if (System::Get()->TitleHasControl() && pSampleBuffer)
-    {
-        IXAudioSourceVoice* pSourceVoice = (IXAudioSourceVoice*)pContext;
-
-        XAUDIOSOURCESTATE state;
-        pSourceVoice->GetVoiceState(&state);
-        if (state & XAUDIOSOURCESTATE_READYPACKET)
-        {
-            XAUDIOPACKET packet = {0};
-            packet.pBuffer = (void*)pSampleBuffer;
-            packet.BufferSize = XMP_CAPTURE_SAMPLE_COUNT * sizeof(FLOAT);
-            pSourceVoice->SubmitPacket(&packet, 0);
-        }
-    }
-}
-#endif // USE_XAUDIO2
-#endif // AUDIO_USE_XMP_CAPTURE
-#endif // PLATFORM_XENON
 
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 #ifdef AUDIO_OPTIMIZE_OFF
 #pragma optimize ("", on) // AUDIO_OPTIMIZE_OFF

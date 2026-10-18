@@ -180,7 +180,7 @@ U32 C_CycleMapping::CalculateSize( U32 numCycleFields )
 {
 	U32 clampedNumCycleFields = Maths::Max( numCycleFields, 1U );
 
-	return Btl::AlignUp( sizeof( C_CycleMapping ) + ( clampedNumCycleFields - 1 ) * sizeof( S16 ), 16u );
+	return Btl::AlignUp( U32( sizeof( C_CycleMapping ) + ( clampedNumCycleFields - 1 ) * sizeof( S16 ) ), 16u ); // [Blur2PC][x64] size_t is 64-bit
 }
 
 //

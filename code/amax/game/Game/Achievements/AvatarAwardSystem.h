@@ -31,16 +31,6 @@ private:
 
 	int mAvatarAwardMapping[BLUR_AVATAR_AWARD_MAX];
 
-#ifdef PLATFORM_XENON
-	typedef struct AvatarAwardOverlappedTracker
-	{
-		XOVERLAPPED *mOverlapped;
-		HANDLE mHandle;
-		XUSER_AVATARASSET *xenon_avatar_asset;
-	}AvatarAwardOverlappedTracker;
-
-	Btl::Vector<AvatarAwardOverlappedTracker> mGiveAvatarAwardTasksStore;
-#endif
 };
 
 } // namespace Game

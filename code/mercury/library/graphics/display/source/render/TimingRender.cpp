@@ -126,13 +126,8 @@ void C_TimingRender::GatherGPUTimings(Ut::Vector<C_Timing>& gpuTimings)
 		if(pStats->Show())
 		{
 			C_Timing timing;
-			#ifdef PLATFORM_XENON
-			timing.m_Peak	= (F32)pStats->GetTotalTime(Perf::E_TimingFrame_Peak) / 1000.0f;
-			timing.m_Time	= (F32)pStats->GetTotalTime(Perf::E_TimingFrame_Prev) / 1000.0f;
-			#else
 			timing.m_Peak	= (F32)pStats->GetTotalTime(Perf::E_TimingFrame_Peak) / 1000000.0f;
 			timing.m_Time	= (F32)pStats->GetTotalTime(Perf::E_TimingFrame_Prev) / 1000000.0f;
-			#endif
 			timing.m_pName	= pStats->m_Name.Chars();
 			timing.m_Colour	= pStats->m_Colour;
 			gpuTimings.PushBack(timing);

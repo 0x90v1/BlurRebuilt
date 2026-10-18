@@ -13,11 +13,7 @@ EXTERN_SHADER(psRainDrop);
 
 using namespace Effect::Rain;
 
-#ifdef PLATFORM_XENON
-#define EFFECT_RAIN_USE_XMVECTOR
-#else
 #define EFFECT_RAIN_USE_HVEC
-#endif
 
 namespace Effect
 {
@@ -116,12 +112,6 @@ bool C_SplashRendererBase::OnCreate()
 {
 	RESOURCE_MEMORY_ID("RainSplash");
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
-	if (!Display::CreateVertexShaderFromFunc("Shaders/vsSplash", 0, &m_VertexShader, REF_SHADER(vsSplash)))
-		return false;
-	if (!Display::CreatePixelShaderFromFunc("Shaders/psDrop", 0, &m_PixelShader, REF_SHADER(psRainDrop)))
-		return false;
-#endif
 
 
 	return true;
@@ -216,10 +206,6 @@ void C_SplashRendererBase::Update(const F32 fTime, const bool bPaused)
 				
 				for(S32 a = 0; a < pBlock->m_Element.Size(); )
 				{
-					#ifdef PLATFORM_XENON
-						__dcbt(0, &pBlock->m_Element[a]);
-						__dcbt(128, &pBlock->m_Element[a]);
-					#endif
 
 					SplashParticle* pParticle = &pBlock->m_Element[a];
 				#ifdef USE_INT_LIFE
@@ -472,10 +458,6 @@ void C_SplashRendererBase::DisplayBlocks(const Ut::Vector<const SplashBlock*> &b
 			{
 				const SplashParticle* pParticle0 = &pBlock->m_Element[a];
 				
-				#ifdef PLATFORM_XENON
-					__dcbt(0, pParticle0);
-					__dcbt(128, pParticle0);
-				#endif
 		
 #ifdef EFFECT_RAIN_USE_HVEC
 				Maths::HVec4 vPositionLife(Maths::Load<Maths::HVec4>((MathsStorage::Float4A16*)&pParticle0->vPosition));	
@@ -513,14 +495,6 @@ void C_SplashRendererBase::DisplayBlocks(const Ut::Vector<const SplashBlock*> &b
 				pVertices->u = 1;
 				pVertices->v = 0;
 				++pVertices;
-#ifdef PLATFORM_XENON
-				// 3
-				Maths::Store<Maths::HVec3>(vPosition3, (MathsStorage::Float3*)&pVertices->x);
-				Maths::Store<Maths::HVec4>(vColour, (MathsStorage::Float4*)&pVertices->r);
-				pVertices->u = 0;
-				pVertices->v = 0;
-				++pVertices;	
-#else
 				// 2
 				Maths::Store<Maths::HVec3>(vPosition2, (MathsStorage::Float3*)&pVertices->x);
 				Maths::Store<Maths::HVec4>(vColour, (MathsStorage::Float4*)&pVertices->r);
@@ -539,7 +513,6 @@ void C_SplashRendererBase::DisplayBlocks(const Ut::Vector<const SplashBlock*> &b
 				pVertices->u = 0;
 				pVertices->v = 1;
 				++pVertices;
-#endif
 #endif
 			
 #ifdef EFFECT_RAIN_USE_XMVECTOR

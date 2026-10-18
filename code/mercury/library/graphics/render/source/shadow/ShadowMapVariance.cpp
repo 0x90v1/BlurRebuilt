@@ -5,13 +5,7 @@ EXTERN_SHADER(vsShadowMapVarianceDepth);
 EXTERN_SHADER(psShadowMapVarianceDepth);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Shadow/PCD3D9/vsShadowMapVarianceDepth.shader"
-#include "Render/Shaders/Shadow/PCD3D9/psShadowMapVarianceDepth.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Shadow/XB2/vsShadowMapVarianceDepth.shader"
-#include "Render/Shaders/Shadow/XB2/psShadowMapVarianceDepth.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Shadow/PS3/vsShadowMapVarianceDepth.shader"
 #include "Render/Shaders/Shadow/PS3/psShadowMapVarianceDepth.shader"
 #endif
@@ -30,11 +24,7 @@ C_VarianceMapShaders C_VarianceMap::m_Shaders;
 
 C_VarianceMap::C_VarianceMap()
 {
-	#ifdef PLATFORM_XENON
 	m_Levels				= 1;
-	#else
-	m_Levels				= 1;
-	#endif
 	#ifdef PLATFORM_PS3
 	m_ColourFormat			= Display::E_Format_A8R8G8B8;
 	#else
@@ -122,11 +112,7 @@ void C_VarianceMap::SetShaders()
 {
 	Display::Device()->SetVertexShader(&m_Shaders.m_vsDepth);
 
-	#ifdef PLATFORM_XENON
-	Display::Device()->SetPixelShader(NULL);
-	#else
 	Display::Device()->SetPixelShader(&m_Shaders.m_psDepth);
-	#endif
 }
 
 void C_VarianceMap::SetTexture(const U32 sampler, const U32 shadowMatrixRegister)
@@ -155,21 +141,6 @@ void C_VarianceMap::Bind()
 
 void C_VarianceMap::Unbind()
 {
-	#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = m_Width;
-	rect.y2 = m_Height;
-	if(g_debugUseDepthStencilTexture)
-	{
-		Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_DEPTHSTENCIL, &rect, m_DepthStencilTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	}
-	else
-	{
-		Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0, &rect, m_RenderTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	}
-	#endif
 
 	C_ShadowMap::Unbind();
 }

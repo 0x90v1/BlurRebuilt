@@ -1,9 +1,6 @@
 
 #include <core/core.h>
 
-#ifdef PLATFORM_XENON
-#include <xbdm.h>
-#endif
 
 #ifdef PLATFORM_PC
 #define _WIN32_WINNT 0x0501 
@@ -101,9 +98,6 @@ void RenderAssert(Render::Font::C_FontRenderer* fontRenderer, BizAssertKind kind
 		fontRenderer->Print(Maths::HVec2(512.f, 204.8f), "Press (A) to continue", Render::Font::E_Justification_Centre);
 
 #ifdef ENABLE_WRITING_CRASH_DUMPS
-#ifdef PLATFORM_XENON
-		fontRenderer->Print(Maths::HVec2(512.f, 224.8f), "Press (Back) to write out dump file", Render::Font::E_Justification_Centre);
-#endif
 #endif
 #endif
 	}
@@ -146,9 +140,6 @@ void RenderAssert(Render::Font::C_FontRenderer* fontRenderer, BizAssertKind kind
 	}
 
 	// Display screen
-#ifdef PLATFORM_XENON
-	Display::Device()->SetShaderGPRAllocation(0, 0, 0);
-#endif
 	Display::Device()->EndScene();
 	Display::Device()->Present();
 #endif
@@ -259,31 +250,6 @@ bool BizAssertHandler(BizAssertKind kind, const char* expr, const char* msg, con
 					RenderAssert(fontRenderer, kind, expr, msg, file, line);
 
 #ifdef ENABLE_WRITING_CRASH_DUMPS
-#ifdef PLATFORM_XENON
-				if (Input::GetGameInput(0)->GetButtonPressedDebounced(Framework::E_Button_Debug_ButtonBack))
-				{
-					LOGWARN(gLog, "Trying to write out crash dump");
-
-					DM_DUMP_SETTINGS settings, settingsNew;
-
-					HRESULT hr1 = DmGetDumpSettings(&settings);
-					BIZ_ASSERT(hr1 == XBDM_NOERR);
-
-					//settingsNew.ReportingFlags = ((settings.ReportingFlags & DUMP_RF_REPORT_MASK) | DUMP_RF_REPORT_ALWAYS) | ((settings.ReportingFlags & DUMP_RF_FORMAT_MASK) | DUMP_RF_FORMAT_PARTIAL);
-					settingsNew.ReportingFlags = DUMP_RF_REPORT_ALWAYS | DUMP_RF_DESTINATION_LOCAL | DUMP_RF_FORMAT_FULL;
-					
-					HRESULT hr2 = DmSetDumpSettings(&settingsNew);
-					BIZ_ASSERT(hr2 == XBDM_NOERR);
-
-					HRESULT hr3 = DmCrashDump(FALSE);
-					//BIZ_ASSERT(hr3 == XBDM_NOERR);
-
-					HRESULT hr4 = DmSetDumpSettings(&settings);
-					BIZ_ASSERT(hr4 == XBDM_NOERR);
-
-					int mrf = 10;
-				}
-#endif
 #endif
 
 #ifdef PLATFORM_PC

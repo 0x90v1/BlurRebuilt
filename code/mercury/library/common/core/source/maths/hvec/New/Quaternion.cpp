@@ -126,29 +126,6 @@ NOALIAS const Mat33 MakeMat33( const Quaternion PCREF q )
     const VF32 _2ay( W( _2y_xyza ) );
     const VF32 _2az( W( _2z_xyza ) );
     
-    #if defined( PLATFORM_XENON )
-    
-    //const Vec4F32 col_x( MakeVec4F32( one - _2yy - _2zz,
-    //                                        _2xy - _2az,
-    //                                        _2xz + _2ay, zero ) );
-    
-    //const Vec4F32 col_y( MakeVec4F32(       _2xy + _2az,
-    //                                  one - _2xx - _2zz,
-    //                                        _2yz - _2ax, zero ) );
-    
-    //const Vec4F32 col_z( MakeVec4F32(       _2xz - _2ay,
-    //                                        _2yz + _2ax,
-    //                                  one - _2xx - _2yy, zero ) );
-    
-    const Vector3 col_x( unit_x + NegateX( MakeVector3( _2yy, _2xy, _2xz ) ) + NegateXY( MakeVector3( _2zz, _2az, _2ay ) ) );
-    const Vector3 col_y( unit_y + NegateY( MakeVector3( _2xy, _2xx, _2yz ) ) + NegateYZ( MakeVector3( _2az, _2zz, _2ax ) ) );
-    const Vector3 col_z( unit_z + NegateZ( MakeVector3( _2xz, _2yz, _2xx ) ) + NegateXZ( MakeVector3( _2ay, _2ax, _2yy ) ) );
-    
-    Mat33 result;
-    SetColumns( &result, col_x, col_y, col_z );
-    return result;
-    
-    #else
     
     //const Vec4F32 row_x( MakeVec4F32( one - _2yy - _2zz,
     //                                        _2xy + _2az,
@@ -170,7 +147,6 @@ NOALIAS const Mat33 MakeMat33( const Quaternion PCREF q )
     SetRows( &result, row_x, row_y, row_z );
     return result;
     
-    #endif
     
     #endif
 }

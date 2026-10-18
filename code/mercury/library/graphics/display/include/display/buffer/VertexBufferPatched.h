@@ -9,8 +9,6 @@
 
 #if defined(DEVICE_PS3GCM)
 #include "Display/Buffer/GCM/GCMVertexBufferPatched.h"
-#elif defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
-#include "Display/Buffer/D3D9/D3D9VertexBufferPatched.h"
 #else
 #pragma message("Unsupported device define when compiling VertexBufferPatched.h")
 #endif

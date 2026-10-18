@@ -50,9 +50,6 @@ namespace PostProcess
 	class C_HighDynamicRange;
 	class C_ShowDepth;
 	class C_Tint;
-#ifdef PLATFORM_XENON
-	class C_MotionBlur;
-#endif
 }
 
 namespace ReducedRender
@@ -126,9 +123,6 @@ private:
 	DynamicEffect::C_Minimal*			m_pMinimalDynamicEffect;
 
 	// cloth
-#ifdef PLATFORM_XENON
-	DynamicEffect::C_SampleClothRenderer*	m_pClothRenderer;
-#endif
 	Display::C_DynamicVB*				m_pDynamicVB;
 
 	Render::Sky::C_SkyDome				m_SkyDome;
@@ -154,9 +148,6 @@ private:
 	PostProcess::C_HighDynamicRange*	m_pHighDynamicRange;
 	PostProcess::C_ShowDepth*			m_pShowDepth;
 	PostProcess::C_Tint*				m_pTint;
-#ifdef PLATFORM_XENON
-	PostProcess::C_MotionBlur*			m_pMotionBlur;
-#endif
 	Display::C_Matrix					m_Matrices[512];
 	Display::C_Matrix					m_Matrices2[8];
 	//DynamicEffect::ClothInstance			m_Instances[512];

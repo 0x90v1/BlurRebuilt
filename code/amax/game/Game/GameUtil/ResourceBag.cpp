@@ -117,7 +117,7 @@ void C_ResourceBag::DebugOutputBagContents(void) const
 
 void C_ResourceBag::ResourceNotify(Resource::C_ResourceBase* pResource, const Resource::E_Notify result, void* pData)
 {
-	C_Resources::Iterator it = m_Resources.Find((ResourceUtils::C_ResourceBagTag)pData);
+	C_Resources::Iterator it = m_Resources.Find((ResourceUtils::C_ResourceBagTag)(INTPTR)pData);	// [Blur2PC][x64] tag carried in the pointer
 
 	if (it != m_Resources.End())
 	{

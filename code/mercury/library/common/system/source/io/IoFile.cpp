@@ -41,7 +41,7 @@ U64 IoFile::Size() const
 IoFileImpl::IoFileImpl() :
 	references(0),
 	state(kState_Opening),
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	handle(INVALID_HANDLE_VALUE),
 	diskOffset(0),
 #elif defined(PLATFORM_PS3)
@@ -61,7 +61,7 @@ void IoFileImpl::Acquire(IoFileImpl* impl)
 {
 	if (impl)
 	{
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 		InterlockedIncrement((LONG*)&impl->references);
 #elif defined(PLATFORM_PS3)
 		cellAtomicIncr32((U32*)&impl->references);
@@ -73,7 +73,7 @@ void IoFileImpl::Release(IoFileImpl* impl)
 {
 	if (impl)
 	{
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 		if (InterlockedDecrement((LONG*)&impl->references) <= 0)
 #elif defined(PLATFORM_PS3)
 		if (cellAtomicDecr32((U32*)&impl->references) <= 1)

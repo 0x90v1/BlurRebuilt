@@ -136,9 +136,6 @@ void C_AppPhotoCapture::TurnStuffOff(bool restore)
 	if (!restore) { old = var; var = value; } \
 	else { var = old; }
 	
-#ifdef PLATFORM_XENON
-	Display::g_AlphaToMaskOffsets = restore ? D3DALPHATOMASK_DITHERED : D3DALPHATOMASK_SOLID;
-#endif
 	DV_SET(g_DebugDisableDebugHud,				m_OldBool[0], true)
 	DV_SET(g_GameDebugRender2d,					m_OldBool[1], false)
 	DV_SET(Lod::g_LodEnabled,					m_OldBool[2], false)
@@ -175,45 +172,12 @@ void C_AppPhotoCapture::TurnStuffOff(bool restore)
 	Lod::C_LodManager::Instance().Update(0.0f, false, true);
 }
 
-#ifdef PLATFORM_XENON
-// Try and borrow one of Charlie's textures to resolve into:
-static Display::C_Texture2D* GetOffscreenResolveTexture()
-{
-	C_GameApp* gameApp = C_GameApp::GetInstance();
-	if (!gameApp)
-		return 0;
-
-	Game::C_GameWorldPostProcess* layer = AmaxCam::GetGameWorld();
-	PostProcess::C_Manager* manager = layer ? layer->GetManager() : 0;
-	if (!manager)
-		return 0;
-
-	const PostProcess::C_RenderTarget& rtarg = manager->GetRenderTarget(0);
-	if (rtarg.m_RenderTextures.Size() < 1)
-		return 0;
-	
-	Display::C_RenderTexture2D* renderTexture = rtarg.m_RenderTextures[0];
-	if (!renderTexture)
-		return 0;
-
-	Display::C_Texture2D& texture = renderTexture->GetTexture();
-
-	// Check it's the right size:
-	if (texture.GetWidth() != 1280 || texture.GetHeight() != 720)
-		return 0;
-
-	return &texture;
-}
-#endif
 
 void C_AppPhotoCapture::RenderStart(S32 samples)
 {
 	if (!m_Accumulate)
 		return;
 
-#ifdef PLATFORM_XENON
-	m_OffscreenTexture = HideCapture() ? GetOffscreenResolveTexture() : 0;
-#endif
 	
 	m_Accumulate->Start(samples);
 
@@ -253,20 +217,6 @@ void C_AppPhotoCapture::RenderAddSample()
 	Display::Device()->BeginScene();
 	C_GameApp::GetInstance()->CommonRender();
 
-#ifdef PLATFORM_XENON
-	if (m_OffscreenTexture)
-	{
-		// Resolve to Charlie's texture and render black over the top:
-		Display::Device()->Resolve(Display::E_Resolve_Colour, m_OffscreenTexture);
-		Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Stencil, RGBA(0));
-	}
-	Display::Device()->EndScene();
-	Display::Device()->Present();
-
-	Display::Device()->BeginScene();
-	m_Accumulate->AddSample(m_OffscreenTexture);
-	Display::Device()->EndScene();
-#endif
 
 #ifdef PLATFORM_PS3
 	Display::Device()->EndScene();

@@ -7,9 +7,6 @@
 #include <windows.h>
 #include <time.h>
 #endif
-#if defined( PLATFORM_XENON )
-#include <time.h>
-#endif
 #elif defined( PLATFORM_PS3 )
 #include <time.h>
 #include <sys/sys_time.h>

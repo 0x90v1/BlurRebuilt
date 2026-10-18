@@ -19,12 +19,8 @@
 namespace LogicalFs
 {
 
-#ifdef PLATFORM_XENON
-		#define NUM_MEDIA_LAYERS E_MediaLayer_Count
-#else
 		//Don't need to worry about two layer DVDs.
 		#define NUM_MEDIA_LAYERS 1
-#endif
 
 
 namespace GameHelpers
@@ -71,23 +67,6 @@ C_OverlayFs* CreateGameFs()
 			"CFileSystem");
 	}
 
-#ifdef PLATFORM_XENON
-	//Mount additional layer for DVD layer1 on 360
-	Sys::C_FilePath dstPath = "/";
-	Sys::C_FilePath srcPath = "layer1";
-
-	C_OverlayLayer::C_Params params;
-	params.flags.layerType =  GetDefaultOverlayType();
-	params.flags.writable = false;
-	
-	g_pGameFs->AddLayer(
-		dstPath, 
-		&nativeFs,
-		srcPath, 
-		params,
-		E_MediaLayer_1, 
-		"CFileSystem_Layer1");
-#endif
 
 	return g_pGameFs;
 }

@@ -36,9 +36,6 @@ bool C_CubeTextureSaver::OnCreateVolatile()
 
 	Display::C_SurfaceParams surfaceParams;
 
-	#ifdef PLATFORM_XENON
-	surfaceParams.AfterSurface(&m_RenderTexture[0].GetSurface());
-	#endif
 
 	if(!Display::Device()->CreateDepthStencilSurface(m_Width, m_Width, Display::E_Usage_DepthStencil, backBuffer.GetDepthStencilFormat(), Display::E_Multisample_None, &surfaceParams, &m_DepthStencilSurface))
 		return false;
@@ -77,14 +74,6 @@ void C_CubeTextureSaver::Unbind(const Display::E_CubeTextureFace face)
 {
 	assert(face < Display::E_CubeTextureFace_Count);
 
-	#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = m_Width;
-	rect.y2 = m_Width;
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, m_RenderTexture[face].GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	#endif
 
 	Display::Device()->SetView(NULL, false);
 }
@@ -195,34 +184,6 @@ bool C_CubeTextureSaver::SaveFace(const Display::E_CubeTextureFace face, const U
 		break;
 	}
 
-	#ifdef GRAPHICS_D3D9
-	#ifdef PLATFORM_XENON
-	IDirect3DTexture9* pd3dTexture = m_RenderTexture[face].GetTexture().GetGPUTexture2D();
-	#if 1
-	HRESULT hr = D3DXSaveTextureToFile(filePath.Chars(), D3DXIFF_DDS , pd3dTexture, NULL);
-	#else
-	IDirect3DSurface9* pd3dSurface = NULL;
-	HRESULT hr = pd3dTexture->GetSurfaceLevel(0, &pd3dSurface);
-	if(FAILED(hr))
-	{
-		(g_Log, "Failed to get surface from texture\n");
-		return false;
-	}
-	hr = D3DXSaveSurfaceToFile(filePath.Chars(), D3DXIFF_DDS, pd3dSurface, NULL, NULL);
-	#endif
-	#else
-	HRESULT hr = D3DXSaveSurfaceToFile(filePath.Chars(), D3DXIFF_DDS, m_RenderTexture[face].GetSurface().m_pd3dSurface, NULL, NULL);
-	#endif
-	if(SUCCEEDED(hr))
-	{
-		LOGINFO(g_Log, "Successfully wrote file '%s'\n", filePath.Chars());
-	}
-	else
-	{
-		LOGWARN(g_Log, "Failed to write file '%s'\n", filePath.Chars());
-		return false;
-	}
-	#endif
 
 	return true;
 }

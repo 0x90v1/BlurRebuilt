@@ -2546,7 +2546,7 @@ void C_RaceLogicLayer::ProcessCollisions(SharedPhysics::C_ContactStreamIterator&
 							const HF32 impluseB = maxImpulse * Abs((norm | actorBXAxis));
 							const Scalar_Bool con(impluseA > impluseB);
 							const HF32 finalImpluse = Select(con, impluseA, impluseB);
-							const Game::Actors::C_VehicleActor* pVehicle = (Game::Actors::C_VehicleActor*)Select((bool)con, (U32)pVehicleA, (U32)pVehicleB);
+							const Game::Actors::C_VehicleActor* pVehicle = (bool)con ? pVehicleA : pVehicleB;	// [Blur2PC][x64] was a U32 Select of the two pointers
 							
 							const AmaxVehicleWeight vehicleWeightClass = (bool)con ? pVehicleA->GetWeightClass() : pVehicleB->GetWeightClass();
 
@@ -3093,7 +3093,7 @@ void C_RaceLogicLayer::ProcessCachedEvents()
 //						const HF32 impluseB = maxImpulse * Abs((norm | actorBXAxis));
 //						const Scalar_Bool con(impluseA > impluseB);
 //						const HF32 finalImpluse = Select(con, impluseA, impluseB);
-//						const Game::Actors::C_VehicleActor* pVehicle = (Game::Actors::C_VehicleActor*)Select((bool)con, (U32)pVehicleA, (U32)pVehicleB);
+//						const Game::Actors::C_VehicleActor* pVehicle = (bool)con ? pVehicleA : pVehicleB;	// [Blur2PC][x64] was a U32 Select of the two pointers
 //						
 //						if(finalImpluse.GT(gripLossMinImpulse) && ! pVehicle->LostGrip())
 //						{

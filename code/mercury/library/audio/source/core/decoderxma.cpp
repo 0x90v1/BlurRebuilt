@@ -697,11 +697,7 @@ void Audio::Core::XMADecoder::Resume(const DecoderDataInfo& info)
 
 #ifdef XMA_DOUBLE_BUFFER
 	// pad 1st buffer with 0
-    #if defined( PLATFORM_XENON ) // JASOND
-	XMemSet(m_asDecoded[0], 0, 1024 * sizeof(S16) * m_waveData.uChannels);
-	#else
 	memset(m_asDecoded[0], 0, 1024 * sizeof(S16) * m_waveData.uChannels);
-	#endif
 
 	m_uWrite = 1;
 #endif
@@ -1790,11 +1786,7 @@ U32 Audio::Core::XMADecoder::GetData(const DecoderDataInfo& info)
                 		AUDIO_CORE_DEBUG("%d ~~~STREAM~~~ XMADecoder::GetData() [uAvailable >= uSamplesRequired] - got %d samples of decoded data", System::Get()->GetFrameNum(), uRead);
 
 					// copy into decoder's 'back buffer'
-					#if defined( PLATFORM_XENON ) // JASOND
-					XMemCpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-					#else
 					memcpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-					#endif
 
 					uRemaining -= uRead; // * uChannels
 					pBuffer += uRead * m_waveData.uChannels;
@@ -1829,11 +1821,7 @@ U32 Audio::Core::XMADecoder::GetData(const DecoderDataInfo& info)
 					if (g_bAudioPrintXmaStreamerDebug && m_waveData.hWaveData.IsValid())
 						AUDIO_CORE_DEBUG("%d ~~~STREAM~~~ XMADecoder::GetData() [uAvailable < uSamplesRequired AND uAvailable > 0] - got %d samples of decoded data", System::Get()->GetFrameNum(), uRead);
 
-					#if defined( PLATFORM_XENON ) // JASOND
-					XMemCpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-					#else
 					memcpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-					#endif
 
 					uRemaining -= uRead; // * uChannels
 					pBuffer += uRead * m_waveData.uChannels;
@@ -2085,11 +2073,7 @@ U32 Audio::Core::XMADecoder::GetData()
 
                 U32 uRead = XMAPlaybackConsumeDecodedData(m_state.pXmaPlayback, 0, uRemaining, (void**)&asData);
                 
-				#if defined( PLATFORM_XENON ) // JASOND
-				XMemCpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-				#else
 				memcpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-				#endif
 
                 uRemaining -= uRead; // * uChannels
                 pBuffer += uRead * m_waveData.uChannels;
@@ -2118,11 +2102,7 @@ U32 Audio::Core::XMADecoder::GetData()
 
                 U32 uRead = XMAPlaybackConsumeDecodedData(m_state.pXmaPlayback, 0, uRemaining, (void**)&asData);
 
-                #if defined( PLATFORM_XENON ) // JASOND
-                XMemCpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-                #else
                 memcpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-                #endif
 
 				uRemaining -= uRead; // * uChannels
                 pBuffer += uRead * m_waveData.uChannels;
@@ -2154,11 +2134,7 @@ U32 Audio::Core::XMADecoder::GetData()
                         
 						U32 uRead = XMAPlaybackConsumeDecodedData(m_state.pXmaPlayback, 0, uRemaining, (void**)&asData); //finally...get the missing data
                         
-                        #if defined( PLATFORM_XENON ) // JASOND
-				        XMemCpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-				        #else
 				        memcpy(pBuffer, asData, uRead * sizeof(S16) * m_waveData.uChannels);
-				        #endif
 					//}
 
 					uRemaining -= uRead;
@@ -2170,11 +2146,7 @@ U32 Audio::Core::XMADecoder::GetData()
 			else
 			{
 				// pad remaining with 0
-                #if defined( PLATFORM_XENON ) // JASOND
-				XMemSet(pBuffer, 0, (uSamplesRequired - uAvailable) * sizeof(S16) * m_waveData.uChannels);
-				#else
 				memset(pBuffer, 0, (uSamplesRequired - uAvailable) * sizeof(S16) * m_waveData.uChannels);
-				#endif
             }
             
             bResult = true;

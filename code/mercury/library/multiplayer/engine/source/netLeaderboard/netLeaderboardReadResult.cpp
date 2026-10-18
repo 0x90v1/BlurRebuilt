@@ -87,17 +87,10 @@ void netLeaderboardReadData::updateSkill(const SysProfile::UserIdentifier& user,
 
 	entry->m_Skill = skill->m_Skill;
 		
-	#if defined(PLATFORM_XENON)
-		entry->m_Mu			= skill->m_Mu;
-		entry->m_Sigma		= skill->m_Sigma;
-	#endif
 }
 
 void netLeaderboardReadData::updateRow(Scoreboard::RowData* row)
 {
-	#if defined(PLATFORM_XENON)
-		row->m_EntityId = row->m_Userdata.m_Uid;
-	#endif
 	
 	netRowDataRef entry = findRow(row->m_EntityId);
 	if(entry.isNull())

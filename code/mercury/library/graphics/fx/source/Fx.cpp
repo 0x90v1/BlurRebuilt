@@ -114,11 +114,16 @@ void SetParameter(Parameter *pParam, const void *pData)
 	BIZ_ASSERT(pParam);
 	BIZ_ASSERT(pData);
 
-#if !CFG_GOLD && DEVICE_D3D9
-	if(pParam->Type == NGLFX_PARAM_SAMPLER)
-		Display2::DebugCheckGPUTexture(*((Display2::GPUTexture**)pData));
-#endif
 	
+	if (pParam->Type == NGLFX_PARAM_SAMPLER)
+	{
+		// [Blur2PC][x64] pData points at a texture pointer; the sampler word holds its
+		// Core::PointerToSlot32 slot (the pointer itself on x86). Any further words follow it.
+		pParam->Sampler->Texture = Core::PointerToSlot32(*(void* const*)pData);
+		if (pParam->Size > 1)
+			memcpy(&pParam->Sampler->iSamplerState, (const U8*)pData + sizeof(void*), (pParam->Size - 1)*4);
+		return;
+	}
 	memcpy(pParam->Data, pData, pParam->Size*4);
 }
 

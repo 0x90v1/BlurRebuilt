@@ -3,7 +3,7 @@
 #include <Xt/Impl/XtUt.h>
 #include "Common/XtFlask.h"
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #define vsnprintf(buf, sizeofBuf, text, vl) _vsnprintf_s(buf, sizeofBuf, _TRUNCATE, text, vl);
 #endif
 
@@ -392,7 +392,7 @@ ValidateFlaskError ValidateFlask(XtUt::Block* flask)
 			if (componentBytes + elementBytes < componentBytes)
 				return kVfeFailed;
 
-			componentBytes = XtUt::AlignUpper(componentBytes + elementBytes, kXtFlaskAlign);
+			componentBytes = XtUt::AlignUpper(componentBytes + elementBytes, (XtU32)kXtFlaskAlign);	// [Blur2PC][x64] kXtFlaskAlign is size_t
 		}
 
 		componentIndex += record->componentCount;

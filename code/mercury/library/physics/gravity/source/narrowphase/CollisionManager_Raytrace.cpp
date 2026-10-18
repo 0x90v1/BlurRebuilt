@@ -31,7 +31,7 @@ bool C_CollisionManager::FatRayTrace( const Collision::C_CollisionObject* __rest
 	if(shapeType == E_Continuous_Shape)
 	{
 		//pShape = (C_Shape*)Spu::FetchAlloc(((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape, sizeof(Collision::C_Shape));
-		pShape = (C_Shape*)Spu::Get((U32*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));
+		pShape = (C_Shape*)Spu::Get((INTPTR*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));	// [Blur2PC][x64] pointer-wide
 		shapeType = Spu::Get((U32*)&pShape->m_ShapeType);
 	}
 	C_CollisionFilter* pRayFilter = &ray.m_Filter;//(C_CollisionFilter*)Spu::FetchAlloc(ray.m_pFilter, sizeof(C_CollisionFilter));
@@ -149,7 +149,7 @@ bool C_CollisionManager::RayTrace( const Collision::C_CollisionObject* __restric
 	if(shapeType == E_Continuous_Shape)
 	{
 		//pShape = (C_Shape*)Spu::FetchAlloc(((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape, sizeof(Collision::C_Shape));
-		pShape = (C_Shape*)Spu::Get((U32*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));
+		pShape = (C_Shape*)Spu::Get((INTPTR*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));	// [Blur2PC][x64] pointer-wide
 		shapeType = Spu::Get((U32*)&pShape->m_ShapeType);
 	}
 	C_CollisionFilter* pRayFilter = &ray.m_Filter;//(C_CollisionFilter*)Spu::FetchAlloc(ray.m_pFilter, sizeof(C_CollisionFilter));
@@ -360,7 +360,7 @@ bool C_CollisionManager::RayTrace( const Collision::C_CollisionObject* __restric
 	if(shapeType == E_Continuous_Shape)
 	{
 		//pShape = (C_Shape*)Spu::FetchAlloc(((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape, sizeof(Collision::C_Shape));
-		pShape = (C_Shape*)Spu::Get((U32*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));
+		pShape = (C_Shape*)Spu::Get((INTPTR*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));	// [Blur2PC][x64] pointer-wide
 		shapeType = Spu::Get((U32*)&pShape->m_ShapeType);
 	}
 	//C_CollisionFilter* pRayFilter = &ray.m_Filter;//(C_CollisionFilter*)Spu::FetchAlloc(ray.m_pFilter, sizeof(C_CollisionFilter));
@@ -449,7 +449,7 @@ bool C_CollisionManager::FatRayTrace( const Collision::C_CollisionObject* __rest
 	if(shapeType == E_Continuous_Shape)
 	{
 		//pShape = (C_Shape*)Spu::FetchAlloc(((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape, sizeof(Collision::C_Shape));
-		pShape = (C_Shape*)Spu::Get((U32*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));
+		pShape = (C_Shape*)Spu::Get((INTPTR*)(&((Collision::C_ContinuousShape*)pShape)->m_pDiscreteShape));	// [Blur2PC][x64] pointer-wide
 		shapeType = Spu::Get((U32*)&pShape->m_ShapeType);
 	}
 	//C_CollisionFilter* pRayFilter = &ray.m_Filter;//(C_CollisionFilter*)Spu::FetchAlloc(ray.m_pFilter, sizeof(C_CollisionFilter));

@@ -10,11 +10,6 @@
 #include <Core/Threads/ThreadLocalStorage.h>
 #include <Display2/Utils/Utils.h>
 
-#ifdef PLATFORM_XENON
-#include "Display/Device/D3D9/D3D9.h"
-void __cdecl D3DBeginTimingCallback(DWORD context);
-void __cdecl D3DEndTimingCallback(DWORD context);
-#endif
 
 #ifdef PLATFORM_PC
 struct IDirect3DQuery9;	// [Blur2PC] PC GPU timing queries
@@ -59,12 +54,6 @@ public:
 	U32											m_TimingIndex[m_TimingCount];
 	#endif
 	
-	#ifdef PLATFORM_XENON
-	U64											m_DisplayTime;
-	U64											m_StartTime;
-	U64											m_TempTime;
-	U64											m_EndTime;
-	#endif
 
 	#ifdef PLATFORM_PC
 	// [Blur2PC] PC backend (the snapshot has none): D3D9 timestamp query pairs per event, read back
@@ -72,11 +61,7 @@ public:
 	// assumes off Xenon)
 	static const U32							m_FrameCount = 4;
 	static const U32							m_PairCount = 8;
-	#if defined(BLUR_USE_DX11)
 	ID3D11Query*							m_pQueries[m_FrameCount][m_PairCount][2]; // [Blur1PCDX11] Native timestamp queries.
-	#else
-	IDirect3DQuery9*							m_pQueries[m_FrameCount][m_PairCount][2];
-	#endif
 	U32											m_PairsUsed[m_FrameCount];
 	U64											m_DisplayTime;
 	#endif

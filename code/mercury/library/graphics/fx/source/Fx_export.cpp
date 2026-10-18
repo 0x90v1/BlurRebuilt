@@ -751,31 +751,6 @@ const StateTableEntry BlendOpTable[] =
 };
 
 
-#if NGL_GPU_D3D_XENON && NGL_ZINVERT
-
-#define	GPU_CMP_ZDEFAULT	GPU_CMP_GREATEREQUAL
-
-const StateTableEntry CompareTable[] =
-{
-	{ hString("NEVER"), GPU_CMP_NEVER },
-	{ hString("ALWAYS"), GPU_CMP_ALWAYS },
-	{ hString("LESS"), GPU_CMP_LESS },
-	{ hString("LESSEQUAL"), GPU_CMP_LESSEQUAL },
-	{ hString("GREATER"), GPU_CMP_GREATER },
-	{ hString("GREATEREQUAL"), GPU_CMP_GREATEREQUAL },
-	{ hString("EQUAL"), GPU_CMP_EQUAL },
-	{ hString("NOTEQUAL"), GPU_CMP_NOTEQUAL },
-	{ hString("NEAR_NEVER"), GPU_CMP_NEVER },
-	{ hString("NEAR_ALWAYS"), GPU_CMP_ALWAYS },
-	{ hString("NEAR_LESS"), GPU_CMP_GREATER },
-	{ hString("NEAR_LESSEQUAL"), GPU_CMP_GREATEREQUAL },
-	{ hString("NEAR_GREATER"), GPU_CMP_LESS },
-	{ hString("NEAR_GREATEREQUAL"), GPU_CMP_LESSEQUAL },
-	{ hString("NEAR_EQUAL"), GPU_CMP_EQUAL },
-	{ hString("NEAR_NOTEQUAL"), GPU_CMP_NOTEQUAL },
-};
-
-#else
 
 #define	GPU_CMP_ZDEFAULT	GPU_CMP_LESSEQUAL
 
@@ -799,7 +774,6 @@ const StateTableEntry CompareTable[] =
 	{ hString("NEAR_NOTEQUAL"), E_CmpFunc_NotEqual },
 };
 
-#endif
 
 
 const StateTableEntry StencilTable[] =
@@ -834,27 +808,6 @@ const StateTableEntry FillTable[] =
 	{ hString("SOLID"), E_FillMode_Solid },
 };
 
-#if NGL_GPU_D3D_XENON
-const StateTableEntry TessellationTable[] =
-{
-	{ hString("NONE"), 0xffffffff },
-	{ hString("DISCRETE"), D3DTM_DISCRETE },
-	{ hString("CONTINUOUS"), D3DTM_CONTINUOUS },
-};
-
-const StateTableEntry AlphaToMaskTable[] =
-{
-	{ hString("SOLID"), 0 },
-	{ hString("DITHERED"), 1 },
-};
-
-const StateTableEntry HiZEnableTable[] =
-{
-	{ hString("disable"), D3DHIZ_DISABLE },
-	{ hString("enable"), D3DHIZ_ENABLE },
-	{ hString("automatic"), D3DHIZ_AUTOMATIC },
-};
-#endif
 
 static void WriteRenderStates(Pass *pass, FxFile::PassDesc *pPass)
 {
@@ -906,17 +859,6 @@ static void WriteRenderStates(Pass *pass, FxFile::PassDesc *pPass)
 
 	pass->RenderStates.AlphaToMaskEnable = GetStateFXBool(pPass, hString("AlphaToMaskEnable"));
 
-#if NGL_GPU_D3D_XENON
-	pass->RenderStates.Tessellate = GetStateTable(pPass, hString("TessellationMode"), tl_elementsof(TessellationTable), TessellationTable, 0xffffffff);
-	pass->RenderStates.TessellationLevel = GetStateFloat(pPass, hString("MaxTessellationLevel"), 1.0f);
-
-	pass->RenderStates.AlphaToMaskOffsets = GetStateTable(pPass, hString("AlphaToMaskOffsets"), tl_elementsof(AlphaToMaskTable), AlphaToMaskTable, ~0);
-	// If it didn't match "solid" or "dithered", treat as an unsigned int.
-	if (pass->RenderStates.AlphaToMaskOffsets == ~0)
-		pass->RenderStates.AlphaToMaskOffsets = GetStateUInt(pPass, hString("AlphaToMaskOffsets"), 0);
-
-	pass->RenderStates.HiZEnable = GetStateTable(pPass, hString("HiZEnable"), tl_elementsof(HiZEnableTable), HiZEnableTable, D3DHIZ_AUTOMATIC);
-#else
 	// Xenon specific states not supported on other platforms.
 	pass->RenderStates.Tessellate = 0xffffffff;
 	pass->RenderStates.TessellationLevel = 1.0f;
@@ -924,7 +866,6 @@ static void WriteRenderStates(Pass *pass, FxFile::PassDesc *pPass)
 	pass->RenderStates.AlphaToMaskOffsets = 0;
 
 	pass->RenderStates.HiZEnable = 0;
-#endif
 }
 
 char *SkipWhitespace(char *p)

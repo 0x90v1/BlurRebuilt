@@ -34,9 +34,6 @@ C_Stream::~C_Stream()
 
 C_D3D11GameDevice::C_D3D11GameDevice()
 {
-	#ifdef PLATFORM_XENON
-	m_HighPrecisionColourSurface		= false;
-	#endif
 	m_BlendHighPrecisionEnable			= E_Bool_Unknown;
 	m_SlopeScaledBias					= 0.f;
 	m_PresentInterval					= E_PresentInterval_Unknown;
@@ -338,9 +335,6 @@ bool C_D3D11GameDevice::AcquireThreadOwnership( U32 timeMs )
 	{
 		if (g_iOwnerThreadRefCount++ == 0)
 		{
-#ifdef PLATFORM_XENON
-			m_pd3dDevice->AcquireThreadOwnership();
-#endif
 		}
 
 		return true;
@@ -356,9 +350,6 @@ void C_D3D11GameDevice::ReleaseThreadOwnership()
 
 	if (--g_iOwnerThreadRefCount == 0)
 	{
-#ifdef PLATFORM_XENON
-		m_pd3dDevice->ReleaseThreadOwnership();
-#endif
 	}
 
 	m_ThreadOwnershipMutex.Release();
@@ -439,10 +430,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_All);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_False);
-				#endif
 			}
 			break;
 
@@ -457,10 +444,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_False);
-				#endif
 			}
 			break;
 
@@ -481,10 +464,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_True);
-				#endif
 			}
 			break;
 
@@ -505,10 +484,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_True);
-				#endif
 			}
 			break;
 
@@ -527,10 +502,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_False);
-				#endif
 			}
 			break;
 
@@ -551,10 +522,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_True);
-				#endif
 			}
 			break;
 
@@ -575,10 +542,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_True);
-				#endif
 			}
 			break;
 
@@ -597,10 +560,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_False);
-				#endif
 			}
 			break;
 
@@ -619,10 +578,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_True);
-				#endif
 			}
 			break;
 
@@ -641,10 +596,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 			
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_True);
-				#endif
 			}
 			break;
 
@@ -660,10 +611,6 @@ void C_D3D11GameDevice::SetBlendMode(const E_BlendMode blendMode)
 				if(m_LuminanceWrite == E_LuminanceWrite_Enabled)
 					SetColourWriteEnable(E_ColourWriteEnable_Red|E_ColourWriteEnable_Green|E_ColourWriteEnable_Blue);
 				
-				#ifdef PLATFORM_XENON
-				if(m_HighPrecisionColourSurface)
-					SetBlendHighPrecisionEnable(E_Bool_False);
-				#endif
 			}
 			break;
         }

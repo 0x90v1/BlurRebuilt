@@ -5,9 +5,6 @@
 #include "Display/Shader/VertexShaders.h"
 #include "Display/Shader/PixelShaders.h"
 
-#ifdef PLATFORM_XENON
-#include "Display/Shaders/Constants.h"
-#endif
 
 namespace Display
 {
@@ -180,14 +177,6 @@ void Draw()
 	dy -= m_BiasY / (F32)viewport.GetW();
 
 	// [Blur1PCDX11] D3D11 puts pixel centres at half-integers, as PS3 does: no D3D9 half-pixel shift.
-	#if !defined(PLATFORM_PS3) && !defined(BLUR_USE_DX11)
-	MathsStorage::Float2 vHalfPixel;
-	if(g_debugQuadHalfPixelOffset)
-		vHalfPixel = MathsStorage::Float2(m_HalfPixelScaleX / (F32)viewport.GetW() + g_debugQuadHalfPixelX, m_HalfPixelScaleY / (F32)viewport.GetH() + g_debugQuadHalfPixelY);
-
-	x0 -= vHalfPixel.x;
-	y0 += vHalfPixel.y;
-	#endif
 	
 	Vertex_XY_UV* pVertex = (Vertex_XY_UV*)Device()->BeginVertices(E_PrimitiveType_TriangleList, m_Segments.x * m_Segments.y * 6, sizeof(Vertex_XY_UV), Vertex_XY_UV::m_pDeclaration, false); // This must not fail
 
@@ -255,10 +244,6 @@ void Draw()
 		LOGERROR(g_Log, "Too many begin vertices have been issued during the frame.\n");
 	}
 
-	#ifdef PLATFORM_XENON
-	if(g_debugQuadHalfPixelOffset)
-		Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HALFPIXELOFFSET, FALSE);
-	#endif
 }
 
 void DrawFullScreen()
@@ -309,7 +294,7 @@ void DrawFullScreenDepth()
 {
 	Display::Device()->SetCullMode(Display::E_CullMode_None);
 	Display::Device()->SetDepthFunc(Display::E_CmpFunc_Always);
-	#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 	Display::Device()->SetDepthEnable(Display::E_Bool_True);
 	#else
 	Display::Device()->SetDepthEnable(Display::E_Bool_False);
@@ -341,11 +326,7 @@ void DrawFullScreenDepth(const C_Texture* pColour, const C_Texture* pDepth, cons
 
 void DrawFullScreenDepth(const C_Texture* pColour, const C_Texture* pDepth)
 {
-	#ifdef PLATFORM_XENON
-	Display::Device()->SetPixelShader(&Display::PixelShader::m_PixelShaderDepth);
-	#else
 	Display::Device()->SetPixelShader(&Display::PixelShader::m_PixelShaderTexture);
-	#endif
 
 	Display::Device()->SetTexture(0, pColour);
 	Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Point);
@@ -419,17 +400,6 @@ void DrawPartScreen(F32 x1, F32 y1, F32 x2, F32 y2)
 	Device()->SetVertexShader(&VertexShader_XY::m_VertexShader);
 		
 	// [Blur1PCDX11] D3D11 puts pixel centres at half-integers, as PS3 does: no D3D9 half-pixel shift.
-	#if !defined(PLATFORM_PS3) && !defined(BLUR_USE_DX11)
-	const C_Viewport& viewport = Device()->GetViewport();
-	MathsStorage::Float2 vHalfPixel;
-	if(g_debugQuadHalfPixelOffset)
-		vHalfPixel = MathsStorage::Float2(m_HalfPixelScaleX / (F32)viewport.GetW() + g_debugQuadHalfPixelX, m_HalfPixelScaleY / (F32)viewport.GetH() + g_debugQuadHalfPixelY);
-
-	x1 -= vHalfPixel.x;
-	y1 += vHalfPixel.y;
-	x2 -= vHalfPixel.x;
-	y2 += vHalfPixel.y;
-	#endif
 	
 	Vertex_XY_UV* pVertex = (Vertex_XY_UV*)Device()->BeginVertices(E_PrimitiveType_TriangleList, 6, sizeof(Vertex_XY_UV), Vertex_XY_UV::m_pDeclaration, false); // This must not fail
 

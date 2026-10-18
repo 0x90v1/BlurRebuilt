@@ -1,7 +1,5 @@
 #include "GameResourcePch.h"
-#if defined(BLUR_USE_DX11)
 #include <system/debug/Blur2PCAutomation.h>
-#endif
 //#include <system/time/scopedtimer.h>
 
 #include <system/serialise/C_FileBlock.h>
@@ -277,7 +275,6 @@ bool C_ModelResource::LoadModelData( Sys::I_File* pFile, const Util::C_String& p
 
 	if (m_pRenderModel)
 	{
-#if defined(BLUR_USE_DX11)
 		{
 			RenderingData::Target::Scene& scene = m_pRenderModel->GetScene();
 			RenderingData::Node& root = scene.GetRootNode();
@@ -289,7 +286,6 @@ bool C_ModelResource::LoadModelData( Sys::I_File* pFile, const Util::C_String& p
 						m_Filename.Chars(), lodLevel, child, index.GetBlock(), index.GetIndex());
 			}
 		}
-#endif
 		m_pRenderModel->BuildModelsStart();
 
 		g_ModelTypeManager.OnLoad(paramType, this);

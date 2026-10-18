@@ -54,10 +54,6 @@ bool C_Manager::CreateDeviceIndirect(C_Device* pDevice, C_DeviceParams& devicePa
 
 	RESOURCE_MEMORY_ID("Device");
 
-	#ifdef GRAPHICS_D3D9
-	if(!deviceParams.m_pd3dObject)
-		deviceParams.m_pd3dObject = s_pd3dObject;
-	#endif
 	
 	if(!pDevice->Create(deviceParams))
 		return false;

@@ -1396,9 +1396,6 @@ void C_VinylManager::RenderShape( const C_Sprite* pSprite )
 	const Maths::HVec3 shapeSize( pSprite->m_Size.x, pSprite->m_Size.y, pSprite->m_Size.z );
 	const bool doOveride = (pSprite->m_UserData != 0);
 
-#if defined (PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
-#endif
 	Display::Device()->SetBlend( Display::E_Blend_SrcAlpha, Display::E_Blend_InvSrcAlpha, Display::E_BlendOp_Add, Display::E_Blend_One, Display::E_Blend_One, Display::E_BlendOp_Max );
 
 	if( doOveride || !p->Gradient() )
@@ -1413,9 +1410,6 @@ void C_VinylManager::RenderShape( const C_Sprite* pSprite )
 		RenderGradientShape( pShape, mat, col_mat, shapeSize, C_VinylManager::Instance().ResolveColour( p->Colour0(), p->Alpha0() ), C_VinylManager::Instance().ResolveColour( p->Colour1(), p->Alpha1() ) );
 	}
 
-#if defined (PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
-#endif
 }
 
 void C_VinylManager::RenderList( const C_Sprite* pSprite )
@@ -1423,16 +1417,10 @@ void C_VinylManager::RenderList( const C_Sprite* pSprite )
 	C_List&		rlist = *((C_List*)pSprite->m_RenderState.m_EffectParam); 
 	int			root = (int)pSprite->m_RenderState.m_EffectParam2;
 
-#if defined (PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
-#endif
 	Display::Device()->SetBlend( Display::E_Blend_SrcAlpha, Display::E_Blend_InvSrcAlpha, Display::E_BlendOp_Add, Display::E_Blend_One, Display::E_Blend_One, Display::E_BlendOp_Max );
 
 	RenderList( rlist, root, Maths::HVec3( pSprite->m_Size.x, pSprite->m_Size.y, pSprite->m_Size.z ), (pSprite->m_PostTransformIndex == 0), pSprite->m_Colours[0], (pSprite->m_UserData != 0) );
 
-#if defined (PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
-#endif
 }
 
 void C_VinylManager::Render( )

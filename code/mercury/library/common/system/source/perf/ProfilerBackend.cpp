@@ -135,14 +135,10 @@ ProfilerCommon::ProfilerCommon()
 	m_iLastEndEvent = 0;
 	g_pProfiler = (Profiler*)this;
 
-#if PLATFORM_XENON
-	g_pProfilerEvents = (Event*)BizPhysicalAlloc(sizeof(Event)*E_Profiler_MaxEvents, MAXULONG_PTR, 0, PAGE_READWRITE | MEM_LARGE_PAGES | PAGE_WRITECOMBINE);
-#else
 	g_pProfilerEvents = new Event[E_Profiler_MaxEvents];
-#endif
 	g_iProfilerCurrentEvent = 0;
 
-	#if defined PLATFORM_XENON || defined PLATFORM_PS3			
+	#if defined(PLATFORM_PS3)
 	__lwsync();
 	#else
 	// apparently unnecessary on pc.. jkc
@@ -155,11 +151,7 @@ ProfilerCommon::ProfilerCommon()
 /// destructor
 ProfilerCommon::~ProfilerCommon()
 {
-#if PLATFORM_XENON
-	XPhysicalFree(g_pProfilerEvents);
-#else
 	delete [] g_pProfilerEvents;
-#endif
 	g_pProfilerEvents = NULL;
 	g_iProfilerNumEvents = 0;
 }
@@ -173,13 +165,7 @@ Profiler &ProfilerCommon::Instance()
 /// return a reference to a list of events
 EventList ProfilerCommon::GetEventList()
 {
-#if PLATFORM_XENON
-	Event *p = &g_pProfilerEvents[m_iLastStartEvent];
-	p = (Event*)(GPU_CONVERT_GPU_TO_CPU_CACHED_READONLY_ADDRESS(GPU_CONVERT_CPU_TO_GPU_ADDRESS(p)));
-	EventList rtn(p, m_iLastEndEvent - m_iLastStartEvent);
-#else
 	EventList rtn(&g_pProfilerEvents[m_iLastStartEvent], m_iLastEndEvent - m_iLastStartEvent);
-#endif
 	return rtn;
 }
 

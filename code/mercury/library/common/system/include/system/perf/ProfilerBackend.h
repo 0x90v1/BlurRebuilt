@@ -175,8 +175,6 @@ int InitialiseNetworkConnection();
 // include the correct implementation of the platform-specific profiler
 #if defined(PLATFORM_PS3)
 #include "ProfilerPS3.h"
-#elif defined(PLATFORM_XENON)
-#include "ProfilerXenon.h"
 #else
 #include "ProfilerGeneric.h"
 #endif

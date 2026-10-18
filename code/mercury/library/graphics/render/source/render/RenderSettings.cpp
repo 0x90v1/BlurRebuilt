@@ -109,16 +109,12 @@ void C_RenderSettings::InitialiseSettings()
 		{
 			m_ColourBufferSupported					= true;
 
-			#if defined(BLUR_USE_DX11)
 			U32 formatSupport = 0;
 			const bool nativeBlit = SUCCEEDED(Display::Device()->GetD3DDevice()->CheckFormatSupport(
 				DXGI_FORMAT_B8G8R8A8_UNORM, &formatSupport)) &&
 				(formatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET) &&
 				(formatSupport & D3D11_FORMAT_SUPPORT_SHADER_SAMPLE);
 			if(nativeBlit)
-			#else
-			if(Display::D3D9::C_DeviceCaps::StretchRect(Display::E_TextureFilter_Point))
-			#endif
 			{
 				m_HDRSupported						= true;
 				m_DOFSupported						= true;
@@ -148,14 +144,10 @@ void C_RenderSettings::InitialiseSettings()
 		}
 	}
 	
-	#if defined(BLUR_USE_DX11)
 	ID3D11Query* nativeQuery = nullptr;
 	const D3D11_QUERY_DESC nativeQueryDesc = { D3D11_QUERY_OCCLUSION, 0 };
 	const HRESULT hr = Display::Device()->GetD3DDevice()->CreateQuery(&nativeQueryDesc, &nativeQuery);
 	if (nativeQuery) nativeQuery->Release();
-	#else
-	const HRESULT hr = Display::Device()->GetD3DDevice()->CreateQuery(D3DQUERYTYPE_OCCLUSION, NULL);
-	#endif
 	if(SUCCEEDED(hr))
 	{
 		m_OcclusionQueriesSupported				= true;
@@ -164,7 +156,7 @@ void C_RenderSettings::InitialiseSettings()
 	{
 		m_OcclusionQueriesSupported				= false;		
 	}
-#elif defined(PLATFORM_PS3) || defined(PLATFORM_XENON)
+#elif defined(PLATFORM_PS3)
 	m_ColourBufferSupported							= true;
 	m_DepthStencilBufferSupported					= true;
 	m_HDRSupported									= true;

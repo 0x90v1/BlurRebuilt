@@ -6,9 +6,6 @@
 #include "ComponentHelper.h"
 #endif
 #include <stdio.h>
-#ifdef _XBOX360
-#include <xtl.h>
-#endif // _XBOX360
 
 //using namespace Audio;
 

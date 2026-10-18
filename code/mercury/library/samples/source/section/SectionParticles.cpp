@@ -70,17 +70,11 @@
 #include "Render/PostProcess/Scale/GaussianScale.h"
 #include "Render/PostProcess/HDR/HDR.h"
 #include "Render/PostProcess/Colour/Tint.h"
-#ifdef PLATFORM_XENON
-#include "Render/PostProcess/Blur/Motion.h"
-#endif
 
 // curves
 //TODO: This test section needs refactoring to use new curve class.
 
 // cloth renderer
-#ifdef PLATFORM_XENON
-#include "ClothRenderer.h"
-#endif
 
 // global depth texture
 
@@ -189,9 +183,7 @@ C_SectionParticles::C_SectionParticles(const Util::C_String& name) : C_Section(n
 	m_pHighDynamicRange = new PostProcess::C_HighDynamicRange;
 	//m_pHighDynamicRange->SetType(PostProcess::E_Type_Final);
 
-#ifndef PLATFORM_XENON
 	m_pHighDynamicRange->SetHighDynamicRangeType(PostProcess::E_HighDynamicRangeType_ShaderU32);
-#endif
 
 	for(S32 i = 0; i < Display::Device()->GetViewCount(); ++i)
 	{
@@ -218,9 +210,6 @@ C_SectionParticles::C_SectionParticles(const Util::C_String& name) : C_Section(n
 
 	m_pTint = new PostProcess::C_Tint;
 	m_pTint->SetColour(MathsStorage::Float3(1.0f, 0.0f, 0.0f));
-#ifdef PLATFORM_XENON
-	m_pMotionBlur = new PostProcess::C_MotionBlur;
-#endif
 	m_pBlur = new PostProcess::C_GaussianBlur;
 	m_pBlur->SetType(PostProcess::E_Type_Final);
 
@@ -275,9 +264,7 @@ C_SectionParticles::C_SectionParticles(const Util::C_String& name) : C_Section(n
 	::Render::Sky::g_debugSkyDomeIntensity = 3.0f;
 	
 	DynamicEffect::Particle::C_UserParticleLibrary::Instance().Initialise();
-#if defined(PLATFORM_XENON)
-	DynamicEffect::Particle::C_UserParticleLibrary::Instance().Open("game:\\data\\particles_global.xep");
-#elif defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	DynamicEffect::Particle::C_UserParticleLibrary::Instance().Open("..\\data\\particles_global.pcp");
 #elif defined(PLATFORM_PS3)
 	DynamicEffect::Particle::C_UserParticleLibrary::Instance().Open("particles_global.p3p");
@@ -346,53 +333,6 @@ C_SectionParticles::C_SectionParticles(const Util::C_String& name) : C_Section(n
 	}
 
 	
-#ifdef PLATFORM_XENON
-
-	m_pClothRenderer = new DynamicEffect::C_SampleClothRenderer(m_pDynamicEffectRenderer, 333);
-	m_pClothRenderer->AddIndexBuffer(MathsStorage::Int2(9, 7));
-	m_pClothRenderer->AddIndexBuffer(MathsStorage::Int2(11, 7));
-	m_pClothRenderer->ReserveInstances(0, 16, 32);
-	
-	Maths::HMat33 rotation;//(Maths::RotX(1.0f));
-	
-	DynamicEffect::ClothSettings parameters;
-	parameters.size = MathsStorage::Int2(9, 7);
-	parameters.pinnedPositions.PushBack(MathsStorage::Int2(0, 0));
-	parameters.pinnedPositions.PushBack(MathsStorage::Int2(0, 3));
-	parameters.pinnedPositions.PushBack(MathsStorage::Int2(0, 6));
-	parameters.particleMass = 0.5f;
-	parameters.stretchNaturalLength = 0.25f;
-	parameters.windResistanceCoeff = 15.f;
-	parameters.gravity = 4.9f;
-
-	
-
-	DynamicEffect::C_Cloth* pCloth = m_pClothRenderer->AddCloth(parameters);
-	m_pClothRenderer->SetNumManagedObjects(16);
-	
-	/*for(S32 i = 0; i < 64; ++i)
-	{
-		m_Instances[i].pObject = pCloth;
-		m_Instances[i].pDiffuse = &m_FlagTextures[g_Random.Rand(3)];
-		m_Instances[i].vColour = MathsStorage::Float4(g_Random.FRand(), g_Random.FRand(), g_Random.FRand(), 1.0f);
-		m_Instances[i].transform = m_Matrices[i];
-		m_Instances[i].bTransparent = false;
-		U32 rnd = g_Random.Rand(2);
-		if(rnd == 1)
-			m_Instances[i].vColour.w = g_Random.FRand(0.5f);
-
-		m_pClothRenderer->SetNumManagedObjects(32);
-		m_pClothRenderer->AddInstance(&m_Instances[i], DynamicEffect::E_InstancedObjectType_Persistent);
-	}*/
-
-	/*m_Instances2[0].pObject = NULL;
-	m_Instances2[0].pDiffuse = &m_FlagTextures[g_Random.Rand(3)];
-	m_Instances2[0].vColour = MathsStorage::Float4(1.f, 1.f, 1.f, 1.f);
-	m_Instances2[0].transform = m_Matrices2[0];
-	m_Instances2[0].bTransparent = false;
-
-	m_pClothRenderer->SetNumManagedObjects(16);*/
-#endif
 
 
 	//DynamicEffect::Vertex vertex;
@@ -467,9 +407,6 @@ C_SectionParticles::~C_SectionParticles()
 	DynamicEffect::DynamicEffectRenderer()->Reset();
 	DynamicEffect::Particle::XtInterface::Shutdown();
 		
-#ifdef PLATFORM_XENON
-	delete m_pClothRenderer;
-#endif
 
 	delete m_pReducedRender;
 	delete m_pPostProcessing;
@@ -536,19 +473,6 @@ bool C_SectionParticles::OnCreate()
 #endif
 
 
-#ifdef PLATFORM_XENON
-	const Display::C_View& view = *Display::Device()->GetView(0);
-	if (!Display::Device()->CreateTexture2D(view.GetViewport().GetW(), view.GetViewport().GetH(), 1, 0, Display::E_Format_D24FS8, &m_DepthTexture))
-		return false;
-	if (!Display::Device()->CreateTexture2D(1280, 720, 1, 0, Display::E_Format_A16B16G16R16F, &m_OverlapTexture0))
-		return false;
-	if (!Display::Device()->CreateTexture2D(1280, 720, 1, 0, Display::E_Format_A16B16G16R16, &m_OverlapTexture1))
-		return false;
-
-	//m_pPostProcessing->SetPrimaryTextureBuffer(m_OverlapTexture0.GetAddress(), m_OverlapTexture0.GetSize());
-	//m_pPostProcessing->SetSecondaryTextureBuffer(m_OverlapTexture1.GetAddress(), m_OverlapTexture1.GetSize());
-
-#endif
 
 	return true;
 }
@@ -562,11 +486,6 @@ void C_SectionParticles::OnDestroy()
 	}*/
 #endif
 
-#ifdef PLATFORM_XENON
-	Display::Device()->Destroy(&m_DepthTexture);
-	Display::Device()->Destroy(&m_OverlapTexture0);
-	Display::Device()->Destroy(&m_OverlapTexture1);
-#endif
 }
 
 void C_SectionParticles::OnDestroyVolatile()
@@ -871,53 +790,6 @@ void C_SectionParticles::OnRenderGameViewWithAA(const C_Input& input, const C_Ti
 	m_pDynamicEffectRenderer->BeginView();
 
 	// add cloth here
-#ifdef PLATFORM_XENON
-
-	DynamicEffect::ClothSettings parameters[10];
-
-	for(S32 i = 0; i < 10; ++i)
-	{
-		parameters[i].size = MathsStorage::Int2(11, 7);
-		parameters[i].pinnedPositions.PushBack(MathsStorage::Int2(0, 0));
-		parameters[i].pinnedPositions.PushBack(MathsStorage::Int2(0, 3));
-		parameters[i].pinnedPositions.PushBack(MathsStorage::Int2(0, 6));
-		parameters[i].particleMass = 0.5f;
-		parameters[i].stretchNaturalLength = 0.25f;
-		parameters[i].windResistanceCoeff = 15.f;
-		parameters[i].gravity = 4.9f;
-		
-		Maths::C_MatrixRotateRPH rph(0.f, 1.f, 0.f);
-		Maths::HMat33 rotation(rph);
-
-		parameters[i].worldMatrix = Maths::HMat43(rotation);
-	}
-
-	DynamicEffect::ClothInstance clothInstance;
-	clothInstance.vColour = MathsStorage::Float4(1.0f, 1.0f, 1.0f, 1.0f);
-	clothInstance.pDiffuse = &m_FlagTextures[1];
-	clothInstance.bTransparent = false;
-	clothInstance.pObject = NULL;
-
-	S32 n = 0;
-	
-	for(S32 i = 0; i < 5; ++i)
-	{
-		for(S32 j = 0; j < 5; ++j)
-		{
-			Maths::HVec3 vPosition(i * 5.0f, 3.0f, j * 5.0f);
-			Maths::C_Sphere sphere(vPosition, 1.0f);
-			Maths::HMat43 matrix;
-			matrix.Translation(vPosition);
-			Maths::Store(Maths::HMat44(matrix), &clothInstance.transform);
-
-			if(Display::Device()->GetViewFrustum().CullSphere(sphere).Visible())
-				m_pClothRenderer->AddInstanceManaged(clothInstance, DynamicEffect::E_InstancedObjectType_DynamicView, n % 5, parameters[n % 5]);
-			
-			++n;
-		}
-	}
-
-#endif
 
 
 	m_pDynamicEffectRenderer->Build(Display::Device()->GetView()->m_Index);
@@ -972,15 +844,6 @@ void C_SectionParticles::OnRenderGameViewWithoutAA(const C_Input& input, const C
 	Display::Device()->SetVertexShaderConstantF(CV_RENDER_LIGHT_DIRECTION, (F32*)&lightDirection, 1);
 	Display::Device()->SetPixelShaderConstantF(CP_RENDER_LIGHT_DIRECTION, (F32*)&lightDirection, 1);
 
-#ifdef PLATFORM_XENON
-	Render::g_pDepthStencilBuffer = &m_DepthTexture;
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = Display::Device()->GetView()->GetViewport().GetW();
-	rect.y2 = Display::Device()->GetView()->GetViewport().GetH();
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_DEPTHSTENCIL, &rect, m_DepthTexture.m_pd3dTexture, NULL, 0, 0, NULL, 1.f, 0, NULL);
-#endif
 
 	if(g_debugRenderReduced)
 		m_pReducedRender->RenderLayer(0);

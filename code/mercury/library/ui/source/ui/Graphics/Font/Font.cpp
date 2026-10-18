@@ -120,7 +120,7 @@ __forceinline void C_FontSpriteItem::Set( const I_GlyphAttributes::E_GlyphType e
 }
 
 // use to set a polygon font item
-__forceinline void C_FontSpriteItem::Set( const I_GlyphAttributes::E_GlyphType eFontType, const U32 uUserData, const bool bLineBreak, 
+__forceinline void C_FontSpriteItem::Set( const I_GlyphAttributes::E_GlyphType eFontType, const INTPTR uUserData, const bool bLineBreak, 
 										  const E_Type eItemType, const Maths::HVec3& pos, const F32 sx,const F32 sy, 
 										  const C_UISpriteColours& col, 
 										  const bool bDropShadow, const bool bItalics, 
@@ -428,7 +428,7 @@ void C_Font::CreateLuaEnums( lua_State *pState )
 	lua_newtable(pState);
 		if(lua_type(pState, -1) != LUA_TTABLE)
 		{
-			LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_FONT_TABLE_NAME, (U32)pState, lua_gettop(pState) );
+			LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_FONT_TABLE_NAME, (U32)(INTPTR)pState, lua_gettop(pState) );	// [Blur2PC][x64] log only
 			return;
 		}
 		for(U32 i = 0; i < m_uNumFonts; i++)
@@ -1143,7 +1143,7 @@ F32 C_Font::ProcessText( const WCHAR* pStringText, const I_FontAttributes* pFont
 							else
 							if ( pSeq->m_SceneIndex != 0xffffffff )
 							{
-								p->Set( I_GlyphAttributes::E_GlyphType_Shape, (U32)pSeq, lb, C_FontSpriteItem::E_Type_Seq, 
+								p->Set( I_GlyphAttributes::E_GlyphType_Shape, (INTPTR)pSeq, lb, C_FontSpriteItem::E_Type_Seq, 
 									pos, fSx, fSy, col,
 									pSeq->m_DropShadow,
 									pSeq->m_AllowItalics ? bItalics : false, m_CurrentLayer,
@@ -1349,7 +1349,7 @@ F32 C_Font::ProcessText( const WCHAR* pStringText, const I_FontAttributes* pFont
 			{
 				C_UIPolygonFont* pFont = (C_UIPolygonFont*)pCurrentFont;
 				C_UICharacter *pChar = (C_UICharacter *)found_glyph;
-				U32 uUserData = (U32)&pChar->GetRenderInfo();
+				INTPTR uUserData = (INTPTR)&pChar->GetRenderInfo();	// [Blur2PC][x64]
 				F32 width =	(F32)(pChar->GetWidth() + pChar->GetAdvance()) * width_mod;//found_glyph->GetWidth() * width_mod;
 				F32 sx1 = x;
 				F32 sx2 = width;

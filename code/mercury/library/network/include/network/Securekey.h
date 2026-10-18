@@ -49,7 +49,7 @@ namespace NetPlay
 	/// passed arround when migrating session to new owner.
 	struct MigrationInfo
 	{
-#if defined(PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		MigrationInfo() 
 		{}
 		XSESSION_INFO m_SessionInfo;

@@ -157,13 +157,6 @@ bool C_MotionBlurDoFReduced::CreateVolatile()
 	RESOURCE_MEMORY_ID("PostProcess");
 
 	Display::C_SurfaceParams surfaceParams;
-#if defined(PLATFORM_XENON)
-	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
-	surfaceParams.Base = 0;
-	surfaceParams.Base += XGSurfaceSize(backBuffer.GetWidth(), backBuffer.GetHeight(), Display::D3D9Format(backBuffer.GetColourFormat()), Display::D3D9Multisample(backBuffer.GetMultisample()));
-	if(m_Manager.GetViewCount() > 0)
-		surfaceParams.Base += m_Manager.GetMaximumSurfaceSize();
-#endif
 
 	U32 flags = Display::E_Usage_Colour | Display::E_Usage_ReadWrite | Display::E_Usage_Expand;
 	if(m_pTextureBuffer)
@@ -259,44 +252,6 @@ void C_MotionBlurDoFReduced::Display() const
 	SetShader(&m_BlurShader[m_nShader]);
 
 	// downsample
-#if defined(PLATFORM_XENON)
-	if(E_MotionBlurDoFMethod_Alpha == m_eMethod)
-	{
-		CopyStencilBufferToAlpha();
-	}
-
-	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_All);
-
-	const Display::C_RenderTarget& renderTarget = Display::Device()->GetRenderTarget();
-	const Display::C_Surface* pColourSurface = renderTarget.GetColourSurface();
-
-	U32 size = 0;
-
-	XGTEXTURE_DESC xgColourSurfaceDesc;
-	XGGetSurfaceDesc((D3DSurface*)&pColourSurface->m_d3dSurface, &xgColourSurfaceDesc);
-
-	D3DSurface d3dColourSurface;
-
-	D3DSURFACE_PARAMETERS d3dSurfaceParams;
-	d3dSurfaceParams.Base = pColourSurface->m_d3dSurface.ColorInfo.ColorBase;
-	d3dSurfaceParams.ColorExpBias = pColourSurface->m_d3dSurface.ColorInfo.ColorExpBias;
-	d3dSurfaceParams.HierarchicalZBase = 0;
-	d3dSurfaceParams.HiZFunc = D3DHIZFUNC_DEFAULT;
-
-	size =  XGSetSurfaceHeader(xgColourSurfaceDesc.Width / 2,
-								xgColourSurfaceDesc.Height / 2,
-								xgColourSurfaceDesc.Format,
-								D3DMULTISAMPLE_4_SAMPLES,
-								&d3dSurfaceParams,
-								&d3dColourSurface,
-								0);
-	XGOffsetSurfaceAddress(&d3dColourSurface, 0, 0);
-
-	void* pTexture = pReducedRenderTexture->GetTexture().GetGPUTexture();
-	Display::Device()->SetColourDepthStencilSurface(0, 0);
-	Display::Device()->GetD3DDevice()->SetRenderTarget(0, &d3dColourSurface);
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, 0, (D3DBaseTexture*)pTexture, 0, 0, 0, 0, 0.0f, 0, 0);
-#else
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_All);
 	if (E_MotionBlurDoFMethod_Alpha == m_eMethod)
 	{
@@ -314,7 +269,6 @@ void C_MotionBlurDoFReduced::Display() const
 	{
 		m_Downsample.Downsample(pReducedRenderTexture, m_Manager.GetMainTexture());
 	}
-#endif
 
 	Display::Device()->SetColourDepthStencilSurface(&pReducedRenderTexture->GetSurface(), 0);
 
@@ -348,51 +302,10 @@ void C_MotionBlurDoFReduced::Display() const
 		Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_Default);
 	}
 
-	#if defined(PLATFORM_XENON)
-	IDirect3DTexture9 d3dStencilTexture;
-	#endif
 
 	if (E_MotionBlurDoFMethod_Stencil == m_eMethod)
 	{
-	#if defined(PLATFORM_XENON)
-		Display::C_Texture2D* pDisplayTexture = const_cast<Display::C_Texture2D*>(Render::GetGlobalDepthStencilBuffer());
-
-		IDirect3DTexture9* pSrcDepthStencilTexture = (IDirect3DTexture9*)pDisplayTexture->Get();
-
-		XGTEXTURE_DESC srcTextureDesc;
-
-		XGGetTextureDesc(pSrcDepthStencilTexture, 0, &srcTextureDesc);
-
-		UINT Width = srcTextureDesc.Width;
-		UINT Height = srcTextureDesc.Height;
-		UINT Levels = 1;
-		DWORD Usage = 0;
-		D3DFORMAT Format = D3DFMT_A8R8G8B8;
-		D3DPOOL Pool = 0;
-		UINT BaseOffset = 0;
-		UINT MipOffset = 0;
-		UINT Pitch = srcTextureDesc.Width * 4;//srcTextureDesc.RowPitch;
-		UINT *pBaseSize = NULL;
-		UINT *pMipSize = NULL;
-
-		UINT size =  XGSetTextureHeader(Width,
-										Height,
-										Levels,
-										Usage,
-										Format,
-										Pool,
-										BaseOffset,
-										MipOffset,
-										Pitch,
-										&d3dStencilTexture,
-										pBaseSize,
-										pMipSize);
-
-		XGOffsetResourceAddress(&d3dStencilTexture, pDisplayTexture->GetAddress());
-
-		Display::Device()->GetD3DDevice()->SetTexture(2, &d3dStencilTexture);
-	
-	#elif defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 	
 		CellGcmTexture* pSrcGcmTexture = (CellGcmTexture*) Render::GetGlobalDepthStencilBuffer()->GetGPUTexture();
 
@@ -460,9 +373,6 @@ void C_MotionBlurDoFReduced::Display() const
 
 	if (E_MotionBlurDoFMethod_Stencil == m_eMethod)
 	{
-		#ifdef PLATFORM_XENON
-		Display::Device()->GetD3DDevice()->SetTexture(2, 0);
-		#endif
 		Display::Device()->SetTexture(2, 0);
 		Display::Device()->SetTextureAddress(2, Display::E_TextureAddress_Default);
 		Display::Device()->SetTextureFilter(2, Display::E_TextureFilter_Default);
@@ -694,47 +604,7 @@ void C_MotionBlurDoFReduced::CopyStencilBufferToAlpha() const
 	Display::Device()->SetTextureAddress(0, Display::E_TextureAddress_Clamp);
 	Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Point);
 
-	#if defined(PLATFORM_XENON)
-	Display::C_Texture2D* pDisplayTexture = const_cast<Display::C_Texture2D*>(Render::GetGlobalDepthStencilBuffer());
-
-	IDirect3DTexture9* pSrcDepthStencilTexture = (IDirect3DTexture9*)pDisplayTexture->Get();
-
-	XGTEXTURE_DESC srcTextureDesc;
-
-	XGGetTextureDesc(pSrcDepthStencilTexture, 0, &srcTextureDesc);
-
-	UINT Width = srcTextureDesc.Width;
-	UINT Height = srcTextureDesc.Height;
-	UINT Levels = 1;
-	DWORD Usage = 0;
-	D3DFORMAT Format = D3DFMT_A8R8G8B8;
-	D3DPOOL Pool = 0;
-	UINT BaseOffset = 0;
-	UINT MipOffset = 0;
-	UINT Pitch = srcTextureDesc.Width * 4;
-	UINT *pBaseSize = NULL;
-	UINT *pMipSize = NULL;
-
-	IDirect3DTexture9 d3dStencilTexture;
-	UINT size =  XGSetTextureHeader(Width,
-									Height,
-									Levels,
-									Usage,
-									Format,
-									Pool,
-									BaseOffset,
-									MipOffset,
-									Pitch,
-									&d3dStencilTexture,
-									pBaseSize,
-									pMipSize);
-
-	XGOffsetResourceAddress(&d3dStencilTexture, pDisplayTexture->GetAddress());
-
-	Display::Device()->GetD3DDevice()->SetTexture(0, &d3dStencilTexture);
-	#else
 	Display::Device()->SetTexture(0, Render::GetGlobalDepthStencilBuffer());	
-	#endif
 
 	Display::Device()->SetPixelShader(&m_CopyStencilShader);
 
@@ -744,9 +614,6 @@ void C_MotionBlurDoFReduced::CopyStencilBufferToAlpha() const
 	Display::Device()->SetTextureAddress(0, Display::E_TextureAddress_Default);
 	Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Default);
 
-	#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetTexture(0, 0);
-	#endif
 
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_Default);
 }
@@ -760,55 +627,12 @@ void C_MotionBlurDoFReduced::DownsampleStencilBufferToAlpha() const
 	Display::Device()->SetTextureAddress(1, Display::E_TextureAddress_Clamp);
 	Display::Device()->SetTextureFilter(1, Display::E_TextureFilter_Linear);
 
-	#if defined(PLATFORM_XENON)
-	Display::C_Texture2D* pDisplayTexture = const_cast<Display::C_Texture2D*>(Render::GetGlobalDepthStencilBuffer());
-
-	IDirect3DTexture9* pSrcDepthStencilTexture = (IDirect3DTexture9*)pDisplayTexture->Get();
-
-	XGTEXTURE_DESC srcTextureDesc;
-
-	XGGetTextureDesc(pSrcDepthStencilTexture, 0, &srcTextureDesc);
-
-	UINT Width = srcTextureDesc.Width;
-	UINT Height = srcTextureDesc.Height;
-	UINT Levels = 1;
-	DWORD Usage = 0;
-	D3DFORMAT Format = D3DFMT_A8R8G8B8;
-	D3DPOOL Pool = 0;
-	UINT BaseOffset = 0;
-	UINT MipOffset = 0;
-	UINT Pitch = srcTextureDesc.Width * 4;
-	UINT *pBaseSize = NULL;
-	UINT *pMipSize = NULL;
-
-	IDirect3DTexture9 d3dStencilTexture;
-	UINT size =  XGSetTextureHeader(Width,
-									Height,
-									Levels,
-									Usage,
-									Format,
-									Pool,
-									BaseOffset,
-									MipOffset,
-									Pitch,
-									&d3dStencilTexture,
-									pBaseSize,
-									pMipSize);
-
-	XGOffsetResourceAddress(&d3dStencilTexture, pDisplayTexture->GetAddress());
-
-	Display::Device()->GetD3DDevice()->SetTexture(1, &d3dStencilTexture);
-	#else
 	Display::Device()->SetTexture(1, Render::GetGlobalDepthStencilBuffer());	
-	#endif
 
 	Display::Device()->SetPixelShader(&m_DownsampleStencilShader);
 
 	Display::Quad::DrawFullScreen();
 
-	#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetTexture(1, 0);
-	#endif
 }
 
 bool C_MotionBlurDoFReduced::CreateRenderTarget()

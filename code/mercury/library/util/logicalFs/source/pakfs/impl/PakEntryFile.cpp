@@ -8,7 +8,7 @@
 #include <PakFs/Impl/PakCompressRaw.h>
 #include <PakFs/Impl/PakCompressZLib.h>
 #include <PakFs/Impl/PakCompressPacketZLib.h>
-#if defined(PLATFORM_XENON) || defined(CFG_CONVERTER)
+#if defined(CFG_CONVERTER)
 #include <PakFs/Impl/PakCompressXMem.h>
 #include <PakFs/Impl/PakCompressPacketXMem.h>
 #endif
@@ -82,7 +82,7 @@ bool C_PakEntryFile::Open(
 	case E_Codec_Raw:
 		m_pPakCompress = new C_PakCompressRaw(pPak->header.codecFlags);
 		break;
-#if defined(PLATFORM_XENON) || defined(CFG_CONVERTER)
+#if defined(CFG_CONVERTER)
 	case E_Codec_PacketXMem:
 		m_pPakCompress = new C_PakCompressPacketXMem(pPak->header.codecFlags );
 		break;

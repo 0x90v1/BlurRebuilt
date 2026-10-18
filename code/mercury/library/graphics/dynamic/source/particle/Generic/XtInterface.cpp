@@ -633,15 +633,9 @@ void CreateEmitter(DynamicEffect::Particle::EmitterDefinition& settings, const E
 	settings.vOrientationRandom.z = Maths::DegToRad(pEmitter->particleParams.rotation.d.vz);
 	settings.vOrientationRandom.w = 0.0f;
 
-#ifdef PLATFORM_XENON
-	settings.vAngularVelocity.x = Maths::DegToRad(pEmitter->particleParams.spin.mean.vx);
-	settings.vAngularVelocity.y = Maths::DegToRad(pEmitter->particleParams.spin.mean.vy);
-	settings.vAngularVelocity.z = Maths::DegToRad(pEmitter->particleParams.spin.mean.vz);
-#else
 	settings.vAngularVelocity.x = -Maths::DegToRad(pEmitter->particleParams.spin.mean.vx);
 	settings.vAngularVelocity.y = -Maths::DegToRad(pEmitter->particleParams.spin.mean.vy);
 	settings.vAngularVelocity.z = -Maths::DegToRad(pEmitter->particleParams.spin.mean.vz);
-#endif
 	settings.vAngularVelocity.w = 0.0f;
 
 	settings.vAngularVelocityRandom.x = Maths::DegToRad(pEmitter->particleParams.spin.d.vx);

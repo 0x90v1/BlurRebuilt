@@ -353,7 +353,7 @@ void RefreshShaders(bool refreshVertexShaders, bool refreshPixelShaders)
 
 	if(vertexShaders.Size() > 0 || pixelShaders.Size() > 0)
 	{
-		#if PLATFORM_XENON || PLATFORM_PS3
+		#if PLATFORM_PS3
 		Device()->BlockUntilIdle();
 		#endif
 
@@ -487,7 +487,7 @@ bool LoadDDSTextureFromFile(const Util::C_String& fileName, C_TextureParams* pPa
 		return false;
 	}
 
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	U32* pPtr = &pTexture->m_Size;
 	for (U32 i = 0; i < (sizeof(DDS_TEXTURE) - 4) / 4; i++)
 	{
@@ -688,7 +688,7 @@ bool LoadBMPTextureFromFile(const Util::C_String& fileName, C_TextureParams* pPa
 	BitmapInfoHeader* pInfoHeader = (BitmapInfoHeader*)&pData[i];
 	i += sizeof(BitmapInfoHeader);
 	
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	pHeader->EndianSwap();
 	pInfoHeader->EndianSwap();
 	#endif
@@ -745,9 +745,6 @@ bool LoadJPGTextureFromFile(const Util::C_String& fileName, C_TextureParams* pPa
 
 bool CreateTexture2DFromFile(const Util::C_String& fileName, C_Texture* pTexture)
 {
-#if DEVICE_D3D9_PC
-	return D3DXCreateTexture2DFromFile(fileName, pTexture);
-#else
 	C_TextureParams params;
 
 	#if DEVICE_GCM
@@ -885,15 +882,7 @@ bool CreateTexture2DFromFile(const Util::C_String& fileName, C_Texture* pTexture
 			C_LockedRect lockedRect = ((C_Texture*)pTexture)->LockRect2D(level);
 			if(lockedRect.GetBits())
 			{
-				#if DEVICE_XB2
-				const DWORD pitch = size * pitchScale / height;
-				DWORD d3dFormat = params.m_Format;
-				if(params.m_Flags & E_Flags_Linear)
-					d3dFormat = MAKELINFMT(d3dFormat);
-				XGEndianSwapSurface(lockedRect.GetBits(), lockedRect.GetPitch(), pData, pitch, width, height, (D3DFORMAT)d3dFormat);
-				#else
 				memcpy(lockedRect.GetBits(), pData, size);
-				#endif
 			}
 			((C_Texture*)pTexture)->UnlockRect2D(level);
 
@@ -920,25 +909,16 @@ bool CreateTexture2DFromFile(const Util::C_String& fileName, C_Texture* pTexture
 	#endif
 
 	return true;
-#endif
 }
 
 bool CreateTexture3DFromFile(const Util::C_String& fileName, C_Texture* pTexture)
 {
-#if DEVICE_D3D9_PC
-	return D3DXCreateTexture3DFromFile(fileName, pTexture);
-#else
 	return false;
-#endif
 }
 
 bool CreateTextureCubeFromFile(const Util::C_String& fileName, C_Texture* pTexture)
 {
-#if DEVICE_D3D9_PC
-	return D3DXCreateTextureCubeFromFile(fileName, pTexture);
-#else
 	return false;
-#endif
 }
 
 bool CloneTexture2D(C_Texture* pSrc, C_Texture* pDst)
@@ -954,22 +934,7 @@ bool CloneTexture2D(C_Texture* pSrc, C_Texture* pDst)
 	BIZ_ASSERT(pSrc->GetSize() == pDst->GetSize());
 	//BIZ_ASSERT(pSrc->GetFlags() == pDst->GetFlags());
 
-#if DEVICE_D3D9_PC
-	for(U32 level=0; level<pSrc->GetLevels(); level++)
-	{
-		C_LockedRect srcLockedRect = pSrc->LockRect2D(level);
-		BIZ_ASSERT(srcLockedRect.GetBits());
-
-		C_LockedRect dstLockedRect = pDst->LockRect2D(level);
-		BIZ_ASSERT(dstLockedRect.GetBits());
-
-		U32 levelSize = GetTexture2DSize(pSrc->GetWidth(level), pSrc->GetHeight(level), pSrc->GetFlags(), pSrc->GetFormat());
-		memcpy(dstLockedRect.GetBits(), srcLockedRect.GetBits(), levelSize);
-
-		pSrc->UnlockRect2D(level);
-		pDst->UnlockRect2D(level);
-	}
-#elif defined(DEVICE_D3D11)
+#if defined(DEVICE_D3D11)
 	// [Blur1PCDX11] D3D11 textures have no CPU address; clone them on the GPU.
 	ID3D11Texture2D* pSrcTexture = pSrc->GetGPUTexture2D();
 	ID3D11Texture2D* pDstTexture = pDst->GetGPUTexture2D();
@@ -991,9 +956,6 @@ bool CloneTexture2D(C_Texture* pSrc, C_Texture* pDst)
 #else
 	memcpy(pDst->GetAddress(), pSrc->GetAddress(), pDst->GetSize());
 
-	#if DEVICE_D3D9_XB2
-	FlushDataCacheBlock(pDst->GetSize(), pDst->GetAddress());
-	#endif
 #endif
 	
 	return true;
@@ -1016,11 +978,6 @@ C_Timing::C_Timing(const Util::C_String& name)
 		m_TimestampIndex[i]	= 0;
 	#endif
 
-	#if PLATFORM_XENON
-	m_LastTime				= 0;
-	m_CurrTime				= 0;
-	m_TempTime				= 0;
-	#endif
 }
 
 bool C_Timing::Enabled() const
@@ -1050,18 +1007,11 @@ void C_Timing::Update()
 	BIZ_ASSERT(m_TimestampRead != m_TimestampWrite);
 #endif
 
-#if PLATFORM_XENON
-	m_Time[E_Timing_Curr] = m_LastTime;
-#endif
 }
 
 F32 C_Timing::GetTime() const
 {
-	#ifdef PLATFORM_XENON
-	return (F32)m_Time[E_Timing_Prev] / 1000.0f;
-	#else
 	return (F32)m_Time[E_Timing_Prev] / 1000000.0f;
-	#endif
 }
 
 C_TimingManager C_TimingManager::s_Instance;
@@ -1077,29 +1027,6 @@ void C_TimingManager::BeginFrame()
 
 void C_TimingManager::EndFrame()
 {
-#if PLATFORM_XENON
-	if(!g_debugDisplay2TimingsEnable)
-		return;
-
-	m_Mutex.Wait();
-
-	C_TimingMap::Iterator it = m_Timings.Begin();
-	while(it != m_Timings.End())
-	{
-		C_Timing* pTiming = it->GetValue();
-
-		if(pTiming->Enabled())
-		{
-			Device()->GetD3DDevice()->SetPredication(D3DPRED_ALL_RENDER | D3DPRED_ALL_Z);
-			Device()->GetD3DDevice()->InsertCallback(D3DCALLBACK_IMMEDIATE, GPUFinishTimingCallback, (DWORD)pTiming);
-			Device()->GetD3DDevice()->SetPredication(0);
-		}
-
-		it++;
-	}
-	
-	m_Mutex.Release();
-#endif
 }
 
 void C_TimingManager::Update()
@@ -1180,11 +1107,6 @@ C_TimingEvent::C_TimingEvent(C_TimingString* pString) :
 		cellGcmSetTimeStamp(gCellGcmCurrentContext, m_TimestampIndex);
 		#endif
 
-		#if PLATFORM_XENON
-		Device()->GetD3DDevice()->SetPredication(D3DPRED_ALL_RENDER | D3DPRED_ALL_Z);
-		Device()->GetD3DDevice()->InsertCallback(D3DCALLBACK_IMMEDIATE, GPUStartTimingCallback, (DWORD)m_pTiming);
-		Device()->GetD3DDevice()->SetPredication(0);
-		#endif
 
 		m_Tls.SetData(this);
 
@@ -1210,11 +1132,6 @@ C_TimingEvent::~C_TimingEvent()
 		cellGcmSetTimeStamp(gCellGcmCurrentContext, m_TimestampIndex+1);
 		#endif
 
-		#if PLATFORM_XENON
-		Device()->GetD3DDevice()->SetPredication(D3DPRED_ALL_RENDER | D3DPRED_ALL_Z);
-		Device()->GetD3DDevice()->InsertCallback(D3DCALLBACK_IMMEDIATE, GPUStopTimingCallback, (DWORD)m_pTiming);
-		Device()->GetD3DDevice()->SetPredication(0);
-		#endif
 
 		m_Tls.SetData(m_pParent);
 	}

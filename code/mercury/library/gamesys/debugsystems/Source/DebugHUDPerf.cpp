@@ -101,17 +101,9 @@ U32 C_DebugHUDPerf::RenderBar(Maths::HVec2 PCREF position,  U64 bar[2], Maths::H
 		Maths::RGBA(255, 128, 128, 200),
 	};
 
-#ifdef PLATFORM_XENON
-	U64 freq;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-	freq = freq / 1000000L;
-#endif
 #if defined(PLATFORM_PS3)
 	const U64 start = (bar[0] - m_FirstEventTime) / 80;
 	const U64 end = (bar[1] - m_FirstEventTime) / 80;  
-#elif defined(PLATFORM_XENON)
-	const U64 start = (bar[0] - m_FirstEventTime) / freq;
-	const U64 end = (bar[1] - m_FirstEventTime) / freq;  
 #else
 	const U64 start = (bar[0] - m_FirstEventTime);
 	const U64 end = (bar[1] - m_FirstEventTime);  
@@ -239,15 +231,8 @@ void C_DebugHUDPerf::Render()
 	//Total, bar and time
 	U32 index = 1;
 
-#ifdef PLATFORM_XENON
-	U64 freq;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-	freq = freq / 1000000L;
-#endif
 #if defined(PLATFORM_PS3)
 	const U64 totalSize = (m_pEventTree->m_EndEventTime - m_pEventTree->m_StartEventTime)/80;     
-#elif defined(PLATFORM_XENON)
-	const U64 totalSize = (m_pEventTree->m_EndEventTime - m_pEventTree->m_StartEventTime)/freq;     
 #else
 	const U64 totalSize = (m_pEventTree->m_EndEventTime - m_pEventTree->m_StartEventTime);     
 #endif

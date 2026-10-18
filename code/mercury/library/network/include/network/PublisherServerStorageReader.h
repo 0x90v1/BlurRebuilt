@@ -84,7 +84,7 @@ namespace NetPlay
 		U32	m_DownloadBufferSize;
 		char m_FileName[MAX_PER_USER_FILE_NAME];
 		
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		void *m_pAsyncTask;
 		XSTORAGE_DOWNLOAD_TO_MEMORY_RESULTS	m_Results;
 #elif defined(PLATFORM_PS3) || defined(PLATFORM_PC)

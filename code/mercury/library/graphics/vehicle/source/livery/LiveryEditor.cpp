@@ -75,8 +75,6 @@ void C_LiveryEditor::Initialise()
 
 		#if defined(PLATFORM_PC)
 			m_BundleName = "Graphics/Textures/livery_resource.bpr";
-		#elif defined(PLATFORM_XENON)
-			m_BundleName = "Graphics/Textures/livery_resource.bpr";
 		#elif defined(PLATFORM_PS3)
 			m_BundleName = "Graphics/Textures/livery_resource.bpr";
 		#endif
@@ -645,14 +643,6 @@ void C_LiveryEditor::RenderCanvas(E_Canvas p_Canvas, float fFlash)
 	//Render canvas
 	pCanvas->Render(fFlash);
 
-#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = pCanvas->m_Width;
-	rect.y2 = pCanvas->m_Height;
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, pCanvas->m_RenderTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-#endif
 
 	Display::Device()->SetView(NULL);
 }

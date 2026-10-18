@@ -618,7 +618,7 @@ public:
     
 private:
     
-    #if defined( PLATFORM_XENON ) || defined( PLATFORM_PC )
+    #if defined(PLATFORM_PC)
     
     NOALIAS __forceinline void CopyVec4( const TypeVector& src, const unsigned int I )
     {

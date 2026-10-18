@@ -45,7 +45,7 @@ namespace Collision
 
 		if(shapeType == Collision::E_Continuous_Shape)
 		{
-			pShape = (Collision::C_Shape*)Spu::Get((U32*)(&((Collision::C_ContinuousShape*)_pShape)->m_pDiscreteShape));
+			pShape = (Collision::C_Shape*)Spu::Get((INTPTR*)(&((Collision::C_ContinuousShape*)_pShape)->m_pDiscreteShape));	// [Blur2PC][x64] pointer-wide
 			U32 shapeType = Spu::Get((U32*)&pShape->m_ShapeType);
 			U32 hasVolume = Spu::Get((U32*)&pShape->m_HasVolume);
 		}

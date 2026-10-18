@@ -7,13 +7,7 @@
 #endif
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Display/Shaders/Render/PCD3D9/vsFontRender.shader"
-#include "Display/Shaders/Render/PCD3D9/psFontRender.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Display/Shaders/Render/XB2/vsFontRender.shader"
-#include "Display/Shaders/Render/XB2/psFontRender.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Display/Shaders/Render/PS3/vsFontRender.shader"
 #include "Display/Shaders/Render/PS3/psFontRender.shader"
 #endif
@@ -66,7 +60,7 @@ bool C_FontRender::OnCreate()
 		m_pVertexDeclaration = Device()->CreateVertexDeclaration(vertexFormat);
 	}
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
+#if defined(DEVICE_PCD3D11) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
 	if(!CreateVertexShaderFromFunc("Shaders/vsFontRender", 0, &m_VertexShader, REF_SHADER(vsFontRender)))
 		return false;
 	if(!CreatePixelShaderFromFunc("Shaders/psFontRender", 0, &m_PixelShader, REF_SHADER(psFontRender)))
@@ -134,11 +128,7 @@ void C_FontRender::Draw(const char* pChars, F32 x, F32 y, F32 w, F32 h, const Ma
 	Device()->SetTextureFilterMagMinMip(0, E_TextureFilter_Linear, E_TextureFilter_Linear, E_TextureFilter_Linear);
 	Device()->SetTextureAddressUVW(0, E_TextureAddress_Clamp, E_TextureAddress_Clamp, E_TextureAddress_Clamp);
 
-	#ifdef PLATFORM_XENON
-	C_FontVertex* pVertex = (C_FontVertex*)Device()->BeginVertices(E_PrimitiveType_QuadList, charCount * 4, sizeof(C_FontVertex), m_pVertexDeclaration, true); // This can fail
-	#else
 	C_FontVertex* pVertex = (C_FontVertex*)Device()->BeginVertices(E_PrimitiveType_TriangleList, charCount * 6, sizeof(C_FontVertex), m_pVertexDeclaration, true); // This can fail
-	#endif
 
 	if(pVertex)
 	{
@@ -216,14 +206,6 @@ void C_FontRender::Draw(const char* pChars, F32 x, F32 y, F32 w, F32 h, const Ma
 			pVertex->v = v + 0.0625f;
 			pVertex++;
 
-			#ifdef PLATFORM_XENON
-			pVertex->x = x;
-			pVertex->y = y + h;
-			pVertex->c = gpuCol;
-			pVertex->u = u + u1;
-			pVertex->v = v + 0.0625f;
-			pVertex++;
-			#else
 			pVertex->x = x + w1;
 			pVertex->y = y + h;
 			pVertex->c = gpuCol;
@@ -244,7 +226,6 @@ void C_FontRender::Draw(const char* pChars, F32 x, F32 y, F32 w, F32 h, const Ma
 			pVertex->u = u + u1;
 			pVertex->v = v;
 			pVertex++;
-			#endif
 
 			x += w1;
 		}

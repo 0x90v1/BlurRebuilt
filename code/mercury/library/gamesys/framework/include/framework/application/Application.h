@@ -5,9 +5,7 @@
 #pragma once
 #endif
 
-#if defined(PLATFORM_XENON)
-#include "Framework/Application/Application360.h"
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 #include "Framework/Application/ApplicationPS3.h"
 #elif defined(PLATFORM_PC)
 #include "Framework/Application/ApplicationPC.h"

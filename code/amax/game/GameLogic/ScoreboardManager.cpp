@@ -29,23 +29,12 @@
 
 #include <Gamelogic\SocialNetworking\FriendsManager.h>
 
-#if defined ( PLATFORM_XENON )
-#include "Xlast/Amax.spa.h"
-#endif
 
-#if defined ( PLATFORM_XENON )
-
-static const S32 MAX_LEADERBOARD_START_INDEX = 1;
-static const S32 MAX_SP_LEADERBOARD_COLUMNS = 7;
-static const S32 MAX_MP_LEADERBOARD_COLUMNS = 13;
-
-#else
 
 static const S32 MAX_LEADERBOARD_START_INDEX = 0;
 static const S32 MAX_SP_LEADERBOARD_COLUMNS = 6;
 static const S32 MAX_MP_LEADERBOARD_COLUMNS = 12;
 
-#endif
 
 
 static Debug::Logger &gAmaxScoreboardsLogger = Debug::GetLogger("amax.scoreboards");
@@ -201,106 +190,6 @@ bool C_ScoreboardManager::GetWriteSuccess()
 
 void C_ScoreboardManager::StartScoreboardRead(eScoreboardTypes type)
 {
-#if defined ( PLATFORM_XENON )
-	if(0)	//call all this to reset the leaderboards on Xbox Live
-	{
-		XUserResetStatsViewAllUsers(STATS_VIEW_MP_RACEWINS,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_MP_POWERUPS,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_MP_LOBBY,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_MP_LEGENDS,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_57_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_36_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_25_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_14_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_MP_TOTALFANS,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_61_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_72_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_80_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_67_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_71_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_69_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_75_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_76_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_68_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_66_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_83_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_74_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_70_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_63_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_64_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_65_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_62_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_60_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_59_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_58_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_56_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_55_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_54_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_53_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_52_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_51_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_50_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_49_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_48_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_47_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_46_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_45_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_44_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_43_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_42_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_41_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_40_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_39_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_38_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_37_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_35_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_34_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_33_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_32_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_31_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_30_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_29_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_28_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_27_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_26_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_24_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_23_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_22_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_21_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_20_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_19_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_18_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_17_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_16_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_15_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_13_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_12_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_11_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_10_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_9_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_8_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_7_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_6_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_5_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_4_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_1_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_2_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_3_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_90_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_87_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_88_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_86_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_89_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_78_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_85_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_84_A,NULL);	
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_81_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_79_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_77_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_73_A,NULL);
-		XUserResetStatsViewAllUsers(STATS_VIEW_SP_82_A,NULL);	
-	}
-#endif
 
 	RacerNet::C_NetServices& services = RacerNet::C_NetServices::Instance();
 	if (services.IsInitialised())
@@ -415,44 +304,7 @@ void C_ScoreboardManager::ScoreboardSkillStart(NetPlay::C_PlayerSkillWriter& wri
 	const Game::C_LevelState& levelState = C_GameApp::GetInstance()->GetGame()->GetLevelState();
 	writer.StopAndCleanup();
 
-#if defined ( PLATFORM_XENON )
-
-	const C_MpResults& mpResults = C_MpResults::Instance();
-
-	Btl::Vector<NetPlay::PlayerSkillSubmission, Btl::VectorParameters_Static<RacerNet::NET_MAX_VEHICLES> > skillData;
-	for (U32 i=0; i<levelState.mNumCars; i++)
-	{
-		if (levelState.mCars[i].mControlType == E_VEHICLE_CONTROL_TYPE_PLAYER || levelState.mCars[mScoreboardWriteUserIndex].mControlType == E_VEHICLE_CONTROL_TYPE_NETWORK)
-		{
-			if (!levelState.mCars[i].mSystemPlayerId.m_IsGuest)
-			{
-				NetVehicleData resultData;
-				if (mpResults.GetPlayerResults(i, resultData))
-				{
-					NetPlay::PlayerSkillSubmission temp;
-					temp.m_User = levelState.mCars[i].mSystemPlayerId;
-
-					temp.m_Rating = resultData.m_SkillRating;
-					temp.m_Team = resultData.m_SkillTeam;
-
-					skillData.PushBack(temp);
-				}
-				else
-				{
-					BIZ_ASSERT_MSG(false, "C_RaceModeMultiplayer::ScoreboardSkillStart() - not a players defined in multiplayer results.");
-				}
-			}
-		}
-	}
-
-	if (skillData.Size())
-	{
-		if (writer.Start(session, &skillData[0], skillData.Size(), 0))
-			mScoreboardWriteState = eWriteSkillWait;
-	}	
-#else
 		// we dont use skill on demonware
-#endif
 
 	// some error has happened, clean up skill writer ans force main stats wwite on next update.
 	if (mScoreboardWriteState != eWriteSkillWait)
@@ -1481,7 +1333,7 @@ void C_ScoreboardManager::UpdateSessionLeaderboard()
 	
 			data.m_Name = pNetPlayer->m_User.Name();
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 			data.m_Uid = pNetPlayer->m_User.m_Uid;
 #endif
 			data.m_IsLocal = pNetPlayer->LocalPlayer();

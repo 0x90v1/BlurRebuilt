@@ -36,10 +36,6 @@ namespace netStorage
 			UI::C_SaveFileInfo(
 				  m_size												// m_uFileSize
 				, "MULTIPLAYER"											// m_FileName
-			#ifdef PLATFORM_XENON
-				, "SAVE:\\savegame"										// m_InternalName
-				, UI::C_TextStringID( "PRO_SAVE_GAME_NAME" ).String()	// m_DisplayName
-			#endif
 			)
 		);
 	}
@@ -232,10 +228,6 @@ namespace netStorage
 
 				UI::gGameSaveSystem.SetUserIndex( m_pad );
 
-				#if defined(PLATFORM_XENON)
-					UI::gGameSaveSystem.StartXenonLocationUI( (m_mode == MODE_LOADING)? 0 : 0/*m_interface->BufferSize()*/ );	// PR - doesn't exists anymore - but I'll be moving this file over properly "soon"
-					setState(STATE_DEVICE_SEARCH_WAIT);
-				#else
 					switch(m_mode)
 					{
 					default:
@@ -254,7 +246,6 @@ namespace netStorage
 							return true;
 						}
 					}
-				#endif
 				return true;
 			}
 		case STATE_DEVICE_SEARCH_WAIT:

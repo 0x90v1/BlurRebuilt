@@ -11,8 +11,6 @@
 #include "Display/Device/D3D11/D3D11Resources.h" // [Blur1PCDX11] Native resources.
 #elif defined(DEVICE_PS3GCM)
 #include "Display/Texture/GCM/GCMRenderTexture2D.h"
-#elif defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
-#include "Display/Texture/D3D9/D3D9RenderTexture2D.h"
 #elif defined(DEVICE_PCD3D10)
 #include "Display/Texture/D3D10/D3D10RenderTexture2D.h"
 #elif defined(DEVICE_PCGL) || defined(DEVICE_PSGL)

@@ -42,7 +42,7 @@ namespace Audio
 
 			void operator =(const U32 u32)
 			{
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 				InterlockedExchange((LONG*)(&m_u32Index), u32);
 #elif defined(PLATFORM_PS3)
 				cellAtomicStore32((uint32_t*)&m_u32Index, u32);
@@ -51,7 +51,7 @@ namespace Audio
 
 			void operator +=(const U32 u32)
 			{
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 				InterlockedExchangeAdd((LONG*)&m_u32Index, u32);
 #elif defined(PLATFORM_PS3)
 				cellAtomicAdd32((uint32_t*)&m_u32Index, u32);

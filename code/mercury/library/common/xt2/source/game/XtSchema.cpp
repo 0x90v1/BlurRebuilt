@@ -894,7 +894,7 @@ void XtGenerateRecordFixups(const XtRecord* record, XtU32* fixups, XtU32 fixupCo
 		}
 	}
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 //	BIZ_ASSERT_MSG(fixup == (fixups + fixupCount), "XtGenerateRecordFixups: Mismatch between generated fixups and fixup count");
 #endif
 }

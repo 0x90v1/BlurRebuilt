@@ -6,7 +6,7 @@ namespace Framework
 
 #if !CFG_GOLD
 
-#if PLATFORM_XENON || PLATFORM_PS3
+#if PLATFORM_PS3
 Debug::Bool		g_debugShowHeaps					("Graphics.Display2.Dumps.ShowHeaps",				false);
 Debug::Bool		g_debugDumpHeaps					("Graphics.Display2.Dumps.DumpHeaps",				false);
 #endif
@@ -39,7 +39,7 @@ Debug::Bool		g_debugDumpTiledMemory				("Graphics.Display2.Dumps.DumpTiledMemory
 void DumpGraphicsHeaps()
 {
 #if !CFG_GOLD
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	if(g_debugShowHeaps)
 	{
 		Display2::Device()->ShowMemoryHeaps();

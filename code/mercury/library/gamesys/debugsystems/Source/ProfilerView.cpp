@@ -72,9 +72,7 @@ void C_ProfilerView::Callback(Perf::ProfilerCommon* profiler)
 	const char *name = "???"; // Name of the section we are currently in
 
 	U32 mainThread = 0;
-#if defined( PLATFORM_XENON )
-	mainThread = GetCurrentThreadId();
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 	sys_ppu_thread_t tid;
 	sys_ppu_thread_get_id(&tid);
 	mainThread = tid;
@@ -130,9 +128,7 @@ void C_ProfilerView::Callback(Perf::ProfilerCommon* profiler)
 	// Find the time at the end of the profiling info
 	if (max > 0)
 	{
-#if defined( PLATFORM_XENON )
-		m_LastFrameEnd = __mftb();
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 		SYS_TIMEBASE_GET(m_LastFrameEnd);
 #else
 		m_LastFrameEnd = list[max - 1].time;

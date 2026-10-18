@@ -289,9 +289,7 @@ public:
     #endif
     
     /// Copy Constructor
-    #if !defined( PLATFORM_XENON )
     NOALIAS __forceinline C_Sphere( const C_Sphere& copy );
-    #endif
     
     /// Constructor: HF32 XYZ & Radius
     NOALIAS __forceinline C_Sphere( const HF32 PCREF x, const HF32 PCREF y, const HF32 PCREF z, const HF32 PCREF r );
@@ -344,11 +342,7 @@ public:
     
     // The sphere is stored with the centre in the XYZ components and the radius in the W component
     
-    #if defined( PLATFORM_XENON )
-    __vector4                           m_V;
-    #else
     HVec4                               m_V;
-    #endif
 };
 
 

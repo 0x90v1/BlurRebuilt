@@ -600,13 +600,11 @@ namespace RacerNet
 		// since the game code doesnt reference the bandwidth we evaluate, there is no point wasting time doing this..
 		return;
 
-#if !defined ( PLATFORM_XENON )
 		if (m_PlatformConnectionState != eConnectionStateComplete)
 		{
 			LOGWARN(g_Log, "C_NetRouterBase::StartBandwidthEvaluation()- can't start bandwidth scans until connected to demonware.");
 			return;
 		}
-#endif
 
 		if (BandwidthEvaluationInProgress())
 		{
@@ -641,13 +639,6 @@ namespace RacerNet
 		if (0 == size)
 			return;
 
-#if defined (PLATFORM_XENON)
-		U32 actual = size + 44;		// include xbox vdp header.. 
-		actual = (actual+7)&~7;		// all packets would have been rounded up to 8 bytes when transmitted.
-		actual -= 2;				// first 2 bytes (encrypted data) are not actually transmitted.
-		m_UsageReceived += actual;
-#else
-#endif
 	}
 
 	void C_NetRouterBase::TrackOutgoingBytes(const U32 size)
@@ -655,13 +646,6 @@ namespace RacerNet
 		if (0 == size)
 			return;
 
-#if defined (PLATFORM_XENON)
-		U32 actual = size + 44; // include xbox vdp header.. 
-		actual = (actual+7)&~7;	// rounded up to 8 bytes for encryption.
-		actual -= 2;			// first 2 bytes (encrypted data) are not actually transmitted.
-		m_UsageSent += actual;
-#else
-#endif
 	}
 
 	bool C_NetRouterBase::PeerRoutingEnabled(void)

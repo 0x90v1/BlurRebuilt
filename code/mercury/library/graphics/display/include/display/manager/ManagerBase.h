@@ -6,9 +6,7 @@
 #endif
 
 #include "Display/Manager/ManagerInterface.h"
-#if defined(BLUR_USE_DX11)
 #include <Core/Containers/Genesis_Containers/Array.h> // [Blur1PCDX11] Direct header dependency.
-#endif
 
 namespace Display
 {

@@ -13,7 +13,7 @@ EXTERN_SHADER(psDefaultTextureB);
 EXTERN_SHADER(psDefaultTextureA);
 EXTERN_SHADER(psDefaultTextureD);
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 EXTERN_SHADER(psDownsampleDepth)
 EXTERN_SHADER(psDownsampleTexture2x2)
 #endif
@@ -40,7 +40,7 @@ C_PixelShader			PixelShader::m_PixelShaderTextureB;
 C_PixelShader			PixelShader::m_PixelShaderTextureA;
 C_PixelShader			PixelShader::m_PixelShaderTextureD;
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 C_PixelShader			PixelShader::m_PixelShaderDepth;
 C_PixelShaderParameter	PixelShader::m_PixelShaderDepth_PixelSize;
 
@@ -78,7 +78,7 @@ void CreatePixelShaders()
 	CreatePixelShaderFromFunc("Shaders/psDefaultTextureA", 			0, &PixelShader::m_PixelShaderTextureA, 	REF_SHADER(psDefaultTextureA));
 	CreatePixelShaderFromFunc("Shaders/psDefaultTextureD", 			0, &PixelShader::m_PixelShaderTextureD, 	REF_SHADER(psDefaultTextureD));
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	CreatePixelShaderFromFunc("Shaders/psDownsampleDepth",			0, &PixelShader::m_PixelShaderDepth,		REF_SHADER(psDownsampleDepth));
 	PixelShader::m_PixelShaderDepth_PixelSize						= PixelShader::m_PixelShaderDepth.GetParameter(CP_DISPLAY_PIXEL_SIZE, "g_PixelSize");
 
@@ -115,7 +115,7 @@ void DestroyPixelShaders()
 	Display::Device()->Destroy(&PixelShader::m_PixelShaderTextureA);
 	Display::Device()->Destroy(&PixelShader::m_PixelShaderTextureD);
 	
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->Destroy(&PixelShader::m_PixelShaderDepth);
 	Display::Device()->Destroy(&PixelShader::m_PixelShaderTexture2x2);
 #endif

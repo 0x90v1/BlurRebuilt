@@ -60,10 +60,6 @@ Display2::E_VertexElementType ToDisplayVertexElementType(const U32 vertexElement
 	case E_Mesh2VertexElementType_U8_4N:			return Display2::E_VertexElementType_U8_4N;
 	case E_Mesh2VertexElementType_F16_2:			return Display2::E_VertexElementType_F16_2;
 	case E_Mesh2VertexElementType_F16_4:			return Display2::E_VertexElementType_F16_4;
-#if DEVICE_D3D9_XB2
-	case E_Mesh2VertexElementType_U16_2:			return Display2::E_VertexElementType_U16_2;
-	case E_Mesh2VertexElementType_U16_4:			return Display2::E_VertexElementType_U16_4;
-#endif
 	default:
 		assert(0 && "Unsupported vertex element type");
 		return Display2::E_VertexElementType_Unknown;
@@ -84,11 +80,6 @@ Display2::E_VertexElementUsage ToDisplayVertexElementUsage(const U32 vertexEleme
 	case E_Mesh2VertexElementUsage_Binormal:		return Display2::E_VertexElementUsage_Binormal;
 	case E_Mesh2VertexElementUsage_Colour:			return Display2::E_VertexElementUsage_Colour;
 	case E_Mesh2VertexElementUsage_Fog:			return Display2::E_VertexElementUsage_Fog;
-#if DEVICE_D3D9_XB2 || DEVICE_D3D9_PC
-	case E_Mesh2VertexElementUsage_TessFactor:		return Display2::E_VertexElementUsage_TessFactor;
-	case E_Mesh2VertexElementUsage_Depth:			return Display2::E_VertexElementUsage_Depth;
-	case E_Mesh2VertexElementUsage_Sample:			return Display2::E_VertexElementUsage_Sample;
-#endif
 	default:
 		assert(0 && "Unsupported vertex element usage");
 		return Display2::E_VertexElementUsage_Unknown;
@@ -130,7 +121,7 @@ bool LoadMesh2(C_Mesh2* pMesh, const Util::C_String& filePath, const Util::C_Str
 		return false;
 	}
 
-	#if PLATFORM_PS3 || PLATFORM_XENON
+	#if PLATFORM_PS3
 	Sys::BinaryDeserialiser<Ut::DoEndianSwap> ar(*pFile);
 	#else
 	Sys::BinaryDeserialiser<Ut::NoEndianSwap> ar(*pFile);
@@ -200,7 +191,7 @@ bool LoadMesh2(C_Mesh2* pMesh, const Util::C_String& filePath, const Util::C_Str
 			void* pVertices = vertexBuffer.Lock();
 			assert(pVertices);
 			ar.Read(pVertices, sizeof(U8)*size);
-			#if PLATFORM_PS3 || PLATFORM_XENON
+			#if PLATFORM_PS3
 			EndianSwap32((U32*)pVertices, size/sizeof(F32));
 			#endif
 			vertexBuffer.Unlock();
@@ -234,7 +225,7 @@ bool LoadMesh2(C_Mesh2* pMesh, const Util::C_String& filePath, const Util::C_Str
 			void* pIndices = indexBuffer.Lock();
 			assert(pIndices);
 			ar.Read(pIndices, sizeof(U8)*size);
-			#if PLATFORM_PS3 || PLATFORM_XENON
+			#if PLATFORM_PS3
 			EndianSwap16((U16*)pIndices, size/sizeof(U16));
 			#endif
 			indexBuffer.Unlock();
@@ -390,9 +381,7 @@ void DestroyMesh2(C_Mesh2* pMesh, Display2::C_Device* pDevice)
 
 Util::C_String GetMesh2FilePath(const Util::C_String& fileName)
 {
-	#if PLATFORM_XENON
-	const Util::C_String filePath = "Meshes/" + fileName + ".x2msh";
-	#elif PLATFORM_PS3
+	#if PLATFORM_PS3
 	const Util::C_String filePath = "Meshes/" + fileName + ".p3msh";
 	#elif PLATFORM_PC
 	const Util::C_String filePath = "Meshes/" + fileName + ".pcmsh";

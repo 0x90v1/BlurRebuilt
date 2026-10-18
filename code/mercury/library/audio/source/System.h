@@ -290,22 +290,6 @@ namespace Audio
 
 
 		bool TitleHasControl() { return (m_bTitleHasControl == TRUE) ? true : false; }
-#ifdef PLATFORM_XENON
-		void SetMusicEffectVolume(F32 fVolume)
-		{
-#ifdef AUDIO_USE_XMP_CAPTURE
-			if (m_pRenderer)
-				m_pRenderer->SetXMPEffectVolume(fVolume);
-#endif
-		}
-		void SetMusicEffectMode(U32 uMode)
-		{
-#ifdef AUDIO_USE_XMP_CAPTURE
-			if (m_pRenderer)
-				m_pRenderer->SetXMPEffectMode(uMode);
-#endif
-		}
-#endif
 
 #ifdef PLATFORM_PS3
 //		static Spu::Scheduler& GetScheduler() { return m_SpuScheduler; }

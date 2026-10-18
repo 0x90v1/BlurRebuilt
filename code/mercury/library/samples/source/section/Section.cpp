@@ -107,9 +107,6 @@ void C_SectionLauncherBase::Destroy()
 {
 	if(m_pSection)
 	{
-		#ifdef PLATFORM_XENON
-		Display::Device()->BlockUntilIdle();
-		#endif
 
 		Display::Device()->DestroyRenderersVolatile(Display::E_RendererType_Dynamic);
 		Display::Device()->DestroyRenderers(Display::E_RendererType_Dynamic);

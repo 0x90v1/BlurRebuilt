@@ -78,32 +78,6 @@ void C_ViewSettings3D::LookAt(const Maths::HVec3& pos, const Maths::HVec3& dir)
 	const Maths::HVec3 up(0.f, 1.f, 0.f);
 	const Maths::HVec3 at = pos + dir;
 
-#ifdef GRAPHICS_D3D9
-	#if 0
-	D3DXVECTOR3 d3dEye(pos.X(), pos.Y(), pos.Z());
-	D3DXVECTOR3 d3dAt(at.X(), at.Y(), at.Z());
-	#else
-	D3DXVECTOR3 d3dEye(m_ViewPosition.x, m_ViewPosition.y, m_ViewPosition.z);
-	D3DXVECTOR3 d3dAt(-m_ViewPosition.x, -m_ViewPosition.y, -m_ViewPosition.z);
-	#endif
-	D3DXVECTOR3 d3dUp(up.X(), up.Y(), up.Z());
-	D3DXMATRIX d3dViewMatrix;
-	D3DXMatrixLookAtLH(&d3dViewMatrix, &d3dEye, &d3dAt, &d3dUp);
-
-	D3DXMATRIX d3dProjMatrix;
-	#if 1
-	D3DXMatrixOrthoLH(&d3dProjMatrix, 1.f, 1.f, m_NearClip, m_FarClip);
-	#else
-//	D3DXMatrixPerspectiveFovLH(&d3dProjMatrix, D3DX_PI / 2.0f, 1.f, m_NearClip, m_FarClip);
-	D3DXMatrixPerspectiveFovLH(&d3dProjMatrix, D3DX_PI / 2.0f, 1, 0.01f, 3.0f);
-	#endif
-
-	D3DXMATRIX d3dViewProjMatrix;
-	D3DXMatrixMultiply(&d3dViewProjMatrix, &d3dViewMatrix, &d3dProjMatrix);
-
-	D3DXMatrixTranspose((D3DXMATRIX*)&m_ViewProjMatrix, &d3dViewProjMatrix);
-
-#endif
 }
 
 }; // namespace Display

@@ -167,14 +167,12 @@ bool C_PakIoMediator::SwitchFile(
 
 	bool result;
 
-#ifndef PLATFORM_XENON
 	//Allow reopening of the same file on 360 incase transparent caching doesn't allow newly cached files
 	if (m_filePath == filePath)
 	{
 		LOGINFO(g_log, "C_PakIoMediator no need to switch from %s!", filePath.Chars());
 		return true;
 	}
-#endif
 
 	LOGINFO(g_log, "C_PakIoMediator switching from %s to %s!", m_pFile->Name().Chars(), filePath.Chars());
 

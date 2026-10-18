@@ -16,9 +16,6 @@ namespace RacingPhysics {void PhysicsError();}
 #include "core/maths/utmaths/maths.h"
 #include "core/maths/utmaths/mmatrix.h"
 
-#ifdef PLATFORM_XENON
-#include "core/maths/utmaths/xmvectorwrapper.h"
-#endif
 
 #else
 

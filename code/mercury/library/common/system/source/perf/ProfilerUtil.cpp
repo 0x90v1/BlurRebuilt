@@ -55,15 +55,8 @@ void DumpEventTreeItem(C_EventTreeItem* pItem, U32 level, U64 firstEventTime, U6
 			bar[1] = PROFILER_EVENT_TIME(pItem->m_EventListPairs[i]);
 
 
-			#ifdef PLATFORM_XENON
-			U64 freq;
-			QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-			freq = freq / 1000000L;
-			#endif
 			#if defined(PLATFORM_PS3)
 				U32 time = U32( (bar[1] - bar[0]) / 80);
-			#elif defined(PLATFORM_XENON)
-				U32 time = U32( (bar[1] - bar[0]) / freq);
 			#else
 				U32 time = U32( bar[1] - bar[0] );
 			#endif
@@ -80,15 +73,8 @@ void DumpEventTreeItem(C_EventTreeItem* pItem, U32 level, U64 firstEventTime, U6
 	{
 		bar[1] = lastEventTime;
 
-		#ifdef PLATFORM_XENON
-		U64 freq;
-		QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-		freq = freq / 1000000L;
-		#endif
 		#if defined(PLATFORM_PS3)
 			U32 time = U32( (bar[1] - bar[0]) / 80);
-		#elif defined(PLATFORM_XENON)
-			U32 time = U32( (bar[1] - bar[0]) / freq);
 		#else
 			U32 time = U32( bar[1] - bar[0] );
 		#endif
@@ -137,15 +123,8 @@ void g_DumpPerfCallbackFunction(Perf::ProfilerCommon *pProfiler, void* /**/)
 	//Get Event Tree
 	C_EventTree* eventTree = C_EventTree::CreateProfileTree(pProfiler);
 
-	#ifdef PLATFORM_XENON
-	U64 freq;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-	freq = freq / 1000000L;
-	#endif
 	#if defined(PLATFORM_PS3)
 		U32 time = U32( (eventTree->m_EndEventTime - eventTree->m_StartEventTime) / 80);
-	#elif defined(PLATFORM_XENON)
-		U32 time = U32( (eventTree->m_EndEventTime - eventTree->m_StartEventTime) / freq);
 	#else
 		U32 time = U32( eventTree->m_EndEventTime - eventTree->m_StartEventTime );
 	#endif

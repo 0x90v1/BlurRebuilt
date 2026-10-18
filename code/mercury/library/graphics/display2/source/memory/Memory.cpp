@@ -266,7 +266,7 @@ void C_MemoryGuardInfo::Dump() const
 	LOGINFO(g_Log, "Callstack %i\n", m_CallstackSize);
 	for(S32 i=0; i<m_CallstackSize; i++)
 	{
-		LOGINFO(g_Log, "	0x%.8x\n", (U32)m_pCallstack[i]);
+		LOGINFO(g_Log, "	0x%p\n", (void*)m_pCallstack[i]);	// [Blur2PC][x64]
 	}
 }
 

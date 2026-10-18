@@ -9,13 +9,13 @@
 
 #ifndef CFG_GOLD
 
-#if !defined(PLATFORM_PC) && !defined(PLATFORM_XENON) && !defined(PLATFORM_PS3) && !defined(PLATFORM_LINUX)
+#if !defined(PLATFORM_PC) && !defined(PLATFORM_PS3) && !defined(PLATFORM_LINUX)
 #error Platform not supported - see SteveC
 #endif
 
 ArteryService::ArteryService() :
 	_references(0),
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	_wakeEvent(0),
 #endif
 	_shutdown(true),
@@ -43,13 +43,13 @@ bool ArteryService::Initialise(bool isServer, const char* gameName, int maxPeers
 
 	InitialiseBroadcastReply(gameName);
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	WSADATA wd;
 
 	if (WSAStartup(WINSOCK_VERSION, &wd) == 0)
 #endif
 	{
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 		if ((_wakeEvent = CreateEvent(0, FALSE, FALSE, 0)) != 0)
 #elif defined(PLATFORM_PS3) || defined(PLATFORM_LINUX)
 		if (CrossConnect(_wakeIn, _wakeOut))
@@ -96,7 +96,7 @@ bool ArteryService::Initialise(bool isServer, const char* gameName, int maxPeers
 			_broadcast.Close();
 			_listen.Close();
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 			CloseHandle(_wakeEvent);
 			_wakeEvent = 0;
 #elif defined(PLATFORM_PS3) || defined(PLATFORM_LINUX)
@@ -105,7 +105,7 @@ bool ArteryService::Initialise(bool isServer, const char* gameName, int maxPeers
 #endif
 		}
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 		WSACleanup();
 #endif
 	}
@@ -141,7 +141,7 @@ void ArteryService::Destroy()
 		_broadcast.Close();
 		_listen.Close();
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 		if (_wakeEvent != 0)
 		{
 			CloseHandle(_wakeEvent);
@@ -223,14 +223,10 @@ bool ArteryService::Connect(const ArterySockAddr& target, const char* id, Artery
 
 void ArteryService::Main()
 {
-#if defined(PLATFORM_XENON)
-	XSetThreadProcessor(GetCurrentThread(), 2);
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
-#endif
 
 	for(;;)
 	{
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 		HANDLE* handles = new HANDLE[3 + _maxPeers];
 
 		int		peerCount	= 0;
@@ -429,11 +425,6 @@ void ArteryService::InitialiseBroadcastReply(const char* gameName)
 
 	if (GetComputerName(_broadcastReply.machine, &nameLen) == FALSE)
 		_snprintf(_broadcastReply.machine, sizeof(_broadcastReply.machine), "unknown");
-#elif defined(PLATFORM_XBOX) || defined(PLATFORM_XENON)
-	DWORD nameLen = sizeof(_broadcastReply.machine);
-
-	if (FAILED(DmGetXboxName(_broadcastReply.machine, &nameLen)))
-		_snprintf(_broadcastReply.machine, sizeof(_broadcastReply.machine), "unknown");
 #elif defined(PLATFORM_PS3)
 	char nickname[CELL_SYSUTIL_SYSTEMPARAM_NICKNAME_SIZE];
 
@@ -459,10 +450,6 @@ void ArteryService::InitialiseBroadcastReply(const char* gameName)
 
 #if defined(PLATFORM_PC)
 	const char* platform = "pc";
-#elif defined(PLATFORM_XBOX)
-	const char* platform = "xbox";
-#elif defined(PLATFORM_XENON)
-	const char* platform = "xenon";
 #elif defined(PLATFORM_PS3)
 	const char* platform = "ps3";
 #elif defined(PLATFORM_LINUX)
@@ -511,7 +498,7 @@ bool ArteryService::SetupPeerCallback(ArteryPeer* peer)
 
 void ArteryService::WakeUp()
 {
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	SetEvent(_wakeEvent);
 #elif defined(PLATFORM_PS3) || defined(PLATFORM_LINUX)
 	_wakeIn.Send("x", 1);

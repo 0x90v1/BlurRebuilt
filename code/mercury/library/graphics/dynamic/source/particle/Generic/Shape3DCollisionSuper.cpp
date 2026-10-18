@@ -114,7 +114,7 @@ namespace Particle
 				{
 					S32 queuePosition = MT::AtomicIncrement(pUpdateConstants->pCollideableBlocksCount);
 					if(queuePosition < pUpdateConstants->collideableBlocksCapacity)
-						Spu::Set((U32*)&pUpdateConstants->ppCollideableBlocks[queuePosition], (U32)pBlockEA);
+						Spu::Set((INTPTR*)&pUpdateConstants->ppCollideableBlocks[queuePosition], (INTPTR)pBlockEA);	// [Blur2PC][x64] pointer-wide
 				}
 
 				working.StoreBounds(&pBlock->m_vCentre);

@@ -6,9 +6,7 @@
 #endif
 
 
-#if defined PLATFORM_XENON
-#define SYSTEM_PROFILE_NAME_LENGTH (XUSER_NAME_SIZE)
-#elif defined PLATFORM_PS3
+#if defined PLATFORM_PS3
 #include <np.h>
 #define BLUR_USER_ID(uid) bdAuthUtility::getUserID((uid).handle.data)	// [Blur2PC]
 #define SYSTEM_PROFILE_NAME_LENGTH (16+1)
@@ -46,7 +44,7 @@ namespace SysProfile
 	 */
 	struct UserIdentifier
 	{
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		UserIdentifier()
 		{
 			m_Uid = 0;
@@ -89,7 +87,7 @@ namespace SysProfile
 	 */
 	struct BaseProfile : UserIdentifier
 	{
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		BaseProfile()
 		{
 			memset(m_Name, 0, sizeof(m_Name));

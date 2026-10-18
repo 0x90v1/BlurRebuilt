@@ -635,7 +635,7 @@ void LightPaint_Render()
 			if (!addSprites)	// [Blur2PC] see above
 				continue;
 
-			UI::gSimple2D.AddSprite(so->layer, Maths::HVec3(), 1.0f, 1.0f, colours, so->panel, (UI::E_SpriteType)UI::E_GameSpriteType_LightPaint, rs, (U32)so);
+			UI::gSimple2D.AddSprite(so->layer, Maths::HVec3(), 1.0f, 1.0f, colours, so->panel, (UI::E_SpriteType)UI::E_GameSpriteType_LightPaint, rs, (INTPTR)so);	// [Blur2PC][x64]
 			UI::gSimple2D.CurrentSprite()->m_Callback = LightPaint_RenderElement;
 
 			UI::gSimple2D.AddTexUVs(0, so->texture);

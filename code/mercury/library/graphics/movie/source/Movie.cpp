@@ -97,11 +97,6 @@ bool C_Movie::Open(const Util::C_String& fileName, const C_MovieParams& params)
 
 void C_Movie::Close()
 {
-	#ifdef PLATFORM_XENON
-	Display::Device()->AcquireThreadOwnership();
-	Unbind();
-	Display::Device()->ReleaseThreadOwnership();
-	#endif
 
 	DestroyVolatile();
 	Destroy();

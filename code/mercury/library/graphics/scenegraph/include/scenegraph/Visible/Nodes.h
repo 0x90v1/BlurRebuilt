@@ -22,11 +22,7 @@ class C_VisibleNode
 {
 public:
 	C_VisibleNode() {}
-#ifdef PLATFORM_XENON
-	U32			GetPredication() const { return m_Predication; }
-#else
 	U32			GetPredication() const { return 0; }
-#endif
 
 	~C_VisibleNode() {}
 
@@ -45,9 +41,6 @@ public:
 
 	// actual node that gets rendered
 	const I_RenderNode*		m_pNode;
-#ifdef PLATFORM_XENON
-	U32						m_Predication;
-#endif
 	VolatileNodeInfo		m_VolatileNodeInfo;
 };
 

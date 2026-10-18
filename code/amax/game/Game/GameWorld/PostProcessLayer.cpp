@@ -87,12 +87,6 @@ bool C_GameWorldPostProcess::Create()
 	if(!CreateMemoryBuffer())
 		return false;
 
-#ifdef PLATFORM_XENON
-	Display::C_Window* pWindow = Display::Device()->GetWindow(Display::Device()->GetWindowCount() - 1);
-	Display::C_Texture2D* pTexture = pWindow->GetColourTexture(0);
-	m_pPostProcessMgr->SetPrimaryTextureBuffer(pTexture->GetAddress(), pTexture->GetSize());
-	m_pPostProcessMgr->SetSecondaryTextureBuffer(m_pDownSampleTextureBuffer, m_iDownSampleTextureBufferSize);
-#endif
 
 	if(!m_pPostProcessMgr->Create())
 		return false;
@@ -133,10 +127,7 @@ bool C_GameWorldPostProcess::CreateMemoryBuffer()
 		
 	m_iTextureBufferSize = Maths::Max(iMotionBlurBufferSize, iDepthOfFieldBufferSize);
 
-#if defined(PLATFORM_XENON)
-	if (!Display::Device()->AllocMemory(128, m_iTextureBufferSize, &m_pTextureBuffer, Display::E_AllocHeap_Large, Display::E_AllocType_Start, Display2::E_MemoryType_Texture))
-		return false;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	if (!Display::Device()->AllocMemory(128, m_iTextureBufferSize, &m_pTextureBuffer, Display::E_AllocHeap_Video, Display::E_AllocType_Default, Display2::E_MemoryType_Texture))
 		return false;
 #endif
@@ -147,9 +138,7 @@ bool C_GameWorldPostProcess::CreateMemoryBuffer()
 	
 	
 	U32 iSecondaryUsageFlags = Display::E_Usage_Colour;
-	#ifndef PLATFORM_XENON
 	iSecondaryUsageFlags |= Display::E_Usage_ReadWrite;
-	#endif
 	for (U32 iDownsample = 0, iScale = 1; iDownsample < 5; ++iDownsample)
 	{
 		iScale *= 2;
@@ -157,10 +146,7 @@ bool C_GameWorldPostProcess::CreateMemoryBuffer()
 		if(iSecondaryUsageFlags & Display::E_Usage_ReadWrite)
 			m_iDownSampleTextureBufferSize += Display::GetTexture2DSize(iWidth / iScale, iHeight / iScale, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8);		
 	}
-#if defined(PLATFORM_XENON)
-	if (!Display::Device()->AllocMemory(128, m_iDownSampleTextureBufferSize, &m_pDownSampleTextureBuffer, Display::E_AllocHeap_Large, Display::E_AllocType_Start, Display2::E_MemoryType_Texture))
-		return false;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	if (!Display::Device()->AllocMemory(128, m_iDownSampleTextureBufferSize, &m_pDownSampleTextureBuffer, Display::E_AllocHeap_Video, Display::E_AllocType_Default, Display2::E_MemoryType_Texture))
 		return false;
 #endif
@@ -175,9 +161,7 @@ void C_GameWorldPostProcess::DestroyMemoryBuffer()
 	m_pPostProcessMotionBlur->SetTextureBuffer(0, 0);
 	m_pPostProcessDoF->SetTextureBuffer(0, 0);
 	
-#if defined(PLATFORM_XENON)
-	Display::Device()->FreeMemory(m_iTextureBufferSize, m_pTextureBuffer, Display::E_AllocHeap_Large, Display2::E_MemoryType_Texture);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->FreeMemory(m_iTextureBufferSize, m_pTextureBuffer, Display::E_AllocHeap_Video, Display2::E_MemoryType_Texture);
 #endif
 	m_pTextureBuffer = 0;
@@ -185,9 +169,7 @@ void C_GameWorldPostProcess::DestroyMemoryBuffer()
 
 	m_pPostProcessMgr->SetSecondaryTextureBuffer(0, 0);
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->FreeMemory(m_iDownSampleTextureBufferSize, m_pDownSampleTextureBuffer, Display::E_AllocHeap_Large, Display2::E_MemoryType_Texture);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->FreeMemory(m_iDownSampleTextureBufferSize, m_pDownSampleTextureBuffer, Display::E_AllocHeap_Video, Display2::E_MemoryType_Texture);
 #endif
 	m_pDownSampleTextureBuffer = 0;
@@ -247,12 +229,6 @@ void C_GameWorldPostProcess::Resize()
 	m_pPostProcessMgr->ClearViews();
 	SetupPostProcess();
 
-#ifdef PLATFORM_XENON
-	Display::C_Window* pWindow = Display::Device()->GetWindow(Display::Device()->GetWindowCount() - 1);
-	Display::C_Texture2D* pTexture = pWindow->GetColourTexture(0);
-	m_pPostProcessMgr->SetPrimaryTextureBuffer(pTexture->GetAddress(), pTexture->GetSize());
-	m_pPostProcessMgr->SetSecondaryTextureBuffer(m_pDownSampleTextureBuffer, m_iDownSampleTextureBufferSize);
-#endif
 
 	m_pPostProcessMgr->CreateVolatile();
 }

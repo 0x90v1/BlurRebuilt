@@ -1,11 +1,9 @@
 #include "StdAfx.h"
-#if defined(BLUR_USE_DX11)
 #include <system/debug/Blur2PCAutomation.h>
 #include "Display/Render/Render.h"
 #include "Display/Utils/Screenshot.h"
 #include <wrl/client.h>
 #include <d3dcompiler.h>
-#endif
 #include "Render/PostProcess/Interface.h"
 
 #include "Render/PostProcess/Manager.h"
@@ -35,7 +33,6 @@ void I_PostProcess::DisplayFinal(const Display::C_PixelShader* pPixelShader, Dis
 		m_Manager.RestoreViewport();
 		m_Manager.SetFinalQuadSettings();
 		DisplayIntermediate(pPixelShader, textureFilter);
-		#if defined(BLUR_USE_DX11)
 		{
 			static bool probed = false;
 			char probe[2] = {};
@@ -257,7 +254,6 @@ void I_PostProcess::DisplayFinal(const Display::C_PixelShader* pPixelShader, Dis
 					Display::Device()->ReportTextureStats("after-magenta", afterQuad, 0);
 			}
 		}
-		#endif
 		m_Manager.SetActive(false);
 	}
 	else
@@ -266,9 +262,6 @@ void I_PostProcess::DisplayFinal(const Display::C_PixelShader* pPixelShader, Dis
 
 void I_PostProcess::DisplayIntermediate(const Display::C_PixelShader* pPixelShader, Display::E_TextureFilter textureFilter) const
 {
-#ifdef PLATFORM_XENON
-	Device()->SetBlendHighPrecisionEnable(E_Bool_False);
-#endif
 	
 	Display::Device()->SetTextureAddressUVW(0, Display::E_TextureAddress_Clamp, Display::E_TextureAddress_Clamp, Display::E_TextureAddress_Clamp);
 	Display::Device()->SetTextureGamma(0, Display::E_Bool_False);
@@ -291,9 +284,6 @@ void I_PostProcess::DisplayIntermediate(const Display::C_PixelShader* pPixelShad
 	else
 		Display::Quad::DrawFullScreen();
 
-#ifdef PLATFORM_XENON
-	Device()->SetBlendHighPrecisionEnable(E_Bool_True);
-#endif
 }
 
 // resolves the current rendertarget into m_pRenderTexture and restores the viewport for this view if not chainable

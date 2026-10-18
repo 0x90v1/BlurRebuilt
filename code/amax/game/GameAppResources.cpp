@@ -61,10 +61,6 @@ public:
 
 	virtual void ThreadMain()
 	{
-#ifdef PLATFORM_XENON
-		//Avoid interfering with main thread.
-		XSetThreadProcessor(GetCurrentThread(), 1);
-#endif
 		m_pFunc();
 	}
 

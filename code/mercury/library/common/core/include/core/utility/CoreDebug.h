@@ -4,9 +4,6 @@
 
 #ifndef NO_MERCURY_ASSERT // Define this to prevent mercury from declaring its own version of assert
 
-#if defined( PLATFORM_XENON )
-#include <ppcintrinsics.h>
-#endif
 
 #ifdef CFG_SPEED
 #ifndef assert
@@ -108,11 +105,6 @@ extern AssertFunction *g_pCoreAssertFunction;
 		#include <crtdbg.h>
 		#define ALLOW_CRT_CHECK_MEMORY
 		#ifdef PLATFORM_PC
-			#define CORE_FATAL_ERROR(x) \
-			{\
-				DoErrorString(x, __FILE__, __LINE__);\
-			}
-		#elif defined PLATFORM_XENON
 			#define CORE_FATAL_ERROR(x) \
 			{\
 				DoErrorString(x, __FILE__, __LINE__);\

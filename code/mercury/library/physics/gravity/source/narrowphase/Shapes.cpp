@@ -424,8 +424,8 @@ namespace Collision
 	{
 		
 		using namespace Maths;
-		U32 addy = (U32)alloca(sizeof(Maths::HVec3)*m_Hull.GetNumVertices() + 16);
-		addy = (addy + 15)& 0xfffffff0;
+		INTPTR addy = (INTPTR)alloca(sizeof(Maths::HVec3)*m_Hull.GetNumVertices() + 16);	// [Blur2PC][x64] full address
+		addy = (addy + 15)& ~(INTPTR)0xf;
 		Maths::HVec3* verts((Maths::HVec3*)addy);
 		const HMat33 orientation(m_Hull.Orientation());
 		const HVec3 position(m_Hull.Centre());

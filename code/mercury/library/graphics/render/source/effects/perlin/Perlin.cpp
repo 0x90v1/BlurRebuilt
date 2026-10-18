@@ -11,17 +11,6 @@ EXTERN_SHADER(psPerlin4);
 
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Effects/Perlin/PCD3D9/vsPerlin.shader"
-#include "Render/Shaders/Effects/Perlin/PCD3D9/psPerlin.shader"
-#include "Render/Shaders/Effects/Perlin/PCD3D9/psPerlin2.shader"
-#include "Render/Shaders/Effects/Perlin/PCD3D9/psPerlin4.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Effects/Perlin/XB2/vsPerlin.shader"
-#include "Render/Shaders/Effects/Perlin/XB2/psPerlin.shader"
-#include "Render/Shaders/Effects/Perlin/XB2/psPerlin2.shader"
-#include "Render/Shaders/Effects/Perlin/XB2/psPerlin4.shader"
-#endif
 #endif
 
 
@@ -82,16 +71,6 @@ bool C_Perlin::OnCreate()
 	RESOURCE_MEMORY_ID("Perlin");
 
 	// shaders
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
-	if (!Display::CreateVertexShaderFromFunc("Shaders/vsPerlin", 0, &m_VertexShader, REF_SHADER(vsPerlin)))
-		return false;
-	if (!Display::CreatePixelShaderFromFunc("Shaders/psPerlin", 0, &m_PixelShader[E_PixelShader_Default], REF_SHADER(psPerlin)))
-		return false;
-	if (!Display::CreatePixelShaderFromFunc("Shaders/psPerlin2", 0, &m_PixelShader[E_PixelShader_2Samples], REF_SHADER(psPerlin2)))
-		return false;
-	if (!Display::CreatePixelShaderFromFunc("Shaders/psPerlin4", 0, &m_PixelShader[E_PixelShader_4Samples], REF_SHADER(psPerlin4)))
-		return false;
-#endif
 
 	// textures
 #ifndef PLATFORM_PS3
@@ -210,9 +189,6 @@ void C_Perlin::Render()
 			Display::Device()->EndVertices(pVertex);
 		}
 
-	#ifdef PLATFORM_XENON
-		Display::Device()->Resolve(Display::E_Resolve_Colour, &m_RenderTexture.GetTexture());
-	#endif
 	}
 	
 	if(m_BuildMipMaps)
@@ -236,80 +212,6 @@ void C_Perlin::Show() const
 void C_Perlin::FillTexture3D(const Display::C_Texture3D &texture3d)
 {
 
-#ifdef PLATFORM_XENON
-
-	IDirect3DVolumeTexture9 *pVolTex = (IDirect3DVolumeTexture9 *)texture3d.GetGPUTexture();
-	D3DLOCKED_BOX	box;
-
-	U32 level = 0;
-	U32 size = kVolumeTextureSize;
-
-	// while we're bigger than the packed mip-map tail
-	while (32 <= size && level < kVolumeMipMapLevels)
-	{
-		pVolTex->LockBox(level, &box, NULL, 0);
-
-		U32 *	pData		=	reinterpret_cast<U32 *>(box.pBits);
-		U32		frequency	=	1 << level;
-
-		for (U32 z = 0; z < size; ++z)
-		{
-			U32	zOffset	=	z * box.SlicePitch / 4;
-			for (U32 y = 0; y < size; ++y)
-			{
-				U32	yOffset	=	y * box.RowPitch / 4;
-				for (U32 x = 0; x < size; ++x)
-				{
-					U8	red			=	static_cast<U32>(Noise(x * frequency, y * frequency, z * frequency, 65536) * 255);
-					U8	green		=	static_cast<U32>(Noise(x * frequency, y * frequency, z * frequency, 232144) * 255);
-					U8	blue		=	static_cast<U32>(Noise(x * frequency, y * frequency, z * frequency, 108957) * 255);
-					U8	alpha		=	static_cast<U32>(Noise(x * frequency, y * frequency, z * frequency, 598221) * 255);
-					U32	colour		=	(alpha << 24) + (red << 16) + (green << 8) + (blue);
-					U32	index		=	zOffset + yOffset + x;
-					pData[index]	=	colour;
-				}
-			}
-		}
-
-		pVolTex->UnlockBox(level);
-
-		level	=	level + 1;
-		size	=	size / 2;
-	}
-
-	// if we're in the packed mip map tail
-	if (level < kVolumeMipMapLevels)
-	{
-		D3DLOCKED_TAIL tail;
-		D3DMIPTAIL_DESC desc;
-
-		pVolTex->GetTailDesc(&desc);
-		pVolTex->LockTail(&tail, 0);
-		U32 * pData = reinterpret_cast<U32 *>(tail.pBits);
-
-		for (U32 z = 0; z < desc.Depth; ++z)
-		{
-			U32	zOffset	=	z * tail.SlicePitch / 4;
-			for (U32 y = 0; y < desc.Height; ++y)
-			{
-				U32	yOffset	=	y * tail.RowPitch / 4;
-				for (U32 x = 0; x < desc.Width; ++x)
-				{
-					U8	red			=	static_cast<U32>(Noise(x, y, z, 65536) * 255);
-					U8	green		=	static_cast<U32>(Noise(x, y, z, 232144) * 255);
-					U8	blue		=	static_cast<U32>(Noise(x, y, z, 108957) * 255);
-					U8	alpha		=	static_cast<U32>(Noise(x, y, z, 598221) * 255);
-					U32	colour		=	(alpha << 24) + (red << 16) + (green << 8) + (blue);
-					U32	index		=	zOffset + yOffset + x;
-					pData[index]	=	colour;
-				}
-			}
-		}
-
-		pVolTex->UnlockTail();
-	}
-
-#endif
 
 #ifdef PLATFORM_PC
 #ifndef GRAPHICS_GL

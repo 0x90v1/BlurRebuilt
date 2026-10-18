@@ -43,11 +43,6 @@ C_Mask::~C_Mask()
 
 void C_Mask::Begin() const
 {
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->FlushHiZStencil(D3DFHZS_ASYNCHRONOUS);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, FALSE);
-#endif
 
 	Display::C_StencilState stencilState;
 	stencilState.m_StencilEnable		= Display::E_Bool_True;
@@ -63,9 +58,6 @@ void C_Mask::Begin() const
 
 void C_Mask::End() const
 {
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, FALSE);
-#endif
 
 	Display::C_StencilState stencilState;
 	stencilState.m_StencilEnable		= Display::E_Bool_False;
@@ -87,13 +79,7 @@ void C_Mask::MaskAfter(const F32 fBegin) const
 {
 	PERF_EVENT("Deferred.MaskAfter");
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->Clear(0, 0, D3DCLEAR_STENCIL | D3DCLEAR_HISTENCIL_CULL, 0, 1.0f, 0x00);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, FALSE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILREF, 0x00);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILFUNC, D3DHSCMP_EQUAL);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->SetZcullEnable(true, true);
 	cellGcmSetStencilMask(0xFF);
 	cellGcmSetScullControl(CELL_GCM_SCULL_SFUNC_EQUAL, 0xFF, 0xFF);
@@ -118,22 +104,13 @@ void C_Mask::MaskAfter(const F32 fBegin) const
 
 	stencilState.m_StencilEnable = Display::E_Bool_False;
 	Display::Device()->SetStencilState(stencilState);
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, FALSE);
-#endif
 }
 
 void C_Mask::MaskBefore(const F32 fEnd) const
 {
 	PERF_EVENT("Deferred.MaskBefore");
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->Clear(0, 0, D3DCLEAR_STENCIL | D3DCLEAR_HISTENCIL_PASS, 0, 1.0f, 0xFF);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, FALSE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILREF, 0x00);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILFUNC, D3DHSCMP_EQUAL);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->SetZcullEnable(true, true);
 	cellGcmSetStencilMask(0xFF);
 	cellGcmSetScullControl(CELL_GCM_SCULL_SFUNC_EQUAL, 0xFF, 0xFF);
@@ -158,22 +135,13 @@ void C_Mask::MaskBefore(const F32 fEnd) const
 
 	stencilState.m_StencilEnable = Display::E_Bool_False;
 	Display::Device()->SetStencilState(stencilState);
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, FALSE);
-#endif
 }
 
 void C_Mask::MaskBetween(const F32 fBegin, const F32 fEnd) const
 {
 	PERF_EVENT("Deferred.MaskBetween");
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->Clear(0, 0, D3DCLEAR_STENCIL | D3DCLEAR_HISTENCIL_CULL, 0, 1.0f, 0x00);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, FALSE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILREF, 0x00);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILFUNC, D3DHSCMP_EQUAL);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->SetZcullEnable(true, true);
 	cellGcmSetStencilMask(0xFF);
 	cellGcmSetScullControl(CELL_GCM_SCULL_SFUNC_EQUAL, 0xFF, 0xFF);
@@ -204,21 +172,12 @@ void C_Mask::MaskBetween(const F32 fBegin, const F32 fEnd) const
 
 	stencilState.m_StencilEnable = Display::E_Bool_False;
 	Display::Device()->SetStencilState(stencilState);
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, FALSE);
-#endif
 }
 
 void C_Mask::ReloadHiStencil() const
 {
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_None);
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, FALSE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILFUNC, D3DHSCMP_EQUAL);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILREF, 0x00);
-#endif
 
 	Display::C_StencilState stencilState;
 	stencilState.m_StencilEnable		= Display::E_Bool_True;
@@ -240,9 +199,6 @@ void C_Mask::ReloadHiStencil() const
 	stencilState.m_StencilDepthPass 	= Display::E_StencilOp_Keep;	
 	Display::Device()->SetStencilState(stencilState);
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, FALSE);
-#endif
 
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_Default);
 }
@@ -254,11 +210,7 @@ void C_Mask::DrawDepth(const F32 fZ) const
 	Display::Device()->SetDepthEnable(Display::E_Bool_True);
 	Display::Device()->SetDepthWriteEnable(Display::E_Bool_False);
 	Display::Device()->SetVertexShader(&m_Shaders.m_VertexShader);
-	#if defined(PLATFORM_XENON)
-	Display::Device()->SetPixelShader(0);
-	#else
 	Display::Device()->SetPixelShader(&m_Shaders.m_PixelShader);
-	#endif
 
 	F32 fNearClip = Display::Device()->GetViewSettings3D().GetNearClip();
 	F32 fFarClip = Display::Device()->GetViewSettings3D().GetFarClip();

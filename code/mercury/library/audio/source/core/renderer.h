@@ -4,16 +4,6 @@
 #include <core\threads.h>
 
 #include "..\common\thread.h"
-#if defined(PLATFORM_XENON)
-#include "mastereffect.h"
-#include "quadeffect.h"
-#ifdef USE_XAUDIO2
-#include <xaudio2.h>
-#endif // USE_XAUDIO2
-#if defined(AUDIO_USE_XMP_CAPTURE)
-#include <xmp.h>
-#endif // AUDIO_USE_XMP_CAPTURE
-#endif // PLATFORM_XENON
 
 #if defined(PLATFORM_PC)
 #include "al.h"
@@ -64,7 +54,7 @@ namespace Audio
 			};
 
 		public:
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 			static void* operator new(size_t sz);
 			static void operator delete(void* ptr);
 #endif
@@ -130,12 +120,6 @@ namespace Audio
 #endif	//	PS3_OUTPUT_TO_MULTISTREAM
 #endif	//	PLATFORM_PS3
 
-#ifdef PLATFORM_XENON
-#ifdef AUDIO_USE_XMP_CAPTURE
-			void SetXMPEffectVolume(F32 fVolume);
-			void SetXMPEffectMode(U32 uMode);
-#endif	//	AUDIO_USE_XMP_CAPTURE
-#endif	//	PLATFORM_XENON
 
 		private:
 			void ClearFrame(S32 sFrameNum);
@@ -198,28 +182,6 @@ namespace Audio
 			//Audio::Core::Input* m_pMonoReverbInput2;
 	
 
-#ifdef PLATFORM_XENON
-#ifdef USE_XAUDIO2
-			IXAudio2*               m_pXAudio2;
-			IXAudio2MasteringVoice* m_pMasterVoice;
-			IXAudio2SourceVoice*    m_pSourceVoice;
-			XAUDIO2_BUFFER          m_waveBuffer;
-#else // !USE_XAUDIO2
-			MasterEffectInit m_DryVoiceEffectInit;
-			MasterEffectInit m_WetVoiceEffectInit[AUDIO_MAX_NUM_REVERBS];
-			MASTER_INPUT_EFFECT_INIT m_WetMasterInputEffectInit[AUDIO_MAX_NUM_REVERBS];
-			XAUDIOFXINIT* m_pWetMasteringVoiceEffectsInit[AUDIO_MAX_NUM_REVERBS][1];
-			XAUDIOVOICEFXCHAIN m_WetMasteringVoiceEffectsChain[AUDIO_MAX_NUM_REVERBS];
-
-			IXAudioSourceVoice* m_pWetXAudioVoice[AUDIO_MAX_NUM_REVERBS];
-			//IXAudioSourceVoice* m_pWetXAudioVoice2;
-
-#ifdef AUDIO_USE_XMP_CAPTURE
-			IXAudioSourceVoice* m_pXMPSourceVoice;
-			IXAudioSubmixVoice* m_pXMPSubmixVoice;
-#endif // AUDIO_USE_XMP_CAPTURE
-#endif // USE_XAUDIO2
-#endif // PLATFORM_XENON
 
 			U32 m_u32MultistreamPacketSubmitSize;
 

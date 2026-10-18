@@ -4,9 +4,6 @@
 #include "Display2/Utils/Utils.h"
 #include "fx/ShaderImpl.h"
 #include <btl\Utility\hash.h>
-#if PLATFORM_XENON
-#include "Display/Context/Context_Xenon.h"
-#endif
 
 namespace FX
 {
@@ -33,11 +30,7 @@ Shader *CreateShader(void *microcode, int cSize, E_ShaderType type)
 {
 	U32 iHash;
 	// get the microcode out of the shader data and calculate hash
-#if PLATFORM_XENON
-	XGMICROCODESHADERPARTS parts;
-	XGGetMicrocodeShaderParts(microcode, &parts);
-	iHash = Btl::HashRaw((U8*)parts.pPhysicalPart, parts.cbPhysicalPartSize);
-#elif PLATFORM_PS3
+#if PLATFORM_PS3
 	CellCgbProgram cgb;
 	int32_t res = cellCgbRead(microcode, cSize, &cgb);
 	assert(res == CELL_CGB_OK);
@@ -132,9 +125,6 @@ void FreeShader(Shader *p, E_ShaderType type)
 	{
 #if PLATFORM_PS3
 		delete [] p->m_pData;
-#endif
-#if PLATFORM_XENON
-		Display::g_ContextManager.FreePatchedVertexShader(((VertexShader*)p)->GetGPUVertexShader());
 #endif
 		Display2::Device()->DestroyVertexShader((VertexShader*)p);
 	}

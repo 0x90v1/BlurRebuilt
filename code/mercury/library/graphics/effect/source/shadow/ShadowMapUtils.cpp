@@ -233,9 +233,6 @@ void C_VarianceFilter::VarianceFilter5(const Display::C_RenderTexture2D* pDst, c
 
 	Display::Device()->SetPixelShader(&m_Shaders.m_VarianceFilterY5Shader);
 	Display::Device()->SetTexture(0, &pInt->GetTexture());
-	#if PLATFORM_XENON
-	Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Linear);
-	#endif
 
 	Display::Quad::DrawFullScreen();
 
@@ -274,9 +271,6 @@ void C_VarianceFilter::VarianceFilter7(const Display::C_RenderTexture2D* pDst, c
 
 	Display::Device()->SetPixelShader(&m_Shaders.m_VarianceFilterY7Shader);
 	Display::Device()->SetTexture(0, &pInt->GetTexture());
-	#if PLATFORM_XENON
-	Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Linear);
-	#endif
 
 	Display::Quad::DrawFullScreen();
 

@@ -54,10 +54,6 @@ Display::E_Format C_ResourceBundleSingle::GetFormat(const U32 format)
 		return Display::E_Format_DXT5;
 	case ResourceBundler::E_TextureFormat_A8R8G8B8:
 		return Display::E_Format_A8R8G8B8;
-#if PLATFORM_XENON
-	case ResourceBundler::E_TextureFormat_DXN:
-		return Display::E_Format_DXN;
-#endif
 	case ResourceBundler::E_TextureFormat_L8:
 		return Display::E_Format_L8;
 	default:

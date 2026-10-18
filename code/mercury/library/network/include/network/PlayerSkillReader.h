@@ -90,14 +90,10 @@ namespace NetPlay
 		U32		m_MaxUsersToQuery;
 		U32		m_GameModeId;
 
-#if defined (PLATFORM_XENON)
-		Scoreboard::C_ReaderByUsers* m_pReader;
-#else
 		bdRemoteTaskRef m_AsyncTask;
 		bdEntityID* m_pEntities;	
 		bdPerformanceValue* m_pResults;
 		U32	m_NumResults;
-#endif
 	};
 }
 

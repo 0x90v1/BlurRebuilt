@@ -75,7 +75,7 @@ namespace NetPlay
 		U32	m_UploadFileSize;
 		char m_FileName[MAX_PER_USER_FILE_NAME];
 		
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		void *m_pAsyncTask;
 #elif defined(PLATFORM_PS3) || defined(PLATFORM_PC)
 		bdRemoteTaskRef	m_AsyncTask;

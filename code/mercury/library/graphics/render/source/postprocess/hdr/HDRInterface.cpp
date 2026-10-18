@@ -615,7 +615,7 @@ void I_HighDynamicRange::ResolveLuminance() const
 		Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Point);	
 		DisplayIntermediate(&m_LuminanceResolve, Display::E_TextureFilter_Point);
 		Resolve();
-		#elif defined(BLUR_USE_DX11) // [Blur1PCDX11] Native luminance resolve copy.
+		#else // [Blur1PCDX11] Native luminance resolve copy.
 		ID3D11Texture2D* source = m_AdaptedLuminances[iCurrentView]->GetSurface().m_pd3dSurface;
 		ID3D11Texture2D* destination = pLuminanceResolve->GetTexture()->GetGPUTexture2D();
 		if (source && destination)
@@ -629,13 +629,6 @@ void I_HighDynamicRange::ResolveLuminance() const
 				context->Release();
 			}
 		}
-		#else
-		IDirect3DTexture9* pDstTexture = (IDirect3DTexture9*)pLuminanceResolve->GetTexture()->GetGPUTexture();
-		IDirect3DSurface9* pSrcSurface = m_AdaptedLuminances[iCurrentView]->GetSurface().m_pd3dSurface;
-		IDirect3DSurface9* pDstSurface = 0;
-		pDstTexture->GetSurfaceLevel(0, &pDstSurface);
-		Display::Device()->GetD3DDevice()->GetRenderTargetData(pSrcSurface, pDstSurface);
-		pDstSurface->Release();
 		#endif
 	}
 	
@@ -680,9 +673,6 @@ void I_HighDynamicRange::ClearLuminance() const
 
 			DisplayIntermediate(&m_LuminanceClear, Display::E_TextureFilter_Point);
 
-		#ifdef DEVICE_XB2D3D9
-			Display::Device()->Resolve(Display::E_Resolve_Colour, &m_AdaptedLuminances[iCurrentView]->GetTexture());
-		#endif
 
 			Display::Device()->SetColourDepthStencilSurface(pColourSurface, pDepthStencilSurface);
 			Display::Device()->SetViewport(oldViewport);

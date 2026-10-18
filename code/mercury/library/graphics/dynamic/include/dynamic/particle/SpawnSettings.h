@@ -32,9 +32,9 @@ struct SpawningEmitter
 	I_ParticleEffectBase*	pEffect;
 };
 
-INLINE U32 RadixKey(const SpawningEmitter& info)
+INLINE INTPTR RadixKey(const SpawningEmitter& info)	// [Blur2PC][x64] the whole address groups emitters by effect
 {
-	return (U32)info.pEffect;
+	return (INTPTR)info.pEffect;
 }
 
 struct ALIGN16 SpawnSettings

@@ -8,13 +8,7 @@ EXTERN_SHADER(psTextureViewer);
 EXTERN_SHADER(vsTextureViewer);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "DebugSystems/Shaders/DebugSystems/PCD3D9/psPrimitive2D.shader"
-#include "DebugSystems/Shaders/DebugSystems/PCD3D9/vsPrimitive2D.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "DebugSystems/Shaders/DebugSystems/XB2/psPrimitive2D.shader"
-#include "DebugSystems/Shaders/DebugSystems/XB2/vsPrimitive2D.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "DebugSystems/Shaders/DebugSystems/PS3/psPrimitive2D.shader"
 #include "DebugSystems/Shaders/DebugSystems/PS3/vsPrimitive2D.shader"
 #endif
@@ -392,34 +386,11 @@ void DebugSystems::C_DebugHUDTextureViewer::Render()
 			pos += m_pFontRenderer->GetScaleY();
 
 			sprintf_s(string, sizeof(string), "Size: %iKb", KeyToTex(pSelectedTexture2D->GetKey())->GetSize() / 1024 );
-#if PLATFORM_XENON
-			if(KeyToTex(pSelectedTexture2D->GetKey())->GetFlags() & Display2::E_Flags_Indirect)
-				strcat_s(string, sizeof(string), " (Indirect)");
-#endif
 			m_pFontRenderer->Print(Maths::HVec2(100.f, pos), string );
 			pos += m_pFontRenderer->GetScaleY();
 
 			Util::C_String format = Display2::GetTextureFormatAsString(KeyToTex(pSelectedTexture2D->GetKey())->GetFormat());
 			sprintf_s(string, sizeof(string), "Format: %s", format.Chars());
-#if PLATFORM_XENON
-			if(KeyToTex(pSelectedTexture2D->GetKey())->GetFlags() & Display2::E_Flags_Linear || KeyToTex(pSelectedTexture2D->GetKey())->GetFlags() & Display2::E_Flags_SRGB)
-			{
-				strcat_s(string, sizeof(string), " (");
-				
-				if(KeyToTex(pSelectedTexture2D->GetKey())->GetFlags() & Display2::E_Flags_SRGB)
-				{
-					strcat_s(string, sizeof(string), "Gamma");
-
-					if(KeyToTex(pSelectedTexture2D->GetKey())->GetFlags() & Display2::E_Flags_Linear)
-						strcat_s(string, sizeof(string), "|");
-				}
-
-				if(KeyToTex(pSelectedTexture2D->GetKey())->GetFlags() & Display2::E_Flags_Linear)
-					strcat_s(string, sizeof(string), "Linear");
-
-				strcat_s(string, sizeof(string), ")");
-			}
-#endif
 			m_pFontRenderer->Print(Maths::HVec2(100.f, pos), string );
 			pos += m_pFontRenderer->GetScaleY();
 
@@ -435,11 +406,7 @@ void DebugSystems::C_DebugHUDTextureViewer::Render()
 				switch (m_FullScreenState)
 				{
 				case E_FullScreen_State_Colour:
-#ifdef PLATFORM_XENON
-					sprintf_s(string, sizeof(string), "Colour (%s)", (KeyToTex(pSelectedTexture2D->GetKey())->GetFlags() & Display::E_Format_SRGB)?"No Gamma (SRGB)":"Gamma");
-#else
 					sprintf_s(string, sizeof(string), "Colour (%s)", (m_ColourGammaEnabled)?"No Gamma (SRGB)":"Gamma");
-#endif
 
 					break;
 				case E_FullScreen_State_Alpha:
@@ -664,12 +631,10 @@ void DebugSystems::C_DebugHUDTextureViewer::RenderTexture( Maths::HVec2 PCREF po
 		Display::Device()->SetTextureFilterMagMinMip(0, Display::E_TextureFilter_Linear, Display::E_TextureFilter_Linear, Display::E_TextureFilter_Linear);
 #endif
 
-#ifndef PLATFORM_XENON
 		if ((m_FullScreenState == E_FullScreen_State_Colour) && (m_ViewerState == E_State_SingleTexture))
 		{
 			Display::Device()->SetTextureGamma(0, Display::E_Bool(m_ColourGammaEnabled));
 		}
-#endif
 
 		//Fill Vertices
 		C_TexturedVertex2D* pTextureVertex =  (C_TexturedVertex2D*) Display::Device()->BeginVertices(Display::E_PrimitiveType_TriangleStrip, 4, sizeof(C_TexturedVertex2D), m_pVertexDeclaration2DTex);

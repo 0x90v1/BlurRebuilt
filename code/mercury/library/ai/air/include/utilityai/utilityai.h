@@ -56,9 +56,6 @@ namespace airacingtech
 	template<typename X, typename Y>
 	void B_Spline_ApproxNonLooped(const X &pctrlPoints, Y &samplePoints, float interval, float step)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "B_Spline_ApproxNonLooped()");
-#endif
 
 		const float epsilonSpline = 0.01f;
 		float threshold = interval - epsilonSpline;
@@ -114,9 +111,6 @@ namespace airacingtech
 
 	inline Maths::HVec3 B_Spline_Approx_Calc_Opt(const Maths::HVec3& P1, const Maths::HVec3& P2, const Maths::HVec3& P3,const Maths::HVec3& P4, const Maths::HF32 t)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "B_Spline_Approx_Calc()");
-#endif
 		// [Darren] todo optimise into the vector units for xbox...
 
 #if 0
@@ -279,9 +273,6 @@ namespace airacingtech
 								Maths::HVec3 origin,
 								Maths::HF32 bailoutDistance)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "B_Spline_ApproxNonLooped()");
-#endif
 
 		const float epsilonSpline = 0.01f;
 		Maths::HF32 threshold = interval - epsilonSpline;
@@ -592,9 +583,6 @@ namespace airacingtech
 
 	inline int DistanceInfrontBehind(int nearestSample, int sample, int trackLength)	
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "DistanceInfrontBehind()");
-#endif
 
 
 		// +ve if in front of the <sample> point
@@ -629,9 +617,6 @@ namespace airacingtech
 
 	inline float DistanceInfrontBehindF(float testSample, float sample)	
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "DistanceInfrontBehind()");
-#endif
 
 		// +ve if in front of the <sample> point, otherwise negative.....
 		float mysample=testSample;
@@ -860,9 +845,6 @@ namespace airacingtech
 
 	inline void BezierForm(int NumCtlPoints, PtArray p, BezArray c)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, " BezierFormd()");
-#endif
 
 		//   Setup Bezier coefficient array once for each control polygon. 
 		int k; long n, choose=0;
@@ -885,9 +867,6 @@ namespace airacingtech
 
 	inline void BezierCurve(int NumCtlPoints, BezArray c, Point *pt, float t)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, " BezierCurve");
-#endif
 		// Return Point pt(t), t <= 0 <= 1 from C, given the number
 		//    of Points in control polygon. BezierForm must be called
 		//    once for any given control polygon.
@@ -926,9 +905,6 @@ namespace airacingtech
 	
 	inline void BezierCurveSetupOpt(int stepSize, const Btl::Vector<Maths::HVec3>  &ctrlPoints, Btl::Vector<Maths::HVec3> &samplepoints, int sample)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, " BezierCurveSetupOpt()");
-#endif
 
 
 		int   k;
@@ -959,9 +935,6 @@ namespace airacingtech
 
 	inline void BezierCurveSetup(int stepSize, const Btl::Vector<Maths::HVec3 > &ctrlPoints, Btl::Vector<Maths::HVec3 >	&samplepoints)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, " BezierCurveSetup()");
-#endif
 
 		int   k;
 		PtArray pn;
@@ -995,9 +968,6 @@ namespace airacingtech
 
 	inline Maths::HF32 DistToLine(Maths::HVec3& testPoint, Maths::HVec3& startPoint, Maths::HVec3& endPoint)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, " DistToLine()");
-#endif
 
 		//float dist= 0.0;
 
@@ -1063,9 +1033,6 @@ namespace airacingtech
 		const Maths::HF32 PCREF y2, const Maths::HF32 PCREF u1, const Maths::HF32 PCREF v1, const Maths::HF32 PCREF u2, 
 		const Maths::HF32 PCREF v2, Maths::HVec3 &intersectionPoint)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, " LineIntersection()");
-#endif
 
 		/*float b1, b2, a1, a2 = 0.0f;
 		float cp             = 0.0f;

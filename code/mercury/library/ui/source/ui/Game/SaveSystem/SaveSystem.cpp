@@ -208,8 +208,6 @@ S32 C_SaveSystem::GetEnumerationCount()
 {
 #if PLATFORM_PS3
 	return 0;	// handled with sysutil
-#elif PLATFORM_XENON
-	return gGameSaveSystem.mContentCount;
 #elif PLATFORM_PC
 	return m_sEnumerationCount;
 #else
@@ -224,8 +222,6 @@ const WCHAR* C_SaveSystem::GetEnumerationName( const S32 sIndex )
 
 #if PLATFORM_PS3
 	return L"";	// handled with sysutil
-#elif PLATFORM_XENON
-	return gGameSaveSystem.mContentData[ sIndex ].szDisplayName;
 #elif PLATFORM_PC
 	static C_WideString<MAX_SAVE_FILENAME_SIZE> s;
 	s.Format( L"%S", Sys::RemoveFileExtension( m_EnumeratedFileInfo[ sIndex ].m_FileName ).Chars() );
@@ -245,8 +241,6 @@ bool C_SaveSystem::IsValidEnumerationFileType( const S32 sIndex )
 
 #if PLATFORM_PS3
 	return true;	// handled with sysutil
-#elif PLATFORM_XENON
-	return ( Sys::ExtractFileExtension( Util::C_String( gGameSaveSystem.mContentData[ sIndex ].szFileName ) ) == SaveInfoInterface()->m_EnumerationFileExtension );
 #elif PLATFORM_PC
 	return ( Sys::ExtractFileExtension( Util::C_String( m_EnumeratedFileInfo[ sIndex ].m_FileName ) ) == SaveInfoInterface()->m_EnumerationFileExtension );
 #else
@@ -262,13 +256,9 @@ void C_SaveInfoInterface::Reset()
 	m_eType = E_UiSaveInfoType_Default;
 	m_sEnumeration = -1;
 	m_FileInfo.Clear();
-#if PLATFORM_XENON || PLATFORM_PC
+#if PLATFORM_PC
 	m_bCheckOverwrites = false;
 	m_EnumerationFileExtension.Clear();
-#endif
-#ifdef PLATFORM_XENON
-	m_SaveRoot.Clear();
-	m_bRoamable = true;
 #endif
 #ifdef PLATFORM_PS3
 	m_TitleId.Clear();

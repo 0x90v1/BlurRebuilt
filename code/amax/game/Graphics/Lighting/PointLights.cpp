@@ -193,7 +193,7 @@ void C_PointLights::Render() const
 
 	Display::Device()->SetVertexShaderConstantF(CV_RENDER_SETTINGS, (F32*)vsSettings, 4);
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	const Display::C_RenderTarget& renderTarget = Display::Device()->GetRenderTarget();
 	F32 fOffsetX = +1.0f / (F32) renderTarget.GetColourSurface()->GetWidth();
 	F32 fOffsetY = +1.0f / (F32) renderTarget.GetColourSurface()->GetHeight();

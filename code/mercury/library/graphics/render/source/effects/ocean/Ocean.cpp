@@ -12,18 +12,10 @@ EXTERN_SHADER(psOceanOld);
 EXTERN_SHADER(psOceanOldHDRU32);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Effects/Ocean/XB2/vsOcean.shader"
-#include "Render/Shaders/Effects/Ocean/XB2/psOcean.shader"
-#include "Render/Shaders/Effects/Ocean/XB2/psOceanHDRU32.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Effects/Ocean/PS3/vsOcean.shader"
 #include "Render/Shaders/Effects/Ocean/PS3/psOcean.shader"
 #include "Render/Shaders/Effects/Ocean/PS3/psOceanHDRU32.shader"
-#elif defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Effects/Ocean/PCD3D9/vsOcean.shader"
-#include "Render/Shaders/Effects/Ocean/PCD3D9/psOcean.shader"
-#include "Render/Shaders/Effects/Ocean/PCD3D9/psOceanHDRU32.shader"
 #endif
 #endif
 
@@ -249,9 +241,6 @@ bool C_Ocean::OnCreate()
 	if (!Display::CreateTextureCubeFromFile( Util::C_String(Ocean::g_EnvironmentMap.Value()), &m_EnvironmentMap ))
 		return false;
 
-	#ifdef PLATFORM_XENON
-	m_EnvironmentMap.SetSRGB();
-	#endif
 
 	return true;
 }

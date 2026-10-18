@@ -15,9 +15,6 @@ void DoOpen()
 {
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 
-#ifdef PLATFORM_XENON
-	XSetThreadProcessor(GetCurrentThread(), 1);
-#endif
 
 	IoInitialise();
 

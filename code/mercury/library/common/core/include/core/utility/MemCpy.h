@@ -11,14 +11,11 @@
 
 INLINE void FastMemCpy( void*  __restrict dest, const void*  __restrict src, U32 size )
 {
-#ifdef PLATFORM_XENON
-	XMemCpyStreaming( dest, src, size );
-#else // PLATFORM_XENON
 	#ifdef PLATFORM_PS3
 	__dcbt( src );
 	#endif
 
-	U32 alignCheck = (U32)dest | (U32)src | size;
+	U32 alignCheck = (U32)(INTPTR)dest | (U32)(INTPTR)src | size;	// [Blur2PC][x64] only the low bits matter
 
 	#ifdef PLATFORM_PS3
 	if (!(alignCheck & 0xf ))
@@ -66,7 +63,6 @@ INLINE void FastMemCpy( void*  __restrict dest, const void*  __restrict src, U32
 	{
 		memcpy( dest, src, size );
 	}
-#endif // PLATFORM_XENON
 }
 
 #endif // MERCURY_MEMCPY_H

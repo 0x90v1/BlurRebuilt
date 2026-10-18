@@ -61,14 +61,11 @@ void CubemapEnvSettings::Set()
 	{
 		RESOURCE_MEMORY_ID("Cubemap");
 		m_CubemapSettings.m_sEnvironmentMap = m_sEnvironmentMap;
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		Display::Device()->BlockUntilIdle();
 #endif
 		Display::Device()->Destroy(&m_CubemapSettings.m_tEnvironmentMap);
 		Display::CreateTextureCubeFromFile(m_sEnvironmentMap, &m_CubemapSettings.m_tEnvironmentMap);
-#if PLATFORM_XENON
-		m_CubemapSettings.m_tEnvironmentMap.SetSRGB(true);
-#endif
 	}
 
 	const void *pTex = m_CubemapSettings.m_tEnvironmentMap.GetGPUTexture();

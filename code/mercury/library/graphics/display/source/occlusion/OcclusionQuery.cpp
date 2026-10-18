@@ -3,13 +3,7 @@
 #include "Display/Shaders/Constants.h"
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Display/Shaders/Occlusion/PCD3D9/vsOcclusion.shader"
-#include "Display/Shaders/Occlusion/PCD3D9/psOcclusion.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Display/Shaders/Occlusion/XB2/vsOcclusion.shader"
-#include "Display/Shaders/Occlusion/XB2/psOcclusion.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Display/Shaders/Occlusion/PS3/vsOcclusion.shader"
 #include "Display/Shaders/Occlusion/PS3/psOcclusion.shader"
 #endif
@@ -44,7 +38,7 @@ bool C_OcclusionQueryRender::OnCreate()
 	RESOURCE_MEMORY_ID("OcclusionQuery");
 
 // [Blur2PC] The native DX11 backend also creates these PC built-in shaders.
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PCD3D11) || defined(DEVICE_PS3GCM)
 	if (!CreateVertexShaderFromFunc("Shaders/vsOcclusion", 0, &m_VertexShader, REF_SHADER(vsOcclusion)))
 		return false;
 	if (!CreatePixelShaderFromFunc("Shaders/psOcclusion", 0, &m_PixelShader, REF_SHADER(psOcclusion)))
@@ -92,9 +86,6 @@ void C_OcclusionQueryRender::Bind(const bool show)
 	#if defined(PLATFORM_PC) || defined(PLATFORM_PS3)
 	Device()->SetColourWriteEnable(show ? E_ColourWriteEnable_All : 0);
 	#endif
-	#if defined(PLATFORM_XENON)
-//	Device()->GetD3DDevice()->SetRenderState(D3DRS_HIZENABLE, D3DHIZ_DISABLE);
-	#endif
 	Device()->SetVertexDeclaration(m_pVertexDeclaration);
 	Device()->SetVertexBuffer(0, &m_VertexBuffer, 0, sizeof(C_Vertex));
 	Device()->SetIndexBuffer(&m_IndexBuffer);
@@ -117,10 +108,6 @@ void C_OcclusionQueryRender::Render(const Maths::HMat43& matrix, const Maths::HV
 
 void C_OcclusionQueryRender::Unbind()
 {
-	#if defined(PLATFORM_XENON)
-//	Device()->GetD3DDevice()->SetRenderState(D3DRS_HIZENABLE, D3DHIZ_AUTOMATIC);
-//	Device()->GetD3DDevice()->FlushHiZStencil(D3DFHZS_ASYNCHRONOUS);
-	#endif
 	#if defined(PLATFORM_PC) || defined(PLATFORM_PS3)
 	Device()->SetColourWriteEnable(E_ColourWriteEnable_Default);
 	#endif

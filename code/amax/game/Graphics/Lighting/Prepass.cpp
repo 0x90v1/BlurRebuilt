@@ -1,8 +1,6 @@
 #include "stdafx.h"
-#if defined(BLUR_USE_DX11)
 #include <system/debug/Blur2PCAutomation.h>
 #include "Display/Utils/Screenshot.h"
-#endif
 #include "Graphics/Lighting/Prepass.h"
 #include "Deferred/Manager.h"
 #include "Framework/Application/ApplicationBase.h"
@@ -27,12 +25,8 @@ Debug::Bool		g_debugLightEnable						("Graphics.Game.LightPrepass.Enable",		true
 Debug::Bool		g_debugLightSPU							("Graphics.Game.LightPrepass.SPU",			true);
 Debug::Float	g_debugLightScale						("Graphics.Game.LightPrepass.Scale",		1.0f,	Debug::Range(0.0f, 1000.0f));
 Debug::Float	g_debugLightMaskDistance				("Graphics.Game.LightPrepass.MaskDistance",	256.0f,	Debug::Range(0.0f, 1024.0f));
-#if defined(PLATFORM_XENON)
-Debug::Bool		g_debugLightMaskBefore					("Graphics.Game.LightPrepass.MaskBefore",	true);
-#else
 Debug::Bool		g_debugLightMaskBefore					("Graphics.Game.LightPrepass.MaskBefore",	false);
-#endif
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 Debug::Float	g_debugLightScreenSizeStencilThreshold	("Graphics.Game.LightPrepass.ScreenSizeStencilThreshold", 0.7f, Debug::Range(0.0f, 1.0f));
 #else
 Debug::Float	g_debugLightScreenSizeStencilThreshold	("Graphics.Game.LightPrepass.ScreenSizeStencilThreshold", 8.0f, Debug::Range(0.0f, 1.0f));
@@ -118,11 +112,9 @@ void C_LightingPrepass::SetupRenderTargets()
 
 	// lighting
 	setup.eColourFormat[0]		= Display::E_Format_A8R8G8B8;
-#if defined(BLUR_USE_DX11)
 	// [Blur2PC][HDR] Additive light radiance must survive before material exposure.
 	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
 		setup.eColourFormat[0] = Display::E_Format_A16B16G16R16F;
-#endif
 	setup.eColourFormat[1]		= Display::E_Format_Unknown;
 	setup.eColourFormat[2]		= Display::E_Format_Unknown;
 	setup.eColourFormat[3]		= Display::E_Format_Unknown;
@@ -239,7 +231,6 @@ void C_LightingPrepass::End() const
 	}
 
 	m_pDeferredManager->End();
-	#if defined(BLUR_USE_DX11)
 	static bool dx11CapturedPrepass = false;
 	if (!dx11CapturedPrepass && Blur2PCAutomation::Get().active &&
 		Blur2PCAutomation::Now() > 5.0)
@@ -257,7 +248,6 @@ void C_LightingPrepass::End() const
 			Display::TakeD3D11BackBufferScreenshot(path, const_cast<ID3D11Texture2D*>(normal->GetGPUTexture2D()));
 		}
 	}
-	#endif
 }
 
 void C_LightingPrepass::RenderLights1(const SceneGraph::C_VisiblePointLightList& visiblePointLights, const SceneGraph::C_VisibleSpotLightList& visibleSpotLights) const
@@ -287,10 +277,6 @@ void C_LightingPrepass::RenderLights1(const SceneGraph::C_VisiblePointLightList&
 	{
 		Display::Device()->SetViewShaderConstants3D();
 
-#ifdef PLATFORM_XENON
-		Display::Device()->GetD3DDevice()->SetVertexShader(NULL);
-		Display::Device()->GetD3DDevice()->SetPixelShader(NULL);
-#endif
 
 		m_pDeferredManager->Begin(-view.m_ViewIndex); 
 		Display::Device()->Clear(Display::E_Clear_Colour);
@@ -304,10 +290,6 @@ void C_LightingPrepass::RenderLights1(const SceneGraph::C_VisiblePointLightList&
 		// point lights
 		RenderPointLights(visiblePointLights);
 
-#if defined(PLATFORM_XENON)
-		m_pDeferredMask->End();
-		Display::Device()->GetD3DDevice()->Clear(0, 0, D3DCLEAR_STENCIL | D3DCLEAR_HISTENCIL_PASS, 0, 0.0f, 0);
-#endif
 
 		// spotlights
 		RenderSpotLights(visibleSpotLights);

@@ -5,9 +5,6 @@
 
 #include "core/containers.h"
 
-#ifdef _XBOX360
-#include "Xtl.h"
-#endif // _XBOX360
 
 #define AUDIO_CORE_PROFILE_WINDOW 256
 

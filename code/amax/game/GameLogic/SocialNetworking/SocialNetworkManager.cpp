@@ -294,7 +294,7 @@ void C_SocialNetworkManager::PostRace(bool had_passed,bool multiplayer)
 		wcsncpy(vehicleHistory.mName,levelState.mCars[a].mNameAboveCar,32);
 		vehicleHistory.mVehicleId = levelState.mCars[a].mCarID;
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		// [Blur2PC] on PC m_Uid is already a bdOnlineUserID; the handle.data form below is the PS3 SceNpId
 		vehicleHistory.mSystemID=levelState.mCars[a].mSystemPlayerId.m_Uid;
 #else
@@ -1235,12 +1235,8 @@ int C_SocialNetworkManager::GetMyRaceHistoryPos(int index)
 	SysProfile::FullProfile& profileMe = UI::C_ProfileInterface::Instance().GetPadProfile( SysProfile::C_Manager::Instance().GetPrimaryPadNo() );
 	for(int a=0;a<mRaceHistoryStore[index].mNumCars;a++)
 	{
-#ifdef PLATFORM_XENON
-		if ( mRaceHistoryStore[index].mVehicles[a].mSystemID == profileMe.m_Uid )
-#else
 		bdOnlineUserID id=BLUR_USER_ID(profileMe.m_Uid);
 		if(mRaceHistoryStore[index].mVehicles[a].mSystemID == id)
-#endif
 		{
 			my_pos=mRaceHistoryStore[index].mVehicles[a].mPosition;
 			break;

@@ -72,7 +72,7 @@ namespace Scoreboard
 
 		bool	m_Reading;						// have we started writing the data to the scoreboards.
 	private:
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)	
+#if defined(LIVE_ON_WINDOWS)
 		U32		m_NumBytesDownloaded;			// how many bytes where actually downloaded.
 		void*	m_pAsyncTask;
 		XSTORAGE_FACILITY_INFO_GAME_CLIP	m_Info;

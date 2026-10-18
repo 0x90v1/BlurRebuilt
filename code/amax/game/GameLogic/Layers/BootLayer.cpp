@@ -93,9 +93,6 @@ C_BootLayer::C_BootLayer(Messaging::C_MessageSubscriberSystem* pSubscriberSystem
 {
 	SetSubscriberSystem( pSubscriberSystem );
 
-#ifdef PLATFORM_XENON
-	IoSuspendFileCaching();
-#endif
 
 	//m_DoCacheSpecialFx = false;
 
@@ -126,9 +123,6 @@ C_BootLayer::~C_BootLayer()
 #endif
 	PrintTimeSinceAppStart();
 
-#ifdef PLATFORM_XENON
-	IoResumeFileCaching();
-#endif
 }
 
 HRESULT C_BootLayer::ProcessMessage(const Framework::E_LayerMessage message)

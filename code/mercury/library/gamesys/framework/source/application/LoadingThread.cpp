@@ -25,12 +25,6 @@ void C_LoadingThread::SetLoadingScreenActive(bool state)
 
 void C_LoadingThread::ThreadMain()
 {
-#ifdef PLATFORM_XENON
-	//Moved to HW thread 1 from 3 in order to allow us to move resource loading onto thread 3 from thread 2 previously.
-	//This was to help ease the workload of thread 2, 60% of which can be consumed by XContent servicing.
-	XSetThreadProcessor(GetCurrentThread(), 1);
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
-#endif
 
 	bool shouldQuit = false;
 	while(!shouldQuit)

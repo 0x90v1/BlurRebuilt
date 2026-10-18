@@ -146,20 +146,6 @@ const Texture* ReloadableTextureManager::GetTexturePtr(const char* name)
 
 void ReloadableTextureManager::CopyFlags(Texture* pDst, const Texture* pSrc)
 {
-#ifdef PLATFORM_XENON
-	if (pDst && pSrc)
-	{
-		IDirect3DBaseTexture9* pOldBaseTexture = (IDirect3DBaseTexture9*) pSrc->GetData().GetGPUTexture();
-		IDirect3DBaseTexture9* pNewBaseTexture = (IDirect3DBaseTexture9*) pDst->GetData().GetGPUTexture();
-
-		if (pOldBaseTexture &&  pNewBaseTexture)
-		{
-			pNewBaseTexture->Format.SignX = pOldBaseTexture->Format.SignX;
-			pNewBaseTexture->Format.SignY = pOldBaseTexture->Format.SignY;
-			pNewBaseTexture->Format.SignZ = pOldBaseTexture->Format.SignZ;
-		}
-	}
-#endif
 }
 
 }}

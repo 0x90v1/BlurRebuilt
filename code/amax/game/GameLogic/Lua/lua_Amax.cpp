@@ -3866,12 +3866,6 @@ static int PumpTwitterCurrentTask( lua_State* pState )
 	return 2;
 } 
 
-#if defined ( PLATFORM_XENON )
-	XMSG_CUSTOMACTION gBlurbCustomAction[1];
-	XOVERLAPPED gBlurbOverlapped;
-
-	WCHAR gBlurbMessageString[96];
-#endif
 
 static S32 CreateBlurb( lua_State* pState )
 {
@@ -3891,64 +3885,7 @@ static S32 CreateBlurb( lua_State* pState )
 
 		static UI::C_TextStringID title_id( "CMN_BLUR_SOCIAL" );
 
-#if defined ( PLATFORM_XENON )
-		static UI::C_TextStringID close_id( "FDE_CLOSE_BLURB_MESSAGE" );
-
-		ZeroMemory( &gBlurbOverlapped, sizeof( XOVERLAPPED ) );
-		ZeroMemory( &gBlurbCustomAction, sizeof( XMSG_CUSTOMACTION ) );
-
-		gBlurbCustomAction[0].dwActionId=0;
-		wcscpy(gBlurbCustomAction[0].wszEnActionText, close_id.String());
-		gBlurbCustomAction[0].dwFlags=XCUSTOMACTION_FLAG_CLOSES_GUIDE;
-		gBlurbCustomAction[0].rgTranslations[0].dwLanguageId=XC_LANGUAGE_GERMAN;
-		wcscpy(gBlurbCustomAction[0].rgTranslations[0].wszActionText, UI::C_TextStringID( "FDE_CLOSE_BLURB_MESSAGE_GE" ).String());
-		gBlurbCustomAction[0].rgTranslations[1].dwLanguageId=XC_LANGUAGE_FRENCH;
-		wcscpy(gBlurbCustomAction[0].rgTranslations[1].wszActionText, UI::C_TextStringID( "FDE_CLOSE_BLURB_MESSAGE_FR" ).String());
-		gBlurbCustomAction[0].rgTranslations[2].dwLanguageId=XC_LANGUAGE_ITALIAN;
-		wcscpy(gBlurbCustomAction[0].rgTranslations[2].wszActionText, UI::C_TextStringID( "FDE_CLOSE_BLURB_MESSAGE_IT" ).String());
-		gBlurbCustomAction[0].rgTranslations[3].dwLanguageId=XC_LANGUAGE_SPANISH;
-		wcscpy(gBlurbCustomAction[0].rgTranslations[3].wszActionText, UI::C_TextStringID( "FDE_CLOSE_BLURB_MESSAGE_SP" ).String());
-		gBlurbCustomAction[0].rgTranslations[4].dwLanguageId=XC_LANGUAGE_POLISH;
-		wcscpy(gBlurbCustomAction[0].rgTranslations[4].wszActionText, UI::C_TextStringID( "FDE_CLOSE_BLURB_MESSAGE_PO" ).String());
-		gBlurbCustomAction[0].rgTranslations[5].dwLanguageId=XC_LANGUAGE_RUSSIAN;
-		wcscpy(gBlurbCustomAction[0].rgTranslations[5].wszActionText, UI::C_TextStringID( "FDE_CLOSE_BLURB_MESSAGE_RU" ).String());
-		gBlurbCustomAction[0].rgTranslations[6].dwLanguageId=XC_LANGUAGE_JAPANESE;
-		wcscpy(gBlurbCustomAction[0].rgTranslations[6].wszActionText, UI::C_TextStringID( "FDE_CLOSE_BLURB_MESSAGE_JP" ).String());
-
-		wcsncpy_s(gBlurbMessageString, 96,  Game::C_SocialNetworkManager::Instance().GetCurrentItemText(), _TRUNCATE);
-		if(wcslen(Game::C_SocialNetworkManager::Instance().GetCurrentItemText()) > 96)
-		{
-			gBlurbMessageString[95]=NULL;
-			gBlurbMessageString[94]=L'.';
-			gBlurbMessageString[93]=L'.';
-			gBlurbMessageString[92]=L'.';
-		}
-
-		DWORD dwErr=XShowCustomMessageComposeUI(
-			 SysProfile::C_Manager::Instance().GetPrimaryPadNo(),
-			 NULL,
-			 0,
-			 0,
-			 title_id.String(),
-			 gBlurbMessageString,
-			 L"",
-			 NULL,
-			 0,
-			 gBlurbCustomAction,
-			 1,
-			 NULL,
-			 0,
-			 0,
-			 &gBlurbOverlapped);
-
-		
-		Game::C_Sticker* pSticker = Game::C_StickerManager::Instance().GetSticker(Game::BLUR_STICKER_SHARE_FIRST_EXPERIENCE);
-		if(pSticker)
-		{
-			pSticker->AddProgress(1);
-		}
-
-#elif defined ( PLATFORM_PS3 )
+#if defined ( PLATFORM_PS3 )
 
 		SceNpBasicMessageDetails msg;
 		int ret;
@@ -4854,43 +4791,11 @@ static S32 GetMaxSpinnerItemSize( lua_State* pState )
 
 static S32 ViewPhotoSearchGamerCard(lua_State* pState)
 {
-#if defined ( PLATFORM_XENON )
-
-	if (lua_isnumber(pState, 1) && lua_isnumber(pState, 2))
-	{
-		int user_index=lua_tonumber(pState,1);
-		int index=lua_tonumber(pState,2);
-
-		bdFileMetaData *md=C_ContentServerManager::Instance().GetMetaData(index);
-
-		XShowGamerCardUI(user_index, md->m_ownerID);
-	}
-#endif
 	return 0;
 }
 
 static S32 ViewPhotoTop20GamerCard(lua_State* pState)
 {
-#if defined ( PLATFORM_XENON )
-
-	if (lua_isnumber(pState, 1) && lua_isnumber(pState, 2) && lua_isboolean(pState, 3))
-	{
-		int user_index=lua_tonumber(pState,1);
-		int index=lua_tonumber(pState,2);
-		bool votes=lua_toboolean(pState,3) ? true : false;
-
-		if(votes)
-		{
-			csVotingStatsInfo *si=C_ContentServerManager::Instance().GetVotingLeaderboardRow(index);
-			XShowGamerCardUI(user_index, si->m_fileOwnerID);
-		}
-		else
-		{
-			bdContentStreamingStatsInfo *si=C_ContentServerManager::Instance().GetLeaderboardRow(index);
-			XShowGamerCardUI(user_index, si->m_fileOwnerID);
-		}
-	}
-#endif
 	return 0;
 }
 
@@ -6860,14 +6765,7 @@ static S32 CanUseShare( lua_State* pState )
 
 	bool online_possible = false;
 
-#if defined ( PLATFORM_XENON )
-	
-	if (fp.Active() && SysProfile::eProfileStateOnline == fp.m_State && !fp.m_IsGuest)
-	{
-		online_possible = true;
-	}
-
-#elif defined ( PLATFORM_PS3 ) 
+#if defined ( PLATFORM_PS3 )
 	
 	online_possible = SysProfile::C_Manager::Instance().NetworkPlatformAccountAvailable() & NetPlay::C_Core::Instance().ValidLocalAddress();
 

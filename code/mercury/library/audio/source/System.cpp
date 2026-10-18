@@ -20,9 +20,6 @@
 //Spu::Scheduler Audio::System::m_SpuScheduler;
 //Spu::Task Audio::System::m_SpuTask;
 #endif
-#ifdef _XBOX360
-#include <xtl.h>
-#endif // _XBOX360
 #ifdef PLATFORM_PC
 #include "core/engine_pc.h"	// [Blur2PC] T144
 #endif
@@ -184,9 +181,6 @@ void Audio::System::Release()
 		delete m_pSystemSpuInfo;
 #endif
 
-#if defined (PLATFORM_XENON)
-		delete [] Audio::Core::XMADecoder::m_XMADoomedPlaybackContexts;
-#endif
     }
 }
 
@@ -427,7 +421,8 @@ void* Audio::System::Alloc(size_t uSize, U32 uAlignment, AllocType eType)
 		// ..we'll need this information when we come to free the memory, as the address passed in to free won't
 		// be the actual address we need to free memory from
 
-		U32 u32ActualSize = uSize + 4 + uAlignment;
+		// [Blur2PC][x64] The header holds a pointer: sizeof(void*) bytes (4 on x86).
+		U32 u32ActualSize = uSize + sizeof(void*) + uAlignment;
 
 		// also account for alignment
 		u32ActualSize = ((u32ActualSize / uAlignment) * uAlignment);
@@ -439,12 +434,12 @@ void* Audio::System::Alloc(size_t uSize, U32 uAlignment, AllocType eType)
 
 		// work out location of 4-byte header..
 		// find next aligned memory location after allocated address plus 4 byte header
-		U8* pReturnAddress = (U8*)pMem + 4;
-		pReturnAddress += GetAlignedOffset(uAlignment, (U32)pReturnAddress);
-		U8* pHeaderLoc = pReturnAddress - 4;
+		U8* pReturnAddress = (U8*)pMem + sizeof(void*);
+		pReturnAddress += GetAlignedOffset(uAlignment, (U32)(INTPTR)pReturnAddress);	// low address bits decide the alignment
+		U8* pHeaderLoc = pReturnAddress - sizeof(void*);
 
 		// populate this location with the address the memory is allocated from
-		*((U32*)pHeaderLoc) = (U32)pMem;
+		*((void**)pHeaderLoc) = pMem;
 
 		return (void*)pReturnAddress;
 	}
@@ -455,20 +450,7 @@ void* Audio::System::Alloc(size_t uSize, U32 uAlignment, AllocType eType)
 		pMem = m_pfnPhysAlloc(uSize, uAlignment);
 	else
 	{
-#if defined(PLATFORM_XENON)
-		// Note from Sam: Large page sizes have been disabled because we were wasting up to 10% of memory for wavebanks
-		// due to alignment. By using large page sizes (64k) we may incur a performance penalty due to TLBs.
-		// I did a quick look at performance with large pages disabled and didnt notice any performance hit but this 
-		// may be worth investigating further.
-		#if 0
-		if ( uSize >= ( 64 * 1024 ) )
-			pMem = BizPhysicalAlloc((size_t)uSize, MAXULONG_PTR, 0, PAGE_READWRITE | MEM_LARGE_PAGES );
-		else
-		#endif
-		    pMem = BizPhysicalAlloc((size_t)uSize, MAXULONG_PTR, 0, PAGE_READWRITE );
-
-		//AUDIO_SYS_DEBUG("AUDIOALLOC:addr=%.8x size=%.8x", pMem, uSize);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		pMem = BizAlignedMalloc((size_t)uSize, (size_t)uAlignment);
 #elif defined(PLATFORM_PC)
 		pMem = malloc(uSize);
@@ -506,8 +488,8 @@ void Audio::System::Free(void* pAddress, AllocType eType)
 		}
 #endif
 
-		U32 u32FreeAddress = *((U32*)((U8*)pAddress - 4));
-		delete [] (U8*)u32FreeAddress;
+		void* pFreeAddress = *((void**)((U8*)pAddress - sizeof(void*)));	// [Blur2PC][x64] see Alloc
+		delete [] (U8*)pFreeAddress;
 
 		return;
 	}
@@ -518,10 +500,7 @@ void Audio::System::Free(void* pAddress, AllocType eType)
 		m_pfnPhysFree(pAddress);
 	else
 	{
-#if defined(PLATFORM_XENON)
-		void* pMem = NULL;
-		BizPhysicalFree(pAddress);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		BizAlignedFree(pAddress);
 #elif defined(PLATFORM_PC)
 		free(pAddress);
@@ -737,23 +716,8 @@ bool Audio::System::Init()
         pRenderer->Start();
         m_pRenderer = pRenderer;
         
-#if defined( PLATFORM_XENON )
-		const U32 uNumContexts = 320;
-		Audio::Core::XMADecoder::m_XMADoomedPlaybackContexts = new Audio::Core::XMADoomedPlayback[uNumContexts];
-		Audio::Core::XMADecoder::SetNumDoomedContexts(uNumContexts);
-		for (U32 i=0; i<uNumContexts; i++)
-		{
-			Audio::Core::XMADecoder::m_XMADoomedPlaybackContexts[i].m_pXMAPlayback = NULL;
-			Audio::Core::XMADecoder::m_XMADoomedPlaybackContexts[i].m_pBuffer = NULL;
-			Audio::Core::XMADecoder::m_XMADoomedPlaybackContexts[i].m_BufferSize = 0;
-		}
-#endif
     }
 
-#if defined (PLATFORM_XENON)
-	XMA_BufferAllocator::Init();
-	XMAPlaybackInitialize();
-#endif
 
 	m_bTitleHasControl = 1; //set to control by default
 
@@ -888,9 +852,6 @@ void Audio::System::Update()
 	if (m_pPostCallback)
 		m_pPostCallback(0);
 
-#if defined (PLATFORM_XENON)
-	Audio::Core::XMADecoder::DestroyAllDoomedContexts();
-#endif
 
     m_SystemState.m_uFrameNum++;
 
@@ -925,9 +886,6 @@ void Audio::System::Update()
 #ifndef CFG_GOLD
 	if (gbDebugDumpPeakXmaBufferUsage)
 	{
-	#if defined(PLATFORM_XENON)
-		AUDIO_SYS_INFO( "XMA_BufferAllocator peak usage was %d bytes. (%.2f percent full)", XMA_BufferAllocator::PeakMemoryUsed(), ((F32)XMA_BufferAllocator::PeakMemoryUsed() / (F32)XMA_BufferAllocator::MemorySize()) * 100.f);
-	#endif
 		gbDebugDumpPeakXmaBufferUsage = false;
 	}
 #endif
@@ -1194,9 +1152,6 @@ void Audio::System::DoWork()
 {
 	m_ReturnQueue.Update();
 
-#if defined(PLATFORM_XENON)
-	XMPTitleHasPlaybackControl(&m_bTitleHasControl);
-#endif
 #if defined(PLATFORM_PS3)
 	CellSysutilBgmPlaybackStatus2 status;
 	cellSysutilGetBgmPlaybackStatus2( &status );
@@ -1204,14 +1159,6 @@ void Audio::System::DoWork()
 #endif
 
 #ifndef CFG_GOLD
-#if defined(PLATFORM_XENON)
-	static int thread = -1;
-	if (thread != g_iAudioThreadProcessor)
-	{
-		m_pRenderer->SetProcessor((Core::Renderer::Processor)(int)g_iAudioThreadProcessor);
-		thread = g_iAudioThreadProcessor;
-	}
-#endif
 #endif
 }
 

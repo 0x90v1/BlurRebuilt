@@ -64,17 +64,6 @@ void CullBounds(const C_View& view, const Nodes& nodes, const C_Bounds* pBounds,
 					if(view.GetViewFrustum().CullAxisBox(centreW, Maths::HVec4(size), clip) || !(view.GetViewData().cullFlags & E_CullMethod_Frustum))
 					{
 						U32 predication = 0;
-						#ifdef PLATFORM_XENON
-						if(view.GetViewData().pTileSetup && g_UsePredication)
-						{
-							if(view.GetViewData().pTileSetup->m_TileCount == 4)
-								predication = view.GetViewFrustum().CalculateAxisBoxPredication4(centreW, size);
-							else if(view.GetViewData().pTileSetup->m_TileCount == 3)
-								predication = view.GetViewFrustum().CalculateAxisBoxPredication3(centreW, size);
-							else if(view.GetViewData().pTileSetup->m_TileCount == 2)
-								predication = view.GetViewFrustum().CalculateAxisBoxPredication2(centreW, size);
-						}
-						#endif
 						view.AddVisibleNode(&nodes[pIndices[i]], renderPassType, predication);
 					}
 				}
@@ -128,17 +117,6 @@ void CullBoundsDistance(const C_View& view, const Nodes& nodes, const C_Bounds* 
 						volatileNodeInfo.distance = (U32)depthScaled;
 
 						U32 predication = 0;
-						#ifdef PLATFORM_XENON
-						if(view.GetViewData().pTileSetup && g_UsePredication)
-						{
-							if(view.GetViewData().pTileSetup->m_TileCount == 4)
-								predication = view.GetViewFrustum().CalculateAxisBoxPredication4(centreW, size);
-							else if(view.GetViewData().pTileSetup->m_TileCount == 3)
-								predication = view.GetViewFrustum().CalculateAxisBoxPredication3(centreW, size);
-							else if(view.GetViewData().pTileSetup->m_TileCount == 2)
-								predication = view.GetViewFrustum().CalculateAxisBoxPredication2(centreW, size);
-						}
-						#endif
 
 						volatileNodeInfo.distanceSubtechnique = (view.GetViewData().distanceSubtechniqueEnable && depth > view.GetViewData().distanceSubtechniqueDistance) ? 1 : 0;
 
@@ -615,9 +593,6 @@ void C_CachedRenderListNode::GatherDeferred(CachedRenderListNodeData* pData)
 				DCBT(128, &pOutput->results[i]);
 				
 				primitives[size].m_pNode = &pRenderListNode->GetPrimitiveNodes()[pOutput->results[i].index];
-			#ifdef PLATFORM_XENON
-				primitives[size].m_Predication = pOutput->results[i].predication;
-			#endif
 				primitives[size].m_VolatileNodeInfo = pOutput->results[i].volatileInfo;
 			}
 			C_LevelInstance::m_CachedRenderListNodeDataPassOutput.Free(pOutput);
@@ -650,9 +625,6 @@ void C_CachedRenderListNode::GatherDeferred(CachedRenderListNodeData* pData)
 				DCBT(128, &pOutput->results[i]);
 
 				instances[size].m_pNode = &pRenderListNode->GetInstanceNodes()[pOutput->results[i].index];
-			#ifdef PLATFORM_XENON
-				instances[size].m_Predication = pOutput->results[i].predication;
-			#endif
 				instances[size].m_VolatileNodeInfo = pOutput->results[i].volatileInfo;
 			}
 			C_LevelInstance::m_CachedRenderListNodeDataPassOutput.Free(pOutput);

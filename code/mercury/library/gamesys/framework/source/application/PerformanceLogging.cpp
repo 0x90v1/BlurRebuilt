@@ -8,9 +8,6 @@
 #include "Framework/Application/PerformanceLogging.h"
 #include "Framework/View/View.h"
 
-#ifdef PLATFORM_XENON
-#include <xbdm.h>
-#endif
 
 namespace PerformanceLogging
 {
@@ -314,22 +311,7 @@ void BeginFrame()
 		}
 
 		// Calculate the amount of free memory available
-#ifdef PLATFORM_XENON
-		//static HANDLE counterFreePages = 0;
-		//if (counterFreePages == 0)
-		//	DmOpenPerformanceCounter("Free Pages", &counterFreePages);
-			//DM_COUNTDATA data;
-			//DmQueryPerformanceCounterHandle(counterFreePages, DMCOUNT_VALUE, &data);
-			//freePages = data.CountValue.QuadPart;
-
-		DM_MEMORY_STATISTICS MemStat = {0};
-		MemStat.cbSize = sizeof MemStat;
-		HRESULT hr = DmQueryTitleMemoryStatistics(&MemStat);
-		BIZ_ASSERT_SPEED(XBDM_NOERR == hr);
-		g_Stats[currentSlot].m_freeMemory = MemStat.AvailablePages * 4096;
-#else
 		g_Stats[currentSlot].m_freeMemory = 0;
-#endif
 	}
 	else
 		gRecordingPerf = false;
@@ -534,39 +516,12 @@ const Time::C_Time QueryCounter(ePerfStage pi)
 #endif
 }
 
-#ifdef PLATFORM_XENON
-
-void __cdecl PerfLogD3DBeginFrameCallback(DWORD context)
-{
-#ifndef CFG_GOLD
-	g_timeGpuBegin = Time::GetPerformanceCounter();
-#endif
-}
-
-void __cdecl PerfLogD3DEndFrameCallback(DWORD context)
-{
-#ifndef CFG_GOLD
-	if (g_Stats[context].dle)
-	{
-		Time::C_Time endTimer = Time::GetPerformanceCounter();
-
-		g_Stats[context].m_gpuTime = endTimer - g_timeGpuBegin;
-	}
-#endif
-}
-
-#endif
 
 void BeginGPU(Display::C_Device* pDevice)
 {
 #ifndef CFG_GOLD
 	if (gRecordingPerf)
 	{
-#ifdef PLATFORM_XENON
-		pDevice->GetD3DDevice()->SetPredication(D3DPRED_ALL_RENDER | D3DPRED_ALL_Z);
-		pDevice->GetD3DDevice()->InsertCallback(D3DCALLBACK_IMMEDIATE, PerfLogD3DBeginFrameCallback, currentSlot);
-		pDevice->GetD3DDevice()->SetPredication(0);
-#endif
 	}
 #endif
 }
@@ -591,11 +546,6 @@ void PrePresent(Display::C_Device* pDevice, bool updatePresentRender)
 			stats.m_cpuRenderMs = stats.m_cpuTotalMs - stats.m_cpuUpdateMs;
 		}
 
-#ifdef PLATFORM_XENON
-		pDevice->GetD3DDevice()->SetPredication(D3DPRED_ALL_RENDER | D3DPRED_ALL_Z);
-		pDevice->GetD3DDevice()->InsertCallback(D3DCALLBACK_IMMEDIATE, PerfLogD3DEndFrameCallback, currentSlot);
-		pDevice->GetD3DDevice()->SetPredication(0);
-#endif
 	}
 #endif
 }

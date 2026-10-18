@@ -224,11 +224,6 @@ namespace RacerNet
 					{
 						if (m_Advertising)
 						{
-#if defined (PLATFORM_XENON) 
-							// xbox360 must reply to the broadcast address...
-							bdAddr bcAddr(bdInetAddr::Broadcast(), from.getPort()); 
-							from = bcAddr;
-#endif
 							if (received == sizeof(LanDiscoveryRequest))
 							{
 								const LanDiscoveryRequest* pReq = reinterpret_cast<LanDiscoveryRequest*> (data);

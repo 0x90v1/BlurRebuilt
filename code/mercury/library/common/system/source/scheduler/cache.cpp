@@ -81,7 +81,7 @@ const U8* CircularCache::CacheMemory(const void* p, S32 size)
 	const U8* pMain = (U8*) p;
 
 	// Find the block index.
-	U32 startBlock = ((U32(pMain) >> N_BITS) & (m_blocks.Size() - 1));
+	U32 startBlock = ((U32(INTPTR(pMain)) >> N_BITS) & (m_blocks.Size() - 1));	// [Blur2PC][x64] low address bits
 	Block& block = m_blocks[startBlock];
 
 	const U8* pAligned = Btl::AlignDown(pMain, CACHE_LINE_SIZE);

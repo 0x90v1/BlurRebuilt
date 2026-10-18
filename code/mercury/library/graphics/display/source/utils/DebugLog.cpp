@@ -15,9 +15,6 @@ void Output(char* output, ...)
 	vsprintf_s(buffer, 1024, output, arglist);
 	va_end(arglist);
 
-	#if defined(PLATFORM_XENON)
-	OutputDebugString(buffer);
-	#endif
 }
 
 #ifdef USER_LLOYDW
@@ -38,9 +35,7 @@ void C_DebugLog::Dump()
 	if(m_StringIndex == 0)
 		return;
 
-	#if defined(PLATFORM_XENON)
-	Util::C_String filePath = "GAME:\\User\\";
-	#elif defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 	Util::C_String filePath = "/app_home/User/";
 	#else
 	Util::C_String filePath = "";

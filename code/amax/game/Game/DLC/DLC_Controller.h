@@ -46,9 +46,6 @@ namespace UI
 		Btl::Vector<UI::C_WideString128>	mCorruptFiles;
 		Btl::Vector<U32>					mCorruptLocIds;
 
-#ifdef PLATFORM_XENON
-		DWORD								mLicense;
-#endif
 		
 		static DLCController s_instance;
 

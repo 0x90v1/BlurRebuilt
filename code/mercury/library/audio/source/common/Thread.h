@@ -21,7 +21,7 @@ namespace Audio
 		public:
 			enum Priority
 			{
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 				eIdle = THREAD_PRIORITY_IDLE,
 				eLowest = THREAD_PRIORITY_LOWEST,
 				eBelowNormal = THREAD_PRIORITY_BELOW_NORMAL,
@@ -40,27 +40,12 @@ namespace Audio
 #endif
 			};
 
-#if defined (PLATFORM_XENON)
-			enum Processor
-			{
-				eCore0Thread0 = 0,
-				eCore0Thread1,
-				eCore1Thread0,
-				eCore1Thread1,
-				eCore2Thread0,
-				eCore2Thread1,
-			};
-#endif	//	PLATFORM_XENON
 
 		public:
 			Thread();
 			Thread(U32 uStackSize);
 			audio_virtual ~Thread();
-#if defined (PLATFORM_XENON)
-			Thread(U32 uStackSize, Priority ePriority, Processor eProcessor);
-#else
 			Thread(U32 uStackSize, Priority ePriority);
-#endif	//	PLATFORM_XENON
 
 			bool Start(void* pContext);
 #if defined (PLATFORM_PC)
@@ -71,7 +56,7 @@ namespace Audio
 			S32 WaitUntilTerminated();
 			void SleepThread(U32 uMillisecs)
 			{
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 				::Sleep(uMillisecs);
 #else
 				sys_timer_usleep(uMillisecs * 1000);
@@ -81,13 +66,10 @@ namespace Audio
 			const U32 GetExitCode() const { return m_uExitCode; }
 
 			bool SetPriority(Priority ePriority);
-#if defined (PLATFORM_XENON)
-			bool SetProcessor(Processor eProcessor);
-#endif	//	PLATFORM_XENON
 
 		protected:
 			S32 Run();
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 			static S32 EntryPoint(void*);
 #else //PS3
             static void EntryPoint(uint64_t uParam);
@@ -105,7 +87,7 @@ namespace Audio
 			S32 Decrement(volatile S32* psCount);
 
 		private:
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 			HANDLE m_hThread;
 #else
             sys_ppu_thread_t m_hThread;
@@ -114,9 +96,6 @@ namespace Audio
 			void* m_pThreadContext;
 			U32 m_uStackSize;
 			Priority m_ePriority;
-#if defined (PLATFORM_XENON)
-			Processor m_eProcessor;
-#endif	//	PLATFORM_XENON
 			U32 m_uExitCode;
 		};
 	};

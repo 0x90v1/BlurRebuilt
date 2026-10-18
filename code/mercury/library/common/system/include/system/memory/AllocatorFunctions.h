@@ -93,55 +93,6 @@ void TrackedAlignedFree(void *ptr)
 
 #endif
 
-#if PLATFORM_XENON
-
-// Aligned Memory Allocation Functions
-void *TrackedAlignedAlloc(size_t size, size_t alignment)
-{
-	const int c = Memory::AllocationNode::Size(MEMORY_TRACKER_FLAGS);
-
-	int orgsize = (int)size;
-
-	size += c;
-	if (size < alignment)
-		size = alignment;
-
-	void *p = (orgsize > 0) ? _aligned_offset_malloc(size, alignment, c) : _aligned_malloc(size, alignment);
-	if (!p)
-	{
-		throw std::bad_alloc();
-		return NULL;
-	}
-
-    int iActual = (int)_aligned_msize(p,alignment,c);
- 
-	Memory::Tracker::Instance().TrackAllocation((char*)p + c,	// allocation address
-                                     orgsize,    					    // original size
-                                     iActual-c, 						// actual size (the difference is used to calculate memory wastage)
-									 Memory::kMemType_System,			// memory 'type'
-									 (Memory::AllocationNode*)p,		// address of tracking struct
-                                     MEMORY_TRACKER_FLAGS);
-
-	return (char*)p + c;
-}
-
-void TrackedAlignedFree(void *ptr)
-{
-	const int c = Memory::AllocationNode::Size(MEMORY_TRACKER_FLAGS);
-
-	if (!ptr)
-		return;
-
-	ptr = (char*)ptr - c;
-
-    int iActual = (int)_aligned_msize(ptr,16,c);
-    Memory::Tracker::Instance().TrackDeallocation(iActual-c, // actual allocation size (used to track memory wastage)
-										Memory::kMemType_System,
-										(Memory::AllocationNode*)ptr // address of tracking struct
-                                       );
-    _aligned_free(ptr);
-}
-#endif
 
 // TODO: implement for other platforms
 

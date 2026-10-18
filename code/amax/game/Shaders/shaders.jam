@@ -14,7 +14,7 @@ CPFile $(AMAXSHADERDIR)/psConstants.cp ;
 CPFile $(AMAXSHADERDIR)/psTextures.sp ;
 CPFile $(AMAXSHADERDIR)/vsConstants.cv ;
 
-if $(PLATFORM) = PS3 || $(PLATFORM) = XENON
+if $(PLATFORM) = PS3
 {
 	rule ExpandWithLighting
 	{

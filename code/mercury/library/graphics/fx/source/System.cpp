@@ -11,10 +11,8 @@
 #include "fx/DebugVariables.h"
 #include "fx/Technique.h"
 #include "fx/ShaderImpl.h"
-#if defined(BLUR_USE_DX11)
 #include "fx/NativeFX11.h"
 #include <system/debug/Blur2PCAutomation.h>
-#endif
 #include <btl/containers/vector.h>
 #include <Display/Device/DeviceTypesEnums.h>
 #include <Display/Context/Context.h>
@@ -126,6 +124,15 @@ void System::Initialise()
 /// set a parameter value
 void System::SetParameter(Parameter *pParam, const void *pData)
 {
+	if (pParam->Type == NGLFX_PARAM_SAMPLER)
+	{
+		// [Blur2PC][x64] pData points at a texture pointer; the sampler word holds its
+		// Core::PointerToSlot32 slot (the pointer itself on x86). Any further words follow it.
+		pParam->Sampler->Texture = Core::PointerToSlot32(*(void* const*)pData);
+		if (pParam->Size > 1)
+			memcpy(&pParam->Sampler->iSamplerState, (const U8*)pData + sizeof(void*), (pParam->Size - 1)*4);
+		return;
+	}
 	memcpy(pParam->Data, pData, pParam->Size*4);
 }
 
@@ -379,7 +386,7 @@ void System::OnEffectLoad(Effect *pEffect)
 	{
 		Parameter *pParam = &pEffect->Parameters[i];
 		if (pParam->Type == NGLFX_PARAM_SAMPLER)
-			pParam->Sampler->Texture = (U32)g_System.GetDefaultTexture();
+			pParam->Sampler->Texture = Core::PointerToSlot32(g_System.GetDefaultTexture());	// [Blur2PC][x64]
 	}
 
 #if PLATFORM_PS3
@@ -394,14 +401,13 @@ void System::OnEffectLoad(Effect *pEffect)
 				FunctionBinding *pBind = &pPass->VertexShader.Bindings[x];
 				if (pBind->Type == NGLFX_BIND_SAMPLER)
 				{
-					pEffect->Parameters[pBind->ParameterIdx].Sampler->Texture = (U32)g_System.GetDefaultFPTexture();
+					pEffect->Parameters[pBind->ParameterIdx].Sampler->Texture = Core::PointerToSlot32(g_System.GetDefaultFPTexture());	// [Blur2PC][x64]
 				}
 			}
 		}
 	}
 #endif
 
-#if defined(BLUR_USE_DX11)
 	{
 		static unsigned effectTraces = 0;
 		const char* effectName = pEffect->Name.Chars();
@@ -414,7 +420,6 @@ void System::OnEffectLoad(Effect *pEffect)
 					pEffect->Techniques[t].Name.Chars());
 		}
 	}
-#endif
 
 	// Bind all vertex and pixel shaders.
 	for (int i = 0; i < pEffect->Techniques.Size(); i++)
@@ -443,7 +448,6 @@ void System::OnEffectLoad(Effect *pEffect)
 			if (pPass->PixelShader.Microcode)
 				BindFunctionToParameters(pEffect, &pPass->PixelShader);
 
-#if defined(BLUR_USE_DX11)
 			// [Blur1PCDX11] FXB contains material metadata; FX5 supplies the native pass shaders.
 			for (int shaderType = 0; shaderType < 2; ++shaderType)
 			{
@@ -503,23 +507,6 @@ void System::OnEffectLoad(Effect *pEffect)
 				delete (U8*)function.Microcode;
 				function.Microcode = NULL;
 			}
-#else
-			if (pPass->VertexShader.Microcode)
-			{
-				pPass->VertexShader.pShader = CreateShader(pPass->VertexShader.Microcode, pPass->VertexShader.cMicrocode, E_ShaderType_VertexShader);
-				delete (U8*) pPass->VertexShader.Microcode;
-				pPass->VertexShader.Microcode = NULL;
-			}
-			if (pPass->PixelShader.Microcode)
-			{
-				pPass->PixelShader.pShader = CreateShader(pPass->PixelShader.Microcode, pPass->PixelShader.cMicrocode, E_ShaderType_PixelShader);
-#if PLATFORM_PS3
-				EvaluatePixelShaderBindings(pEffect, &pPass->PixelShader);
-#endif
-				delete (U8*) pPass->PixelShader.Microcode;
-				pPass->PixelShader.Microcode = NULL;
-			}
-#endif
 			if (pPass->VertexShader.pShader)
 				DetermineVertexInputAttributes(&pPass->m_VtxAttrUsageFlags, (VertexShader*)pPass->VertexShader.pShader);
 		}

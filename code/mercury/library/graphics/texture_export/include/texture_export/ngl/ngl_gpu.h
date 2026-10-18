@@ -22,28 +22,15 @@
 #ifndef NGL_GPU_H
 #define NGL_GPU_H
 
-#if defined(_XBOX) && (_XBOX_VER >= 200)
-#define _XENON 1
-#endif
 
 // Platform detection
 #if NGL_GPU_D3D+NGL_GPU_GCM+NGL_GPU_REV == 0
 
 // Automatically detect D3D versions.
-#if defined(_XENON) || defined(_XBOX) || defined(_WIN32)
+#if defined(_WIN32)
  #define NGL_GPU_D3D 1
- #if defined(_XBOX)
-  #if (_XBOX_VER >= 200)
-   #define NGL_GPU_D3D9 1
-   #define NGL_GPU_D3D_XENON 1
-  #else
-   #define NGL_GPU_D3D8 1
-   #define NGL_GPU_D3D_XBOX 1
-  #endif
- #else
   #define NGL_GPU_D3D9 1
   #define NGL_GPU_D3D_PC 1
- #endif
 #endif
 
 // Automatically detect GCM versions.
@@ -934,12 +921,6 @@ inline uint gpuGetPrimCount(gpuPrimType prim, uint nindices)
 	case GPU_PRIM_TRIANGLELIST:  return nindices/3;
 	case GPU_PRIM_TRIANGLESTRIP: return nindices - 2;
 	case GPU_PRIM_TRIANGLEFAN:   return nindices - 2;
-#if NGL_GPU_D3D_XENON
-	case GPU_PRIM_RECTLIST:      return nindices/3;
-#endif
-#if NGL_GPU_D3D_XBOX || NGL_GPU_D3D_XENON
-	case GPU_PRIM_QUADLIST:      return nindices/4;
-#endif
 	default: return 0;
 	}
 }

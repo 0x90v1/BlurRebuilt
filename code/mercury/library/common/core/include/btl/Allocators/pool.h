@@ -301,8 +301,8 @@ inline void DynamicPool<T, AllocatorType, ThreadingModel>::Free(T* p)
 	bool found = false;
 	for(S32 i = 0; i < m_pool.Size(); ++i)
 	{
-		U32 pfree = (U32)p;
-		U32 memStart = (U32)m_pool[i];
+		INTPTR pfree = (INTPTR)p;	// [Blur2PC][x64] addresses, not U32
+		INTPTR memStart = (INTPTR)m_pool[i];
 		if(pfree >= memStart && pfree < memStart + blockSize)
 		{
 			found = true;

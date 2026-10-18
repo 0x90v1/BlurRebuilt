@@ -29,24 +29,11 @@ C_FontCacheAlternateTexture::~C_FontCacheAlternateTexture()
 
 bool C_FontCacheAlternateTexture::OnCreateVolatile()
 {
-#ifdef PLATFORM_XENON
-	m_bInitialised = Display::Device()->CreateRenderTexture2D( m_CellSize * m_NumCells, m_CellSize, 1, Display::E_Usage_Colour, Display::E_Format_L8, Display::E_Multisample_4, NULL, &m_RenderTexture );
-	//m_bInitialised = Display::Device()->CreateRenderTexture2D( m_CellSize * m_NumCells, m_CellSize, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, Display::E_Multisample_4, NULL, &m_RenderTexture );
-	#if TRACK_DISPLAY2_RESOURCES
-	if(m_bInitialised)
-		Display2::Device()->SetRenderTexture2DName(&m_RenderTexture, "_FontCacheAlternateRT");
-	#endif
-	return m_bInitialised;
-#endif
 	return false;
 }
 
 void C_FontCacheAlternateTexture::OnDestroyVolatile()
 {
-#ifdef PLATFORM_XENON
-	Display::Device()->Destroy( &m_RenderTexture );
-	m_bInitialised = false;
-#endif
 }
 
 bool C_FontCacheAlternateTexture::Bind()
@@ -54,49 +41,16 @@ bool C_FontCacheAlternateTexture::Bind()
 	if( !m_bInitialised )
 		return false;
 
-#ifdef PLATFORM_XENON
-//	Display::Device()->BeginScene();
-	Display::Device()->SetColourSurface( &m_RenderTexture.GetSurface() );
-	// Remove this
-	Display::Device()->Clear( Display::E_Clear_Depth | Display::E_Clear_Colour | Display::E_Clear_Stencil, Maths::RGBA( 0, 0, 0, 255 ) );
-
-	Display::C_Viewport viewport;
-	viewport.m_X = 0;
-	viewport.m_Y = 0;
-	viewport.m_W = m_CellSize * m_NumCells;	// gSimple2D.GetClipWidth();
-	viewport.m_H = m_CellSize;				// gSimple2D.GetClipHeight();
-
-	Display::Device()->SetViewport( viewport );
-#endif
 
 	return true;
 }
 
 void C_FontCacheAlternateTexture::ResolveCell( const S32 index )
 {
-#ifdef PLATFORM_XENON
-	D3DRECT		srcRect;
-	D3DPOINT	dstPoint;
-
-	srcRect.x1 = index * m_CellSize;
-	srcRect.y1 = 0;
-	srcRect.x2 = srcRect.x1 + m_CellSize;
-	srcRect.y2 = srcRect.x1 + m_CellSize;
-
-	dstPoint.x = srcRect.x1;
-	dstPoint.y = srcRect.y1;
-
-	Display::Device()->Resolve( Display::E_Resolve_Colour, &m_RenderTexture.GetTexture(), &srcRect, &dstPoint);
-#endif
 }
 
 void C_FontCacheAlternateTexture::Unbind()
 {
-#ifdef PLATFORM_XENON
-#if 0
-	Display::Device()->Resolve( Display::E_Resolve_Colour, &m_RenderTexture.GetTexture() );
-#endif
-#endif
 	// Restore
 	Display::Device()->SetColourDepthStencilSurface();
 	Display::Device()->InvalidateState();

@@ -462,14 +462,6 @@ void C_StaticRenderListItem::DebugRenderBounds(const C_VisibleNode& node, const 
 		DbUtil::DefaultDebugRenderSys()->Deferred()->Draw3dText(centre, drawDistance);
 	}
 
-#ifdef PLATFORM_XENON
-	if(g_BoundsPredication)
-	{
-		Util::C_String predication;
-		predication.Printf("%u", node.GetPredication());
-		DbUtil::DefaultDebugRenderSys()->Deferred()->Draw3dText(centre, predication);
-	}
-#endif
 }
 
 void C_StaticRenderListItem::DebugRenderPaletteId(const RenderingData::Bounds& bounds, const S16 paletteId) const

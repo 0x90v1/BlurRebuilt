@@ -51,7 +51,7 @@ bool C_CycleResource::LoadResourceData()
 	if (m_cycle == NULL)
 	{
 		m_cycle = new C_Cycle;
-		#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+		#if defined(PLATFORM_PS3)
 		BIZ_ASSERT( (((U32) m_cycle) & 0xf) == 0 );
 		#endif
 	}

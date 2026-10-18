@@ -1,85 +1,9 @@
 #include "SystemPch.h"
 
 #include <system/serialise.h>
-#ifdef PLATFORM_XENON
-#include <system/debug/log/filesystem.h>
-#endif
 #include <core/utility/endian.h>
 
-#if defined( PLATFORM_XENON )
-
-#include <xtl.h>
-
-namespace Memory
-{
-
-
-template <typename Archive>
-void LogModule(Archive ar, char *psz, int iBase, int iSize, int iTimeStamp)
-{
-	int c = (int)strlen(psz);
-
-	ar << iBase;
-	ar << iSize;
-	ar << iTimeStamp;
-	ar << c;
-	for (int i=0; i<c; i++)
-		ar << psz[i];
-}
-
-void SaveModuleInfo(Sys::I_BinaryStream *pStream)
-{
-#ifndef CFG_GOLD
-	HRESULT error;
-	PDM_WALK_MODULES pWalkMod = NULL;
-	DMN_MODLOAD modLoad;
-
-	Sys::BinarySerialiser<Ut::NativeToLittleEndian> ar(*pStream);
-
-	ar << (int)3; // platform Xenon
-
-	while( XBDM_NOERR == (error = DmWalkLoadedModules(&pWalkMod, &modLoad)) )
-	{
-		// Examine the contents of modLoad.
-		LogModule(ar, modLoad.Name, (int)(U64)modLoad.BaseAddress, modLoad.Size, modLoad.TimeStamp);
-	}
-	if (error != XBDM_ENDOFLIST)
-	{
-		// Handle error.
-	}
-	DmCloseLoadedModules(pWalkMod);
-
-	ar << (int)0;
-#endif
-};
-
-int CaptureCallStack(void **pCallStack, int cMax)
-{
-#ifndef CFG_GOLD
-	ZeroMemory(pCallStack, sizeof(void*)*cMax);
-
-	HRESULT hr = DmCaptureStackBackTrace(cMax, (PVOID*) pCallStack);
-
-	assert(hr == XBDM_NOERR);
-
-	if (hr == XBDM_NOERR)
-	{
-		long cs;
-		for (cs=0; cs < cMax; cs++)
-		{
-			if (pCallStack[cs+2] == 0)
-				break;
-		}
-
-		return sizeof(void*) * cs;
-	}
-#endif
-	return 0;
-}
-
-}
-
-#elif defined( PLATFORM_PC ) && !defined( _WIN64 )
+#if defined( PLATFORM_PC ) && !defined( _WIN64 )
 
 // requires libraries dbghelp.lib psapi.lib
 

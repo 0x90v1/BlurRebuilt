@@ -9,9 +9,6 @@
 #include "NetParty.h"
 #include "NetRace.h"
 
-#if defined ( PLATFORM_XENON )
-#include "Xlast/Amax.spa.h"
-#endif
 
 #if defined ( RACER_NET_OPTIMIZE_OFF )
 	#pragma optimize( "", off )
@@ -19,30 +16,7 @@
 
 namespace RacerNet
 {
-#if defined ( PLATFORM_XENON )
-
-	static void BuildPresence(const U8 userIndex, const eRichPresence state, NetPlay::RichPresence& out, const bool allowJoinInProgress)
-	{
-		NetPlay::RichPresence pres;
-		pres.m_ContextId = CONTEXT_RICH_PRESENCE;
-		pres.m_PresenceDisplayId = CONTEXT_PRESENCE_MAINPRESENCE;
-
-		switch (state)
-		{
-		case eRichPresenceDefault:
-		case eRichPresenceOnline:	
-		case eRichPresenceOnlineWorldTour:
-		case eRichPresenceLan:			
-		case eRichPresenceSplitScreen:
-		case eRichPresenceTimeAttack:		
-		case eRichPresenceCareer:			
-			pres.m_Index = CONTEXT_RICH_PRESENCE_DEFAULT + state;	// enum defines needs to match xlast context values
-			out = pres;
-			break;
-		}
-	}
-
-#elif defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
+#if defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
 
 	static void BuildPresence(const U8 userIndex, const eRichPresence state, NetPlay::RichPresence& out, const bool allowJoinInProgress)
 	{

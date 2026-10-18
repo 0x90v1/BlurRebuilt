@@ -176,7 +176,7 @@ Audio::ObjectHandle Audio::ObjectManager::CreateImmediate(const char* pchFilenam
 		if( pDef->GetObject() )
 		{
 			//	already created one, just map handle
-			m_ObjectHandles.MapResourceToHandle(hObject, (S32)pDef->GetObject());
+			m_ObjectHandles.MapResourceToHandle(hObject, (HandleResource)pDef->GetObject());
 
 			//*****************************************************
 			// NOTE: see below
@@ -203,7 +203,7 @@ Audio::ObjectHandle Audio::ObjectManager::CreateImmediate(const char* pchFilenam
 
 				if( Audio::Success == pObject->Init(pDef, pWaveManager) )
 				{
-					m_ObjectHandles.MapResourceToHandle(hObject, (S32)pObject);
+					m_ObjectHandles.MapResourceToHandle(hObject, (HandleResource)pObject);
 
 					//*****************************************************
 					// NOTE: this code is only needed for the profiler tool
@@ -1361,10 +1361,10 @@ void Audio::ObjectManager::Deactivate(Instance* pInstance)
 		Instance* pCurr = m_pFirst;
 		while (pCurr != NULL)
 		{
-			printf("[0x%x] - [flags 0x%x] - '%s'\n", (U32)pCurr, pCurr->GetStateFlags(), pCurr->GetObject()->Name());
+			printf("[0x%p] - [flags 0x%x] - '%s'\n", (void*)pCurr, pCurr->GetStateFlags(), pCurr->GetObject()->Name());
 			pCurr = pCurr->Next();
 		}
-		AUDIO_SYS_FATAL("ObjectManager::ReceiveDectivate() [0x%x] [flags 0x%x]: instance '%s' is not in linked list", (U32)pInstance, pInstance->GetStateFlags(), pInstance->GetObject()->Name());
+		AUDIO_SYS_FATAL("ObjectManager::ReceiveDectivate() [0x%x] [flags 0x%x]: instance '%s' is not in linked list", (U32)(INTPTR)pInstance, pInstance->GetStateFlags(), pInstance->GetObject()->Name());
 	}
 #endif
 
@@ -1432,7 +1432,7 @@ void Audio::ObjectManager::ReceiveGetComponent(U32 u32Message, char* pchName, Ob
 	#ifndef CFG_GOLD
 	if (!hComponent.IsValid())
 	{
-		AUDIO_SYS_WARN(DBSTR " Component '%s', pObject 0x%x, hComponent is not valid. [hObj 0x%x, hObjCom 0x%x]", pchName, (U32)pObject, hObject.Value(), hComponent.Value());
+		AUDIO_SYS_WARN(DBSTR " Component '%s', pObject 0x%x, hComponent is not valid. [hObj 0x%x, hObjCom 0x%x]", pchName, (U32)(INTPTR)pObject, hObject.Value(), hComponent.Value());
 		return;
 	}	
 	#endif
@@ -1599,7 +1599,7 @@ void Audio::ObjectManager::ReceiveGetComponentFromHash(U32 u32Message, StringHas
 	#ifndef CFG_GOLD
 	if (!hComponent.IsValid())
 	{
-		AUDIO_SYS_WARN(DBSTR " Component with hash 0x%x, pObject 0x%x, hComponent is not valid. [hObj 0x%x, hObjCom 0x%x]", nameHash.GetValue(), (U32)pObject, hObject.Value(), hComponent.Value());
+		AUDIO_SYS_WARN(DBSTR " Component with hash 0x%x, pObject 0x%x, hComponent is not valid. [hObj 0x%x, hObjCom 0x%x]", nameHash.GetValue(), (U32)(INTPTR)pObject, hObject.Value(), hComponent.Value());
 		return;
 	}	
 	#endif
@@ -2518,7 +2518,7 @@ void Audio::ObjectManager::ReceiveCreate(ObjectHandle hObject, char* pchFilename
 				if( pDef->GetObject() )
 				{
 					//	already created one, just map handle
-					m_ObjectHandles.MapResourceToHandle(hObject, (S32)pDef->GetObject());
+					m_ObjectHandles.MapResourceToHandle(hObject, (HandleResource)pDef->GetObject());
 				}
 				else
 				{
@@ -2530,7 +2530,7 @@ void Audio::ObjectManager::ReceiveCreate(ObjectHandle hObject, char* pchFilename
 
 						if( Audio::Success == pObject->Init(pDef, pWaveManager) )
 						{
-							m_ObjectHandles.MapResourceToHandle(hObject, (S32)pObject);
+							m_ObjectHandles.MapResourceToHandle(hObject, (HandleResource)pObject);
 						}
 						else
 						{
@@ -2770,7 +2770,7 @@ void Audio::ObjectManager::ReceiveCreateInstance(ObjectHandle hObject, InstanceH
 		
 		if (pInst)
 		{
-			m_InstanceHandles.MapResourceToHandle(hInstance, (S32)pInst);
+			m_InstanceHandles.MapResourceToHandle(hInstance, (HandleResource)pInst);
 			Activate(pInst);
 			pInst->SetHandle(hInstance);
 			m_u32NumTotalInstances++;
@@ -3091,7 +3091,7 @@ bool Audio::ObjectManager::DereferenceInstanceComponentHandle(InstanceComponentH
 {
 	ObjectComponentHandle hObjComp = ExtractObjectComponentHandle(hComponent);
 
-	if ((S32)(*(ppInst)) == -1)
+	if ((HandleResource)(*(ppInst)) == -1)	// [Blur2PC][x64]
 		return false;
 
 	if (bInstanceIsDoomed)

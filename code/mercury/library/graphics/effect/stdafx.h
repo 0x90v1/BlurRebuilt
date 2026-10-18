@@ -9,13 +9,6 @@
 
 #if PLATFORM_SPU
 
-#elif PLATFORM_XENON
-
-#include <xtl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-
 #elif PLATFORM_PS3
 
 #include <limits.h>

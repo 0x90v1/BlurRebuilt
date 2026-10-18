@@ -37,9 +37,6 @@ inline bool I_BinaryStream::Write(const void *pData_, U32 cData)
 
 inline void FasterMemCpy( void*  __restrict dest, void*  __restrict src, U32 size )
 {
-#ifdef PLATFORM_XENON
-	XMemCpyStreaming( dest, src, size );
-#else
 #ifdef PLATFORM_PS3
 	__dcbt( src );
 #endif
@@ -89,7 +86,6 @@ inline void FasterMemCpy( void*  __restrict dest, void*  __restrict src, U32 siz
 	{
 		memcpy( dest, src, size );
 	}
-#endif
 }
 
 // read a block of raw binary data, checks buffer underflow after each byte

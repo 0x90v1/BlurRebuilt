@@ -103,11 +103,7 @@ namespace NetPlay
 		bool			m_ValidLocalAddress;
 		bool			m_NetCableConnected;
 		bool			m_ScanForLocalAddress;
-#if defined ( PLATFORM_XENON )
-		U32				m_ScanAddressTimer;
-#else
 		U64				m_ScanAddressTimer;
-#endif
 		U32				m_BitFields;
 
 		bdLobbyService*	m_pDemonwareLobby;

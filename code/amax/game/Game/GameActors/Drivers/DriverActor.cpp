@@ -1334,7 +1334,7 @@ DECLARE_DEBUG_FUNCTION(gDebugDriverJoltBackwards, "ActorDebug.Actors.Driver.Trig
 
 static S32 gDebugDriverAction = -1;
 
-static void DriverDoAction(void* param)			{ gDebugDriverAction = (S32) param; }
+static void DriverDoAction(void* param)			{ gDebugDriverAction = (S32)(INTPTR) param; }	// [Blur2PC][x64] action id carried in the pointer
 DECLARE_DEBUG_FUNCTION(gDebugDriverDoAction1, "ActorDebug.Actors.Driver.Triggers.Celebrate", &DriverDoAction,		(void*)E_DriverAction_Celebrate);
 DECLARE_DEBUG_FUNCTION(gDebugDriverDoAction2, "ActorDebug.Actors.Driver.Triggers.Frustration", &DriverDoAction, (void*)E_DriverAction_ShowFrustration);
 DECLARE_DEBUG_FUNCTION(gDebugDriverDoAction3, "ActorDebug.Actors.Driver.Triggers.OvertakeOnLeft", &DriverDoAction, (void*)E_DriverAction_OvertakeOnLeft);

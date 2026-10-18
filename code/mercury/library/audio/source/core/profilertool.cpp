@@ -1,4 +1,5 @@
 #include "AudioPch.h"
+#include <core/utility/PointerSlot32.h> // [Blur2PC][x64]
 #include "../core/coreheaders.h"
 #include "../systemheaders.h"
 #include "stdio.h"
@@ -360,7 +361,7 @@ void Audio::Profiler::SendInitData()
 		int numInsts = pObj->GetInstances().Size();
 		b.Write(pObj->Name());
 		//b.Write((ArteryU32)pObj->GetHandle().Value());
-		b.Write((ArteryU32)pObj);
+		b.Write((ArteryU32)::Core::PointerToSlot32(pObj));	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 		b.Write((ArteryU16)numInsts);
 		for (int i=0; i<numInsts; i++)
 		{
@@ -383,7 +384,7 @@ void Audio::Profiler::SendInitData()
 void Audio::Profiler::SendObject(ArteryMessageBuilder& b, U32 uHandle)
 {
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uHandle);
-	Object* pObject = (Object*)uHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -530,7 +531,7 @@ void Audio::Profiler::SendValue(ArteryMessageBuilder& b, U32 uObjHandle, U32 uIn
 	{
 		//	get object
 		//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-		Object* pObject = (Object*)uObjHandle;
+		Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 		
 		if (pObject)
 		{
@@ -567,7 +568,7 @@ void Audio::Profiler::TriggerAction(U32 uObjHandle, U32 uInstHandle, U16 uComHan
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -599,7 +600,7 @@ void Audio::Profiler::SetParam(U32 uObjHandle, U32 uInstHandle, U16 uComHandle, 
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -634,7 +635,7 @@ void Audio::Profiler::GetParam(ArteryMessageBuilder& b, U32 uObjHandle, U32 uIns
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -668,7 +669,7 @@ void Audio::Profiler::SendAudioGraph(ArteryMessageBuilder& b, U32 uObjHandle)
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -719,7 +720,7 @@ void Audio::Profiler::SendAudioInfo(ArteryMessageBuilder& b, U32 uObjHandle, U32
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -767,7 +768,7 @@ void Audio::Profiler::MuteEvent(U32 uObjHandle, U32 uInstHandle, U16 uComHandle,
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -800,7 +801,7 @@ void Audio::Profiler::SendConnectionInfo(ArteryMessageBuilder& b, U32 uObjHandle
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -827,7 +828,7 @@ void Audio::Profiler::SendConnectionInfo(ArteryMessageBuilder& b, U32 uObjHandle
 				if (pOtherInst)
 				{
 					//uOtherObjHandle = pOtherInst->GetObject()->GetHandle().Value();
-					uOtherObjHandle = (U32)pOtherInst->GetObject();
+					uOtherObjHandle = ::Core::PointerToSlot32(pOtherInst->GetObject());	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 					uOtherInstHandle = pOtherInst->GetHandle().Value();
 					uOtherComHandle = pAudioCom->GetOtherComponent(pInst);
 				}
@@ -855,7 +856,7 @@ void Audio::Profiler::SetEvents(U32 uObjHandle, U32 uInstHandle, U16 uFlags)
 {
 	//	get object
 	//Object* pObject = System::Get()->GetObjectManager()->GetObject(uObjHandle);
-	Object* pObject = (Object*)uObjHandle;
+	Object* pObject = (Object*)::Core::Slot32ToPointer(uObjHandle);	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 
 	if (pObject)
 	{
@@ -888,7 +889,7 @@ void Audio::Profiler::PostEventMessage(Audio::Instance* pInstance, S16 sCom, S16
 			return;
 
 		//pkt.uObjHandle = pInstance->GetObject()->GetHandle().Value();
-		pkt.uObjHandle = (U32)pInstance->GetObject();
+		pkt.uObjHandle = ::Core::PointerToSlot32(pInstance->GetObject());	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 		pkt.uInstHandle = pInstance->GetHandle().Value();
 	}
 	else
@@ -932,7 +933,7 @@ void Audio::Profiler::PostErrorMessage(Audio::Instance* pInstance, Errors eError
 			return;
 
 		//pkt.uObjHandle = pInstance->GetObject()->GetHandle().Value();
-		pkt.uObjHandle = (U32)pInstance->GetObject();
+		pkt.uObjHandle = ::Core::PointerToSlot32(pInstance->GetObject());	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 		pkt.uInstHandle = pInstance->GetHandle().Value();
 	}
 	else
@@ -974,7 +975,7 @@ void Audio::Profiler::PostWarningMessage(Audio::Instance* pInstance, Warnings eW
 			return;
 
 		//pkt.uObjHandle = pInstance->GetObject()->GetHandle().Value();
-		pkt.uObjHandle = (U32)pInstance->GetObject();
+		pkt.uObjHandle = ::Core::PointerToSlot32(pInstance->GetObject());	// [Blur2PC][x64] 32-bit profiler id: a Core::PointerToSlot32 slot
 		pkt.uInstHandle = pInstance->GetHandle().Value();
 	}
 	else

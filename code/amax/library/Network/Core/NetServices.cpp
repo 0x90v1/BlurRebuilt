@@ -39,9 +39,7 @@
 #include <GameApp.h>
 
 
-#if defined(PLATFORM_XENON)
-#include "../Router/NetRouter_xenon.h"
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 #include "../Router/NetRouter_ps3.h"
 #elif defined (PLATFORM_PC)
 #include "../Router/NetRouter_pc.h"
@@ -689,15 +687,7 @@ namespace RacerNet
 		bool check_session = true;
 		if (gi.m_Active)
 		{
-#if defined (PLATFORM_XENON)
-			const bdSecurityID& secId = gi.m_InviteData.hostInfo.sessionID;
-
-			// Is the game invite for the active primary player
-			SysProfile::FullProfile& profile = UI::C_ProfileInterface::Instance().GetPadProfile( SysProfile::C_Manager::Instance().GetPrimaryPadNo() );
-			check_session = ( gi.m_InviteData.xuidInvitee == profile.m_Uid );
-#else
 			const bdSecurityID& secId = gi.m_Id;
-#endif
 
 			// check party and race session to make sure invite is not for a session we are already a member of.
 			if ( check_session )
@@ -720,9 +710,7 @@ namespace RacerNet
 		if (NULL != m_pRouter)
 			return true;
 
-#if defined(PLATFORM_XENON)
-		m_pRouter = new C_NetRouterXenon;
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 		m_pRouter = new C_NetRouterPS3;
 #elif defined (PLATFORM_PC)
 		m_pRouter = new C_NetRouterPC;
@@ -1400,27 +1388,6 @@ namespace RacerNet
 
 		const S32 primaryUserIndex = SysProfile::C_Manager::Instance().GetPrimaryPadNo();
 
-#ifdef PLATFORM_XENON
-		bool signedIntoXboxLive = false;		
-		if (primaryUserIndex >= 0 && primaryUserIndex < XUSER_MAX_COUNT)
-		{
-			XUSER_SIGNIN_INFO sInfo;
-			if (XUserGetSigninInfo(primaryUserIndex, XUSER_GET_SIGNIN_INFO_ONLINE_XUID_ONLY, &sInfo) == ERROR_SUCCESS)
-			{
-				if (sInfo.xuid != INVALID_XUID && sInfo.dwGuestNumber == 0)
-				{
-					signedIntoXboxLive = true;
-				}
-			}
-		}
-
-		if( false == signedIntoXboxLive )
-		{
-			m_TitleStorage = eTitleStorageError;
-			TitleStorageStopAndCleanup();
-			return;
-		}	
-#endif
 
 		switch(m_TitleStorage)
 		{

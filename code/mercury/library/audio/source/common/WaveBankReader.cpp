@@ -314,11 +314,6 @@ namespace Audio
 				wave->m_pExtraHeader = WaveBank::Alloc(uExtraHeaderSize);
 				if (uExtraHeaderSize != sizeof(WaveBank::XMAWave))
 					wave->m_baseHeader.uFlags |= FLAG_HAS_XMA_SEEK_TABLE;
-#ifdef _XBOX360
-				Assert(wave->DataLength() % 2048 == 0);		// Make sure everything is a multiple of 2k to keep alignment
-				Assert(bank.m_pXMAWaveBankBuffer == NULL);	// Make sure all the headers are parsed first before we allocate the buffer we need
-				bank.m_xmaWaveBankBufferSize += wave->DataLength();
-#endif
 				break;
 			case Core::uADPCM4Bit: 
 				uExtraHeaderSize = sizeof(WaveBank::ADPCMWave);
@@ -486,30 +481,6 @@ namespace Audio
 
 		U32 uDataSize = uChunkSize - sizeof(WaveBank::ChunkHeader);
   
-#ifdef _XBOX360
-		// xma files need their memory aligned so use XPhysicalAlloc
-		if (wave->m_baseHeader.uFormat == Core::uXMA16Bit || wave->m_baseHeader.uFormat == Core::uXMA216Bit)
-		{
-			// to reduce memory overhead of lots of small allocs allocate one single memory buffer 
-			// for whole bank and store pointers into it for each wave
-			if (!bank.m_pXMAWaveBankBuffer)
-			{
-				bank.m_pXMAWaveBankBuffer = WaveBank::Alloc(bank.m_xmaWaveBankBufferSize, 2048, WaveBank::ePhysical);
-				
-				if (bank.m_pXMAWaveBankBuffer==NULL)
-				{
-					Error("Could not allocate %dk (%d bytes) of physical memory for xma bank buffer", bank.m_xmaWaveBankBufferSize/1024, bank.m_xmaWaveBankBufferSize);
-					return false;
-				}
-				bank.m_MemoryFootprint += Btl::AlignUp(bank.m_xmaWaveBankBufferSize, 2048);;
-				bank.m_xmaWaveBankBufferSize = 0;
-			}
-
-			wave->m_pvWaveData = (void*) (size_t(bank.m_pXMAWaveBankBuffer) + bank.m_xmaWaveBankBufferSize); // WaveBank::Alloc(uDataSize, 2048, WaveBank::ePhysical);
-			bank.m_xmaWaveBankBufferSize += uDataSize;
-		}
-		else
-#endif
 		{
 			wave->m_pvWaveData = WaveBank::Alloc(uDataSize, 128, WaveBank::eVirtual);
 			bank.m_MemoryFootprint += Btl::AlignUp(uDataSize, 128);;

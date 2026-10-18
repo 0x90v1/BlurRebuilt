@@ -23,9 +23,7 @@ namespace Animation
 }
 
 
-#if ANIMATION_SIMD && PLATFORM_XENON
-#include "DecompressionVmx.inl"
-#elif ANIMATION_SIMD && PLATFORM_SPU
+#if ANIMATION_SIMD && PLATFORM_SPU
 #include "DecompressionSpu.inl"
 #else
 #include "DecompressionGeneric.inl"

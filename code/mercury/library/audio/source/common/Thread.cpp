@@ -24,9 +24,6 @@ Audio::Core::Thread::Thread()
 	m_uStackSize = 0;
 	m_pThreadContext = NULL;
 	m_ePriority = eNormal;
-#if defined (PLATFORM_XENON)
-	m_eProcessor = eCore0Thread0;
-#endif	//	PLATFORM_XENON
 #if defined (PLATFORM_PS3)
 	#ifdef CFG_GOLD
 	pthread_rwlock_init(&m_lock, NULL);
@@ -47,9 +44,6 @@ Audio::Core::Thread::Thread(U32 uStackSize)
 	m_pThreadContext = NULL;
 	m_uStackSize = uStackSize;
 	m_ePriority = eNormal;
-#ifdef PLATFORM_XENON
-	m_eProcessor = eCore0Thread0;
-#endif	//	PLATFORM_XENON
 #if defined (PLATFORM_PS3)
 	#ifdef CFG_GOLD
 	pthread_rwlock_init(&m_lock, NULL);
@@ -64,17 +58,6 @@ Audio::Core::Thread::Thread(U32 uStackSize)
 ////////////////////////////////////////////////////////////////////////////////
 //	Thread
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef PLATFORM_XENON
-Audio::Core::Thread::Thread(U32 uStackSize, Priority ePriority, Processor eProcessor)
-{
-	m_hThread = NULL;
-	m_pThreadContext = NULL;
-	m_uStackSize = uStackSize;
-	m_ePriority = ePriority;
-	m_eProcessor = eProcessor;
-	m_uExitCode = 0;
-}
-#else
 Audio::Core::Thread::Thread(U32 uStackSize, Priority ePriority)
 {
 	m_hThread = NULL;
@@ -91,7 +74,6 @@ Audio::Core::Thread::Thread(U32 uStackSize, Priority ePriority)
 	#endif
 #endif	//	PLATFORM_PS3
 }
-#endif	//	PLATFORM_XENON
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Thread
@@ -117,7 +99,7 @@ bool Audio::Core::Thread::Start(void* pContext)
 	{
 		m_pThreadContext = pContext;
 
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		m_hThread = CreateThread(NULL, 1024 * m_uStackSize, (LPTHREAD_START_ROUTINE)EntryPoint, this, CREATE_SUSPENDED, NULL);
 		if (m_hThread == NULL)
 			return false;
@@ -127,15 +109,11 @@ bool Audio::Core::Thread::Start(void* pContext)
 #endif
 		else
 		{
-#if defined (PLATFORM_XENON)
-			if (XSetThreadProcessor(m_hThread, (U32)m_eProcessor) == -1)
-				return false;
-#endif	//	PLATFORM_XENON
 
 			if (!SetPriority(m_ePriority))
 				return false;
 
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 			::ResumeThread(m_hThread);
 #endif	//	PLATFORM_XENON
 		}
@@ -173,7 +151,7 @@ S32 Audio::Core::Thread::Stop()
 ////////////////////////////////////////////////////////////////////////////////
 S32 Audio::Core::Thread::Suspend()
 {
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	if (m_hThread != NULL)
 		return ::SuspendThread(m_hThread);
 	else
@@ -188,7 +166,7 @@ S32 Audio::Core::Thread::Suspend()
 ////////////////////////////////////////////////////////////////////////////////
 S32 Audio::Core::Thread::Resume()
 {
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	if (m_hThread != NULL)
 		return ::ResumeThread(m_hThread);
 	else
@@ -230,7 +208,7 @@ bool Audio::Core::Thread::SetPriority(Priority ePriority)
 {
 	bool bReturn = false;
 
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	if (m_hThread != NULL)
 	{
 		bReturn = ::SetThreadPriority(m_hThread, (S32)ePriority) ? true : false;
@@ -248,29 +226,6 @@ bool Audio::Core::Thread::SetPriority(Priority ePriority)
 	return bReturn;
 }
 
-#ifdef PLATFORM_XENON
-////////////////////////////////////////////////////////////////////////////////
-//	SetProcessor
-////////////////////////////////////////////////////////////////////////////////
-bool Audio::Core::Thread::SetProcessor(Processor eProcessor)
-{
-	bool bReturn = false;
-
-	Assert(GetCurrentThread() != m_hThread);
-
-	SuspendThread(m_hThread);
-
-	if (m_hThread != NULL)
-		bReturn = (XSetThreadProcessor(m_hThread, (U32)m_eProcessor) != -1) ? true : false;
-
-	if (bReturn)
-		m_eProcessor = eProcessor;
-
-	ResumeThread(m_hThread);
-
-	return bReturn;
-}
-#endif	//	PLATFORM_XENON
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Start
@@ -287,7 +242,7 @@ S32 Audio::Core::Thread::Run()
 ////////////////////////////////////////////////////////////////////////////////
 //	static EntryPoint
 ////////////////////////////////////////////////////////////////////////////////
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 S32 Audio::Core::Thread::EntryPoint(void* pThis)
 {
    Thread* pThread = (Thread*)pThis;
@@ -312,7 +267,7 @@ void Audio::Core::Thread::EntryPoint(uint64_t uParam)
 ////////////////////////////////////////////////////////////////////////////////
 S32 Audio::Core::Thread::Increment(volatile S32* psCount)
 {
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	return InterlockedIncrement((volatile LONG*)psCount);
 #else
 	//if (0 != pthread_rwlock_wrlock(&m_lock))
@@ -333,7 +288,7 @@ S32 Audio::Core::Thread::Increment(volatile S32* psCount)
 ////////////////////////////////////////////////////////////////////////////////
 S32 Audio::Core::Thread::Decrement(volatile S32* psCount)
 {
-#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	return InterlockedDecrement((volatile LONG*)psCount);
 #else
 	//if (0 != pthread_rwlock_wrlock(&m_lock))

@@ -28,7 +28,7 @@ namespace Display
 namespace SceneGraph
 {
 
-#if PLATFORM_XENON || PLATFORM_PS3	// multit-threaded rendering is on by default on Xenon and PS3. Not supported on other platforms
+#if PLATFORM_PS3 // multit-threaded rendering is on by default on Xenon and PS3. Not supported on other platforms
 Debug::Bool g_MultiThreaded					("Graphics.SceneGraph.MultiThreadedRender", true);
 #else
 Debug::Bool g_MultiThreaded					("Graphics.SceneGraph.MultiThreadedRender", false);
@@ -481,24 +481,6 @@ void C_RenderGroup::Render()
 #if PLATFORM_PS3
 	// PS3 doesnt need to flush rendering tasks
 	if (!g_AsyncCommandBufferKicking)
-#elif PLATFORM_XENON
-	// on xenon if any tasks are multithreaded we need to draw a dummy primitive and flush hi zstencil
-	for(S32 i = 0; i < m_Tasks.Size(); ++i)
-	{
-		if(m_Tasks[i].m_MultiThreaded)
-		{
-			if(Display::g_DrawDummyPrimitiveBeforeRunningCommandBuffer)
-			{
-				Display::C_Context* pDisplay = Display::GetContext(m_Context.GetSceneGraph()->GetContext());
-				pDisplay->BeginCommandBuffer(NULL);
-				pDisplay->DrawDummyPrimitive();
-				pDisplay->EndCommandBuffer();
-			}
-
-			Display::Device()->GetD3DDevice()->FlushHiZStencil(D3DFHZS_ASYNCHRONOUS);
-			break;
-		}
-	}
 #endif
 	{
 		Scheduler::Flush(m_JobQueueGroup);
@@ -514,9 +496,6 @@ void C_RenderGroup::Render()
 		C_RenderTask *pTask = &m_Tasks[i];
 		if(pTask->m_MultiThreaded)
 		{
-#if PLATFORM_XENON
-			if(pTask->m_CommandBuffer.IsCreated())
-#endif
 			{
 				PERF_EVENT("SceneGraph.RunCommandBuffer");
 

@@ -25,14 +25,6 @@
 #include <wchar.h>
 #include <cell/pad.h>
 
-#elif defined(PLATFORM_XENON)
-
-#include <xtl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
 #endif
 
 #include <Display/Core/Includes.h>

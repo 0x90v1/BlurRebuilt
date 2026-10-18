@@ -110,7 +110,7 @@ void UIStaticLetter::Render()
 		C_UIPolygonFont* pFont = (C_UIPolygonFont*)pCurrentFont;
 		C_UICharacter* pGlyph = (C_UICharacter*)pCurrentGlyph;
 
-		U32 uUserData = (U32)&pGlyph->GetRenderInfo();
+		INTPTR uUserData = (INTPTR)&pGlyph->GetRenderInfo();	// [Blur2PC][x64]
 
 		F32 px = m_Position.x;
 		F32 py = m_Position.y;

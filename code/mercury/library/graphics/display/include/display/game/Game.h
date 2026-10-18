@@ -13,18 +13,6 @@ namespace Display
 
 #if 0
 
-#ifdef PLATFORM_XENON
-
-struct C_TileSetup
-{
-	U32								m_Width;
-	U32								m_Height;
-	E_Multisample					m_Multisample;
-	U32								m_TileCount;
-	D3DRECT							m_Tiles[4];
-};
-
-#endif // PLATFORM_XENON
 
 //! Game view.
 
@@ -44,9 +32,6 @@ public:
 	{
 		C_Surface					m_ColourSurface;
 		C_Surface					m_DepthStencilSurface;
-		#ifdef PLATFORM_XENON
-		C_TileSetup					m_TileSetup;
-		#endif
 	};
 
 	C_Buffer						m_WithAA;

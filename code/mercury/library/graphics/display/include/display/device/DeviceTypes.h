@@ -99,11 +99,7 @@ INLINE U32 IndexCount(const E_PrimitiveType primitiveType, const U32 primitiveCo
 	case E_PrimitiveType_TriangleList:
 		return primitiveCount * 3;
 	case E_PrimitiveType_QuadList:
-		#ifdef PLATFORM_XENON
-		return primitiveCount * 4;
-		#else
 		return IndexCount(E_PrimitiveType_PointList, primitiveCount);
-		#endif
 	case E_PrimitiveType_TriangleStrip:
 	case E_PrimitiveType_TriangleFan:
 		return primitiveCount + 2;
@@ -126,11 +122,7 @@ INLINE U32 PrimitiveCount(const E_PrimitiveType primitiveType, const U32 indexCo
 	case E_PrimitiveType_TriangleList:
 		return indexCount / 3;
 	case E_PrimitiveType_QuadList:
-		#ifdef PLATFORM_XENON
-		return indexCount / 4;
-		#else
 		return PrimitiveCount(E_PrimitiveType_PointList, indexCount);
-		#endif
 	case E_PrimitiveType_TriangleStrip:
 	case E_PrimitiveType_TriangleFan:
 		return indexCount - 2;
@@ -157,11 +149,7 @@ INLINE void ValidateIndexCount(const E_PrimitiveType primitiveType, const U32 in
 		BIZ_ASSERT_MSG(indexCount >= 3, "Trying to render fewer than 3 indices!");
 		break;
 	case E_PrimitiveType_QuadList:
-		#ifdef PLATFORM_XENON
-		BIZ_ASSERT_MSG(indexCount >= 4, "Trying to render fewer than 4 indices!");
-		#else
 		ValidateIndexCount(E_PrimitiveType_PointList, indexCount);
-		#endif
 		break;
 	default:
 		BIZ_ASSERT_FAIL("Unsupported primitive type");
@@ -236,21 +224,13 @@ INLINE const E_CullMode FlippedCullMode(const E_CullMode cullMode)
 
 INLINE const U32 GPU_RGBA(const U8 r, const U8 g, const U8 b, const U8 a)
 {
-#if defined(GRAPHICS_D3D9)
-	return ((a & 0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-#else
 	return ((r & 0xff) << 24) | ((g & 0xff) << 16) | ((b & 0xff) << 8) | (a & 0xff);
-#endif
 }
 
 INLINE const U32 GPU_RGBA(const Maths::C_RGBA_U8 & colour)
 {
 	U32 raw = colour;
-#if defined(GRAPHICS_D3D9)
-	return raw;
-#else
 	return (raw << 8) | (raw >> 24);
-#endif
 }
 
 extern const Maths::RGBA BLACK;

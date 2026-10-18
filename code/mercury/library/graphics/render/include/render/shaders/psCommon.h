@@ -72,19 +72,6 @@ float3 GetWorldPosition(sampler2D depth, float2 uv, float4x4 toWorld)
 
 float3 GetWorldPosition(sampler2D depth, float2 uv, float4 scaleParam, float3 vCamera, float3 vInterpolated)
 {
-#if defined(XB2)
-	float fZ;
-	float3 vWorldPosition;
-	asm
-	{
-		tfetch2D fZ.x___, uv, depth
-		subsc fZ.x___, fZ, scaleParam.x
-		rcp fZ.x___, fZ
-		mad vWorldPosition.xyz, vInterpolated.xyz, fZ.xxx, vCamera.xyz
-	};
-	return vWorldPosition;
-#else
 	float fZ = SampleDepthBuffer(depth, uv);
 	return (1.0f / (fZ - scaleParam.x)) * vInterpolated + vCamera;
-#endif
 }

@@ -219,8 +219,6 @@ Btl::String FormatLocalFileString(const Btl::String& inString)
 {
 	#if defined(PLATFORM_PC)
 	return FormatWindowsFileString(inString);
-	#elif defined(PLATFORM_XENON)
-	return FormatWindowsFileString(inString);
 	#elif defined(PLATFORM_PS3)
 	return FormatUnixFileString(inString);
 	#elif defined(PLATFORM_LINUX)

@@ -452,8 +452,8 @@ void C_Emitter::Update(C_Random& random, const EmitterUpdateConstants* pUpdateCo
 				{
 					// SPU this
 					SpawningEmitter* pSpawningEmitter = &pUpdateConstants->pSpawningCustomEmitters[queuePosition];
-					Spu::Set((U32*)&pSpawningEmitter->pEmitter, (U32)pEmitterEA);
-					Spu::Set((U32*)&pSpawningEmitter->pEffect, (U32)m_pDefinition->pEffect);
+					Spu::Set((INTPTR*)&pSpawningEmitter->pEmitter, (INTPTR)pEmitterEA);	// [Blur2PC][x64] pointer-wide
+					Spu::Set((INTPTR*)&pSpawningEmitter->pEffect, (INTPTR)m_pDefinition->pEffect);	// [Blur2PC][x64] pointer-wide
 				}
 			}
 			else
@@ -463,8 +463,8 @@ void C_Emitter::Update(C_Random& random, const EmitterUpdateConstants* pUpdateCo
 				{
 					// SPU this
 					SpawningEmitter* pSpawningEmitter = &pUpdateConstants->pSpawningEmitters[queuePosition];
-					Spu::Set((U32*)&pSpawningEmitter->pEmitter, (U32)pEmitterEA);
-					Spu::Set((U32*)&pSpawningEmitter->pEffect, (U32)m_pDefinition->pEffect);
+					Spu::Set((INTPTR*)&pSpawningEmitter->pEmitter, (INTPTR)pEmitterEA);	// [Blur2PC][x64] pointer-wide
+					Spu::Set((INTPTR*)&pSpawningEmitter->pEffect, (INTPTR)m_pDefinition->pEffect);	// [Blur2PC][x64] pointer-wide
 				}
 			}
 

@@ -2,8 +2,6 @@
 
 #if defined(PLATFORM_PC)
 #include <wincrypt.h>
-#elif defined(PLATFORM_XENON)
-#include <xbox.h>
 #elif defined(PLATFORM_PS3)
 #include <cell/hash/libsha1.h>
 #endif
@@ -36,8 +34,6 @@ struct C_Context
 			return false;
 		}
 
-		#elif defined(PLATFORM_XENON)
-		XHashMemoryBegin(&hState);
 		#elif defined(PLATFORM_PS3)
 		cellSha1BlockInit(&workarea);
 		#endif
@@ -59,8 +55,6 @@ struct C_Context
 			result = true;
 		result &= CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)pSha1Hash, (DWORD*)&hashLength, 0) == TRUE;
 		result &= CryptDestroyHash(hHash) == TRUE;
-		#elif defined (PLATFORM_XENON)
-		XHashMemoryEnd(&hState, (BYTE*)pSha1Hash);
 		#elif defined (PLATFORM_PS3)
 		result = cellSha1BlockResult(&workarea, pSha1Hash) == CELL_OK;
 		#endif
@@ -71,8 +65,6 @@ struct C_Context
 #if defined(PLATFORM_PC)
 	HCRYPTPROV hProv;
 	HCRYPTHASH hHash;
-#elif defined (PLATFORM_XENON)
-	XHASH_STATE hState;
 #elif defined (PLATFORM_PS3)
 	CellSha1WorkArea workarea;
 #endif
@@ -146,8 +138,6 @@ bool C_HashContext::UpdateHash(const U8* pData, const U32 sizeBytes)
 		BIZ_ASSERT_FAIL("Failed to calculate hash");
 		return false;
 	}
-#elif defined (PLATFORM_XENON)
-	XHashMemoryUpdate(&m_pContext->hState, pData, sizeBytes);
 #elif defined (PLATFORM_PS3)
 	int r = cellSha1BlockUpdate(&m_pContext->workarea, pData, sizeBytes);
 	if (r != CELL_OK)

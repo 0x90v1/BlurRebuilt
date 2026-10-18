@@ -26,9 +26,6 @@
 #endif
 #include <bdExample/bdExampleCommonLobby/bdExampleCommonLobby.h>
 
-#ifdef PLATFORM_XENON
-#include "netPlatform/netPlatform_Xenon.h"
-#endif
 #ifdef PLATFORM_PC
 #include "netPlatform/netPlatform_PC.h"
 #endif
@@ -54,8 +51,6 @@ namespace netPlatform
 
 		#if defined( PLATFORM_PS3 )
 			s_instance = new netPlatform::PS3; 
-		#elif defined ( PLATFORM_XENON )
-			s_instance = new netPlatform::Xenon; 
 		#elif defined ( PLATFORM_PC )
 			s_instance = new netPlatform::PC; 
 		#endif
@@ -589,9 +584,6 @@ namespace netPlatform
 					return setState(STATE_LSGDNS_CHECK);
 				}
 
-			#ifdef PLATFORM_XENON
-				return setState(STATUS_PLATFORM_NOT_SUPPORTED) && setState(STATE_ERROR);
-			#else
 				if(m_step == 0)
 				{	
 					assert(m_pAuthGetHostByName == NULL);
@@ -643,13 +635,9 @@ namespace netPlatform
 					}
 				}
 				return true;
-			#endif // PLATFORM_XENON
 			}
 		case STATE_TICKET_REQUEST:
 			{
-			#ifdef PLATFORM_XENON
-				return setState(STATUS_PLATFORM_NOT_SUPPORTED) && setState(STATE_ERROR);
-			#else
 				if(m_step == 0)
 				{
 					assert(m_pAuthService == NULL);
@@ -698,13 +686,9 @@ namespace netPlatform
 					return setStatus(STATUS_AUTH_FAILED) && setState(STATE_ERROR);
 				}
 				return true;
-			#endif // PLATFORM_XENON
 			}
 		case STATE_AUTHENTICATION:
 			{				
-			#ifdef PLATFORM_XENON
-				return setState(STATUS_PLATFORM_NOT_SUPPORTED) && setState(STATE_ERROR);
-			#else
 				if(m_step == 0)
 				{
 					if(!platformAuthentication())
@@ -746,7 +730,6 @@ namespace netPlatform
 
 				LOGINFO(netDebug::g_Log, "<netPlatform::Core> NP ticket authentication with demonware success!");
 				return setState(STATE_LSGDNS_CHECK);
-			#endif // PLATFORM_XENON
 			}
 
 		case STATE_LSGDNS_CHECK:
@@ -757,9 +740,6 @@ namespace netPlatform
 					return setState(STATE_ONLINE);
 				}
 				
-			#ifdef PLATFORM_XENON
-				return setState(STATUS_PLATFORM_NOT_SUPPORTED) && setState(STATE_ERROR);
-			#else
 				if(m_step == 0)
 				{
 					// get address for service
@@ -818,13 +798,9 @@ namespace netPlatform
 					}
 				}
 				return true;
-			#endif // PLATFORM_XENON
 			}
 		case STATE_LOBBY_CONNECT:
 			{
-			#ifdef PLATFORM_XENON
-				return setState(STATUS_PLATFORM_NOT_SUPPORTED) && setState(STATE_ERROR);
-			#else
 				if(m_step == 0)
 				{
 					assert(m_pAuthService);
@@ -886,7 +862,6 @@ namespace netPlatform
 					}
 				}
 				return true;
-			#endif // PLATFORM_XENON
 			}
 		case STATE_ONLINE:
 			{
@@ -1125,7 +1100,6 @@ namespace netPlatform
 
 	void Core::cleanup(void)
 	{
-		#ifndef PLATFORM_XENON
 			if (m_pAuthGetHostByName)
 			{
 				m_pAuthGetHostByName->quit();
@@ -1139,7 +1113,6 @@ namespace netPlatform
 			}
 			if (m_pAuthService)
 				delete m_pAuthService;
-		#endif
 
 		// stop demonware..
 		bdLobbyService* lobbyService = NetPlay::C_Core::Instance().DemonwareLobbyService();
@@ -1654,15 +1627,6 @@ namespace netPlatform
 		bdNetImpl *const net = bdNet::getInstance();
 		bdSecurityKeyMap *const keyMap = net->getSocketRouter()->getKeyMap();
 
-	#if defined( PLATFORM_XENON )	// check if key already registered
-		if(!online)
-		{
-			// check if key already registered
-			LOGINFO(g_Log, "<netPlatform::Core::registerKey()> registering security pair : id(%s), key(%s)", netDebug::getByteInfo(&secId, sizeof(secId)), netDebug::getByteInfo(&secKey, sizeof(secKey)));
-			keyMap->registerKey(secId, secKey);
-		}
-		return true;
-	#else
 		bdSecurityKey tempKey;
 		if(keyMap->get(secId, tempKey))
 		{
@@ -1678,7 +1642,6 @@ namespace netPlatform
 		// check if key already registered
 		LOGINFO(g_Log, "<netPlatform::Core::registerKey()> registering security pair : id(%s), key(%s)", netDebug::getByteInfo(&secId, sizeof(secId)), netDebug::getByteInfo(&secKey, sizeof(secKey)));
 		return keyMap->registerKey(secId, secKey);
-	#endif
 	}
 
 	bool Core::unregisterKey(bool online, const bdSecurityID& secId, const bdSecurityKey& secKey)
@@ -1686,15 +1649,6 @@ namespace netPlatform
 		bdNetImpl *const net = bdNet::getInstance();
 		bdSecurityKeyMap *const keyMap = net->getSocketRouter()->getKeyMap();
 
-	#if defined( PLATFORM_XENON )	// check if key already registered
-		if(!online)
-		{
-			// check if key already registered
-			LOGINFO(g_Log, "<netPlatform> unregistering security pair : id(%s), key(%s)", netDebug::getByteInfo(&secId, sizeof(secId)), netDebug::getByteInfo(&secKey, sizeof(secKey)));
-			keyMap->unregisterKey(secId);
-		}
-		return true;
-	#else
 		bdSecurityKey tempKey;
 		if(keyMap->get(secId, tempKey))
 		{
@@ -1709,7 +1663,6 @@ namespace netPlatform
 		}
 		LOGWARN(g_Log, "<netPlatform::Core::unregisterKey()> security Id(%s) key(%s) not found.", netDebug::getByteInfo(&secId, sizeof(secId)), netDebug::getByteInfo(&secKey, sizeof(secKey)));
 		return true;
-	#endif
 	}
 
 	bdAddrHandleRef	Core::registerAddress(const bdCommonAddrRef& addr, const bdSecurityID& secId)
@@ -1747,9 +1700,6 @@ namespace netPlatform
 
 	bool Core::connectAddress(const bdCommonAddrRef& addr, bdAddrHandleRef &addrHandle)
 	{
-		#if defined(PLATFORM_XENON)
-		return true;
-		#endif
 
 		if(addrHandle.isNull())
 		{

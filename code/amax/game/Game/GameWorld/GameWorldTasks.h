@@ -50,9 +50,7 @@ namespace Game
 		Maths::HVec3 m_Position;
 		void*	m_MemoryLocked[6];
 		U32		m_Pitch;
-#if defined(BLUR_USE_DX11)
 		bool m_FloatRGBM; // [Blur2PC][HDR] Eight-byte RGBA16F texels, same RGBM decoding.
-#endif
 	};
 
 #ifndef PLATFORM_SPU

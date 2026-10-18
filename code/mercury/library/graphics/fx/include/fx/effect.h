@@ -12,6 +12,7 @@
 #include <system/serialise/btl.h>
 #include <Display/context/SamplerUsageFlags.h>
 #include <system/misc/SharedString.h>
+#include <core/utility/PointerSlot32.h> // [Blur2PC][x64]
 
 
 namespace Debug
@@ -429,6 +430,8 @@ struct nglFXParam_MatrixArray
 	//math::Mat44 Value[];
 };
 
+// [Blur2PC][x64] Texture is a Core::PointerToSlot32 slot: the sampler keeps the
+// two-word layout the effect converter baked into every ParameterData block.
 struct nglFXParam_Sampler
 {
 	U32 Texture;
@@ -786,9 +789,7 @@ struct Struct
 
 TechniqueHandle RegisterSubtechnique(const char *pszName);
 
-#if defined(BLUR_USE_DX11)
 void NativeFX11ReleaseCache(const void* effect); // [Blur1PCDX11] NativeFX11.cpp
-#endif
 
 class Effect : public I_Effect
 {
@@ -799,9 +800,7 @@ public:
 
 	~Effect()
 	{
-#if defined(BLUR_USE_DX11)
 		NativeFX11ReleaseCache(this);
-#endif
 	}
 
 	Btl::Vector<Technique> ALIGN16 Techniques;
@@ -815,11 +814,9 @@ public:
 	Btl::Vector<InputSemantic> VtxInputDeclaration;		///< A list of the vertex input semantics required for this shader
 
 	SharedString::String Name;								///< Name of the effect, usually the filename (minus path and .fx).
-#if defined(BLUR_USE_DX11)
 	// [Blur1PCDX11] Internal FXB Name omits permutation suffixes. Runtime-only
 	// identity set before deserialisation; never part of the PCFX wire format.
 	SharedString::String NativeFilename;
-#endif
 
 #if CFG_CONVERTER
 	Btl::Vector<Struct> Structs;						///< A description of the contents of some structs. used for debugging
@@ -874,7 +871,7 @@ public:
 
 		// fixup fx parameter offsets
 		for (int i=0; i<Parameters.Size(); i++)
-			Parameters[i].Data = ((U8*)&ParameterData[0]) + (int)Parameters[i].Data;
+			Parameters[i].Data = ((U8*)&ParameterData[0]) + (int)(INTPTR)Parameters[i].Data;	// [Blur2PC][x64] Data holds the byte offset here
 
 #if !CFG_CONVERTER
 		int c = ParameterData.Size();

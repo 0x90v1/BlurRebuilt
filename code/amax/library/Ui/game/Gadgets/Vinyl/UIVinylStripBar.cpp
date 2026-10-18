@@ -135,7 +135,7 @@ void UIVinylStripBar::RenderShape( const C_AdobeShape* pShape, const TransformIn
 	for ( S32 i = 0; i < pShape->Fill().Size(); i++ )
 	{
 		// Push the sprite onto the stack
-		gSimple2D.AddSprite( m_Layer, drawPos, drawSizeX, drawSizeY, fillColour, m_Panel, E_SpriteType_TriList, m_ShapeRs, (U32)pShape->Fill()[ i ] ); 
+		gSimple2D.AddSprite( m_Layer, drawPos, drawSizeX, drawSizeY, fillColour, m_Panel, E_SpriteType_TriList, m_ShapeRs, (INTPTR)pShape->Fill()[ i ] );	// [Blur2PC][x64] 
 		gSimple2D.AddTexUVs(0, gUITextureManager.GetTextureByName("null"), 0.0f, 0.0f, 1.0f, 1.0f);
 
 		gSimple2D.AddPostTransformIndex( ti );

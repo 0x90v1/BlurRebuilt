@@ -333,8 +333,6 @@ void C_Camera::Load()
 
 	#if defined(PLATFORM_PC)
 	fileName += ".pcb";
-	#elif defined(PLATFORM_XENON)
-	fileName += ".xeb";
 	#elif defined(PLATFORM_PS3)
 	fileName += ".p3b";
 	#endif
@@ -374,8 +372,6 @@ void C_Camera::Save()
 
 	#if defined(PLATFORM_PC)
 	fileName += ".pcb";
-	#elif defined(PLATFORM_XENON)
-	fileName += ".xeb";
 	#elif defined(PLATFORM_PS3)
 	fileName += ".p3b";
 	#endif

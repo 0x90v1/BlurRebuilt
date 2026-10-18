@@ -612,9 +612,6 @@ void C_View::AddVisibleNode(const I_RenderNode* pNode, const U32 renderPassType,
 		visibleNodeList.m_Nodes.PushBack();
 		C_VisibleNode& node = visibleNodeList.m_Nodes.Back();
 		node.m_pNode = pNode;
-#ifdef PLATFORM_XENON
-		node.m_Predication = predication;
-#endif
 		node.m_VolatileNodeInfo.data = volatileInfo;
 	}
 }

@@ -30,9 +30,7 @@ C_AccumulateStrip::C_AccumulateStrip() : I_Renderer("PhotoAccumulate")
 	memset(m_Jitter, 0, sizeof(m_Jitter));
 	m_Viewport = new C_Viewport;
 	m_PlainSurface = 0;
-	#if defined(BLUR_USE_DX11)
 	m_LockContext = 0;
-	#endif
 	m_CurrentJitter = 0.f;
 }
 
@@ -168,17 +166,6 @@ void C_AccumulateStrip::ResolveRenderTarget(C_RenderTexture2D* tex)
 	if (!tex || !m_Viewport)
 		return;
 
-#ifdef PLATFORM_XENON
-	D3DRECT src = {0, 0, 0, 0};
-	D3DPOINT dest = {0, 0};
-
-	src.x1 = dest.x = m_Viewport->m_X;
-	src.y1 = dest.y = m_Viewport->m_Y;
-	src.x2          = m_Viewport->m_X + m_Viewport->m_W;
-	src.y2          = m_Viewport->m_Y + m_Viewport->m_H;
-	
-	Device()->Resolve(E_Resolve_Colour, &tex->GetTexture(), &src, &dest);
-#endif
 }
 
 void C_AccumulateStrip::ClearTextures()
@@ -260,10 +247,6 @@ void C_AccumulateStrip::AddSample(const C_Texture2D* texture)
 	if (m_SampleCount < 1)
 		return;
 
-#ifdef PLATFORM_XENON
-	if (texture == 0)
-		texture = Device()->GetSwappedFrontBuffer().GetTexture();
-#endif
 #ifdef PLATFORM_PS3
 	if (texture == 0)
 		texture = Device()->GetBackBuffer().GetColourTexture();
@@ -297,7 +280,6 @@ void C_AccumulateStrip::ScreenToStrip(S32 top, S32 height)
 	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
 
 	S32 width  = backBuffer.GetWidth();
-	#if defined(BLUR_USE_DX11)
 	ID3D11Texture2D* source = backBuffer.GetColourSurface()->m_pd3dSurface;
 	ID3D11Texture2D* destination = m_ScreenStrip->GetSurface().m_pd3dSurface;
 	if (!source || !destination) return;
@@ -330,16 +312,6 @@ void C_AccumulateStrip::ScreenToStrip(S32 top, S32 height)
 	}
 	if (resolved) resolved->Release();
 	context->Release();
-	#else
-	RECT src = {0, top, width, top + height};
-
-	Display::Device()->GetD3DDevice()->StretchRect
-	(
-		backBuffer.GetColourSurface()->m_pd3dSurface, &src,
-		m_ScreenStrip->GetSurface().m_pd3dSurface, 0,
-		D3DTEXF_NONE
-	);
-	#endif
 #endif
 }
 
@@ -446,7 +418,6 @@ bool C_AccumulateStrip::LockBitmap(unsigned char*& retBits, S32& retPitch, S32& 
 	retHeight = texture->GetHeight(0);
 
 #ifdef PLATFORM_PC
-	#if defined(BLUR_USE_DX11)
 	ID3D11Texture2D* source = texture->GetGPUTexture2D();
 	if (!source) return false;
 	D3D11_TEXTURE2D_DESC desc = {};
@@ -475,33 +446,6 @@ bool C_AccumulateStrip::LockBitmap(unsigned char*& retBits, S32& retPitch, S32& 
 	retBits = static_cast<unsigned char*>(mapped.pData);
 	retPitch = mapped.RowPitch;
 	retFormat = D3DFMT_A8R8G8B8;
-	#else
-	Device()->GetD3DDevice()->CreateOffscreenPlainSurface(retWidth, retHeight, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &m_PlainSurface, 0);
-	if (!m_PlainSurface)
-		return false;
-
-	Display2::GPUTexture2D *gpuTexture = texture->GetGPUTexture2D();
-	if (!gpuTexture)
-		return false;
-
-	IDirect3DSurface9* surface = 0;
-	gpuTexture->GetSurfaceLevel(0, &surface);
-	if (surface)
-	{
-		Device()->GetD3DDevice()->GetRenderTargetData(surface, m_PlainSurface);
-		surface->Release();
-		surface = 0;
-	}
-	gpuTexture->Release();
-	gpuTexture = 0;
-
-	// Return locked information:
-	D3DLOCKED_RECT rect;
-	m_PlainSurface->LockRect(&rect, 0, 0);
-	retBits = (unsigned char*)rect.pBits;
-	retPitch = rect.Pitch;
-	retFormat = D3DFMT_A8R8G8B8;
-	#endif
 
 #else
 	Display::C_LockedRect rect = texture->Lock(0);
@@ -510,9 +454,6 @@ bool C_AccumulateStrip::LockBitmap(unsigned char*& retBits, S32& retPitch, S32& 
 	retFormat = 0;
 #endif
 
-#ifdef PLATFORM_XENON
-	retFormat = D3DFMT_A8R8G8B8;
-#endif
 
 	return true;
 }
@@ -520,7 +461,6 @@ bool C_AccumulateStrip::LockBitmap(unsigned char*& retBits, S32& retPitch, S32& 
 void C_AccumulateStrip::UnlockBitmap()
 {
 #ifdef PLATFORM_PC
-	#if defined(BLUR_USE_DX11)
 	if (m_PlainSurface && m_LockContext)
 	{
 		m_LockContext->Unmap(m_PlainSurface, 0);
@@ -536,29 +476,6 @@ void C_AccumulateStrip::UnlockBitmap()
 		m_LockContext = 0;
 		m_PlainSurface = 0;
 	}
-	#else
-	if (m_PlainSurface)
-	{
-		m_PlainSurface->UnlockRect();
-		
-		IDirect3DSurface9 *surface = 0;
-		Display::C_Texture2D* texture = GetTexture();
-		if (texture)
-			texture->GetGPUTexture2D()->GetSurfaceLevel(0, &surface);
-		
-		if (surface)
-		{
-			Display::Device()->GetD3DDevice()->UpdateSurface
-			(
-				m_PlainSurface, 0,
-				surface, 0
-			);
-		}
-		
-		m_PlainSurface->Release();
-	}
-	m_PlainSurface = 0;
-	#endif
 #else
 	Display::C_Texture2D* texture = GetTexture();
 	if (texture)

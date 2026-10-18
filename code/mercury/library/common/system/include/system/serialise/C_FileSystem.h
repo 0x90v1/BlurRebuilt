@@ -6,7 +6,7 @@
 #include <Core/Utility/Singleton.h>
 #include <System/Serialise.h>
 
-#if defined( PLATFORM_XENON ) || defined( PLATFORM_PS3 )
+#if defined(PLATFORM_PS3)
 #define EMULATE_CURRENT_DIRECTORY
 #endif
 

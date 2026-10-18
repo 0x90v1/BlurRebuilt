@@ -13,10 +13,7 @@
 namespace UI
 {
 
-#if defined PLATFORM_XENON
-	typedef S32						TTitleID;
-	#define MAX_JOB_SIZE			15
-#elif defined PLATFORM_PS3
+#if defined PLATFORM_PS3
 	typedef SceNpCommunicationId	TTitleID;
 	#define MAX_JOB_SIZE			10
 #else

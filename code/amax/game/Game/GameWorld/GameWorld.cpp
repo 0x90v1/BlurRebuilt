@@ -1,7 +1,5 @@
 #include "stdafx.h"
-#if defined(BLUR_USE_DX11)
 #include <system/debug/Blur2PCAutomation.h>
-#endif
 #include <system/time/scopedtimer.h>
 #include <OverlayFs/OverlayFs.h>
 #include <GameFs/GameHelpers.h>
@@ -170,9 +168,6 @@
 
 #include <Display/Device/DeviceMarkers.h>
 
-#if PLATFORM_XENON
-#include <Display/Context/XenonPatchVertexShader.h>
-#endif
 
 #include <system/serialise/I_FileSystem.h>
 
@@ -275,7 +270,7 @@ Debug::Float g_GravityDrawDistance( "Gravity.Debug.Settings.DrawDistance", 50.0f
 Debug::Bool g_DynamicLightEnable("Amax.Lights.Enable", true);
 Debug::Float g_DynamicLightScale("Amax.Lights.Scale", 1.0f, Debug::Range(0.0f, 8.0f));
 Debug::Float g_LightMaskDistance("Amax.Lights.MaskDistance", 256.0f);
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 Debug::Float g_SpotlightScreenSizeStencilThreshold("Amax.Lights.SpotlightScreenSizeStencilThreshold", 0.7f, Debug::Range(0.0f, 1.0f));
 #else
 Debug::Float g_SpotlightScreenSizeStencilThreshold("Amax.Lights.SpotlightScreenSizeStencilThreshold", 8.0f, Debug::Range(0.0f, 1.0f));
@@ -1103,11 +1098,9 @@ bool C_GameWorld::CreateVehicleLightCubeMaps()
 {
 	bool success = true;
 	Display::E_Format lightCubeFormat = Display::E_Format_A8R8G8B8;
-#if defined(BLUR_USE_DX11)
 	// [Blur2PC][HDR] Floating RGBM permits the multiplier to exceed the retail ceiling.
 	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
 		lightCubeFormat = Display::E_Format_A16B16G16R16F;
-#endif
 
 	//Create LightCubemaps
 	U32 flags = Display::E_Format_Linear | Display::E_Usage_Dynamic;
@@ -1199,17 +1192,6 @@ void C_GameWorld::SetNumViews(const S32 numViews )
 		break;
 	case 4:
 		Framework::C_ApplicationBase::GetInstance()->SetViewSetup(Framework::E_ViewSetup_4);
-#ifdef PLATFORM_XENON
-		if(!m_PatchTexture.IsCreated())
-		{
-			const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
-			m_PatchRect.x1 = (U32)((F32)backBuffer.GetWidth() * 0.5f);
-			m_PatchRect.y1 = 0;
-			m_PatchRect.x2 = (U32)((F32)backBuffer.GetWidth() * 0.75f);
-			m_PatchRect.y2 = (U32)((F32)backBuffer.GetHeight() * 0.03f);
-			Display::Device()->CreateTexture2D(m_PatchRect.x2 - m_PatchRect.x1, m_PatchRect.y2 - m_PatchRect.y1, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, &m_PatchTexture);
-		}
-#endif
 		break;
 	}
 
@@ -1373,15 +1355,11 @@ bool C_GameWorld::Create( Actor::C_ActorFactory* pActorFactory, const S32 numVie
 
 	{
 		LOADING_PERF("CreateReducedRender");
-#if defined(BLUR_USE_DX11)
 		// [Blur2PC][HDR] Particles and lens/light flares are composed through
 		// these reduced targets BEFORE the final tone mapper. UNORM storage
 		// clips their exposed radiance, even with an FP16 main scene/output.
 		const bool hdrStorage = Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F;
 		m_pReducedRender = new Render::Reduced::C_Manager(hdrStorage);
-#else
-		m_pReducedRender = new Render::Reduced::C_Manager();
-#endif
 
 		const S32 viewCount = Render::C_ViewManager::Instance().GetViewCount();
 		for (S32 viewNo = 0; viewNo < viewCount; ++viewNo)
@@ -1600,9 +1578,6 @@ bool C_GameWorld::Destroy()
 
 	DestroyTextureHeadlight();
 
-	#ifdef PLATFORM_XENON
-	Display::Device()->DestroyTexture2D(&m_PatchTexture);
-	#endif
 
 	Display::Device()->Destroy( &m_ShockTexture );
 #if PLATFORM_PC
@@ -1615,9 +1590,6 @@ bool C_GameWorld::Destroy()
 	Game::C_PerfStats::Instance().Shutdown();
 #endif
 
-#ifdef PLATFORM_XENON
-	FreePatchedVertexShaders();
-#endif
 
 	//Destroy Vehicle Light Cubemaps
 	for (U32 i = 0; i < m_NumVehicleLightCubeMapTexture; i++)
@@ -1634,11 +1606,6 @@ bool C_GameWorld::Destroy()
 
 	SpecialFX::C_AnimatedMeshSpecialFX::DestroyPostUpdateSystem();
 
-#ifdef PLATFORM_XENON
-	//Swap back to dvd layer 0
-	LogicalFs::C_OverlayFs* pOverlayFs = LogicalFs::GameHelpers::GetGameFs();
-	pOverlayFs->SetPreferredMediaLayer(LogicalFs::E_MediaLayer_0);
-#endif
 
 	return true;
 }
@@ -1977,11 +1944,9 @@ void C_GameWorld::BeginFrame()
 		{
 			const Display::C_Texture2D* pPrepassDepth = m_pViewManager->m_pLightingPrepass->GetDepthTexture(pApp->GetSplitscreenView(viewIndex).m_ViewIndex);
 			Display::Device()->GetWindow(viewIndex)->m_pDepthTexture = g_MainPrepassEnable ? pPrepassDepth : &m_WindowDepthTexture;
-			#if defined(BLUR_USE_DX11)
 			static int dx11DepthLogCount = 0;
 			if (dx11DepthLogCount++ < 12)
 				Blur2PCAutomation::LogF("DX11 BeginFrame depth view=%d prepass=%d pPrepass=%p selected=%p", viewIndex, (int)g_MainPrepassEnable, pPrepassDepth, Display::Device()->GetWindow(viewIndex)->m_pDepthTexture);
-			#endif
 		}
 	}
 #endif
@@ -2237,19 +2202,6 @@ void C_GameWorld::EndRenderSplitscreenWithoutAA()
 		Display::Device()->SetDepthStencilSurface(m_pViewManager->m_pLightingPrepass->GetDepthStencilSurface(1));
 #endif
 
-#ifdef PLATFORM_XENON
-	const S32 viewIndex = Framework::C_ApplicationBase::GetInstance()->GetCurrentSplitscreenView();
-	const S32 viewCount = Framework::C_ApplicationBase::GetInstance()->GetSplitscreenViewCount();
-	
-	if(viewIndex == 1 && viewCount == 4)
-		Display::Device()->Resolve(D3DRESOLVE_FRAGMENT0, &m_PatchTexture, &m_PatchRect, NULL);
-
-	if(viewIndex == 0 && viewCount == 4)
-	{
-		Display::Device()->SetViewport(Framework::C_ApplicationBase::GetInstance()->GetFullscreenView().m_View.GetViewport());
-		Display::Quad::DrawPartScreen(0.0f, 0.94f, 0.5f, 1.00f, &m_PatchTexture);
-	}
-#endif
 }
 
 void C_GameWorld::RenderFullscreen()
@@ -2757,9 +2709,6 @@ bool C_GameWorld::LevelSceneManagerUpdate()
 	float levelSceneManagerUpdateTimerDuration = levelSceneManagerUpdateTimer.Stop();
 	AmaxPerfLogging::AccumulateDuration(AmaxPerfLogging::kLevelSceneUpdate, levelSceneManagerUpdateTimerDuration);
 
-#if PLATFORM_XENON
-	Perf::AddNamedCounter((float) levelSceneManagerUpdateTimerDuration, "LevelSceneManagerUpdate");
-#endif
 
 	return result;
 }
@@ -2818,25 +2767,6 @@ void C_GameWorld::GlobalUpdate()
 			Resource::C_Manager::GetInstance()->PauseLoadingThread();
 #endif
 
-#ifdef PLATFORM_XENON
-			//Don't remount paks during initial boot, as we're already on the correct dvd layer.
-			if (loadState != Game::E_LoadState_IntoUI && !m_paksSwitched)
-			{
-				LogicalFs::E_MediaLayer levelStreamMediaLayerId; 
-				{
-					const Sys::C_FilePath levelFilename = C_Game::GetInstance()->GetLevelState().m_LevelFilename;
-					Sys::C_FilePath levelStreamFile = Sys::ReplaceFileExtension(levelFilename, "levelstream");
-					//Set overlay filesystem to favour files duplicated onto the same media layer as the level.
-					LogicalFs::C_OverlayFs* pOverlayFs = LogicalFs::GameHelpers::GetGameFs();
-					BIZ_ASSERT(pOverlayFs == Sys::GetDefaultFileSystem());
-					levelStreamMediaLayerId = pOverlayFs->GetMediaLayer(levelStreamFile);
-				}
-				LogicalFs::GameHelpers::GetGameFs()->SetPreferredMediaLayer(levelStreamMediaLayerId);
-				//Remount paks duplicated across layers.
-				LogicalFs::C_PakFsManager::Instance().ReopenStreamingPaks();
-				m_paksSwitched = true;
-			}
-#endif
 
 			C_Game::GetInstance()->GetSubscriberSystem().BroadcastMessage( Game::E_GameflowMessage_StreamerStarted );
 			m_streamerStartedLoading = true;
@@ -2919,7 +2849,7 @@ void C_GameWorld::GlobalUpdate()
 #ifndef CFG_SPEED
 	if (g_debugRecreateHeadlightTexture)
 	{
-		#if PLATFORM_XENON || PLATFORM_PS3
+		#if PLATFORM_PS3
 		Display::Device()->BlockUntilIdle();
 		#endif
 		DestroyTextureHeadlight();
@@ -2948,21 +2878,6 @@ void C_GameWorld::Resize()
 {
 	C_GameWorldPostProcess::Resize();
 
-#ifdef PLATFORM_XENON
-	if(m_PatchTexture.IsCreated())
-		Display::Device()->DestroyTexture2D(&m_PatchTexture);
-
-	if(Framework::C_ApplicationBase::GetInstance()->GetSplitscreenViewCount() == 4)
-	{
-		const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
-
-		m_PatchRect.x1 = (U32)((F32)backBuffer.GetWidth() * 0.5f);
-		m_PatchRect.y1 = 0;
-		m_PatchRect.x2 = (U32)((F32)backBuffer.GetWidth() * 0.75f);
-		m_PatchRect.y2 = (U32)((F32)backBuffer.GetHeight() * 0.03f);
-		Display::Device()->CreateTexture2D(m_PatchRect.x2 - m_PatchRect.x1, m_PatchRect.y2 - m_PatchRect.y1, 1, Display::E_Usage_Colour, Display::E_Format_A8R8G8B8, &m_PatchTexture);
-	}
-#endif
 
 	if(m_pLightingPrepass)
 		m_pLightingPrepass->Resize();
@@ -3328,10 +3243,8 @@ void C_GameWorld::BeginCarEffectTasks()
 					BIZ_ASSERT(lockedRect.GetBits());
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_MemoryLocked[5] = lockedRect.GetBits();
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_Pitch = lockedRect.GetPitch();
-#if defined(BLUR_USE_DX11)
 					// [Blur2PC][HDR] Carry the actual texture format into the worker's row packing.
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_FloatRGBM = pLightCubeMap->GetFormat() == Display2::E_TextureFormat_A16B16G16R16F;
-#endif
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_pTextureCube = pLightCubeMap;
 
 					carUpdateLightCubeMapTaskInit.m_LightCubeMapInfo[lightCubeMapIndex].m_Position = pVehicleActor->GetMatrix().AW();

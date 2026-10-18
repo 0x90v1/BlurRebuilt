@@ -12,13 +12,7 @@
 #include <System/Debug/Debug.h>
 
 
-#if defined (PLATFORM_XENON)
-// XBOX360 system header files
-#include <stdio.h>
-#include <stdlib.h>
-
-
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 // PS3 system header files
 #include <stdio.h>
 #include <stdlib.h>

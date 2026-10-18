@@ -14,9 +14,6 @@
 namespace SceneGraph
 {
 
-#ifdef PLATFORM_XENON
-extern Debug::Bool g_UsePredication;
-#endif
 
 #ifndef PLATFORM_SPU
 extern Debug::Bool g_UseLightCulling;
@@ -185,16 +182,6 @@ void ModelInstanceFlatListGather(Scheduler::Task* pTask)
 							screenSizef = screenSize;
 						}
 
-					#ifdef PLATFORM_XENON
-						if(pViewData->pTileSetup && g_UsePredication && (pCullNode->GetVolatileInfoFlags() & E_VolatileNodeInfo_Predication))
-						{
-							U32 predication = pViewFrustum->CalculateSpherePredication3(centreW, radius);
-							assert(predication < 256);
-							result.predication = predication;
-						}
-						else
-							result.predication = 0;
-					#endif
 
 						if((pCullNode->GetVolatileInfoFlags() & E_VolatileNodeInfo_Distance) || pViewData->distanceSubtechniqueEnable)
 						{

@@ -5,9 +5,6 @@
 #include "NetMatchingParameters.h"
 #include "../Router/NetRouterDefines.h"
 
-#if defined ( PLATFORM_XENON )
-#include "Xlast/Amax.spa.h"
-#endif
 
 #ifdef PLATFORM_PS3
 #include <bdCore/bdContainers/bdBitBuffer.h>
@@ -24,34 +21,7 @@ namespace RacerNet
 		NetPlay::SessionParameter tempParam;
 		output.Clear();
 
-#if defined ( PLATFORM_XENON )
-		tempParam.CreateContext(X_CONTEXT_GAME_TYPE, X_CONTEXT_GAME_TYPE_STANDARD);
-		output.PushBack(tempParam);
-		tempParam.CreateContext(X_CONTEXT_GAME_MODE, CONTEXT_GAME_MODE_SINGLEPLAYER);
-		output.PushBack(tempParam);
-
-		tempParam.CreatePropertyS64(PROPERTY_MM_GROUP_ID, 0);
-		output.PushBack(tempParam);	
-		tempParam.CreatePropertyS32(PROPERTY_MM_GROUP_USER_CREATED, 0);
-		output.PushBack(tempParam);
-		tempParam.CreatePropertyS32(PROPERTY_MM_SLOTS, 0);
-		output.PushBack(tempParam);
-		tempParam.CreatePropertyS32(PROPERTY_MM_SEARCHABLE, 0);
-		output.PushBack(tempParam);
-		tempParam.CreatePropertyS32(PROPERTY_MM_RANK_RESTRICTION, 0);
-		output.PushBack(tempParam);	
-		tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_MODE, 0);
-		output.PushBack(tempParam);	
-		tempParam.CreatePropertyS32(PROPERTY_MM_NAT, 3);
-		output.PushBack(tempParam);	
-		tempParam.CreatePropertyS32(PROPERTY_MM_PACK_VERSION, 0);
-		output.PushBack(tempParam);	
-		tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_REGION, 0);
-		output.PushBack(tempParam);	
-		tempParam.CreatePropertyS32(PROPERTY_MM_INRACE, 0);
-		output.PushBack(tempParam);	
-
-#elif defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
+#if defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
 		// first demonware property should be the system game type context, Amax doesnt use this in its queries so we set it to default.
 		tempParam.CreateContext(0, 0);
 		output.PushBack(tempParam);
@@ -89,32 +59,7 @@ namespace RacerNet
 		// race session
 		if (modify) 
 		{
-#if defined ( PLATFORM_XENON )
-			tempParam.CreateContext(X_CONTEXT_GAME_MODE, raceSession ? CONTEXT_GAME_MODE_CUSTOMRACE : CONTEXT_GAME_MODE_PARTY);
-			output.PushBack(tempParam);
-
-			tempParam.CreatePropertyS64(PROPERTY_MM_GROUP_ID, input.m_EventId);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_GROUP_USER_CREATED, input.m_CustomRace);
-			output.PushBack(tempParam);
-			tempParam.CreatePropertyS32(PROPERTY_MM_SLOTS, input.m_OpenSlotCount);
-			output.PushBack(tempParam);
-			tempParam.CreatePropertyS32(PROPERTY_MM_SEARCHABLE, input.m_Searchable);
-			output.PushBack(tempParam);
-			tempParam.CreatePropertyS32(PROPERTY_MM_RANK_RESTRICTION, input.m_RankRestriction);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_MODE, input.m_MatchingMode);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_NAT, input.m_Nat);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_PACK_VERSION, input.m_PackVersion);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_REGION, input.m_MatchingRegion);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_INRACE, input.m_InRace);
-			output.PushBack(tempParam);			
-
-#elif defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC ) 
+#if defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
 			// first demonware property should be the system game type context, Amax doesnt use this in its queries so we set it to default.
 			tempParam.CreateContext(0, 0);
 			output.PushBack(tempParam);
@@ -145,36 +90,7 @@ namespace RacerNet
 		}
 		else
 		{
-#if defined ( PLATFORM_XENON )
-			// system contexts for a standard game.
-			tempParam.CreateContext(X_CONTEXT_GAME_TYPE, X_CONTEXT_GAME_TYPE_STANDARD);
-			output.PushBack(tempParam);
-			tempParam.CreateContext(X_CONTEXT_GAME_MODE, raceSession ? CONTEXT_GAME_MODE_CUSTOMRACE : CONTEXT_GAME_MODE_PARTY);
-			output.PushBack(tempParam);
-
-			// game defines properties
-			tempParam.CreatePropertyS64(PROPERTY_MM_GROUP_ID, input.m_EventId);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_GROUP_USER_CREATED, input.m_CustomRace);
-			output.PushBack(tempParam);
-			tempParam.CreatePropertyS32(PROPERTY_MM_SLOTS, input.m_OpenSlotCount);
-			output.PushBack(tempParam);
-			tempParam.CreatePropertyS32(PROPERTY_MM_SEARCHABLE, input.m_Searchable);
-			output.PushBack(tempParam);
-			tempParam.CreatePropertyS32(PROPERTY_MM_RANK_RESTRICTION, input.m_RankRestriction);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_MODE, input.m_MatchingMode);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_NAT, input.m_Nat);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_PACK_VERSION, input.m_PackVersion);
-			output.PushBack(tempParam);	
-			tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_REGION, input.m_MatchingRegion);
-			output.PushBack(tempParam);
-			tempParam.CreatePropertyS32(PROPERTY_MM_INRACE, input.m_InRace);
-			output.PushBack(tempParam);
-
-#elif defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC ) 
+#if defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
 			// first demonware property should be the system game type context, Amax doesnt use this in its queries so we set it to default.
 			tempParam.CreateContext(0, 0);
 			output.PushBack(tempParam);
@@ -230,61 +146,7 @@ namespace RacerNet
 		NetPlay::SessionParameter tempParam;
 		output.Clear();
 
-#if defined ( PLATFORM_XENON )
-		// system contexts for a standard game.
-		tempParam.CreateContext(X_CONTEXT_GAME_TYPE, X_CONTEXT_GAME_TYPE_STANDARD);
-		output.PushBack(tempParam);
-		tempParam.CreateContext(X_CONTEXT_GAME_MODE, CONTEXT_GAME_MODE_CUSTOMRACE);
-		output.PushBack(tempParam);
-
-		// game defines properties
-		if (input.m_EventId > -1)
-		{
-			tempParam.CreatePropertyS64(PROPERTY_MM_GROUP_ID, input.m_EventId);
-			output.PushBack(tempParam);	
-		}
-		if (input.m_CustomRace > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_GROUP_USER_CREATED, input.m_CustomRace);
-			output.PushBack(tempParam);
-		}
-		if (input.m_NumToJoin > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_SLOTS, input.m_NumToJoin);
-			output.PushBack(tempParam);
-		}
-		if (input.m_RankRestriction > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_RANK_RESTRICTION, input.m_RankRestriction);
-			output.PushBack(tempParam);	
-		}
-		if (input.m_MatchingMode > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_MODE, input.m_MatchingMode);
-			output.PushBack(tempParam);	
-		}
-		if (input.m_Nat > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_NAT, ConvertNatToMatchingQueryVal(input.m_Nat));
-			output.PushBack(tempParam);	
-		} 
-		if (input.m_PackVersion > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_PACK_VERSION, input.m_PackVersion);
-			output.PushBack(tempParam);	
-		}
-		if (input.m_MatchingRegion > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_MATCHING_REGION, input.m_MatchingRegion);
-			output.PushBack(tempParam);	
-		}
-		if (input.m_LobbyOnly > -1)
-		{
-			tempParam.CreatePropertyS32(PROPERTY_MM_INRACE, !input.m_LobbyOnly);
-			output.PushBack(tempParam);	
-		}
-
-#elif defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC ) 
+#if defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
 		tempParam.CreatePropertyS64(0, input.m_EventId > -1 ? input.m_EventId : BD_INT64_NAN);
 		output.PushBack(tempParam);	
 		tempParam.CreatePropertyS32(1, input.m_CustomRace > -1 ? input.m_CustomRace : BD_INT32_NAN);
@@ -310,11 +172,7 @@ namespace RacerNet
 	{
 		output.Clear();
 
-#if defined ( PLATFORM_XENON )
-		// xbox360 doesn't need to know the specific return types as it returns meta data which we can use to build the 
-		// return types from.
-
-#elif defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
+#if defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
 		output.PushBack(NetPlay::SessionParameter::Int64);	//mm_group_id	
 		output.PushBack(NetPlay::SessionParameter::Int32);	//mm_user_created_group
 		output.PushBack(NetPlay::SessionParameter::Int32);	//mm_open_slots
@@ -331,10 +189,7 @@ namespace RacerNet
 
 	U32 MatchingQueryId(void)
 	{
-#if defined ( PLATFORM_XENON )
-		return SESSION_MATCH_QUERY_DEFAULT;
-
-#elif defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
+#if defined ( PLATFORM_PS3 ) || defined ( PLATFORM_PC )
 		// demonware query id to use. defined in web imp
 		return 1;
 #endif

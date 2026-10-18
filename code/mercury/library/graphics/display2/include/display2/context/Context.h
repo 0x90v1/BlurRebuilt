@@ -9,8 +9,6 @@
 
 #if DEVICE_D3D11
 #include "Display2/Context/D3D11Context.h" // [Blur1PCDX11] Native context declarations.
-#elif DEVICE_D3D9
-#include "Display2/Context/D3D9Context.h"
 #elif DEVICE_GCM
 #include "Display2/Context/GCMContext.h"
 #endif
@@ -272,7 +270,7 @@ U32 GetTexture3DLevelOffset(const U32 level, U32 width, U32 height, U32 depth, c
 //! Gets the texture cube level offset
 U32 GetTextureCubeLevelOffset(const E_CubeMapFace face, const U32 level, U32 width, const U32 levels, const U32 flags, const E_TextureFormat format);
 
-#if PLATFORM_XENON || PLATFORM_PS3
+#if PLATFORM_PS3
 
 U32 SetTexture2DHeader(const U32 width, const U32 height, const U32 levels, const U32 flags, const E_TextureFormat format, const U32 pitch, GPUTexture2D* pTexture);
 

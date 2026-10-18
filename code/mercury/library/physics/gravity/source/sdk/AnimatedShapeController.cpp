@@ -49,7 +49,7 @@ namespace Gravity
 
 	Collision::C_CompositeShape* C_AnimatedShapeController::GetCompositeShape()
 	{
-		return (Collision::C_CompositeShape*)Spu::Get((U32*)&m_pBody->m_pShape);
+		return (Collision::C_CompositeShape*)Spu::Get((INTPTR*)&m_pBody->m_pShape);	// [Blur2PC][x64] pointer-wide
 	}
 
 	bool C_AnimatedShapeController::operator < (const C_AnimatedShapeController& controller)

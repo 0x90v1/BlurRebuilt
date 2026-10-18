@@ -3,11 +3,7 @@
 
 #if !defined(CFG_CONVERTER)
 
-#ifdef PLATFORM_XENON
-#define HDR
-#else
 #define HDRU32
-#endif
 
 // constants
 shared real4		g_vLuminance		: register(CCP_HDR_LUMINANCE) = real4(1, 1, 1, 0);

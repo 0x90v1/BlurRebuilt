@@ -135,7 +135,7 @@ namespace AmaxCam
 	{
 		if (paramID == SpecialFX::E_ParamID_SetCameraViewport)
 		{
-			m_Output.m_ViewportID = (S32) pData;
+			m_Output.m_ViewportID = (S32)(INTPTR) pData;	// [Blur2PC][x64] viewport id carried in the pointer
 		}
 	}
 

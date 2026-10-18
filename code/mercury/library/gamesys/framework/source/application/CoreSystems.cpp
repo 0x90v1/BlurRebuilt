@@ -57,9 +57,7 @@ namespace Framework
 C_CoreSystemsParams::C_CoreSystemsParams()
 {
 	m_Name							= "TestApp";
-#if defined(PLATFORM_XENON)
-	m_WorkingDir					= "GAME:";
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	unsigned int type;
 	unsigned int attrib;
 	CellGameContentSize size;
@@ -293,21 +291,8 @@ HRESULT C_CoreSystems::StartupArtery(const C_CoreSystemsParams& params)
 	}
 	#endif
 
-	#ifdef PLATFORM_XENON
-	XNetStartupParams xnsp;
-	ZeroMemory(&xnsp, sizeof(xnsp));
-	xnsp.cfgSizeOfStruct = sizeof(xnsp);
-	xnsp.cfgFlags = XNET_STARTUP_BYPASS_SECURITY; 
-	xnsp.cfgQosDataLimitDiv4 = 512/4;
-	xnsp.cfgSecRegMax  = 64;
-	if((hr = XNetStartup(&xnsp)) != 0)
-	{
-		LOGERROR(g_Log, "Failed calling XNetStartup with error code %i\n", hr);
-		return E_FAIL;
-	}
-	#endif
 	
-	#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+	#if defined(PLATFORM_PC)
 	WSADATA wsaData;
 	if((hr = WSAStartup(WINSOCK_VERSION, &wsaData)) != 0)
 	{
@@ -362,7 +347,7 @@ void C_CoreSystems::ShutdownArtery()
 	cellSysmoduleUnloadModule(CELL_SYSMODULE_NET);
 	#endif
 
-	#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+	#if defined(PLATFORM_PC)
 	WSACleanup();
 	#endif
 #endif

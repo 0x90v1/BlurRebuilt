@@ -4,8 +4,6 @@
 
 #if defined( PLATFORM_PC )
 #include <windows.h>
-#elif defined( PLATFORM_XENON )
-#include <xtl.h>
 #elif defined( PLATFORM_PS3 )
 #include <sys/memory.h>
 #else
@@ -22,11 +20,6 @@ namespace Memory
 void *AllocVirtual(U64 cSize)
 {
 	DWORD allocationFlags = MEM_RESERVE;
-#if defined( PLATFORM_XENON )
-	allocationFlags |= MEM_NOZERO;
-    if ( cSize >= 64 * 1024 )
-        allocationFlags |= MEM_LARGE_PAGES;
-#endif
 	return ::VirtualAlloc(0, (SIZE_T)cSize, allocationFlags, PAGE_READWRITE);
 }
 
@@ -40,11 +33,6 @@ void FreeVirtual(void *pAddress)
 void* AllocPhysical(void *pAddress, U64 cSize)
 {
     DWORD allocationFlags = MEM_COMMIT;
-#if defined( PLATFORM_XENON )
-	allocationFlags |= MEM_NOZERO;
-    if ( cSize >= 64 * 1024 )
-        allocationFlags |= MEM_LARGE_PAGES;
-#endif
 
 	return ::VirtualAlloc( pAddress, (SIZE_T)cSize, allocationFlags, PAGE_READWRITE ); // (PT) Use 64KB pages here?  Variable sized pages?
 }
@@ -59,15 +47,11 @@ void FreePhysical(void *pAddress)
 /// Returns true if the given memory address is valid for read access
 bool AddressReadAccess(void *pAddress)
 {
-#if defined( PLATFORM_XENON )
-	return true;
-#else
 	// WARNING: IsBadReadPtr is an incredibly dangerous function to call, it can cause
 	// very subtle bugs which can be very difficult to track down.  Do not use it!  If
 	// you feel you need to use it come speak with Stephen Cakebread and I'll explain why
 	// you really don't want to use it.
 	return true;//!IsBadReadPtr(pAddress, 4);
-#endif
 }
 
 #elif defined( PLATFORM_PS3 )

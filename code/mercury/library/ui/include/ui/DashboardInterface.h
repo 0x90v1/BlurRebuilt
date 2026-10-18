@@ -23,17 +23,10 @@ public:
 	C_DashboardInterface() 
 		: mInitialised( false )
 	{
-#ifdef PLATFORM_XENON
-		m_pDemoData = NULL;
-		m_LaunchDataSize = 0;
-#endif
 	}
 
 	~C_DashboardInterface()
 	{
-#ifdef PLATFORM_XENON
-	  SAFE_DELETE_PTR( m_pDemoData );
-#endif
 	}
 
 public:
@@ -53,11 +46,6 @@ public:
 
 	void		Update();
 
-#if defined(PLATFORM_XENON)
-	bool		LaunchedAsDemo() const;
-	void		ReturnToDemoLauncher() const;
-	U64			GetDemoTimeout() const;
-#endif // PLATFORM_XENON
 
 #ifdef PLATFORM_PS3
 	void		SetKeyboardFinished()		{ mKeyboardFinished = true; }
@@ -76,12 +64,8 @@ private:
 	S32					mUserIndex;
 	WCHAR				mResultText[mResultTextLength];
 	bool				mKeyboardActive;
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	XOVERLAPPED			mOverlapped;
-#endif
-#if defined(PLATFORM_XENON)
-	LD_DEMO*			m_pDemoData;
-	DWORD				m_LaunchDataSize;
 #endif
 
 #ifdef PLATFORM_PS3

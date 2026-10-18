@@ -719,21 +719,10 @@ static S32 FriendDemand_GetParamUsage( lua_State* pState )
 
 static S32 FriendDemand_ShowFriendGamerCard(lua_State* pState)
 {
-#if defined ( PLATFORM_XENON )
-	if (lua_isnumber(pState, 1))
-	{
-		int friend_index=lua_tonumber(pState,1);
-		XShowGamerCardUI(SysProfile::C_Manager::Instance().GetPrimaryPadNo(), C_FriendsManager::Instance().GetFriendProfileFromID(friend_index)->m_Uid);
-	}
-#endif
 	return 0;
 }
 
-#if defined ( PLATFORM_XENON )
-	XUID gFriendDemandXuids[MAX_FRIEND_DEMAND_FRIENDS];
-	XMSG_CUSTOMACTION gFriendDemandCustomAction[2];
-	XOVERLAPPED gFriendDemandOverlapped;
-#elif defined ( PLATFORM_PS3 )
+#if defined ( PLATFORM_PS3 )
 	SceNpId gFriendDemandNpIds[MAX_FRIEND_DEMAND_FRIENDS];
 #endif
 
@@ -741,86 +730,7 @@ static S32 FriendDemand_SendSystemMessage(lua_State* pState)
 {
 	static UI::C_TextStringID title_id( "FDE_FRIEND_DEMAND" );
 
-#if defined ( PLATFORM_XENON )
-	static UI::C_TextStringID message_id( "FDE_SENT_A_FRIEND_DEMAND_MESSAGE" );
-	static UI::C_TextStringID close_id( "FDE_CLOSE_MESSAGE" );
-	static UI::C_TextStringID attempt_id( "FDE_ATTEMPT_MESSAGE" );
-
-	int num_friends=0;
-	for(int a=0;a<MAX_FRIEND_DEMAND_FRIENDS;a++)
-	{
-		int friend_index=Game::C_FriendChallenges::Instance().GetFriendSlot(a);
-
-		if(friend_index != -1)
-		{
-			gFriendDemandXuids[a]=C_FriendsManager::Instance().GetFriendProfileFromID(friend_index)->m_Uid;
-			num_friends++;
-		}
-	}
-
-    ZeroMemory( &gFriendDemandOverlapped, sizeof( XOVERLAPPED ) );
-	ZeroMemory( &gFriendDemandCustomAction, sizeof( XMSG_CUSTOMACTION ) * 2 );
-
-	gFriendDemandCustomAction[0].dwActionId=1;
-	wcscpy(gFriendDemandCustomAction[0].wszEnActionText, attempt_id.String());
-	gFriendDemandCustomAction[0].dwFlags=XCUSTOMACTION_FLAG_CLOSES_GUIDE | XCUSTOMACTION_FLAG_DELETES_MESSAGE;
-	gFriendDemandCustomAction[0].rgTranslations[0].dwLanguageId=XC_LANGUAGE_GERMAN;
-	wcscpy(gFriendDemandCustomAction[0].rgTranslations[0].wszActionText, UI::C_TextStringID( "FDE_ATTEMPT_MESSAGE_GE" ).String());
-	gFriendDemandCustomAction[0].rgTranslations[1].dwLanguageId=XC_LANGUAGE_FRENCH;
-	wcscpy(gFriendDemandCustomAction[0].rgTranslations[1].wszActionText, UI::C_TextStringID( "FDE_ATTEMPT_MESSAGE_FR" ).String());
-	gFriendDemandCustomAction[0].rgTranslations[2].dwLanguageId=XC_LANGUAGE_ITALIAN;
-	wcscpy(gFriendDemandCustomAction[0].rgTranslations[2].wszActionText, UI::C_TextStringID( "FDE_ATTEMPT_MESSAGE_IT" ).String());
-	gFriendDemandCustomAction[0].rgTranslations[3].dwLanguageId=XC_LANGUAGE_SPANISH;
-	wcscpy(gFriendDemandCustomAction[0].rgTranslations[3].wszActionText, UI::C_TextStringID( "FDE_ATTEMPT_MESSAGE_SP" ).String());
-	gFriendDemandCustomAction[0].rgTranslations[4].dwLanguageId=XC_LANGUAGE_POLISH;
-	wcscpy(gFriendDemandCustomAction[0].rgTranslations[4].wszActionText, UI::C_TextStringID( "FDE_ATTEMPT_MESSAGE_PO" ).String());
-	gFriendDemandCustomAction[0].rgTranslations[5].dwLanguageId=XC_LANGUAGE_RUSSIAN;
-	wcscpy(gFriendDemandCustomAction[0].rgTranslations[5].wszActionText, UI::C_TextStringID( "FDE_ATTEMPT_MESSAGE_RU" ).String());
-	gFriendDemandCustomAction[0].rgTranslations[6].dwLanguageId=XC_LANGUAGE_JAPANESE;
-	wcscpy(gFriendDemandCustomAction[0].rgTranslations[6].wszActionText, UI::C_TextStringID( "FDE_ATTEMPT_MESSAGE_JP" ).String());
-
-	gFriendDemandCustomAction[1].dwActionId=2;
-	wcscpy(gFriendDemandCustomAction[1].wszEnActionText, close_id.String());
-	gFriendDemandCustomAction[1].dwFlags=XCUSTOMACTION_FLAG_CLOSES_GUIDE;
-	gFriendDemandCustomAction[1].rgTranslations[0].dwLanguageId=XC_LANGUAGE_GERMAN;
-	wcscpy(gFriendDemandCustomAction[1].rgTranslations[0].wszActionText, UI::C_TextStringID( "FDE_CLOSE_MESSAGE_GE" ).String());
-	gFriendDemandCustomAction[1].rgTranslations[1].dwLanguageId=XC_LANGUAGE_FRENCH;
-	wcscpy(gFriendDemandCustomAction[1].rgTranslations[1].wszActionText, UI::C_TextStringID( "FDE_CLOSE_MESSAGE_FR" ).String());
-	gFriendDemandCustomAction[1].rgTranslations[2].dwLanguageId=XC_LANGUAGE_ITALIAN;
-	wcscpy(gFriendDemandCustomAction[1].rgTranslations[2].wszActionText, UI::C_TextStringID( "FDE_CLOSE_MESSAGE_IT" ).String());
-	gFriendDemandCustomAction[1].rgTranslations[3].dwLanguageId=XC_LANGUAGE_SPANISH;
-	wcscpy(gFriendDemandCustomAction[1].rgTranslations[3].wszActionText, UI::C_TextStringID( "FDE_CLOSE_MESSAGE_SP" ).String());
-	gFriendDemandCustomAction[1].rgTranslations[4].dwLanguageId=XC_LANGUAGE_POLISH;
-	wcscpy(gFriendDemandCustomAction[1].rgTranslations[4].wszActionText, UI::C_TextStringID( "FDE_CLOSE_MESSAGE_PO" ).String());
-	gFriendDemandCustomAction[1].rgTranslations[5].dwLanguageId=XC_LANGUAGE_RUSSIAN;
-	wcscpy(gFriendDemandCustomAction[1].rgTranslations[5].wszActionText, UI::C_TextStringID( "FDE_CLOSE_MESSAGE_RU" ).String());
-	gFriendDemandCustomAction[1].rgTranslations[6].dwLanguageId=XC_LANGUAGE_JAPANESE;
-	wcscpy(gFriendDemandCustomAction[1].rgTranslations[6].wszActionText, UI::C_TextStringID( "FDE_CLOSE_MESSAGE_JP" ).String());
-
-	DWORD dwErr=XShowCustomMessageComposeUI(
-			 SysProfile::C_Manager::Instance().GetPrimaryPadNo(),
-			 gFriendDemandXuids,
-			 num_friends,
-			 XMSG_FLAG_DISABLE_EDIT_RECIPIENTS,
-			 title_id.String(),
-			 message_id.String(),
-			 C_FriendChallenges::Instance().GetFriendDemandDescription(),
-			 NULL,
-			 0,
-			 gFriendDemandCustomAction,
-			 2,
-			 &C_FriendChallenges::Instance().GetFriendDemand(-1)->mKey[0],
-			 sizeof(BYTE) * Game::MAX_FRIEND_DEMAND_KEY,
-			 60*24*7,
-			 &gFriendDemandOverlapped);
-
-	Game::C_Sticker* pSticker = Game::C_StickerManager::Instance().GetSticker(Game::BLUR_STICKER_SHARE_FIRST_EXPERIENCE);
-	if(pSticker)
-	{
-		pSticker->AddProgress(1);
-	}
-
-#elif defined ( PLATFORM_PS3_GOFISH )
+#if defined ( PLATFORM_PS3_GOFISH )
 
 	SceNpBasicMessageDetails msg;
 	int ret;
@@ -1037,21 +947,13 @@ static S32 FriendDemand_QuitAttempt( lua_State* pState )
 
 static S32 FriendDemand_CheckingName( lua_State* pState )
 {
-#if defined ( PLATFORM_XENON )
-	lua_pushboolean( pState, Game::C_FriendChallenges::Instance().CheckingName() | Game::C_FriendChallenges::Instance().InvalidName() );
-#else
 	lua_pushboolean( pState, false );
-#endif
 	return 1;
 }
 
 static S32 FriendDemand_CheckingDesc( lua_State* pState )
 {
-#if defined ( PLATFORM_XENON )
-	lua_pushboolean( pState, Game::C_FriendChallenges::Instance().CheckingDesc() | Game::C_FriendChallenges::Instance().InvalidDesc() );
-#else
 	lua_pushboolean( pState, false );
-#endif
 	return 1;
 }
 

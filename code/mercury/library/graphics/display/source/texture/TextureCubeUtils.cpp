@@ -12,23 +12,9 @@
 namespace Display
 {
 
-#if PLATFORM_XENON
-
-bool UploadTextureCube_Tiled(C_TextureCube* pTexture, C_TextureParams* pTextureParams)
-{
-	BIZ_ASSERT_FAIL("TODO: Implement me!");
-
-	return false;
-}
-
-#endif
 
 bool UploadTextureCube(C_TextureCube* pTexture, C_TextureParams* pTextureParams)
 {
-#if PLATFORM_XENON
-	if(!(pTextureParams->m_Flags & E_Format_Linear))
-		return UploadTextureCube_Tiled(pTexture, pTextureParams);
-#endif
 
 	BIZ_ASSERT(pTexture);
 
@@ -65,14 +51,7 @@ bool UploadTextureCube(C_TextureCube* pTexture, C_TextureParams* pTextureParams)
 
 			BIZ_ASSERT(pData+size <= pTextureParams->m_pMipData+pTextureParams->m_MipSize);
 			
-#if PLATFORM_XENON
-			D3DFORMAT d3dFormat = D3D9Format(pTextureParams->m_Format, pTextureParams->m_Flags);
-			if(pTextureParams->m_Flags & E_Format_SRGB)
-				d3dFormat = (D3DFORMAT)MAKESRGBFMT(d3dFormat);
-			XGEndianSwapVolume(lockedRect.GetBits(), lockedRect.GetPitch(), 0, pData, pitch, 0, width, width, 1, d3dFormat);
-#else
 			memcpy(lockedRect.GetBits(), pData, size);
-#endif
 
 			pData += size;
 
@@ -90,69 +69,14 @@ bool UploadTextureCube(C_TextureCube* pTexture, C_TextureParams* pTextureParams)
 
 U32 GetTextureCubeSize(const U32 width, const U32 flags, const E_Format format)
 {
-#if PLATFORM_XENON
-	return XGSetCubeTextureHeader(width, 1, 0, D3D9Format(format), 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-#else
 	return Display2::GetTextureCubeSize(width, flags, GetTextureFormatFromFormat(format));
-#endif
 }
 
 U32 GetTextureCubeSize(U32 width, const U32 levels, const U32 flags, const E_Format format)
 {
-#if PLATFORM_XENON
-	return XGSetCubeTextureHeader(width, levels, 0, D3D9Format(format), 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-#else
 	return Display2::GetTextureCubeSize(width, levels, flags, GetTextureFormatFromFormat(format));
-#endif
 }
 
-#if defined(GRAPHICS_D3D9)
-bool D3DXCreateTextureCubeFromFile(const Util::C_String& fileName, C_TextureCube* pTexture)
-{
-#if 1
-	BIZ_ASSERT_FAIL("TODO: Fix me!");
-	return false;
-#else
-	D3D_MEMORY_STAT_TEXTURE_TCUBE
-		
-	assert(pTexture);
-
-	if(pTexture->IsCreated())
-	{
-		LOGERROR(g_Log, "Failed to create the cube texture as its already created %s\n", fileName.Chars());
-		return false;
-	}
-
-	U32 fileSize = 0;
-	U8* pFileData = NULL;
-	if(!GetFileData(fileName.Chars(), fileSize, &pFileData))
-		return false;
-
-	IDirect3DCubeTexture9* pd3dTexture = NULL;
-	const HRESULT hr = D3DXCreateCubeTextureFromFileInMemory(Device()->GetD3DDevice(), pFileData, fileSize, &pd3dTexture);
-
-	SAFE_DELETE_ARY(pFileData);
-	
-	if(FAILED(hr))
-	{
-		LOGERROR(g_Log, "Failed to create the cube texture from from file in memory %s\n", fileName.Chars());
-		return false;
-	}
-
-	pTexture->m_pd3dTexture = pd3dTexture;
-
-	pTexture->SetSize(GetTextureCubeSize(pTexture->GetWidth(), pTexture->GetLevels(), pTexture->GetFormat()));
-	pTexture->SetFlags(E_Usage_Managed);
-	pTexture->SetFileName(fileName);
-	
-	Device()->m_TextureCubes.Insert(pTexture);
-
-	pTexture->Acquire();
-
-	return true;
-#endif
-}
-#endif
 
 bool CreateTextureCubeFromFile(Util::C_String fileName, C_TextureCube* pTexture)
 {

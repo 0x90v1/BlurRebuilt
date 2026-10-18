@@ -64,9 +64,6 @@ namespace airacingtech
 	// CalculateCurvature2 and CalculateCurvature3 are roughly the same functions...
 	float CalculateCurvature2(Maths::HVec3& point1, Maths::HVec3& point2, Maths::HVec3& point3)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CalculateCurvature2(Maths::HVec3 point1, Maths::HVec3 point2, Maths::HVec3 point3)");
-#endif
 
 		float xp = point1.X();
 		float yp = point1.Z();
@@ -1254,9 +1251,6 @@ namespace airacingtech
 
 	Maths::HVec3 B_Spline_Approx_Calc(Maths::HVec3& P1, Maths::HVec3& P2, Maths::HVec3& P3,Maths::HVec3& P4, Maths::HF32	t)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "B_Spline_Approx_Calc()");
-#endif
 		// [Darren] todo optimise into the vector units for xbox...
 
 #if 0
@@ -1288,9 +1282,6 @@ namespace airacingtech
 
 	void B_Spline_Approx(const Btl::Vector<Maths::HVec3 > &pctrlPoints, Btl::Vector<Maths::HVec3 > &samplePoints, float interval, float step)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "B_Spline_Approx()");
-#endif
 
 		// TODO : simple optimise using length squared....
 		const float epsilonSpline = 0.01f;
@@ -1365,9 +1356,6 @@ namespace airacingtech
 
 	void B_Spline_ApproxNonLoopedOpt(const Btl::Vector<Maths::HVec3>  &pctrlPoints, Btl::Vector<Maths::HVec3>  &samplePoints, float interval, float step)
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "B_Spline_ApproxNonLooped()");
-#endif
 
 
 		// TODO : simple optimise using length squared....

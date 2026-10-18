@@ -52,33 +52,6 @@ void  C_DailyChallengeManager::CacheLocalTimeZoneAdjustments()
 	S32 timeZoneAdjustInMins   = 0;
 
 	// For 360... //
-#ifdef PLATFORM_XENON 
-	
-	_TIME_ZONE_INFORMATION timeZoneInfo; 
-	int result = GetTimeZoneInformation( &timeZoneInfo );
-	bool timeZoneInfoOk = ( result != TIME_ZONE_ID_UNKNOWN );
-
-	// Always add on base bias
-	timeZoneAdjustInMins  += timeZoneInfo.Bias;
-
-	if(timeZoneInfoOk)
-	{
-		// Check if any additional bais to add
-		if(result == TIME_ZONE_ID_DAYLIGHT)
-		{
-			timeZoneAdjustInMins  += timeZoneInfo.DaylightBias; // So for PST(GMT-8).. this will be localTimeAdjustment += -8 hours .. i.e. - 8 hours. 
-		}
-		else if(result == TIME_ZONE_ID_STANDARD)
-		{
-			timeZoneAdjustInMins  += timeZoneInfo.StandardBias;
-		}
-	}
-
-	// Currently in minutes so convert to seconds
-	// UTC = localTime + bias.. so localTime = UTC - bias i.e. adjust tells us how to get from Timezone to UTC.. we are going from UTC -> Timezone.. so -ve the timeZoneAdjust
-	mLocalTimeAdjustmentInSecs = (-timeZoneAdjustInMins) * 60; 
-
-#endif  // #ifdef PLATFORM_XENON
 
 	// For ps3 //
 #ifdef PLATFORM_PS3

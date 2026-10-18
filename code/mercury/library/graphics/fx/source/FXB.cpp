@@ -37,8 +37,6 @@ bool ImportFXB(Sys::I_File *pFile, I_Effect *_pFX)
 		if (!strcmp(block.GetBlockHeader().m_Id,
 #ifdef PLATFORM_PC
 			"PCFX"
-#elif PLATFORM_XENON
-			"XEFX"
 #elif PLATFORM_PS3
 			"PS3FX"
 #endif

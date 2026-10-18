@@ -23,10 +23,6 @@ if $(USERNAME) = jdenton
 #    }
 }
 
-if $(TARGET) = XBOX_360
-{
-	SubDirCcFlags "/bigobj" ;
-}
 
 SRC =
 <maths>./source/maths/Constants.cpp
@@ -87,9 +83,6 @@ PS3SRC =
 ./source/threads/WaitForObjects.cpp
 ;
 
-XENONSRC = 
-./source/maths/utmaths/xmvectorwrapper.cpp
-;
 
 SRC += $($(PLATFORM)SRC) ;
 
@@ -99,10 +92,6 @@ SRC = [ Batch $(SRC) : CorePch.h ] ;
 SRC +=
 ./source/allocators/CoreMemoryAligned.cpp
 ;
-if $(PLATFORM) = XENON
-{
-	SRC += ./source/allocators/CoreMemoryPhysical.cpp ;
-}
 
 if $(PLATFORM) = PS3
 {

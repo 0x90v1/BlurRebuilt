@@ -1786,7 +1786,7 @@ namespace Gravity
 					 
 	#endif
 				Spu::Set((U32*)&pSpuExistingConstraint->m_pCollider->m_State, (U32)SharedPhysics::C_Collider::E_Removed);
-				Spu::Set((U32*)&pSpuExistingConstraint->m_pCollider->m_pConstraintEdge, NULL);
+				Spu::Set((INTPTR*)&pSpuExistingConstraint->m_pCollider->m_pConstraintEdge, (INTPTR)0);	// [Blur2PC][x64] pointer-wide
 			}
 		}
 	}
@@ -2077,7 +2077,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
@@ -2102,7 +2102,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
 				//Collision::C_Shape* pMeshShape = (Collision::C_Shape*)Spu::FetchAlloc(pMeshBody->GetShape(), sizeof(Collision::C_Shape));
@@ -2145,7 +2145,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
@@ -2168,7 +2168,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
 				Collision::C_Shape* pMeshShape = (Collision::C_Shape*)Spu::FetchAlloc(pMeshBody->GetShape(), sizeof(Collision::C_Shape));
@@ -2240,7 +2240,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
@@ -2267,7 +2267,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
 				//Collision::C_Shape* pMeshShape = (Collision::C_Shape*)Spu::FetchAlloc(pMeshBody->GetShape(), sizeof(Collision::C_Shape));
@@ -2315,7 +2315,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
@@ -2339,7 +2339,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
 				//Collision::C_Shape* pMeshShape = (Collision::C_Shape*)Spu::FetchAlloc(pMeshBody->GetShape(), sizeof(Collision::C_Shape));
@@ -2407,7 +2407,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
@@ -2430,7 +2430,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
 				//Collision::C_Shape* pMeshShape = (Collision::C_Shape*)Spu::FetchAlloc(pMeshBody->GetShape(), sizeof(Collision::C_Shape));
@@ -2474,7 +2474,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
@@ -2495,7 +2495,7 @@ namespace Gravity
 			for(S32 a = 0; a < m_MeshCollisionBodies.m_numElements; ++a)
 			{
 				Spu::MemBaseMarker marker;
-				C_Body* pBodyPtr = (C_Body*)Spu::Get((U32*)m_MeshCollisionBodies.m_pElems + a);
+				C_Body* pBodyPtr = (C_Body*)Spu::Get((INTPTR*)m_MeshCollisionBodies.m_pElems + a);	// [Blur2PC][x64] pointer-sized elements
 				C_Body* pMeshBody = (C_Body*)Spu::FetchAlloc(pBodyPtr, sizeof(C_Body));
 				//U32 type = Spu::Get((U32*)(& pMeshBody->m_pShape->m_ShapeType));
 				//Collision::C_Shape* pMeshShape = (Collision::C_Shape*)Spu::FetchAlloc(pMeshBody->GetShape(), sizeof(Collision::C_Shape));

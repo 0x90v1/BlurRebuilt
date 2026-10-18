@@ -341,7 +341,7 @@ bool Callback(Automation::CommandContext& commandContext)
 
 			AmaxCam::CameraSystem().DebugFeed(0).CopyFrom(cam);
 	}
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	else if (commandContext.IsCommand("CreateVirtual360Pad"))
 	{
 		ArteryI32 noOfControllers;

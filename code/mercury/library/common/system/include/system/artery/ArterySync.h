@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #define ARTERY_SYNC_WIN32
 #elif defined(PLATFORM_PS3)
 #define ARTERY_SYNC_PS3

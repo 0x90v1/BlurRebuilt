@@ -43,7 +43,7 @@ bool C_DynamicVertexBuffer::Create(const U32 size)
 
 	U32 flags = E_Usage_Dynamic;
 
-	#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+	#if defined(PLATFORM_PC)
 	flags |= E_Usage_Video;
 	#elif defined(PLATFORM_PS3)
 	flags |= E_Usage_System;

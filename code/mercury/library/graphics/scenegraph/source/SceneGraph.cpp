@@ -52,9 +52,6 @@ Debug::Bool	g_BoundsShowRenderNodes	("Graphics.SceneGraph.Bounds.ShowRenderNodes
 Debug::Bool	g_DebugRenderVisitor	("Graphics.SceneGraph.DebugRender.Enable", false);
 Debug::Bool g_BoundsNames			("Graphics.SceneGraph.Bounds.ShowNames", false);
 Debug::Bool	g_BoundsDrawDistance	("Graphics.SceneGraph.Bounds.DrawDistance", false);
-#ifdef PLATFORM_XENON
-Debug::Bool g_BoundsPredication		("Graphics.SceneGraph.Bounds.Predication", false);
-#endif
 Debug::Bool	g_MultiThreadedGather			("Graphics.SceneGraph.MultiThreadedGather", true);
 Debug::Float g_DrawDistanceScale			("Graphics.SceneGraph.DrawDistanceScale", 1.f, Debug::Range(0.f, 1.f));
 

@@ -467,10 +467,6 @@ private:
 	C_ViewManager*								m_pViewManager;
 	
 
-#ifdef PLATFORM_XENON
-	Display::C_Texture2D						m_PatchTexture;
-	D3DRECT										m_PatchRect;
-#endif
 
 	bool										m_bRunningCarEffectTasks;
 #if PLATFORM_PC

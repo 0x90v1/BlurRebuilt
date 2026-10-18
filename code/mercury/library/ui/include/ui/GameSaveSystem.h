@@ -54,11 +54,6 @@ public:
 
 	ULONGLONG SpaceLeftOnCurrentDevice(int *error=NULL);
 
-#if defined(PLATFORM_XENON)
-    XCONTENT_DATA		mContentData[MAX_SAVE_ENUMERATIONS];
-	DWORD				mContentCount;
-	XCONTENTDEVICEID	mDeviceID;
-#endif
 
 private:
 
@@ -69,12 +64,6 @@ private:
 	bool				mCheckforDeviceLocation;
 	bool				mEnumeratingSaves;
 
-#if defined(PLATFORM_XENON)
-	XCONTENT_DATA		mSaveContentData;
-	XOVERLAPPED			mDeviceOverlapped;
-	XOVERLAPPED			mEnumerateOverlapped;
-	HANDLE				mEnumerateHandle;
-#endif
 };
 
 extern C_GameSaveSystem gGameSaveSystem;

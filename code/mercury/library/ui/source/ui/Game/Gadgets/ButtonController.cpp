@@ -319,13 +319,7 @@ void C_ButtonController::CreateLuaEnums( lua_State *pState )
 	// xbox keyboard enums
 	lua_pushstring( pState, "XboxKeyboardType" );
 	lua_newtable( pState );
-#ifdef PLATFORM_XENON
-		Lua::AddDataMember( pState, "Standard",				VKBD_DEFAULT );
-		Lua::AddDataMember( pState, "StandardHighlight",	VKBD_DEFAULT  | VKBD_HIGHLIGHT_TEXT );
-		Lua::AddDataMember( pState, "Gamertag",				VKBD_LATIN_GAMERTAG );
-		Lua::AddDataMember( pState, "GamertagHighlight",	VKBD_LATIN_GAMERTAG | VKBD_HIGHLIGHT_TEXT );
-		Lua::AddDataMember( pState, "Password",				VKBD_LATIN_PASSWORD );
-#elif defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		// live for windows doesn't have the same keyboard enums
 		Lua::AddDataMember( pState, "Gamertag",				VKBD_DEFAULT );
 		Lua::AddDataMember( pState, "GamertagHighlight",	VKBD_DEFAULT | VKBD_HIGHLIGHT_TEXT );
@@ -335,15 +329,6 @@ void C_ButtonController::CreateLuaEnums( lua_State *pState )
 #endif
 	lua_rawset( pState, -3 );
 
-#ifdef PLATFORM_XENON
-	// xbox device selector enums
-	lua_pushstring( pState, "XboxDeviceSelector" );
-	lua_newtable( pState );
-		Lua::AddDataMember( pState, "None",				XCONTENTFLAG_NONE );
-		Lua::AddDataMember( pState, "ForceUI",			XCONTENTFLAG_FORCE_SHOW_UI );
-		Lua::AddDataMember( pState, "ManageStorage",	XCONTENTFLAG_MANAGESTORAGE );
-	lua_rawset( pState, -3 );
-#endif
 
 	// platforms
 	lua_pushstring( pState, "Platform" );
@@ -355,9 +340,7 @@ void C_ButtonController::CreateLuaEnums( lua_State *pState )
 	lua_rawset( pState, -3 );
 
 	// current platform
-#if defined( PLATFORM_XENON )
-	Lua::AddDataMember( pState, "CurrentPlatform",	E_UiPlatform_Xenon );
-#elif defined( PLATFORM_PC )
+#if defined( PLATFORM_PC )
 	Lua::AddDataMember( pState, "CurrentPlatform",	E_UiPlatform_PC );
 #elif defined( PLATFORM_PS3 )
 	Lua::AddDataMember( pState, "CurrentPlatform",	E_UiPlatform_PS3 );

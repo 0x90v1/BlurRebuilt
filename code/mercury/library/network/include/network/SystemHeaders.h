@@ -7,11 +7,7 @@
 
 #include <core/Core.h>
 
-#if defined (PLATFORM_XENON)
-	// xhv2 should only be used if the audio system is using xaudio2, otherwise we should be using the original xhv/xaudio combination.
-	#define USE_XHV2
-
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 	#define MAX_FRIENDS (100)
 
 #elif defined (PLATFORM_PC)

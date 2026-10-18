@@ -122,21 +122,9 @@ GPU_DECL(GPU_VOID) GPU_FUNC(SetVertexTextureLodBias)(const U32 index, const S8 l
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#if DEVICE_D3D9_PC
-GPU_DECL(GPU_VOID) GPU_FUNC(SetTextureGamma)(const U32 index, const U32 gamma);
-GPU_DECL(GPU_VOID) GPU_FUNC(SetVertexTextureGamma)(const U32 index, const U32 gamma);
-#endif
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#if DEVICE_XB2
-GPU_DECL(GPU_VOID) GPU_FUNC(SetAlphaToMaskEnable)(const E_Bool alphaToMaskEnable);
-GPU_DECL(GPU_VOID) GPU_FUNC(SetAlphaToMaskOffsets)(const U32 alphaToMaskOffsets);
-GPU_DECL(GPU_VOID) GPU_FUNC(SetPresentInterval)(const E_PresentInterval presentInterval);
-GPU_DECL(GPU_VOID) GPU_FUNC(SetStencilCcwRef)(const S32 stencilRef);
-GPU_DECL(GPU_VOID) GPU_FUNC(SetStencilCcwMask)(const U32 stencilMask);
-GPU_DECL(GPU_VOID) GPU_FUNC(SetStencilCcwWriteMask)(const U32 stencilWriteMask);
-#endif
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 

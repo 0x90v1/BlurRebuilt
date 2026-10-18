@@ -131,10 +131,6 @@ void C_Perlin::UpdateNoise(const F32 fTime)
 	// aleksger, mruete: zero out all of o_noise since we're going to completely overwrite it.
 	// saves some memory reads.
 	// NOTE: It's possible we might be doing too much at once up front.
-#ifdef PLATFORM_XENON
-	for (U32 i=0; i < sizeof(o_noise[0])*n_size_sq*octaves; i+=128)
-		__dcbz(i, o_noise);
-#endif
 
 	for(S32 o = 0; o < octaves; o++)
 	{
@@ -171,10 +167,6 @@ void C_Perlin::UpdateNoise(const F32 fTime)
 
 		// Use the data cache block zero intrinsic since we're over-writing all of p_noise.
 		// NOTE: It's possible we might be doing too much at once up front.
-#ifdef PLATFORM_XENON
-		for (index = 0; index < sizeof(p_noise[0]) * np_size_sq; index+=128)
-			__dcbz(index, p_noise);
-#endif
 
 		// The inner set of loops samples a single 8x8 block of p_noise.
 		// So this loop steps by 8 rows.

@@ -2,9 +2,6 @@
 #include <jpeghelper/JpegEncoder.h>
 #include <Display.h>
 
-#ifdef PLATFORM_XENON
-#include <xgraphics.h>
-#endif
 
 extern "C"
 {
@@ -23,11 +20,7 @@ static void JpegError2(j_common_ptr)
 
 static inline S32 CalcAddr2(S32 x, S32 y, S32 pitch)
 {
-#ifdef PLATFORM_XENON
-	return XGAddress2DTiledOffset(x, y, pitch >> 2, 4) << 2;
-#else
 	return y * pitch + (x << 2);
-#endif
 }
 
 C_JpegEncoder::C_JpegEncoder()

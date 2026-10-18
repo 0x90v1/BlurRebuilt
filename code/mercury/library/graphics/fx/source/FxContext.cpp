@@ -15,9 +15,7 @@ namespace FX { const void *GetDefaultVertexTextureFor(const void *pTexture); }	/
 #include "fx/DebugVariables.h"
 #endif
 #include "fx/ShaderImpl.h"
-#if defined(BLUR_USE_DX11)
 #include "fx/NativeFX11.h"
-#endif
 #include <Btl/Utility/hash.h>
 
 namespace FX
@@ -25,9 +23,7 @@ namespace FX
 
 DEFINE_CONTEXT(Context, Context);
 
-#if !PLATFORM_XENON
 #define XMemCpy memcpy
-#endif
 
 #if !PLATFORM_SPU
 	Debug::Bool g_bUploadAllSharedBindings("Graphics.FX.UploadAllSharedBindings", false);
@@ -77,18 +73,11 @@ ImmediateParameter GetImmediateParameter(const I_Effect *pEffect, Parameter *pPa
 		}
 		else
 		{
-#if defined(BLUR_USE_DX11)
 			// [Blur1PCDX11] D3D9's global c-registers retain streamed values even
 			// when no shared parameter conflicts. Each FX11 effect has its own
 			// reflected buffers; retain every shared immediate value so a later
 			// BeginPass can seed those buffers instead of resetting them to zero.
 			iDoCopy = 1;
-#else
-			if (pUsage)
-				iDoCopy = g_SharedEffect.DoesSharedParameterConflict(iIdx, pUsage)?1:0;
-			else
-				iDoCopy = 1;
-#endif
 			iImmOffset = iIdx + FX_SYSTEM_MAX_LOCAL_PARAMETERS;
 			iOffset = (U32*)pParam->Data - &g_SharedEffect.ParameterData[0];
 		}
@@ -142,9 +131,7 @@ void *Context::GetSharedParameterValue(ParameterHandle &handle)
 /// constructor
 Context::Context()
 {
-#if defined(BLUR_USE_DX11)
 	m_bNativePass = false;
-#endif
 	m_iCurrentTechnique = -1;
 	m_pPixelBindings = NULL;
 	m_pVertexBindings = NULL;
@@ -315,32 +302,22 @@ void Context::SetTextureParameterImmediate(ImmediateParameter param, const void 
 
 	if (iHandle2 != (U32)-1)
 	{
-#if !defined(BLUR_USE_DX11)
-		m_pDisplay->SetTexture(iHandle2, FetchTexture(pTexture));
-		SetSamplerState(iHandle2, iSamplerState);
-#endif
 		FxStatistics::Instance().SetTexture();
 	}
 	if (iHandle1 != (U32)-1)
 	{
-#if !defined(BLUR_USE_DX11)
-		m_pDisplay->SetVertexTexture(iHandle1, FetchTexture(GetDefaultVertexTextureFor(pTexture)));	// [Blur2PC]
-		SetVertexSamplerState(iHandle1, iSamplerState);
-#endif
 		FxStatistics::Instance().SetTexture();
 	}
 	if (iDoCopy)
 	{
-		*((U32*)&m_SharedParameterData[iOffset]) = (U32)pTexture;
+		*((U32*)&m_SharedParameterData[iOffset]) = Core::PointerToSlot32(pTexture);	// [Blur2PC][x64] sampler slot
 #ifndef PLATFORM_SPU
 		FxStatistics::Instance().CopyParameter(pParam->Name);
 #endif
 	}
-#if defined(BLUR_USE_DX11)
 	if (m_pCurrentEffect && m_pCurrentPass)
 		NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
 			pParam->Name.Chars(), &pTexture, 0, true, iSamplerState);
-#endif
 }
 
 /// set a parameter value during Begin-End pass
@@ -359,13 +336,11 @@ void Context::SetParameterImmediate(ImmediateParameter param, const void *pData)
 		// texture
 		BIZ_ASSERT(iOffset != 0xffffff);	// this function doesn't support setting non-shared texture parameters. use SetTextureParameterImmediate instead
 		pSampler = (nglFXParam_Sampler*)&m_SharedParameterData[iOffset];
-		pSampler->Texture = *(U32*)pData;
-#if defined(BLUR_USE_DX11)
+		pSampler->Texture = Core::PointerToSlot32(*(void* const*)pData);	// [Blur2PC][x64] pData points at a texture pointer
 		if (m_pCurrentEffect && m_pCurrentPass)
 			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
 				pParam->Name.Chars(), pData, 0, true, pSampler->iSamplerState);
 		return;
-#endif
 
 #if !CFG_SPEED && !PLATFORM_SPU
 		if (pSampler->Texture == NULL)
@@ -423,11 +398,9 @@ void Context::SetParameterImmediate(ImmediateParameter param, const void *pData)
 #endif
 			XMemCpy(&m_SharedParameterData[iOffset], pData, iSize*16);
 		}
-#if defined(BLUR_USE_DX11)
 		if (m_pCurrentEffect && m_pCurrentPass)
 			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
 				pParam->Name.Chars(), pData, iSize * 16, false);
-#endif
 	}
 }
 
@@ -785,30 +758,24 @@ void Context::SetRenderState(U32 i)
 		m_pDisplay->SetCullMode(pState->cullMode);
 }
 
-#if WORD_SIZE == 32
-// casting U32 to a pointer won't work on 64-bit platforms
+// [Blur2PC][x64] The sampler word is a Core::PointerToSlot32 slot, so these work at any word size.
 
 /// set texture and sampler states
 void Context::SetTexture(int iHandle, nglFXParam_Sampler *param)
 {
-#if defined(BLUR_USE_DX11)
 	// [Blur1PCDX11] Legacy sampler registers; the native pass binds its own.
 	if (m_bNativePass) return;
-#endif
-	m_pDisplay->SetTexture(iHandle, FetchTexture((void*)param->Texture));
+	m_pDisplay->SetTexture(iHandle, FetchTexture(Core::Slot32ToPointer(param->Texture)));
 	SetSamplerState(iHandle, param->iSamplerState);
 }
 
 /// set vertex texture and sampler states
 void Context::SetVertexTexture(int iHandle, nglFXParam_Sampler *param)
 {
-#if defined(BLUR_USE_DX11)
 	if (m_bNativePass) return; // [Blur1PCDX11] see SetTexture
-#endif
-	m_pDisplay->SetVertexTexture(iHandle, FetchTexture(GetDefaultVertexTextureFor((void*)param->Texture)));	// [Blur2PC]
+	m_pDisplay->SetVertexTexture(iHandle, FetchTexture(GetDefaultVertexTextureFor(Core::Slot32ToPointer(param->Texture))));	// [Blur2PC]
 	SetVertexSamplerState(iHandle, param->iSamplerState);	
 }
-#endif
 
 /// set static sources
 void Context::SetStaticSources()
@@ -886,40 +853,23 @@ void Context::ApplyBinding(SharedParameter *pBinding)
 			}
 		}
 #endif
-		#if defined(BLUR_USE_DX11)
 		// [Blur1PCDX11] Shared groups can change after BeginPass. FX9 handles
 		// are not the registers of the recompiled FX11 pass; update by parameter name.
 		if (m_pCurrentEffect && m_pCurrentPass)
+		{
+			void *pParamTexture = Core::Slot32ToPointer(param->Texture);	// [Blur2PC][x64] native binding takes a pointer
 			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
-				pParam->Name.Chars(), &param->Texture, 0, true, param->iSamplerState);
-		#else
-		if (type == E_SPGResource_Texture)
-		{
-			// Set texture.
-			SetTexture(handle, param);
+				pParam->Name.Chars(), &pParamTexture, 0, true, param->iSamplerState);
 		}
-		else
-		{
-			// Set vertex texture
-			SetVertexTexture(handle, param);
-		}
-		#endif
 
 		pImm->iHandle[iShaderType] = handle;
 	}
 	else
 	{
 		F32* src = (F32*)((size_t)m_Sources[NGLFX_BIND_SHARED] + pBinding->Offset);
-		#if defined(BLUR_USE_DX11)
 		if (m_pCurrentEffect && m_pCurrentPass)
 			NativeFX11SetImmediate(m_pCurrentEffect, m_pCurrentPass, m_iCurrentTechnique,
 				pParam->Name.Chars(), src, pBinding->Size * 16U, false);
-		#else
-		if (type == E_SPGResource_VertexConstant)
-			m_pDisplay->SetVertexShaderConstantF(handle, src, pBinding->Size);
-		else
-			m_pDisplay->SetPixelShaderConstantF(handle, src, pBinding->Size);
-		#endif
 
 		pImm->iHandle[iShaderType] = handle;
 	}
@@ -1075,10 +1025,8 @@ void Context::BindVertexFunction(Effect* effect, Pass* /*pass*/, Function* funct
 /// set parameters for the given pixel shader
 void Context::BindPixelFunction(Effect* effect, Pass* pass, Function* function)
 {
-#if defined(BLUR_USE_DX11)
 	// [Blur1PCDX11] The native pass sets the pixel shader at the next draw.
 	if (!m_bNativePass)
-#endif
 #if !PLATFORM_PPU_SPU
 	m_pDisplay->SetPixelShader(m_pCurrentPixelShader);
 #endif
@@ -1309,9 +1257,6 @@ void Context::BindSharedParameters(const SharedBindingBits *pUsageVec, const Sha
 
 	// ideally we eventually want to not un-set the bindings that are in use by the currently set effect
 	// this is a temporary fix for Blur
-#if PLATFORM_XENON
-	m_iCurrentTechnique = -1;
-#endif
 }
 
 /// get an EA pointer to a pass, given an EA pointer to an Effect and a technique and pass index
@@ -1356,9 +1301,7 @@ void Context::BeginPass(Effect* pEffect, U32 iTechnique)
 	}
 
 	m_pCurrentPass = pPass;
-#if defined(BLUR_USE_DX11)
 	m_bNativePass = NativeFX11HasPass(pEffect, pPass, iTechnique);
-#endif
 
 #if PLATFORM_SPU
 	m_Allocator[0].Reset();
@@ -1414,10 +1357,8 @@ void Context::BeginPass(Effect* pEffect, U32 iTechnique)
 
 	m_pCurrentEffect = pEffect;
 	m_iCurrentTechnique = iTechnique;
-#if defined(BLUR_USE_DX11)
 	// [Blur1PCDX11] FXB/render stages own state; FX5 binds native shaders/resources.
 	NativeFX11Apply(pEffect, pPass, iTechnique, &m_Sources[0]);
-#endif
 }
 
 /// cleanup after BeginPass

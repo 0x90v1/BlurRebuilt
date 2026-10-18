@@ -3,21 +3,7 @@
 #include "Display/Shaders/Constants.h"
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Display/Shaders/Render/PCD3D9/vsBasicRenderColoured2D.shader"
-#include "Display/Shaders/Render/PCD3D9/vsBasicRenderColoured3D.shader"
-#include "Display/Shaders/Render/PCD3D9/vsBasicRenderTextured2D.shader"
-#include "Display/Shaders/Render/PCD3D9/vsBasicRenderTextured3D.shader"
-#include "Display/Shaders/Render/PCD3D9/psBasicRenderColoured.shader"
-#include "Display/Shaders/Render/PCD3D9/psBasicRenderTextured.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Display/Shaders/Render/XB2/vsBasicRenderColoured2D.shader"
-#include "Display/Shaders/Render/XB2/vsBasicRenderColoured3D.shader"
-#include "Display/Shaders/Render/XB2/vsBasicRenderTextured2D.shader"
-#include "Display/Shaders/Render/XB2/vsBasicRenderTextured3D.shader"
-#include "Display/Shaders/Render/XB2/psBasicRenderColoured.shader"
-#include "Display/Shaders/Render/XB2/psBasicRenderTextured.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Display/Shaders/Render/PS3/vsBasicRenderColoured2D.shader"
 #include "Display/Shaders/Render/PS3/vsBasicRenderColoured3D.shader"
 #include "Display/Shaders/Render/PS3/vsBasicRenderTextured2D.shader"
@@ -94,7 +80,7 @@ bool C_BasicRender::OnCreate()
 		m_pVertexDeclaration[E_BasicRenderVertexShader_Textured3D] = Device()->CreateVertexDeclaration(texturedVertexFormat3D);
 	}
 
-#if defined(DEVICE_PCD3D9) || defined(DEVICE_PCD3D11) || defined(DEVICE_XB2D3D9) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
+#if defined(DEVICE_PCD3D11) || defined(DEVICE_PS3GCM) // [Blur1PCDX11] embedded built-ins
 	if(!CreateVertexShaderFromFunc("Shaders/vsBasicRenderColoured2D", 0, &m_VertexShader[E_BasicRenderVertexShader_Coloured2D], REF_SHADER(vsBasicRenderColoured2D)))
 		return false;
 	if(!CreateVertexShaderFromFunc("Shaders/vsBasicRenderColoured3D", 0, &m_VertexShader[E_BasicRenderVertexShader_Coloured3D], REF_SHADER(vsBasicRenderColoured3D)))
@@ -209,12 +195,6 @@ void C_BasicRender::BindTextured2D(const C_Texture* pTexture, C_PixelShader* pPi
 		if(format == E_Format_R32F)
 			Device()->SetTextureFilter(0, E_TextureFilter_Point);
 		else
-		#elif PLATFORM_XENON
-		XGTEXTURE_DESC desc;
-		XGGetTextureDesc((D3DTexture*)&pTexture->m_d3dTexture, 0, &desc);
-		if (desc.Format == D3DFMT_R32F || desc.Format == D3DFMT_LIN_R32F)
-			Device()->SetTextureFilterMagMinMip(0, E_TextureFilter_Point, E_TextureFilter_Point, E_TextureFilter_None);
-		else
 		#endif
 			Device()->SetTextureFilterMagMinMip(0, E_TextureFilter_Linear, E_TextureFilter_Linear, E_TextureFilter_Linear);
 	}
@@ -257,12 +237,6 @@ void C_BasicRender::BindTextured3D(const C_Texture* pTexture, E_TextureAddress t
 		#if PLATFORM_PS3
 		E_Format format = GetFormatFromTextureFormat(pTexture->GetFormat());
 		if(format == E_Format_R32F)
-			Device()->SetTextureFilterMagMinMip(0, E_TextureFilter_Point, E_TextureFilter_Point, E_TextureFilter_None);
-		else
-		#elif PLATFORM_XENON
-		XGTEXTURE_DESC desc;
-		XGGetTextureDesc((D3DTexture*)&pTexture->m_d3dTexture, 0, &desc);
-		if (desc.Format == D3DFMT_R32F || desc.Format == D3DFMT_LIN_R32F)
 			Device()->SetTextureFilterMagMinMip(0, E_TextureFilter_Point, E_TextureFilter_Point, E_TextureFilter_None);
 		else
 		#endif

@@ -97,59 +97,7 @@ Memory::AllocationNode ps3LocalMemoryAllocationNode;
 
 #endif
 
-#if defined(PLATFORM_XENON)
-
-void __cdecl main()
-{
-	PerformanceLogging::UpdateCounters(PerformanceLogging::kGameSubSessionStarted);
-
-#ifdef ENABLE_MEMORY_TRACKER
-	{
-		MEMORYSTATUS stat;
-		GlobalMemoryStatus(&stat);
-
-		// What's used up minus the HUD stuff and any other stuff we already allocated and tracked
-		DWORD staticMemUsage = (stat.dwTotalPhys - stat.dwAvailPhys) - (32 * 1024 * 1024);
-
-		DWORD diff = staticMemUsage - preStaticInitMemoryUsage;
-
-		int tracked = Memory::Tracker::Instance().TotalMemory();
-
-		// Real static is the difference between static allocations and the memory we tracked since the game started up (also knock off the preserved video buffer - till first Present)
-		int staticMemorySize = preStaticInitMemoryUsage + (diff - tracked) - 3768320;
-
-		MEMORY_TRACKER_PUSH_DYNAMIC("console.static")
-		Memory::Tracker::Instance().TrackAllocation(
-			NULL, staticMemorySize, staticMemorySize, Memory::kMemType_System, &staticMemoryAllocationNode, MEMORY_TRACKER_FLAGS);
-		MEMORY_TRACKER_POP("console.static");
-	}
-#endif
-
-#ifdef ENABLE_MEMORY_TRACKER
-	Debug::Logger &g_Logger(Debug::GetLogger("application"));
-	LOGWARN(g_Logger, "********************************************************************\n");
-	LOGWARN(g_Logger, "WARNING: Memory Tracking is ENABLED\n");
-#if MEMORY_TRACKER_CALLSTACK
-	LOGWARN(g_Logger, "WARNING: Memory Tracking + CALLSTACKS is ENABLED - This eats memory!\n");
-#endif
-	LOGWARN(g_Logger, "********************************************************************\n");
-#endif
-
-	MEMORY_TRACKER_PUSH("main");
-
-	Framework::C_CoreSystemsParams coreSystemsParams;
-	Framework::C_ApplicationParams applicationParams;
-
-	MYAPPLICATIONMAIN(coreSystemsParams, applicationParams);
-
-	Memory::Tracker::Instance().DumpNodeStats(false, true);
-
-	MEMORY_TRACKER_POP("main");
-	
-
-}
-
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 
 int main(int argc, char *argv[])
 {

@@ -19,7 +19,7 @@ namespace SysProfile
 
 		bool m_Active;
 
-#if defined(PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		XINVITE_INFO	m_InviteData;
 #else 
 		bdSecurityID	m_Id;

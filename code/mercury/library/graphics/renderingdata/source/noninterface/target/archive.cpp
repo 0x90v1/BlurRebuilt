@@ -68,7 +68,19 @@ inline void DeserialiseMaterial(Archive& ar, Material& material, const MaterialT
 						ar >> *(S32*) pData; pData += 4;
 						break;
 					case MATERIAL_ELEMENT_TYPE_TEXTURE_PTR:
+#if defined(_WIN64)
+						// [Blur2PC][x64] The element is pointer-sized in memory. Exported data stores
+						// 4 bytes; TEXTURE_PTR is a runtime (dynamic material) type, so the value is not
+						// a usable address and file layouts with it would carry 4-byte offsets.
+						{
+							S32 value;
+							ar >> value;
+							BIZ_ASSERT(!"TEXTURE_PTR element in exported material data");
+							*(void**) pData = (void*)(INTPTR)value; pData += sizeof(void*);
+						}
+#else
 						ar >> *(S32*) pData; pData += 4;
+#endif
 						break;
 					case MATERIAL_ELEMENT_TYPE_MATERIAL_INDEX:
 					case MATERIAL_ELEMENT_TYPE_DATA_INDEX:
@@ -870,9 +882,7 @@ void Deserialise(Archive& ar, LodReader<Texture>& t)
 				t.m_next.m_samplerStateIndex = t.m_pFront->m_samplerStateIndex;
 			}
 
-#if defined(DEVICE_XB2D3D9)
-			static const U32 HEADER_SIZE = sizeof(IDirect3DBaseTexture9) + 12;
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 			static const U32 HEADER_SIZE = sizeof(CellGcmTexture) + 12;
 #else	
 			static const U32 HEADER_SIZE = sizeof(Display::TextureDesc);

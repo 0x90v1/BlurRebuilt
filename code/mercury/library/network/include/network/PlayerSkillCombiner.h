@@ -71,48 +71,12 @@ namespace NetPlay
 
 		PlayerSkill out; // default skill..
 
-#if defined (PLATFORM_XENON)
-		double mu[maxPeers];
-		double sigma[maxPeers];
-
-		// copy data
-		for (U32 i=0; i<numSkills; i++)
-		{
-			mu[i] = pSkills[i].m_Mu;
-			sigma[i] = pSkills[i].m_Sigma;
-		}
-
-		// call API function to aggregate
-		double mu_combined = 0.0f;
-		double sigma_combined = 0.0f;
-		if (XSessionCalculateSkill(numSkills, mu, sigma, &mu_combined, &sigma_combined) != ERROR_SUCCESS)
-		{
-			LOGWARN(g_Log, "C_PlayerSkillCombiner<maxPeers>::Combine() - XSessionCalculateSkill() failed!");
-			PlayerSkill defaultSkill;
-			return defaultSkill;
-		}
-
-		// set combined mu and sigmm
-		out.m_Mu = mu_combined;
-		out.m_Sigma = sigma_combined;
-
-		// calculate combined basic skill..
-		S32 combined = 0;
-		for (U32 i=0; i<numSkills; i++)
-			combined += pSkills[i].m_Skill;
-
-		out.m_Skill = static_cast<S32>(combined / numSkills);
-
-		if (out.m_Skill < X_STATS_SKILL_SKILL_DEFAULT)
-			out.m_Skill = X_STATS_SKILL_SKILL_DEFAULT;
-#else
 		// demonware simply take average of all skills..
 		S64 combined = 0;
 		for (U32 i=0; i<numSkills; i++)
 			combined += pSkills[i].m_Skill;
 
 		out.m_Skill = static_cast<S64>(combined / numSkills);
-#endif
 
 		return out;
 	}

@@ -97,12 +97,8 @@ NOINLINE void AssertOutOfMemory(DWORD size)
 #ifdef ENABLE_MEMORY_TRACKER
 	Memory::Tracker::Instance().GetCriticalSection().Enter();
 
-#ifdef PLATFORM_XENON
-	Memory::Tracker::Instance().DumpMemoryRaw("GAME:\\OutOfMemory");
-#else
 #ifdef PLATFORM_PC
 	Memory::Tracker::Instance().DumpMemoryRaw("C:\\OutOfMemory");
-#endif
 #endif
 
 	Memory::Tracker::Instance().DumpNodeStats(false, false);
@@ -157,13 +153,13 @@ size_t  _aligned_msize(void *memblock)
     ptr = (ptr & ~(PTR_SZ -1)) - PTR_SZ;
 
 #ifdef CFG_DEBUG
-	ptr -= 4;	// Take into account the 4-byte under-run buffer-check stuff
+	ptr -= sizeof(void*);	// Take into account the 4-byte under-run buffer-check stuff [Blur2PC][x64] the CRT header pads it to pointer size
 #endif
 
     /* ptr is the pointer to the start of memory block*/
     ptr = *((uintptr_t *)ptr);
 
-	return _msize((void *)ptr) - (long(memblock) - long(ptr));
+	return _msize((void *)ptr) - ((uintptr_t)memblock - ptr);	// [Blur2PC][x64] was long(memblock) - long(ptr)
 #endif
 }
 
@@ -553,58 +549,6 @@ __forceinline void BizNonAlignedFree(void* ptr)
 	BizInternalFree(ptr);
 }
 
-#ifdef PLATFORM_XENON
-
-__forceinline void* BizInternalPhysicalAlloc(size_t iOriginalSize, ULONG_PTR ulAlignment, DWORD flProtect, bool heapAllocation)
-{
-
-	// TODO: Add option to put block's either end that are read-only to catch potential memory stomps
-	// TODO: Calculate any waste - up to 4095 on 4k - more on other types
-
-	void *pBuffer = XPhysicalAlloc(iOriginalSize, MAXULONG_PTR, ulAlignment, flProtect);
-
-#ifndef CFG_GOLD
-	if (pBuffer == NULL)
-	{
-		LOGDEBUG(g_DebugLoggerMemory, "BizInternalPhysicalAlloc: Failed To Allocate (%d - %.1fk)\n", iOriginalSize, float(iOriginalSize)/1024.f);
-		AssertOutOfMemory(iOriginalSize);
-	}
-#ifdef ENABLE_CLEAR_MEMORY_TO_KNOWN_VALUE
-	else
-	{
-		memset(pBuffer, 0x9e, iOriginalSize);
-	}
-#endif
-#endif
-
-#ifdef ENABLE_MEMORY_TRACKER
-	int iAllocatedSize = XPhysicalSize(pBuffer);						// We assume this is a 4k page size alloc
-	TrackMyAllocation(pBuffer, iOriginalSize, iAllocatedSize, 0, Memory::kMemType_Physical, false, 8, NULL, heapAllocation);
-#endif
-
-	return pBuffer;
-}
-
-__forceinline void BizInternalPhysicalFree(void* ptr, bool heapAllocation)
-{
-	assert(ptr != NULL);
-	if (ptr)
-	{
-		size_t allocSize = XPhysicalSize(ptr);
-
-#ifdef ENABLE_MEMORY_TRACKER
-		TrackMyDeallocation(ptr, allocSize, 0, Memory::kMemType_Physical, NULL, heapAllocation);
-#endif
-
-#ifdef ENABLE_CLEAR_MEMORY_TO_KNOWN_VALUE
-		memset(ptr, 0x9f, allocSize);
-#endif
-
-		XPhysicalFree(ptr);
-	}
-}
-
-#endif
 
 }
 
@@ -714,18 +658,11 @@ void BizAlignedFree(void *ptr)
 
 void* BizPhysicalAlloc(size_t dwSize, U32 ulPhysicalAddress, U32 ulAlignment, U32 flProtect)
 {
-#ifdef PLATFORM_XENON
-	return Memory::BizInternalPhysicalAlloc(dwSize, ulAlignment, flProtect, false);
-#else
 	return NULL;
-#endif
 }
 
 void BizPhysicalFree(void* lpAddress)
 {
-#ifdef PLATFORM_XENON
-	Memory::BizInternalPhysicalFree(lpAddress, false);
-#endif
 }
 
 /*
@@ -765,119 +702,20 @@ void BizHeapAlignedFree(void *ptr)
 
 void* BizHeapPhysicalAlloc(size_t dwSize, U32 ulPhysicalAddress, U32 ulAlignment, U32 flProtect)
 {
-#ifdef PLATFORM_XENON
-	return Memory::BizInternalPhysicalAlloc(dwSize, ulAlignment, flProtect, true);
-#else
 	return NULL;
-#endif
 }
 
 void BizHeapPhysicalFree(void* lpAddress)
 {
-#ifdef PLATFORM_XENON
-	Memory::BizInternalPhysicalFree(lpAddress, true);
-#endif
 }
 
-#ifdef PLATFORM_XENON
-
-LPVOID WINAPI XMemAlloc(SIZE_T dwSize, DWORD dwAllocAttributes)
-{
-	const XALLOC_ATTRIBUTES *pAttrib = (XALLOC_ATTRIBUTES*)&dwAllocAttributes;
-
-#ifdef ENABLE_MEMORY_TRACKER
-	const bool isPhysicalMemory = XALLOC_IS_PHYSICAL(dwAllocAttributes);
-
-	MEMORY_TRACKER_PUSH("XMemAlloc");
-#endif
-
-	void *pMemory;
-
-#ifdef ENABLE_MEMORY_TRACKER
-	if (!isPhysicalMemory)
-	{
-		const size_t iAllocSize = dwSize + MemoryTrackerStructSize;
-		pMemory = XMemAllocDefault(iAllocSize, dwAllocAttributes);
-	}
-	else
-#endif
-	{
-		pMemory = XMemAllocDefault(dwSize, dwAllocAttributes);
-	}
-
-	if (pMemory)
-	{
-#ifdef ENABLE_MEMORY_TRACKER
-		size_t iActualSize = XMemSizeDefault(pMemory, dwAllocAttributes);
-
-		if (!isPhysicalMemory)
-			Memory::TrackMyAllocation(pMemory, dwSize, iActualSize, 16, Memory::kMemType_System, false, 4);
-		else
-			Memory::TrackMyAllocation(pMemory, dwSize, iActualSize, 0, Memory::kMemType_Physical, false, 4);
-#endif
-	}
-	else
-	{
-		LOGDEBUG(Memory::g_DebugLoggerMemory, "XMemAlloc: Failed To Allocate (%d - %.1fk)\n", dwSize, float(dwSize)/1024.f);
-		Memory::AssertOutOfMemory(dwSize);
-	}
-
-#ifdef ENABLE_MEMORY_TRACKER
-	MEMORY_TRACKER_POP("XMemAlloc");
-#endif
-
-	return pMemory;
-}
-
-VOID WINAPI XMemFree(PVOID pAddress, DWORD dwAllocAttributes)
-{
-	const XALLOC_ATTRIBUTES *pAttrib = (XALLOC_ATTRIBUTES*)&dwAllocAttributes;
-
-#ifdef ENABLE_MEMORY_TRACKER
-	if (pAddress)
-	{
-		const bool isPhysicalMemory = XALLOC_IS_PHYSICAL(dwAllocAttributes);
-
-		if (!isPhysicalMemory)
-			Memory::TrackMyDeallocation(pAddress, XMemSizeDefault(pAddress, dwAllocAttributes), 16, Memory::kMemType_System);
-		else
-			Memory::TrackMyDeallocation(pAddress, XMemSizeDefault(pAddress, dwAllocAttributes), 0, Memory::kMemType_Physical);
-	}
-#endif
-
-	return XMemFreeDefault(pAddress, dwAllocAttributes);
-}
-
-SIZE_T WINAPI XMemSize(PVOID pAddress, DWORD dwAllocAttributes)
-{
-	if (!pAddress)
-		return 0;
-
-	const XALLOC_ATTRIBUTES *pAttrib = (XALLOC_ATTRIBUTES*)&dwAllocAttributes;
-
-	SIZE_T originalSize = XMemSizeDefault(pAddress, dwAllocAttributes);
-
-#ifdef ENABLE_MEMORY_TRACKER
-	if (!XALLOC_IS_PHYSICAL(dwAllocAttributes))
-	{
-		originalSize -= MemoryTrackerStructSize;
-	}
-#endif
-
-	return originalSize;
-}
-
-#endif
 
 /*
 	This code runs before any global initialisation occurs, which allows us to set up some of the memory tracking and
 	small block allocator systems first
 */
-#if defined(PLATFORM_XENON) || (defined(PLATFORM_PC) && !defined(WIN64))
+#if defined(PLATFORM_PC) && !defined(WIN64)
 
-#if defined(PLATFORM_XENON)
-//#define OUTPUT_EXE_SIZE 1
-#endif
 
 int PreStaticInit (void);
 
@@ -894,16 +732,6 @@ int PreStaticInit(void)
 
 	#if OUTPUT_EXE_SIZE
 	{
-		#if PLATFORM_XENON
-		MEMORYSTATUS stat;
-		GlobalMemoryStatus(&stat);
-		U32 exeSize = stat.dwTotalPhys - stat.dwAvailPhys - (32 * 1024 * 1024);
-		char str[256];
-		sprintf_s(str, sizeof(str), "Exe size %.2fMB\n", (F32)exeSize / (1024.0f * 1024.0f));
-		OutputDebugString("\n********************\n");
-		OutputDebugString(str);
-		OutputDebugString("********************\n\n");
-		#endif
 	}
 	#endif
 
@@ -953,16 +781,6 @@ public:
 	{
 	#if OUTPUT_EXE_SIZE
 	{
-		#if PLATFORM_XENON
-		MEMORYSTATUS stat;
-		GlobalMemoryStatus(&stat);
-		U32 exeSize = stat.dwTotalPhys - stat.dwAvailPhys - (32 * 1024 * 1024);
-		char str[256];
-		sprintf_s(str, sizeof(str), "Exe size %.2fMB\n", (F32)exeSize / (1024.0f * 1024.0f));
-		OutputDebugString("\n********************\n");
-		OutputDebugString(str);
-		OutputDebugString("********************\n\n");
-		#endif
 	}
 	#endif
 

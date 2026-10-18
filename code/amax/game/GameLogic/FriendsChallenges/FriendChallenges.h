@@ -347,13 +347,6 @@ public:
 	int HaveWeOldChallenges();
 	void CleanOutOldChallenges();
 
-#if defined ( PLATFORM_XENON )
-	bool CheckingName(){return mCheckingNameTimer || mCheckingName;};
-	bool CheckingDesc(){return mCheckingDescTimer || mCheckingDesc;};
-
-	bool InvalidName(){return mInvalidNameTimer && !mIsNameOk;};
-	bool InvalidDesc(){return mInvalidDescTimer && !mIsDescOk;};
-#endif
 
 	void FriendsUpdated();
 
@@ -412,34 +405,6 @@ private:
 	bool mIsNameOk;
 	bool mIsDescOk;
 
-#if defined ( PLATFORM_XENON )
-	HANDLE	mListenerHandle;
-	DWORD	m_ActionPressed;
-	DWORD	m_ActionPressedUserIndex;
-	XUID	m_ActionPressedXUID;
-	BYTE	m_ActionPressedKey[4];
-
-	XOVERLAPPED	m_StringVerifyNameTask;
-	XOVERLAPPED	m_StringVerifyDescTask;
-
-	bool mCheckingName;
-	bool mCheckingDesc;
-
-	STRING_DATA			m_StringNameData;
-	STRING_DATA			m_StringDescData;
-
-	U8*					m_pStringNameVerifyResults;
-	U8*					m_pStringDescVerifyResults;
-
-	WCHAR mCheckingNameStr[MAX_FRIEND_CHALLENGE_NAME];
-	WCHAR mCheckingDescriptionStr[MAX_FRIEND_CHALLENGE_DESC];
-
-	float mCheckingNameTimer;
-	float mCheckingDescTimer;
-
-	float mInvalidNameTimer;
-	float mInvalidDescTimer;
-#endif
 };
 
 };

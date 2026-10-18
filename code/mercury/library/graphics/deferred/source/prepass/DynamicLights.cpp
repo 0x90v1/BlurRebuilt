@@ -218,7 +218,7 @@ void C_DynamicLights::Render() const
 
 	Display::Device()->SetVertexShaderConstantF(CV_RENDER_SETTINGS, (F32*)vsSettings, 4);
 	
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	const Display::C_RenderTarget& renderTarget = Display::Device()->GetRenderTarget();
 	const F32 fOffsetX = +1.0f / (F32)iRenderTargetWidth;
 	const F32 fOffsetY = +1.0f / (F32)iRenderTargetHeight;

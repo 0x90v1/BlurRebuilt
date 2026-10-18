@@ -1276,37 +1276,6 @@ add_library(display STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/window/WindowBase.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/DisplayToDisplay2.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/context/Context_Base.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/buffer/d3d9/D3D9IndexBuffer.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/buffer/d3d9/D3D9VertexBuffer.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/buffer/d3d9/D3D9VertexBufferPatched.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/buffer/d3d9/D3D9VertexDeclaration.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/D3D9.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/D3D9Device.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/D3D9DeviceBuffers.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/D3D9DeviceCaps.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/D3D9DeviceParams.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/D3D9DeviceStates.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/D3D9MemoryTracker.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/manager/d3d9/D3D9Manager.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/shader/d3d9/D3D9PixelShader.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/shader/d3d9/D3D9VertexShader.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/surface/d3d9/D3D9Surface.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/texture/d3d9/D3D9RenderTexture2D.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/texture/d3d9/D3D9RenderTextureCube.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/texture/d3d9/D3D9Texture.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/texture/d3d9/D3D9Texture2D.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/texture/d3d9/D3D9Texture3D.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/texture/d3d9/D3D9TextureCube.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/texture/d3d9/D3D9TextureLoad.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/occlusion/D3D9/D3D9OcclusionQuery.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/window/d3d9/D3D9Window.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/context/Context_D3D9.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/PCD3D9Device.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/PCD3D9CapsCheckerDevice.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/PCD3D9CapsCheckerObject.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/device/d3d9/PCD3D9CapsBuilder.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/buffer/d3d9/D3D9CommandBuffer.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/memory/d3d9/D3D9RingBuffer.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/context/Context_PC.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/bundler/ResourceBundleReader.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display/source/bundler/ResourceBundleReaderImpl1.cpp
@@ -1460,11 +1429,6 @@ add_library(display2 STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/buffer/Buffer.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/memory/Memory.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/utils/Utils.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/context/D3D9Context.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/device/D3D9Device.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/device/PCD3D9Device.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/memory/PCD3D9Memory.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2/source/utils/PCD3D9Utils.cpp
 )
 target_include_directories(display2 PRIVATE
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Display2
@@ -1688,7 +1652,6 @@ add_library(movie STATIC
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie/source/Movie.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie/source/MovieBase.cpp
     ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie/source/w32/W32Movie.cpp
-    ${BLUR_TOP}/Code/Mercury/Library/Graphics/Movie/source/w32/bink/binktextures.cpp
     ${BLUR_PROJECT}/_work/build/gen/shaders/movie_shaders.cpp
 )
 target_include_directories(movie PRIVATE

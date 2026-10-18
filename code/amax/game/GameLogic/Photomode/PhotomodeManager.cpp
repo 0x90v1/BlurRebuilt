@@ -54,17 +54,9 @@ void C_PhotomodeManager::DecodePhotoBuffer()
 	S32 pitch = 0, width = 0, height = 0, format = 0;
 	photoCapture.LockBitmap(bits, pitch, width, height, format);
 
-#ifdef PLATFORM_XENON
-	Display::Device()->AcquireThreadOwnership(); // prevent TCR # 022 as following code can stall for a while
-	Display::Device()->GetD3DDevice()->Suspend();
-#endif
 
 	mJpegDecoder.DecodeIntoBuffer(bits, pitch, width, height, format);
 
-#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->Resume();
-	Display::Device()->ReleaseThreadOwnership();
-#endif
 
 	photoCapture.UnlockBitmap();
 
@@ -82,17 +74,9 @@ bool C_PhotomodeManager::UploadPhoto()
 	S32 pitch = 0, width = 0, height = 0, format = 0;
 	photoCapture.LockBitmap(bits, pitch, width, height, format);
 
-#ifdef PLATFORM_XENON
-	Display::Device()->AcquireThreadOwnership(); // prevent TCR # 022 as following code can stall for a while
-	Display::Device()->GetD3DDevice()->Suspend();
-#endif
 
 	mJpegEncoder.EncodeFromBuffer(bits, pitch, width, height, format);
 
-#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->Resume();
-	Display::Device()->ReleaseThreadOwnership();
-#endif
 
 	photoCapture.UnlockBitmap();
 

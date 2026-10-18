@@ -38,21 +38,12 @@ NOALIAS __forceinline void ReadWriteBarrier();
 //#define MEMORY_TRACKER_POP()
 //#endif
 
-#if defined (_XBOX) && !defined (_XBOX360)
-#define _XBOX360
-#endif
 
 #if defined (PLATFORM_PS3) && !defined (_PS3)
 #define _PS3
 #include <sys/timer.h>
 #endif
 
-#ifdef _XBOX360
-#include <xtl.h>
-#define AUDIO_RESTRICT	__restrict
-#define AUDIO_INLINE	__forceinline
-#define AUDIO_USE_COMPONENT_ARRAY
-#endif // _XBOX360
 
 #ifdef PLATFORM_PC
 #include <windows.h>

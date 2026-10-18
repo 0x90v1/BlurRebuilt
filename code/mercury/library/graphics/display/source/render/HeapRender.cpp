@@ -27,24 +27,6 @@ Debug::Enum<E_HeapRender> g_debugDisplayHeapRenderShowHeap("Graphics.Display.Ren
 
 #endif // PLATFORM_PS3
 
-#ifdef PLATFORM_XENON
-
-enum E_HeapRender
-{
-	E_HeapRender_Large,
-	E_HeapRender_Dynamic,
-	E_HeapRender_Small,
-};
-
-DEBUG_ENUM(E_HeapRender)
-	DE_OPTION(E_HeapRender_Large,	"Large")
-	DE_OPTION(E_HeapRender_Dynamic,	"Dynamic")
-	DE_OPTION(E_HeapRender_Small,	"Small")
-END_DEBUG_ENUM
-
-Debug::Enum<E_HeapRender> g_debugDisplayHeapRenderShowHeap("Graphics.Display.Render.HeapRender.ShowHeap", E_HeapRender_Large);
-
-#endif // PLATFORM_XENON
 
 Debug::Int	g_debugDisplayHeapRenderTransparency("Graphics.Display.Render.HeapRender.Transparency", 220, Debug::Range(0, 255));
 Debug::Int	g_debugDisplayHeapRenderSizePerLine("Graphics.Display.Render.HeapRender.SizePerLine", 50, Debug::Range(5, 500));
@@ -87,23 +69,6 @@ void C_HeapRender::Draw()
 	}
 	#endif
 
-	#ifdef PLATFORM_XENON
-	switch(g_debugDisplayHeapRenderShowHeap)
-	{
-	case E_HeapRender_Large:
-		bufferName = "LARGE";
-		pBuffer = Device()->GetLargeHeap();
-		break;
-	case E_HeapRender_Dynamic:
-		bufferName = "DYNAMIC";
-		pBuffer = Device()->GetDynamicHeap();
-		break;
-	case E_HeapRender_Small:
-		bufferName = "SMALL";
-		pBuffer = Device()->GetSmallHeap();
-		break;
-	}
-	#endif
 
 	Draw(pBuffer, bufferName);
 }
@@ -118,7 +83,7 @@ void C_HeapRender::Draw(C_MemoryBuffer* pBuffer, const Util::C_String& bufferNam
 
 	if(pBuffer)
 	{
-	#if defined(PLATFORM_XENON) ||  defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 		F32 usedSize = (F32)pBuffer->GetUsed() / (1024.f * 1024.f);
 		F32 freeSize = (F32)pBuffer->GetFree() / (1024.f * 1024.f);
 		

@@ -11,7 +11,7 @@ enum ArteryEndian
 	kArteryBigEndian
 };
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3) || defined(PLATFORM_WII) || defined(PLATFORM_SPU)
+#if defined(PLATFORM_PS3) || defined(PLATFORM_WII) || defined(PLATFORM_SPU)
 	inline ArteryEndian ArteryGetEndian() { return kArteryBigEndian; }
 #elif defined(PLATFORM_PC) || defined(PLATFORM_LINUX)
 	inline ArteryEndian ArteryGetEndian() { return kArteryLittleEndian; }

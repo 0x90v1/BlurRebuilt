@@ -150,9 +150,6 @@ public:
 
 	virtual void ThreadMain()
 	{
-#ifdef PLATFORM_XENON
-		XSetThreadProcessor(GetCurrentThread(), 3);
-#endif
 
 		while (true)
 		{
@@ -360,19 +357,7 @@ void StreamManager::AsynchCopy(void* pDst, const void* pSrc, S32 size, AsynchCop
 	//assert((U32(pDst) & 0xf) == 0);
 	//assert((U32(pSrc) & 0xf) == 0);
 
-#if defined (PLATFORM_XENON)
-
-	m_memCopyWorker.m_cpuCopyList.PushBack();
-	MemCopyWorker::AsynchCopy& copy(m_memCopyWorker.m_cpuCopyList.Back());
-	copy.pDst = pDst;
-	copy.pSrc = pSrc;
-	copy.size = size;
-
-	#if TRACK_DISPLAY2_PROTECTED_MEMORY
-	Display2::Device()->CheckProtectedMemory(copy.size, (U8*)copy.pDst);
-	#endif
-
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 
 	if (m_preLoad || type == StreamManager::ASYNCH_COPY_SYSTEM_TO_GPU)
 	{
@@ -467,7 +452,7 @@ void StreamManager::BeginTasks()
 		if (m_JobQueuePolicy > -1)
 		{
 			void* p = &m_memCopyWorker;
-			Scheduler::AddTask(MemCopyModule, 0, 0, m_JobQueueGroupGPUCopy, m_JobQueuePolicy, &p, 4);
+			Scheduler::AddTask(MemCopyModule, 0, 0, m_JobQueueGroupGPUCopy, m_JobQueuePolicy, &p, sizeof(p));	// [Blur2PC][x64] the whole pointer (4 on x86)
 		}
 		else
 			MemCopyTask(0);

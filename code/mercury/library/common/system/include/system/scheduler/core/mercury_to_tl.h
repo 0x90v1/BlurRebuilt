@@ -7,8 +7,6 @@
 #define TL_PLAT_PS3 1
 #elif defined( PLATFORM_PC )
 #define TL_PLAT_PC 1
-#elif defined( PLATFORM_XENON )
-#define TL_PLAT_XENON 1
 #endif
 
 #endif

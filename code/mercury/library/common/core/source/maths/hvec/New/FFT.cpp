@@ -442,9 +442,6 @@ BitReverse g_BitReverse;
 ////////////////////////////////////////////////////////////////////////////////
 void RealFFT_Split( F32* const __restrict pData, const S32 n )
 {
-    #if defined( PLATFORM_XENON )
-    __dcbt( 0x00, pData );
-    #endif
     
     const F32 rcpSqrt2 = 0.70710678118654752440084436210485f;
     
@@ -481,9 +478,6 @@ void RealFFT_Split( F32* const __restrict pData, const S32 n )
         }
     }
     
-    #if defined( PLATFORM_XENON )
-    __dcbt( 0x00, pBitReverseTable );
-    #endif
     
     ALIGN16 F32 buffer[2048];
     
@@ -492,10 +486,6 @@ void RealFFT_Split( F32* const __restrict pData, const S32 n )
         const S32 n_div_2 = n >> 1; // n / 2;
         for ( S32 i=0, j=0; i<n; i+=4 )
         {
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pData[i] );
-            __dcbt( 0x80, &pBitReverseTable[i] );
-            #endif
             
             const S32 i0( i+0 );
             const S32 i1( i+1 );
@@ -939,9 +929,6 @@ void IRealFFT_Split( F32* const __restrict pData, const S32 n )
         }
     }
     
-    #if defined( PLATFORM_XENON )
-    __dcbt( 0x0, pBitReverseTable );
-    #endif
     
     ALIGN16 F32 buffer[2048];
     
@@ -949,9 +936,6 @@ void IRealFFT_Split( F32* const __restrict pData, const S32 n )
         const S32 n_div_2 = n >> 1;
         for ( S32 i=0, j=0; i<n; i+=4 )
         {
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pBitReverseTable[i] );
-            #endif
             
             const S32 i0( i+0 );
             const S32 i1( i+1 );

@@ -60,11 +60,7 @@ FORCE_INLINE void NamedEvent(const char *pszName, int iEnd)
 	U8 iCore;
 	U32 iThread;
 	U64 iTime;
-#if defined( PLATFORM_XENON )
-	iTime = __mftb();
-	iCore = 1 + static_cast<U8>(GetCurrentProcessorNumber());
-    iThread = GetCurrentThreadId();
-#elif defined( PLATFORM_PC )
+#if defined( PLATFORM_PC )
 	iTime = Time::GetPerformanceCounter();
 	iThread = MT::Thread::GetCurrentThreadID();
 	iCore = 0; // only on windows vista
@@ -113,9 +109,6 @@ void AddNamedCounter(float fValue, const char *pszName)
 	pEvent->thread = 0;
 	pEvent->time = ((int&)fValue) | 0x4000000000000000ULL;
 
-#if PLATFORM_XENON
-	PIXAddNamedCounter(fValue, pszName);
-#endif
 }
 
 void DumpPerfData()
@@ -141,9 +134,9 @@ extern Debug::Logger &g_Log;
 
 void PIN_BeginTrace(void *pEventBuf, void *piCurrentEvent, void *iMaxEvent)
 {
-	LOGINFO( Perf::g_Log, "Buffer: %d\n", (int)pEventBuf);
-	LOGINFO( Perf::g_Log, "IdxPtr: %d\n", (int)piCurrentEvent);
-	LOGINFO( Perf::g_Log, "MaxEvt: %d\n", (int)iMaxEvent);
+	LOGINFO( Perf::g_Log, "Buffer: %d\n", (int)(INTPTR)pEventBuf);	// [Blur2PC][x64]
+	LOGINFO( Perf::g_Log, "IdxPtr: %d\n", (int)(INTPTR)piCurrentEvent);	// [Blur2PC][x64]
+	LOGINFO( Perf::g_Log, "MaxEvt: %d\n", (int)(INTPTR)iMaxEvent);	// [Blur2PC][x64]
 }
 
 void PIN_EndTrace()

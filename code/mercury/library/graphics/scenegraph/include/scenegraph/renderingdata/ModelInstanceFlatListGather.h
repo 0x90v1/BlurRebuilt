@@ -54,9 +54,6 @@ struct ALIGN16 ModelInstanceFlatListGatherData
 			const C_ModelInstance*		pModelInstance;
 			VolatileNodeInfo			volatileInfo;
 			U16							passIndex;
-		#ifdef PLATFORM_XENON
-			U16							predication;
-		#endif
 		};
 
 		ALIGN16 Result					results[MAX_FLATLIST_RESULTS];

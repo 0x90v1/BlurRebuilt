@@ -540,7 +540,7 @@ void BindSharedParameters(const Effect* effect, S_Technique& technique,
         {
             const auto* sampler = reinterpret_cast<const nglFXParam_Sampler*>(data);
             BindTexture(effect, technique, parameter.Name.Chars(),
-                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), techniqueName, sampler->iSamplerState,
+                        static_cast<ID3D11Resource*>(Core::Slot32ToPointer(sampler->Texture)), techniqueName, sampler->iSamplerState,
                         false, shared.param);
         }
         else
@@ -589,7 +589,7 @@ void BindFunction(const Effect* effect, S_Technique& technique,
         {
             const auto* sampler = reinterpret_cast<const nglFXParam_Sampler*>(data);
             BindTexture(effect, technique, name,
-                        reinterpret_cast<ID3D11Resource*>(sampler->Texture), techniqueName, sampler->iSamplerState,
+                        static_cast<ID3D11Resource*>(Core::Slot32ToPointer(sampler->Texture)), techniqueName, sampler->iSamplerState,
                         false, entry.param);
         }
         else if (binding.Count)

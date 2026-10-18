@@ -2,9 +2,6 @@
 #include "TestSections/TestSectionMovie.h"
 #include <System/Memory/MemoryTracker.h>
 
-#if PLATFORM_XENON
-#include <xaudio.h>
-#endif
 
 Debug::Bool g_bDumpMemory		("Movie.DumpMemory",		false);
 Debug::Bool g_bDisableAudio		("Movie.DisableAudio",		false);
@@ -17,11 +14,6 @@ C_TestSectionMovie::C_TestSectionMovie(const Util::C_String& name) : C_TestSecti
 {
 	m_iMovieVolume = -1;
 
-	#if PLATFORM_XENON
-	XAUDIOENGINEINIT audioEngineInit = {0};
-	audioEngineInit.pEffectTable = &XAudioDefaultEffectTable;
-	XAudioInitialize(&audioEngineInit);
-	#endif
 }
 
 C_TestSectionMovie::~C_TestSectionMovie()

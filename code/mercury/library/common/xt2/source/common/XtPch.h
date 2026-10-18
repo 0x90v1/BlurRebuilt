@@ -4,15 +4,9 @@
 #include <core/Maths.h>
 
 // START HACK - Waiting for proper core headers...
-#if !defined(PLATFORM_XENON) && !defined(PLATFORM_PC) && !defined(PLATFORM_PS3)
+#if !defined(PLATFORM_PC) && !defined(PLATFORM_PS3)
 #ifdef _MSC_VER
-#ifdef _XBOX
-#ifndef PLATFORM_XENON
-#define PLATFORM_XENON
-#endif
-#else
 #define PLATFORM_PC
-#endif
 #else
 #ifndef PLATFORM_PS3
 #define PLATFORM_PS3
@@ -61,17 +55,6 @@
 
 		#define _stricmp strcasecmp
 		#define snPause() __asm__ volatile ( "tw 31,1,1" )
-
-	#elif defined(PLATFORM_XENON)
-
-		#include <xtl.h>
-		#include <assert.h>
-		#include <string.h>
-		#include <stdio.h>
-		#include <stdlib.h>
-
-		#pragma warning(disable:4355)	// This used in initialiser list
-		#pragma warning(disable:4706)	// Assignment within conditional expression
 
 	#elif defined(PLATFORM_PC)
 

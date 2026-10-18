@@ -47,9 +47,6 @@ void C_TestSectionLayer::Update()
 	else
 	if(Input::GetGameInput(0)->GetButtonAutoRepeat(E_Button_MenuCancel, 10, 5))
 	{
-		#ifdef PLATFORM_XENON
-		Display::Device()->BlockUntilIdle();
-		#endif
 
 		m_pTestSectionManager->ExitSection();
 	}
@@ -66,9 +63,6 @@ void C_TestSectionLayer::Update()
 	else
 	if(Input::GetGameInput(0)->GetButtonAutoRepeat(E_Button_MenuConfirm, 10, 5) || m_StraightToTestSection)
 	{
-		#ifdef PLATFORM_XENON
-		Display::Device()->BlockUntilIdle();
-		#endif
 
 		if(m_pTestSectionManager->EnterSection())
 		{

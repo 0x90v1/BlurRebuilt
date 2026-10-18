@@ -46,9 +46,7 @@ namespace RenderingData {
 namespace Target 
 {
 
-#if defined(PLATFORM_XENON)
-	#define LARGE_HEAP Display::E_AllocHeap_Large
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	#define LARGE_HEAP Display:: E_AllocHeap_Video
 #endif
 
@@ -326,7 +324,7 @@ void StreamData::BeginTasks()
 	if (m_streamRequestWorker.m_requests.Size())
 	{
 		void* p = &m_streamRequestWorker;
-		Scheduler::AddTask(StreamerRequestModule, 0, 0, StreamManager::Instance().GetRequestGroup(), StreamManager::Instance().GetPolicy(), &p, 4);
+		Scheduler::AddTask(StreamerRequestModule, 0, 0, StreamManager::Instance().GetRequestGroup(), StreamManager::Instance().GetPolicy(), &p, sizeof(p));	// [Blur2PC][x64] the whole pointer (4 on x86)
 	}
 }
 
@@ -529,7 +527,7 @@ void StreamData::LoadAllRequested()
 
 	FlushTasks();
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 
@@ -609,9 +607,6 @@ bool StreamData::UpdateMain()
 		LoadingStatistics::Instance().WaitForTasks();
 	}
 
-#if PLATFORM_XENON
-	Perf::AddNamedCounter((float) m_blocksChanged, "BlocksChanged");
-#endif
 
 #ifdef CHUNK_DEBUG
 	for (int i = 0; i < m_chunkDebug.Size(); i++)
@@ -720,9 +715,7 @@ void StreamData::UpdateChunkActivity()
 		gpuMemory.memoryLimit = Maths::Min(StreamManager::Instance().GetMemoryLimit(), (S32)g_streamerMemoryLimit * 1024 * 1024);
 		cpuMemory.memoryLimit = 10 * 1024 * 1024;
 
-#if PLATFORM_XENON
-		U32 freeMemory = Display::Device()->GetLargeHeap()->GetFree();
-#elif PLATFORM_PS3 
+#if PLATFORM_PS3
 		U32 freeMemory = Display::Device()->GetVideoMemory()->GetFree();
 #else
 		U32 freeMemory = 1024 * 1024 * 512;

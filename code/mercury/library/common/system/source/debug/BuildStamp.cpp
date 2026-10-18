@@ -1,6 +1,6 @@
 #include "SystemPch.h"
 
-#ifdef WIN64
+#if 0 // [Blur2PC][x64] was #ifdef WIN64: the blobs are C definitions (luabundle.py, gen_cmake.py) named _binary_* on every arch
 #define BUILDSTAMP_START __binary_buildstamp_txt_start
 #define BUILDSTAMP_END	 __binary_buildstamp_txt_end
 #else

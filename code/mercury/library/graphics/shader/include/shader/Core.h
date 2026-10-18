@@ -45,7 +45,7 @@
 #endif
 
 //
-#if !(PLATFORM_PC + PLATFORM_XENON + PLATFORM_PS3 + MAYA)
+#if !(PLATFORM_PC + 0 + PLATFORM_PS3 + MAYA)
 #define MAYA
 #define XSI //This means we can't have shaders that work in Maya AND Xsi, as the Maya plugin #defines MAYA
 #endif
@@ -65,7 +65,7 @@
 	#define annotation(x) ___VERTEX_DECLARATION_ANNOTATION___ #x
 #endif
 
-#if defined(CFG_CONVERTER) || defined(PLATFORM_XENON)
+#if defined(CFG_CONVERTER)
 #define SRGB_TEXTURE
 #else
 #define SRGB_TEXTURE SRGBTEXTURE = TRUE;

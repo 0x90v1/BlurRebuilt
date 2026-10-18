@@ -8,6 +8,10 @@ namespace Audio
 {
 const int HandleCollectionSize = 8192;
 
+// [Blur2PC][x64] Collections map handles to object/instance/stream pointers, so the
+// stored resource is pointer-sized (int on x86, as the original S32).
+typedef intptr_t HandleResource;
+
 #define flag_hsReservedForUse				1
 #define flag_hsReleasePending				2
 #define flag_hsInUse						4
@@ -23,13 +27,13 @@ const int HandleCollectionSize = 8192;
 		~HandleCollection();
 		bool				InitHandleCollection();
 		T					RequestUnusedHandle();
-		void				MapResourceToHandle(T h, S32 s32Resource);
+		void				MapResourceToHandle(T h, HandleResource s32Resource);
 		bool				FlagHandleForRelease(T h);
 		bool				ReleaseHandle(T h, bool bReserve = false);
 		inline bool			IsHandleValid(T h) { return (h.IsValid()); }
 		inline bool			IsResourceRetrievable(T h) { if (IsHandleValid(h)) { return (IsInUse(h)); } return false; }
-		inline S32			GetResource(T h) { if (! (IsInUse(h) && IsInRange(h))) return N; return m_aResource.At(h.Value()); }
-		inline S32			GetDoomedResource(T h) { if (! (IsReleasePending(h) && IsInRange(h))) return N; return m_aResource.At(h.Value()); }
+		inline HandleResource	GetResource(T h) { if (! (IsInUse(h) && IsInRange(h))) return N; return m_aResource.At(h.Value()); }
+		inline HandleResource	GetDoomedResource(T h) { if (! (IsReleasePending(h) && IsInRange(h))) return N; return m_aResource.At(h.Value()); }
 		inline bool			SetResourceAllocationFailed(T h) { if (IsReserved(h) && IsInRange(h)) { m_aState.At(h.Value()) = flag_hsResourceAllocationFailed; m_aResource.At(h.Value()) = 0; return true; } return false; }
 		inline bool			IsReserved(T h) { return ((GetHandleState(h.Value()) & flag_hsReservedForUse) > 0); }
 		inline bool			IsReleasePending(T h) { return ((GetHandleState(h.Value()) & flag_hsReleasePending) > 0); }
@@ -53,7 +57,7 @@ const int HandleCollectionSize = 8192;
 		bool				ReserveHandle(U16 u16);
 
 		U16					m_u16UsedHandles;
-		Btl::Vector<S32, Btl::VectorParameters_Static<HandleCollectionSize> >	m_aResource;
+		Btl::Vector<HandleResource, Btl::VectorParameters_Static<HandleCollectionSize> >	m_aResource;
 		Btl::Vector<U8, Btl::VectorParameters_Static<HandleCollectionSize> >	m_aState;
 		MT::Lock			m_Lock;
 	};
@@ -104,7 +108,7 @@ T Audio::HandleCollection<T, N>::RequestUnusedHandle()
 	if (m_u16UsedHandles == u32NumHandles)
 	{
 		retvalue = m_aResource.Size();
-		S32 s32AddValue = 0;
+		HandleResource s32AddValue = 0;
 		U8 u8AddValue = 0;
 
 		MEMORY_TRACKER_PUSH("Audio.HandleCollections");
@@ -143,7 +147,7 @@ T Audio::HandleCollection<T, N>::RequestUnusedHandle()
 //	MapResourceToHandle
 ////////////////////////////////////////////////////////////////////////////////
 template<class T, int N>
-void Audio::HandleCollection<T, N>::MapResourceToHandle(T h, S32 s32Resource)
+void Audio::HandleCollection<T, N>::MapResourceToHandle(T h, HandleResource s32Resource)
 {
 	m_Lock.Enter();
 

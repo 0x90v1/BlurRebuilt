@@ -163,11 +163,6 @@ C_LoadingThread::~C_LoadingThread()
 
 void C_LoadingThread::ThreadMain()
 {
-	#ifdef PLATFORM_XENON
-	//STFS uses up to 60% of HW thread 2, so let's move onto thread 3 instead. Hopefully this will help prevent read error events
-	//that had been seen.
-	XSetThreadProcessor(GetCurrentThread(), 3);
-	#endif
 
 	C_Manager* pManager = C_Manager::GetInstance();
 	
@@ -1275,7 +1270,7 @@ void C_Manager::WaitForAllResourceData()
 	{
 		PartialUpdate();
 		U32 uMillisecs = 100;
-		#if defined (PLATFORM_XENON) || defined (PLATFORM_PC)
+		#if defined(PLATFORM_PC)
 		::Sleep(uMillisecs);
 		#else
 		sys_timer_usleep(uMillisecs * 1000);

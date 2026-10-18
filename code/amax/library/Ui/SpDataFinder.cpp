@@ -430,7 +430,7 @@ const WCHAR* C_SpDataFinder::GetVariableText( const char* pVariableName )
 			S32 EventIndex = (S32)ParseIndex( pVariableName, "" );
 			if(RaceType != NULL)
 			{
-				m_VariableText.Format( C_TextStringID( "LEADERBOARD_EVENT_SELECTION" ).String(), C_UILocaliser::Instance().ConvertNumberToCommas(EventIndex), (const int)RaceType );	// [Blur2PC] was a default-int cast
+				m_VariableText.Format( C_TextStringID( "LEADERBOARD_EVENT_SELECTION" ).String(), C_UILocaliser::Instance().ConvertNumberToCommas(EventIndex), RaceType );	// [Blur2PC] was a default-int cast (const)RaceType; [Blur2PC][x64] pass the pointer the x86 cast carried
 			}
 			else
 			{

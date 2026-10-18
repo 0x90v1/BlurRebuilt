@@ -6,9 +6,7 @@ namespace Display
 
 Util::C_String FormatString(const Util::C_String& input)
 {
-#if defined(PLATFORM_XENON)
-	return input.Replace("/", "\\");
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	return input.Replace("\\", "/");
 #else
 	return input;

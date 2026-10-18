@@ -261,18 +261,6 @@ void NetworkUpdate()
 								ac.SingleReply(text.Chars());
 							}
 						}
-#ifdef PLATFORM_XENON
-						else if (!stricmp(command, "EnableScreenSaver"))
-						{
-							const char* val(NULL);
-
-							if (msgReader.Read(val))
-							{
-								XEnableScreenSaver(atoi(val) == 1);
-								ac.SingleReply(1);
-							}
-						}
-#endif
 						else if (!stricmp(command, "LogOnlyFatal"))
 						{
 							// Turn off all but Fatal messages in the output log
@@ -447,18 +435,6 @@ void Assert(const char* condition, const char* file, int line, const char *func,
 		SendMessageBack(m);
 #endif
 
-#ifdef PLATFORM_XENON
-	while (1)
-	{
-		if (DmIsDebuggerPresent() == TRUE)
-		{
-			__debugbreak();
-			break;
-		}
-
-		Sleep(1);
-	}
-#endif
 
 #endif
 }

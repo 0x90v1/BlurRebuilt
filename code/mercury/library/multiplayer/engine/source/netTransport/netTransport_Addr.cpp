@@ -29,35 +29,11 @@ namespace netTransport
 			return str;
 		}
 
-	#if defined(PLATFORM_XENON)
-		XNADDR xnaddr = addr.getXNAddr();
-		
-		if(0)
-		{
-			sprintf_s(str, len, "%d.%d.%d.%d.%d.%d", 
-									xnaddr.abEnet[0], xnaddr.abEnet[1], xnaddr.abEnet[2], 
-									xnaddr.abEnet[3], xnaddr.abEnet[4], xnaddr.abEnet[5]);
-			return str;
-		}
-			
-		if(xnaddr.ina.s_addr != 0)
-		{
-			sprintf_s(str, len, "%d.%d.%d.%d:%d", 
-				xnaddr.ina.s_net, xnaddr.ina.s_host, xnaddr.ina.s_lh, xnaddr.ina.s_impno, xnaddr.wPortOnline);
-		}
-		else
-		{
-			sprintf_s(str, len, "%d.%d.%d.%d:%d", 
-				xnaddr.inaOnline.s_net, xnaddr.inaOnline.s_host, xnaddr.inaOnline.s_lh, xnaddr.inaOnline.s_impno, xnaddr.wPortOnline);
-		}
-		return str;
-	#else
 		bdAddr publicAddr = addr.getPublicAddr();
 		bdAddr localAddr = addr.getLocalAddrByIndex(0);
 		//publicAddr.toString(str, len);
 		localAddr.toString(str, len);
 		return str;
-	#endif
 	}
 		
 	bool Addr::toAddr(bdCommonAddrRef addr) const

@@ -104,7 +104,7 @@ private:
 
 		inline void Acquire()
 		{
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 			InterlockedIncrement((LONG*)&references);
 #elif defined(PLATFORM_PS3)
 			cellAtomicIncr32((ArteryU32*)&references);
@@ -115,7 +115,7 @@ private:
 
 		inline void Release()
 		{
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 			if (InterlockedDecrement((LONG*)&references) <= 0)
 #elif defined(PLATFORM_PS3)
 			if (cellAtomicDecr32((ArteryU32*)&references) <= 1)

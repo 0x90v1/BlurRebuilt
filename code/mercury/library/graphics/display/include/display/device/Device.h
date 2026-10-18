@@ -16,10 +16,6 @@
 #include "Display/Device/D3D11/PCD3D11GameDevice.h"
 #elif defined(DEVICE_PS3GCM)
 #include "Display/Device/GCM/GCMDevice.h"
-#elif defined(DEVICE_PCD3D9)
-#include "Display/Device/D3D9/PCD3D9Device.h"
-#elif defined(DEVICE_XB2D3D9)
-#include "Display/Device/D3D9/XB2D3D9Device.h"
 #elif defined(DEVICE_PCGL)
 #include "Display/Device/GL/PCGLDevice.h"
 #elif defined(DEVICE_PS3GL)
@@ -44,10 +40,6 @@ class Context;
 class C_Device : public D3D11::C_PCD3D11GameDevice
 #elif defined(DEVICE_PS3GCM)
 class C_Device : public GCM::C_GCMDevice
-#elif defined(DEVICE_PCD3D9)
-class C_Device : public D3D9::C_PCD3D9Device
-#elif defined(DEVICE_XB2D3D9)
-class C_Device : public D3D9::C_XB2D3D9Device
 #elif defined(DEVICE_PCGL)
 class C_Device : public GL::C_PCGLDevice
 #elif defined(DEVICE_PS3GL)

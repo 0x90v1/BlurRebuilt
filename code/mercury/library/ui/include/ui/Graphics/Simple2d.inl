@@ -153,6 +153,15 @@ inline void C_Simple2D::ResetClipWindow( const LayerIndex layer, const PanelInde
 }
 
 
+// [Blur2PC][x64] Clear a newly allocated sprite. Retail clears its 128-byte cache line
+// (DCBZ128), which is exactly the sprite on x86; on x64 C_Sprite is 136 bytes, so the
+// aligned line would also clear the end of the previous sprite.
+#if defined(_WIN64)
+#define UI_CLEAR_SPRITE(p) memset( (p), 0, sizeof(C_Sprite) )
+#else
+#define UI_CLEAR_SPRITE(p) DCBZ128( 0, (p) )
+#endif
+
 inline void C_Simple2D::ValidatePanelAndLayer( LayerIndex& uLayer, PanelIndex& uPanel )
 {
 	// Check Layer is valid
@@ -178,7 +187,7 @@ inline void C_Simple2D::AddSprite( LayerIndex uLayer, PanelIndex uPanel, const D
 		return;
 
 	C_Sprite *p = (m_Sprites + m_SpriteCount);
-	DCBZ128( 0, p );
+	UI_CLEAR_SPRITE( p );
 
 	m_LayerPanelSprites[ uLayer ][ uPanel ].PushBack( p );
 
@@ -193,7 +202,7 @@ inline void C_Simple2D::AddSprite( LayerIndex uLayer, PanelIndex uPanel, const D
 	m_SpriteCount++;
 }
 
-inline void C_Simple2D::AddSprite( LayerIndex uLayer, PanelIndex uPanel, const E_SpriteType type, const U32 userData )
+inline void C_Simple2D::AddSprite( LayerIndex uLayer, PanelIndex uPanel, const E_SpriteType type, const INTPTR userData )
 {
 	if( type == E_SpriteType_Sprite || type == E_SpriteType_TriList || type == E_SpriteType_TriStrip || type == E_SpriteType_Model )
 	{
@@ -208,7 +217,7 @@ inline void C_Simple2D::AddSprite( LayerIndex uLayer, PanelIndex uPanel, const E
 		return;
 
 	C_Sprite *p = (m_Sprites + m_SpriteCount);
-	DCBZ128( 0, p );
+	UI_CLEAR_SPRITE( p );
 
 	m_LayerPanelSprites[ uLayer ][ uPanel ].PushBack( p );
 
@@ -222,7 +231,7 @@ inline void C_Simple2D::AddSprite( LayerIndex uLayer, PanelIndex uPanel, const E
 	m_SpriteCount++;
 }
 
-inline void C_Simple2D::AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const MathsStorage::Float3& size, const C_UISpriteColours& colours, PanelIndex uPanel, const E_SpriteType type, const C_RenderState& renderState, const U32 uUserData )
+inline void C_Simple2D::AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const MathsStorage::Float3& size, const C_UISpriteColours& colours, PanelIndex uPanel, const E_SpriteType type, const C_RenderState& renderState, const INTPTR uUserData )
 {
 	// Check panel and layer are valid. Otherwise clamp the values.
 	ValidatePanelAndLayer( uLayer, uPanel );
@@ -231,7 +240,7 @@ inline void C_Simple2D::AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, c
 		return;
 
 	C_Sprite * __restrict p = (m_Sprites + m_SpriteCount);
-	DCBZ128( 0, p );
+	UI_CLEAR_SPRITE( p );
 
 	p->m_Size				= size;
 	p->m_Colours			= colours;
@@ -252,7 +261,7 @@ inline void C_Simple2D::AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, c
 	m_SpriteCount++;
 }
 
-inline void C_Simple2D::AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const F32 fSizeX, const F32 fSizeY, const C_UISpriteColours& colours, PanelIndex uPanel, const E_SpriteType type, const C_RenderState& renderState, const U32 uUserData )
+inline void C_Simple2D::AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const F32 fSizeX, const F32 fSizeY, const C_UISpriteColours& colours, PanelIndex uPanel, const E_SpriteType type, const C_RenderState& renderState, const INTPTR uUserData )
 {
 	// Check panel and layer are valid. Otherwise clamp the values.
 	ValidatePanelAndLayer( uLayer, uPanel );
@@ -261,7 +270,7 @@ inline void C_Simple2D::AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, c
 		return;
 
 	C_Sprite * __restrict p = (m_Sprites + m_SpriteCount);
-	DCBZ128( 0, p );
+	UI_CLEAR_SPRITE( p );
 
 	p->m_Size.x				= fSizeX;
 	p->m_Size.y				= fSizeY;

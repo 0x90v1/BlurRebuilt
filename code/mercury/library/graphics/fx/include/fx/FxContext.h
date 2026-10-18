@@ -192,11 +192,9 @@ private:
 	S32							m_nSharedParams;
 	S32							m_iSharedParamDataSize;
 	int							m_iCurrentTechnique;
-#if defined(BLUR_USE_DX11)
 	// [Blur1PCDX11] The current pass binds through its native FX5 pass, which
 	// rebinds every resource and sampler its shaders use.
 	bool						m_bNativePass;
-#endif
 
 	SharedEffect				*m_pSharedEffect;
 	BlendStateManager			*m_pRenderStateMgr;

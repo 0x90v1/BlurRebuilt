@@ -167,7 +167,7 @@ public:
 		if(poolIndex >= 0)
 		{
 			// get element from back of list
-			pElement = (T*)Spu::Get((U32*)&m_Pool[poolIndex]);
+			pElement = (T*)Spu::Get((INTPTR*)&m_Pool[poolIndex]);	// [Blur2PC][x64] pointer-wide
 		}
 		return pElement;
 	}
@@ -177,7 +177,7 @@ public:
 		if(pElement)
 		{
 			S32 deletedIndex = MT::AtomicIncrement(m_pPoolElements);
-			Spu::Set((U32*)&m_Pool[deletedIndex], (U32)pElement);
+			Spu::Set((INTPTR*)&m_Pool[deletedIndex], (INTPTR)pElement);	// [Blur2PC][x64] pointer-wide
 		}
 	}
 
@@ -292,12 +292,12 @@ public:
 		if(cachedIndex >= 0)
 		{
 			// get element from back of list
-			pElement = (T*)Spu::Get((U32*)&m_Cache[cachedIndex]);
+			pElement = (T*)Spu::Get((INTPTR*)&m_Cache[cachedIndex]);	// [Blur2PC][x64] pointer-wide
 			
 			// place onto active list
 			S32 activeIndex = MT::AtomicIncrement(m_pActiveElements);
 			Spu::Set((U32*)&pElement->m_VectorPosition, (U32)activeIndex);
-			Spu::Set((U32*)&m_Active[activeIndex], (U32)pElement);
+			Spu::Set((INTPTR*)&m_Active[activeIndex], (INTPTR)pElement);	// [Blur2PC][x64] pointer-wide
 		}
 		return pElement;
 	}
@@ -305,7 +305,7 @@ public:
 	void AtomicFree(T* pElement)
 	{
 		S32 deletedIndex = MT::AtomicIncrement(m_pDeletedElements);
-		Spu::Set((U32*)&m_Deleted[deletedIndex], (U32)pElement);
+		Spu::Set((INTPTR*)&m_Deleted[deletedIndex], (INTPTR)pElement);	// [Blur2PC][x64] pointer-wide
 	}
 
 	void Free(T* pElement)

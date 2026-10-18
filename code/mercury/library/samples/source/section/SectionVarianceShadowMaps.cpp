@@ -70,35 +70,10 @@ void C_SectionVarianceShadowMaps::OnPreRender(const C_Input& input, const C_Time
 
 	if(g_debugGaussBlur)
 	{
-		#ifdef PLATFORM_XENON
-		if(Render::Shadow::g_debugUseDepthStencilTexture)
-		{
-			m_TextureUtils.GaussBlurX(&m_VarianceShadowMap.m_DepthStencilTexture, &m_VarianceShadowMap.m_RenderTexture);
-			m_TextureUtils.GaussBlurY(&m_VarianceShadowMap.m_RenderTexture, &m_VarianceShadowMap.m_RenderTexture);
-
-			//m_TextureUtils.GaussBlur(&m_VarianceShadowMap.m_DepthStencilTexture, &m_VarianceShadowMap.m_ColourTexture);
-			//m_TextureUtils.GaussBlur(&m_VarianceShadowMap.m_ColourTexture, &m_VarianceShadowMap.m_DepthStencilTexture);
-		}
-		else
-		{
-			//m_TextureUtils.GaussBlur(&m_VarianceShadowMap.m_RenderTexture, &m_VarianceShadowMap.m_RenderTexture);
-		}
-		#else
 		//m_TextureUtils.GaussBlur(&m_VarianceShadowMap.m_RenderTexture, &m_VarianceShadowMap.m_ColourTexture);
-		#endif
 	}
 	else
 	{
-	#ifdef PLATFORM_XENON
-		if(Render::Shadow::g_debugUseDepthStencilTexture)
-		{
-			m_TextureUtils.CopyTexture(&m_VarianceShadowMap.m_RenderTexture, &m_VarianceShadowMap.m_DepthStencilTexture);
-		}
-		else
-		{
-			m_TextureUtils.CopyTexture(&m_VarianceShadowMap.m_ColourTexture, &m_VarianceShadowMap.m_RenderTexture);
-		}
-	#endif
 	}
 }
 

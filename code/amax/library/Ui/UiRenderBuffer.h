@@ -57,17 +57,6 @@ public:
 											return m_DepthStencilFormat; 
 										}
 
-#if PLATFORM_XENON
-	Display::C_Texture2D&				GetTexture() 
-										{ 
-											return m_ColourTexture; 
-										}
-
-	const Display::C_Texture2D&			GetTexture() const 
-										{ 
-											return m_ColourTexture; 
-										}
-#else
 	Display::C_Texture2D&				GetTexture() 
 										{ 
 											return m_ColourRenderTexture.GetTexture(); 
@@ -77,7 +66,6 @@ public:
 										{ 
 											return m_ColourRenderTexture.GetTexture(); 
 										}
-#endif
 
 private:
 	bool								m_Bound;
@@ -89,14 +77,7 @@ private:
 	Display::E_Format					m_DepthStencilFormat;
 	Display::C_Surface					m_DepthStencilSurface;
 
-#if PLATFORM_XENON
-	Display::C_Surface					m_ColourSurface;
-	Display::C_Texture2D				m_ColourTexture;
-
-	Display::C_TileSetup				m_TileSetup;
-#else
 	Display::C_RenderTexture2D			m_ColourRenderTexture;
-#endif
 };
 
 } // namespace UI

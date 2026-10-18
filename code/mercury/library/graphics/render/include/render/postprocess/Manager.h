@@ -68,11 +68,7 @@ INLINE Display::E_Format DisplayTextureFormat(const E_RenderTargetFormat format)
 		return Display::E_Format_A16B16G16R16F;
 
 	case E_RenderTargetFormat_RGBA_F10:
-		#ifdef PLATFORM_XENON
-		return Display::E_Format_A2B10G10R10F;
-		#else
 		return Display::E_Format_A16B16G16R16F;
-		#endif
 
 	case E_RenderTargetFormat_Depth_U24:
 		return Display::E_Format_D24S8;

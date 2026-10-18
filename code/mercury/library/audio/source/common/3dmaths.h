@@ -10,9 +10,6 @@
 #include <math.h>
 #endif
 
-#if defined (PLATFORM_XENON)
-#include "PPCIntrinsics.h"
-#endif
 
 #if !defined( __INTEL_COMPILER ) && ( defined( COMPILER_VC ) || defined( _MSC_VER ) )
 
@@ -45,11 +42,6 @@ namespace Maths
 #define _AUDIO_MATHS_SPU_
 #endif
 
-#if defined( PLATFORM_XENON )
-#define _AUDIO_MATHS_360_
-#define _AUDIO_MATHS_FAST_VECTOR3_DOT_PRODUCT_
-#define _AUDIO_MATHS_FAST_VECTOR4_DOT_PRODUCT_
-#endif
 
 #if defined( PLATFORM_PC )
 #define _AUDIO_MATHS_SSE_
@@ -359,75 +351,9 @@ inline const T& Clamp(const T& fVal, const T& fMin, const T& fMax)
 	return fVal >= fMax ? fMax : fVal >= fMin ? fVal : fMin;
 }
 
-#if defined( PLATFORM_XENON )
-inline const F32 Max(const F32& a, const F32& b) { return (F32)__fsel((F64)(a - b), (F64)a, (F64)b); }
-inline const F32 Min(const F32& a, const F32& b) { return (F32)__fsel((F64)(b - a), (F64)a, (F64)b); }
-//inline const F32 Clamp(const F32& fVal, const F32& fMin, const F32& fMax)
-inline const F32 Clamp(const F32& fVal, const F32& fLo, const F32& fHi)
-{
-    #if 0
-	return (F32)__fsel((F64)(fVal - fMax), (F64)fMax, __fsel((F64)(fVal - fMin), (F64)fVal, (F64)fMin));
-	#else
-	return Min( Max( fVal, fLo ), fHi );
-	#endif
-}
-#endif
 
 
-#if defined( PLATFORM_XENON )
-
-NOALIAS __forceinline const F32 Abs( const F32 fValue )
-{
-    return __fabs( fValue );
-}
-
-NOALIAS __forceinline const F64 Floor( const F64 dValue )
-{
-    return  __fcfid( __fctidz( dValue ) );
-}
-
-NOALIAS __forceinline const F32 Floor( const F32 fValue )
-{
-    return (F32)Floor( (F64)fValue );
-}
-
-NOALIAS __forceinline const F32 RcpEst( const F32 fValue )
-{
-    return __fres( fValue );
-}
-
-NOALIAS __forceinline const float Rcp( const float src )
-{
-    const float one( 1.0f );
-    const float B( src );
-    const float y0( __fres( src ) );                      // Estimate: 8 bit accuracy
-    const float y1( y0 + ( y0 * ( one - ( B * y0 ) ) ) ); // NR iteration 1: 16 bit accuracy
-    const float y2( y1 + ( y1 * ( one - ( B * y1 ) ) ) ); // NR iteration 2: 24 bit accuracy
-    return (float)__fsel( __fabs( y2 ), y2, 0.0f ); // Returns 0.0 if y2 is a NAN
-}
-
-NOALIAS __forceinline const float RcpSqrt( const float src )
-{
-    const float half( 0.5f );
-    const float one( 1.0f );
-    const float B( src );
-    const float y0( (float)__frsqrte( B ) );                          // Estimate: 8 bit accuracy
-    const float y1( y0 + ( half * y0 * ( one - ( B * y0 * y0 ) ) ) ); // NR iteration 1: 16 bit accuracy
-    const float y2( y1 + ( half * y1 * ( one - ( B * y1 * y1 ) ) ) ); // NR iteration 2: 24 bit accuracy
-    return (float)__fsel( y2, y2, 0.0f ); // Returns 0.0 if y2 is a NAN
-}
-
-NOALIAS __forceinline const float Sqrt( const float a )
-{
-    return (float)__fsel( -a, 0.0f, a * RcpSqrt( a ) ); // Returns 0.0 if a <= 0.0
-}
-
-NOALIAS __forceinline const F32 Select( const F32 fComp, const F32 fPos, const F32 fNeg )
-{
-    return (F32)__fsel( (F64)fComp, (F64)fPos, (F64)fNeg );
-}
-
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 
 inline const F32 Abs( const F32 fValue )
 {
@@ -3734,13 +3660,6 @@ NOALIAS __forceinline const bool operator == ( const Matrix43& m1, const Matrix4
 		           vector3_all_eq( m1.AY,  m2.AY  ) &&
 		           vector3_all_eq( m1.AZ,  m2.AZ  ) &&
 		           vector3_all_eq( m1.Pos, m2.Pos ) );
-    #elif defined( PLATFORM_XENON )
-    const __vector4 eq( __vand( __vand( __vcmpeqfp( m1.CX.xyzw, m2.CX.xyzw ), 
-                                        __vcmpeqfp( m1.CY.xyzw, m2.CY.xyzw ) ),
-                                        __vcmpeqfp( m1.CZ.xyzw, m2.CZ.xyzw ) ) );
-    U32 CR;
-    __vcmpequwR( eq, __vzero(), &CR );
-    return ( CR >> CR6_ALL_FALSE_BIT ) & 1;
     #else
 	return ( m1.AX  == m2.AX  ) &&
 		   ( m1.AY  == m2.AY  ) &&
@@ -3766,13 +3685,6 @@ NOALIAS __forceinline const bool operator != ( const Matrix& m1, const Matrix& m
 		           vector3_any_ne( m1.AY,  m2.AY  ) ||
 		           vector3_any_ne( m1.AZ,  m2.AZ  ) ||
 		           vector3_any_ne( m1.Pos, m2.Pos ) );
-    #elif defined( PLATFORM_XENON )
-    const __vector4 eq( __vand( __vand( __vcmpeqfp( m1.CX.xyzw, m2.CX.xyzw ), 
-                                        __vcmpeqfp( m1.CY.xyzw, m2.CY.xyzw ) ),
-                                        __vcmpeqfp( m1.CZ.xyzw, m2.CZ.xyzw ) ) );
-    U32 CR;
-    __vcmpequwR( eq, __vzero(), &CR );
-    return ~( CR >> CR6_ALL_FALSE_BIT ) & 1;
     #else
 	return ( m1.AX  != m2.AX  ) ||
 		   ( m1.AY  != m2.AY  ) ||
@@ -3944,12 +3856,6 @@ NOALIAS __forceinline const Vector3 Matrix43::Transform( const Vector3 v ) const
     result.xyz = vec_madd( vector_splat_x( v.xyz ), AX,
                  vec_madd( vector_splat_y( v.xyz ), AY,
                  vec_madd( vector_splat_z( v.xyz ), AZ, Pos ) ) );
-    #elif defined( PLATFORM_XENON )
-    const __vector4 v_xyz1( __vrlimi( v.xyz, g_VectorOne, MASK_INSERT_W, 0 ) );
-    const __vector4 x( __vmsum4fp( CX.xyzw, v_xyz1 ) );
-    const __vector4 y( __vmsum4fp( CY.xyzw, v_xyz1 ) );
-    const __vector4 z( __vmsum4fp( CZ.xyzw, v_xyz1 ) );
-    result.xyz = __vmrghw( __vmrghw( x, z ), __vmrghw( y, __vzero() ) );
 	#else
 	result.x = v.x * AX.x + v.y * AY.x + v.z * AZ.x + Pos.x;
 	result.y = v.x * AX.y + v.y * AY.y + v.z * AZ.y + Pos.y;

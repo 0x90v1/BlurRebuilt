@@ -22,13 +22,8 @@ void Audio::GetInfoCommon(void* p, bool bAverage)
 
 	pInfo->uTotalPCMDecoders = Core::PCMS16Decoder::Total();
 	pInfo->uActivePCMDecoders = Core::PCMS16Decoder::Active();
-#if defined (PLATFORM_XENON)
-	pInfo->uTotalXMADecoders = Core::XMADecoder::Total();
-	pInfo->uActiveXMADecoders = Core::XMADecoder::Active();
-#else
 	pInfo->uTotalXMADecoders = 0;
 	pInfo->uActiveXMADecoders = 0;
-#endif
 #else // CFG_GOLD
 	pInfo->uTotalWaves = 0;
 	pInfo->uActiveWaves = 0;

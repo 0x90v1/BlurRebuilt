@@ -7,14 +7,7 @@
 
 #pragma warning(disable:4146)
 
-#if defined(_XBOX)
-
-#include <xtl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 
 #include <limits.h>
 #include <stdio.h>

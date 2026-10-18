@@ -67,21 +67,10 @@ bool C_DoFFgBg::Create()
 bool C_DoFFgBg::CreateVolatile()
 {
 	Display::C_SurfaceParams surfaceParams;
-#if defined(PLATFORM_XENON)
-	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
-	surfaceParams.Base = 0;
-	surfaceParams.Base += XGSurfaceSize(backBuffer.GetWidth(), backBuffer.GetHeight(), Display::D3D9Format(backBuffer.GetColourFormat()), Display::D3D9Multisample(backBuffer.GetMultisample()));
-	if(m_Manager.GetViewCount() > 0)
-		surfaceParams.Base += m_Manager.GetMaximumSurfaceSize();
-#endif
 
 	U8* pCurrentTextureBuffer = m_pTextureBuffer;
 
-#if defined(PLATFORM_XENON)
-	const Display::E_Format eFormat = Display::E_Format_A16B16G16R16F;
-#else
 	const Display::E_Format eFormat = Display::E_Format_Unknown;
-#endif
 
 	U8* pQuarterSizeAddress	= m_pTextureBuffer;
 	U8* pDownsampleAddress	= m_pTextureBuffer;
@@ -98,25 +87,15 @@ bool C_DoFFgBg::CreateVolatile()
 		iQuarterTextureSize = m_Manager.GetMaximumTextureSize(2, 2, eFormat);
 		iSixteenthTextureSize = m_Manager.GetMaximumTextureSize(4, 4, eFormat);
 		U32 iTotalSize = iSixteenthTextureSize * 3;
-#if defined(PLATFORM_XENON)
-		iTotalSize += iQuarterTextureSize;
-#endif
 		if(iTotalSize > m_iTextureBufferSize)
 		{
 			LOGERROR(g_Log, "Texture buffer size not large enough\n");
 			return false;
 		}
-#if defined(PLATFORM_XENON)
-		pDownsampleAddress = pQuarterSizeAddress + iQuarterTextureSize;
-#endif
 		pSmallBlurAddress = pDownsampleAddress + iSixteenthTextureSize;
 		pLargeBlurAddress = pSmallBlurAddress + iSixteenthTextureSize;
 	}
 
-#if defined(PLATFORM_XENON)
-	if(!m_Manager.CreateUserRenderTextures(2, 2, flags, eFormat, &surfaceParams, m_QuarterSizeRenderTextures, pQuarterSizeAddress, iQuarterTextureSize))
-		return false;
-#endif
 	if(!m_Manager.CreateUserRenderTextures(4, 4, flags, eFormat, &surfaceParams, m_DownsampleRenderTextures, pDownsampleAddress, iSixteenthTextureSize))
 		return false;
 	if(!m_Manager.CreateUserRenderTextures(4, 4, flags, eFormat, &surfaceParams, m_SmallBlurRenderTextures, pSmallBlurAddress, iSixteenthTextureSize))
@@ -137,9 +116,6 @@ void C_DoFFgBg::Destroy()
 
 void C_DoFFgBg::DestroyVolatile()
 {
-#if defined(PLATFORM_XENON)
-	m_Manager.DestroyUserRenderTextures(m_QuarterSizeRenderTextures);
-#endif
 	m_Manager.DestroyUserRenderTextures(m_DownsampleRenderTextures);
 	m_Manager.DestroyUserRenderTextures(m_SmallBlurRenderTextures);
 	m_Manager.DestroyUserRenderTextures(m_LargeBlurRenderTextures);
@@ -153,19 +129,11 @@ void C_DoFFgBg::SetTextureBuffer(U8* pTextureBuffer, const U32 iTextureBufferSiz
 
 U32 C_DoFFgBg::GetTextureBufferRequiredSize() const
 {
-#if defined(PLATFORM_XENON)
-	const Display::E_Format eFormat = Display::E_Format_A16B16G16R16F;
-#else
 	const Display::E_Format eFormat = Display::E_Format_Unknown;
-#endif
 	const U32 iQuarterTextureSize = m_Manager.GetMaximumTextureSize(2, 2, eFormat);
 	const U32 iSixteenthTextureSize = m_Manager.GetMaximumTextureSize(4, 4, eFormat);
 
-#if defined(PLATFORM_XENON)
-	return iSixteenthTextureSize * 3 + iQuarterTextureSize;
-#else
 	return iSixteenthTextureSize * 3;
-#endif
 }
 
 void C_DoFFgBg::ConvertDepthOfFieldParameters(const F32 fPlaneInFocus, const F32 fAperture, F32& fNearStartDistance, F32& fNearEndDistance, F32& fFarStartDistance, F32& fFarEndDistance) const
@@ -269,9 +237,6 @@ void C_DoFFgBg::Display() const
 	Display::Device()->SetBlendMode(Display::E_BlendMode_Solid);
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_All);
 
-#if defined(PLATFORM_XENON)
-	DownsampleResolve(&m_QuarterSizeRenderTextures[iRenderTarget]->GetTexture());
-#endif
 
 	// downsample the main colour buffer
 	{
@@ -289,11 +254,7 @@ void C_DoFFgBg::Display() const
 		Display::Device()->SetPixelShaderParameterF(m_DownsampleDepthParameter, (F32*)&vDepth);
 		Display::Device()->SetPixelShader(&m_DownsampleShader);
 
-#if defined(PLATFORM_XENON)
-		Display::Device()->SetTexture(0, &m_QuarterSizeRenderTextures[iRenderTarget]->GetTexture());
-#else
 		Display::Device()->SetTexture(0, m_Manager.GetMainTexture());
-#endif
 #if defined(PLATFORM_PS3)
 		Display::Device()->SetTexture(1, Display::Device()->GetBackBuffer().GetDepthStencilTexture());
 #else
@@ -383,11 +344,7 @@ void C_DoFFgBg::Display() const
 		Display::Device()->SetPixelShaderParameterF(m_CombineDepthParameter, (F32*)&vDepth);
 		Display::Device()->SetPixelShader(&m_CombineShader);
 
-#if defined(PLATFORM_XENON)
-		Display::Device()->SetTexture(0, &m_QuarterSizeRenderTextures[iRenderTarget]->GetTexture());
-#else
 		Display::Device()->SetTexture(0, m_Manager.GetMainTexture());
-#endif
 		Display::Device()->SetTexture(1, &m_SmallBlurRenderTextures[iRenderTarget]->GetTexture());
 		Display::Device()->SetTexture(2, &m_LargeBlurRenderTextures[iRenderTarget]->GetTexture());
 #if defined(PLATFORM_PS3)

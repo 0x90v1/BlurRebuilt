@@ -27,9 +27,7 @@
 
 namespace RacerNet
 {
-	#if defined (PLATFORM_XENON)
-		const U32 AMAX_LAN_DISCOVERY_PORT =  (1200);
-	#elif defined (PLATFORM_PS3)
+	#if defined (PLATFORM_PS3)
 		const U32 AMAX_LAN_DISCOVERY_PORT =  (50000);
 	#elif defined (PLATFORM_PC)
 		const U32 AMAX_LAN_DISCOVERY_PORT =  (50001);

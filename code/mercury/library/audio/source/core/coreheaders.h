@@ -80,19 +80,6 @@ void StoreHeapPosition();
 
 #include "../../include/Audio.h"
 
-#ifdef _XBOX360
-#include "malloc.h"
-#include "memory.h"
-#include <xtl.h>
-#include <xboxmath.h>
-#ifdef USE_XAUDIO2
-#include <xaudio2.h>
-#else
-#include <xaudio.h>
-#include <xaudfx.h>
-#endif
-#include <xtl.h>    
-#endif // _XBOX360
 
 
 // needed to fit code on ps3 spu- may cause some performance hit on 360.

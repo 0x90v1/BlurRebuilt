@@ -68,19 +68,6 @@ Util::C_String AutoConfigure::GetPath(int i)
 	}
 }
 
-#elif defined( PLATFORM_XENON )
-
-int	AutoConfigure::GetNumPaths()
-{
-	return 1;
-}
-
-Util::C_String AutoConfigure::GetPath(int i)
-{
-	// try game root path
-	return Util::C_String("GAME:\\");
-}
-
 #elif defined( PLATFORM_PS3 )
 
 int AutoConfigure::GetNumPaths()

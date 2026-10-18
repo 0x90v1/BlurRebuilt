@@ -56,13 +56,7 @@ Variant/Variant.cpp
 #if win32 tool or xbox 360 game...
 JAM_USE_XMEM_COMPRESSION = 0 ;
 
-if $(PLATFORM) = "XENON"
-{
-	#echo NOTE: Misc_Shared was built WITH XMemCompress support (360) ;
-	Define USE_XMEM_COMPRESSION ;
-	JAM_USE_XMEM_COMPRESSION = 1 ;
-}
-else if $(TOOL) = 1
+if $(TOOL) = 1
 {
 	#echo NOTE: Misc_Shared was built WITH XMemCompress support (PC CONVERTER) ;
 	Define USE_XMEM_COMPRESSION ;

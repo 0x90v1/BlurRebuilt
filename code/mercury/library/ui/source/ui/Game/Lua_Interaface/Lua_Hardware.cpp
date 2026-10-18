@@ -151,16 +151,8 @@ static int FindXbox360SaveLocation( lua_State* pState )
 
 static int SpaceLeftOnDevice( lua_State* pState )
 {
-#ifdef PLATFORM_XENON
-	S32 sError = 0;
-	U32 uNumBytes = (U32)Maths::Clamp< ULONGLONG >( gGameSaveSystem.SpaceLeftOnCurrentDevice( &sError ), 0, 1024*1024*1024 );	// cap it
-
-	lua_pushnumber( pState, uNumBytes );
-	lua_pushboolean( pState, sError != ERROR_DEVICE_NOT_CONNECTED );
-#else
 	lua_pushnumber( pState, 0 );
 	lua_pushboolean( pState, false );
-#endif
 
 	return 2;
 }
@@ -176,9 +168,6 @@ static S32 ShowFriends360( lua_State* pState )
 
 	S32 sPad = (S32)lua_tonumber( pState, 1 );
 
-#ifdef PLATFORM_XENON
-	XShowFriendsUI( sPad );
-#endif
 
 	return 0;
 }
@@ -194,18 +183,12 @@ static S32 ShowParty360( lua_State* pState )
 
 	S32 sPad = (S32)lua_tonumber( pState, 1 );
 
-#ifdef PLATFORM_XENON
-	XShowPartyUI( sPad );
-#endif
 
 	return 0;
 }
 
 static S32 ReturnToDemoLauncher( lua_State* pState ) 
 {
-#if defined(PLATFORM_XENON)
-	gDashboardInterface.ReturnToDemoLauncher();
-#endif
 	return 0;
 }
 

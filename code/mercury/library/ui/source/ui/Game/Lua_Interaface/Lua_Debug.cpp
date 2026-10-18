@@ -46,11 +46,6 @@ int BeginNamedEvent(lua_State* pState)
 
 		Perf::BeginNamedEvent(name);
 
-#if defined (PLATFORM_XENON)
-#ifdef ENABLE_PIX
-		PIXBeginNamedEvent(0, name);
-#endif
-#endif
 
 	}
 	return 0;
@@ -60,11 +55,6 @@ int EndNamedEvent(lua_State* pState)
 {
 	Perf::EndNamedEvent();
 
-#if defined (PLATFORM_XENON)
-#ifdef ENABLE_PIX
-	PIXEndNamedEvent();
-#endif
-#endif
 
 	return 0;
 }

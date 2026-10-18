@@ -84,7 +84,7 @@ void C_ModelInstanceFlatList::Remove(C_ModelInstance* pModelInstance, const bool
 			if(positionIndex < m_CullNodes.Size())
 				m_CullNodes[positionIndex]->m_PositionIndex = positionIndex;
 
-			BIZ_ASSERT_MSG_SPEED(((U32)pBasicCullNode & 0xF) == 0, "pBasicCullNode alignmnent issue: %x", pBasicCullNode);
+			BIZ_ASSERT_MSG_SPEED(((INTPTR)pBasicCullNode & 0xF) == 0, "pBasicCullNode alignmnent issue: %x", pBasicCullNode);
 
 			g_CullNodes.Free(pBasicCullNode);
 			pModelInstance->SetCullNode(NULL);
@@ -245,11 +245,7 @@ void C_ModelInstanceFlatList::OnGatherDeferred(const void* p) const
 				DCBT(128, &pOutput->results[i+1]);
 
 				VolatileNodeInfo volatileNodeInfo = pOutput->results[i].volatileInfo;
-			#ifdef PLATFORM_XENON
-				U32 predication = pOutput->results[i].predication;
-			#else
 				U32 predication = 0;
-			#endif
 
 				if(pOutput->results[i].passIndex != 0xFFFF)
 					pView->AddVisibleNode(pModelInstance, pOutput->results[i].passIndex, predication, volatileNodeInfo.data, volatileNodeInfo.screenSize);
@@ -265,11 +261,7 @@ void C_ModelInstanceFlatList::OnGatherDeferred(const void* p) const
 
 				VolatileNodeInfo volatileNodeInfo = pOutput->results[i].volatileInfo;
 
-			#ifdef PLATFORM_XENON
-				U32 predication = pOutput->results[i].predication;
-			#else
 				U32 predication = 0;
-			#endif
 
 				if(pOutput->results[i].passIndex != 0xFFFF)
 					pView->AddVisibleNode(pModelInstance, pOutput->results[i].passIndex, predication, volatileNodeInfo.data);

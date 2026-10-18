@@ -21,10 +21,6 @@ C_LayerManagerThread::~C_LayerManagerThread()
 
 void C_LayerManagerThread::ThreadMain()
 {
-#ifdef PLATFORM_XENON
-	XSetThreadProcessor(GetCurrentThread(), 1);
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
-#endif
 	
 	//C_Manager* pManager = C_Manager::GetInstance();
 	m_pLayerManager->SetStatusDirty();

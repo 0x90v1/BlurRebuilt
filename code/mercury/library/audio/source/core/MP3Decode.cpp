@@ -483,7 +483,7 @@ Audio::MP3Handle Audio::Core::MP3DecodeManager::CreateMP3Stream(U8* pMP3Data, U3
 
 	if (retHandle.IsValid())
 	{
-		m_StreamHandles.MapResourceToHandle(retHandle, (S32)pNewStream);
+		m_StreamHandles.MapResourceToHandle(retHandle, (HandleResource)pNewStream);	// [Blur2PC][x64]
 	}
 
 	return retHandle;

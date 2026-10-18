@@ -9,12 +9,6 @@
 	//#define ENABLE_MASSIVE
 #endif
 
-#ifdef PLATFORM_XENON
-#include <xdk.h>
-#if _XDK_VER >= 9328
-	#define ENABLE_MASSIVE
-#endif
-#endif
 
 /*#ifdef PLATFORM_PS3
 	#define ENABLE_IGA
@@ -204,9 +198,7 @@ namespace Advertising
 
 		void LoadAdvertResource(Sys::I_File& file);
 
-#if defined(ENABLE_MASSIVE) && defined(PLATFORM_XENON)
-		bool TextureDownloaded(int index, const U8* data, size_t dataLength, U32 type);
-#elif defined(ENABLE_IGA) || (defined(ENABLE_MASSIVE) && defined(PLATFORM_PC))
+#if defined(ENABLE_IGA) || (defined(ENABLE_MASSIVE) && defined(PLATFORM_PC))
 		bool TextureDownloaded(int index, const U8* data, size_t dataLength);
 #endif
 

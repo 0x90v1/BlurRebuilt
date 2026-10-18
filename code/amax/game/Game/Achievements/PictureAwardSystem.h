@@ -31,16 +31,6 @@ private:
 
 	int mPictureAwardMapping[BLUR_PICTURE_AWARD_MAX];
 
-#ifdef PLATFORM_XENON
-	typedef struct PictureAwardOverlappedTracker
-	{
-		XOVERLAPPED *mOverlapped;
-		HANDLE mHandle;
-		int mPicture;
-	}PictureAwardOverlappedTracker;
-
-	Btl::Vector<PictureAwardOverlappedTracker> mGivePictureAwardTasksStore;
-#endif
 };
 
 } // namespace Game

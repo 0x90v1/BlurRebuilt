@@ -75,11 +75,7 @@ void RadixSorter<VectorType>::Sort(VectorType& vector)
 
 	int size = vector.Size();
 
-#ifdef _XENON
-	XMemSet(&count, 0, sizeof(count));
-#else
 	memset(&count, 0, sizeof(count));
-#endif
 
 	// count number of elements for each byte of the key
 	for (typename VectorType::Iterator it = vector.Begin(); it != vector.End(); ++it)

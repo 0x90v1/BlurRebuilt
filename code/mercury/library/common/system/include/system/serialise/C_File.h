@@ -80,7 +80,7 @@ private:
 	// local data buffer
 	U8*				buffer;
 	// file handle
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	HANDLE			m_f;
 #elif defined(PLATFORM_PS3)
 	int				m_f;

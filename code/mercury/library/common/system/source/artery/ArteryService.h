@@ -61,7 +61,7 @@ private:
 
 	int						_maxPeers;
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	HANDLE					_wakeEvent;
 #elif defined(PLATFORM_PS3) || defined(PLATFORM_LINUX)
 	ArterySocket			_wakeIn;

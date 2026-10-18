@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 	typedef signed __int8		XtI8;
 	typedef signed __int16		XtI16;

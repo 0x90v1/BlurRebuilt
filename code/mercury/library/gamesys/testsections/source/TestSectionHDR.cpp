@@ -17,11 +17,7 @@ C_TestSectionHDR::C_TestSectionHDR(const Util::C_String& name) : Framework::C_Te
 
 	m_pPostProcessHdr->SetBloom(m_pPostProcessBloom);
 	m_pPostProcessHdr->SetType(PostProcess::E_Type_Final);
-	#ifdef PLATFORM_XENON
-	m_pPostProcessHdr->SetHighDynamicRangeType(PostProcess::E_HighDynamicRangeType_Shader);
-	#else
 	m_pPostProcessHdr->SetHighDynamicRangeType(PostProcess::E_HighDynamicRangeType_ShaderU32);
-	#endif
 
 	SetupPostProcess();
 }

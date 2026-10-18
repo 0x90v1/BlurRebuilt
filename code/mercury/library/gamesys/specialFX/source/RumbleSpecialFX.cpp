@@ -111,7 +111,7 @@ namespace SpecialFX
 	{
 		if (paramID == SpecialFX::E_ParamID_SetCameraViewport)
 		{
-			m_output.m_ViewportID = (S32) pData;
+			m_output.m_ViewportID = (S32)(INTPTR) pData;	// [Blur2PC][x64] integer carried in the pointer
 		}
 	}
 

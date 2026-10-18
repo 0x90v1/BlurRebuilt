@@ -458,6 +458,10 @@ public:
 	const Type& operator[](int index) const				{ assert((index >= 0) && (index < count)); return elements[index]; }
 	Type& operator[](unsigned int index)				{ assert((int)index < count); return elements[index]; }
 	const Type& operator[](unsigned int index) const	{ assert((int)index < count); return elements[index]; }
+#if defined(_WIN64) // [Blur2PC][x64] size_t indices; on x86 size_t is unsigned int
+	Type& operator[](size_t index)						{ assert(index < (size_t)count); return elements[index]; }
+	const Type& operator[](size_t index) const			{ assert(index < (size_t)count); return elements[index]; }
+#endif
 };
 
 template<typename StorageType, typename FlagType>

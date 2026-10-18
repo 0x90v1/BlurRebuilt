@@ -11,7 +11,7 @@
 #endif
 
 #include <input\PadVirtual.h>
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #include <Input/Pad360.h>
 #endif
 
@@ -280,7 +280,7 @@ Input::C_ButtonInput* C_ControlConfig::CreateButtonInput( Input::C_Device* pPad,
 		return new Input::C_ButtonInputFromDevice(pPad, Input::C_PadPS3::E_Button_L3 );
 	if( m_GameFunctionRThumb == buttonId )
 		return new Input::C_ButtonInputFromDevice(pPad, Input::C_PadPS3::E_Button_R3 );
-#elif defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#elif defined(PLATFORM_PC)
 	if( m_GameFunctionA == buttonId )
 		return new Input::C_ButtonInputFromDevice(pPad, Input::C_Pad360::E_Button_A );
 	if( m_GameFunctionB == buttonId )

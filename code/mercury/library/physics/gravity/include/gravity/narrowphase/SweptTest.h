@@ -10,11 +10,7 @@ namespace Collision
 		using namespace Maths;
 		const HF32 zero(Constants<HF32>::Zero());
 		const HF32 one(Constants<HF32>::One());
-#ifdef XENON
-		const Scalar_Bool bFalse(zero.m_F);
-#else
 		const Scalar_Bool bFalse(false);
-#endif
 		
 
 		/*

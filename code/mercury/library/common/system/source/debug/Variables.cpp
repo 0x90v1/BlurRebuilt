@@ -156,7 +156,7 @@ Debug::VarBase::VarBase(const char* name, VarType type) :
 		gDebugVariablesListDirty = true;
 	}
 
-#if !defined(CFG_GOLD) && (defined(PLATFORM_XENON) || defined(PLATFORM_PC))
+#if !defined(CFG_GOLD) && defined(PLATFORM_PC)
 	if ((Type() != kVtRoot) && !IsDebugVariableNameValid(name))
 	{
 		char buf[256];

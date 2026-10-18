@@ -71,7 +71,7 @@ void RefreshTextures(const Util::C_String& dir)
 
 	Display2::Device()->LockMutex();
 
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	Display::Device()->BlockUntilIdle();
 	#endif
 
@@ -185,36 +185,6 @@ void RefreshTextures(const Util::C_String& dir)
 								{
 									if(fileInfo.m_FileTime > pTexture->GetFileTime())
 									{
-									#ifdef PLATFORM_XENON
-										assert(pTexture->m_pd3dTexture);
-										IDirect3DTexture9* pd3dTexture = NULL;
-										const HRESULT hr = D3DXCreateTextureFromFile(Display::Device()->GetD3DDevice(), fileOnDisk.Chars(), &pd3dTexture);
-										if(SUCCEEDED(hr))
-										{
-											pd3dTexture->Format.SignX = pTexture->m_pd3dTexture->Format.SignX;
-											pd3dTexture->Format.SignY = pTexture->m_pd3dTexture->Format.SignY; 
-											pd3dTexture->Format.SignZ = pTexture->m_pd3dTexture->Format.SignZ;
-
-											if(pTexture->GetFlags() & Display::E_Usage_Managed)
-											{
-												SAFE_RELEASE(pTexture->m_pd3dTexture);
-											}
-											else
-											{
-												Display::Device()->FreeResourceMemory(Display::E_ResourceType_Texture2D, pTexture->GetFlags(), pTexture->GetSize(), pTexture->GetAddress(), pTexture->GetSystemID());
-											}
-											pTexture->m_pd3dTexture = pd3dTexture;
-
-											pTexture->SetFlags(Display::E_Usage_Managed);
-											pTexture->SetFileTime(fileInfo.m_FileTime);
-
-											LOGINFO(g_Log, "Successfully reloaded texture %s\n", fileOnDisk.Chars());
-										}
-										else
-										{
-											LOGINFO(g_Log, "Failed to reload texture %s\n", fileOnDisk.Chars());
-										}
-									#endif
 									}
 								}
 							}

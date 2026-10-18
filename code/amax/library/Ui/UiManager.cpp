@@ -102,9 +102,6 @@
 #include "GameAudio/GameAudioLayer.h"
 
 #include <Graphics/HDR.h>
-#if defined(PLATFORM_XENON)
-#include "Network/Router/NetRouter_xenon.h"
-#endif
 #include <Network\Core\NetScoreboards.h>
 
 #include <Game/Achievements/AchievementEnums.h>
@@ -212,11 +209,6 @@
 #include <PS3Installer/PS3InstallData.h>
 #endif
 
-#ifdef PLATFORM_XENON
-#include <xtitleidbegin.h>
-	XEX_TITLE_ID(0x41560845)	// assigned by MS.  
-#include <xtitleidend.h> 
-#endif // PLATFORM_XENON
 
 #ifdef CFG_ALLOW_OPTIMIZE_OFF_UI
 #pragma optimize("", off)
@@ -300,7 +292,7 @@ Debug::Bool g_UiShouldRenderPanel_2DIG_B( "UI.Panel.2D_B", true );
 void C_GameFileSystem_UpdateSystemMessages(){}
 
 // ***
-#ifdef WIN64
+#if 0 // [Blur2PC][x64] was #ifdef WIN64: the blobs are C definitions (luabundle.py, gen_cmake.py) named _binary_* on every arch
 #define UIBIN_START			__binary_Amax_LUA_bin_start
 #define UIBIN_END			__binary_Amax_LUA_bin_end
 #else
@@ -805,21 +797,11 @@ C_UiManager::C_UiManager( const U32 sInitParam ) :
 	C_UISpriteColours::SetStyle( m_UiColourStyle );
 
 	// reads in UIEnums.lua too
-#if defined (PLATFORM_XENON)
-	void *ptrToLuaScripts;
-	unsigned long sectionSize;
-	if (!XGetModuleSection(GetModuleHandle(NULL), "UIScript", &ptrToLuaScripts, &sectionSize))
-	{
-		LOGFATAL(g_Log, "LUA not embedded in EXE.");
-	}
-	g_pUILua->Init( true, "DontShip\\Ui\\Scripts\\", ptrToLuaScripts );
-#else
 	if( UIBIN_START == NULL )
 	{
 		LOGFATAL(g_Log, "LUA not embedded in EXE.");
 	}
 	g_pUILua->Init( true, "DontShip\\Ui\\Scripts\\", UIBIN_START );
-#endif
 	// NOTE : Make sure these are added in the same order as the E_Context enum
 	const S32 sMainContext = C_ScreenControlManager::Instance().Count();
 	C_ScreenControlManager::Instance().Add();		// E_Context_Main
@@ -860,11 +842,7 @@ C_UiManager::C_UiManager( const U32 sInitParam ) :
 
 	BIZ_ASSERT( C_ScreenControlManager::Instance().Count() == E_Context_Count );
 
-#if defined ( PLATFORM_XENON )
-	C_UIFriends::Instance().Initialise( sFriendsContext, -1 /*E_UiMsg_CtrlButton_Back*/, "FriendsList.lua" );
-#else 
 	C_UIFriends::Instance().Initialise( sFriendsContext, E_UiMsg_CtrlButton_Back, "FriendsList.lua" );
-#endif
 	C_UIFriends::Instance().SetInterface( this );
 	
 	lua_State* pState = g_pUILua->GetState();
@@ -1979,7 +1957,7 @@ void C_UiManager::ProcessController()
 
 		const S8 sPadIndex = (S8)i;
 
-#if defined (PLATFORM_PS3) || defined (PLATFORM_XENON)
+#if defined(PLATFORM_PS3)
 		bool padDisconnected = false;
 		if(sPadIndex < Framework::E_UserInputIndex_Count)
 		{
@@ -3015,11 +2993,7 @@ bool C_UiManager::CanJoinSessionInProgress( const U32 uIndex )
 		{
 			if (inv.m_Active)
 			{
-#if defined (PLATFORM_XENON)
-				const bdSecurityID& secId = inv.m_InviteData.hostInfo.sessionID;
-#else
 				const bdSecurityID& secId = inv.m_Id;
-#endif
 				// if we are not already in this session the we can join it
 				if (!ns.Party().InSession(secId) && !ns.Race().InSession(secId))
 					return true;
@@ -3089,11 +3063,9 @@ void C_UiManager::JoinSessionInProgress( const U32 uIndex )
 		{
 			if (inv.m_Active)
 			{
-#if !defined (PLATFORM_XENON)
 				// removes game invite from the presence data once accepted on this platform..
 				const S32 pad = C_UIFriends::Instance().GetPadNo();
 				sysProfileMgr.ProcessGameInvite(pad, profile, true);
-#endif
 				ns.AcceptGameInvite(inv);
 
 				// clear invite from enumerated data, incase the enumerator is not updating the presence each frame.
@@ -3105,18 +3077,13 @@ void C_UiManager::JoinSessionInProgress( const U32 uIndex )
 				SysProfile::GameInvite hackedInv;
 				hackedInv.m_Active = true;
 
-#if defined (PLATFORM_XENON)
-				hackedInv.m_InviteData.hostInfo.sessionID = presence.m_OnlineSessionId;
-#else
 				hackedInv.m_Id = presence.m_OnlineSessionId;
-#endif
 				ns.AcceptGameInvite(hackedInv);
 			}
 		}
 	}
 }
 
-#ifndef PLATFORM_XENON
 void C_UiManager::BuildPresenceString( const U32 uIndex, C_WideString64& string )
 {
 	string.Clear();
@@ -3326,7 +3293,6 @@ void C_UiManager::BuildPresenceString( const U32 uIndex, C_WideString64& string 
 		}
 	}
 }
-#endif
 
 void C_UiManager::RefreshLocalNetPlayerName()
 {
@@ -3365,11 +3331,9 @@ bool C_UiManager::MessageHandler( const Messaging::C_MessageBase* pMessage )
 			Lua::Call( g_pUILua->GetState(), "ProfileSignedInOut", "bi", false, ((const C_ProfMsg_SignedOut*)pMessage)->m_Pad );
 			break;
 
-#ifndef PLATFORM_XENON // The xbox doesnt need to kick players out of the xbox live section because we use MS user and title storage. Only the player counts will stop fucntioning.
 		case E_ProfMsg_ServiceConnectionLostXLSP:
 			Lua::Call( g_pUILua->GetState(), "XLSPConnectionLost" );
 			break;
-#endif // PLATFORM_XENON
 
 		case E_ProfMsg_ServiceConnectionEstablished:
 			RefreshLocalNetPlayerName();

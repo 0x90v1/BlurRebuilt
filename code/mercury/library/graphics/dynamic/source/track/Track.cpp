@@ -91,9 +91,6 @@ void C_TrackRenderer::Destroy()
 {
 	if(m_VertexShader.IsCreated())
 	{
-#if PLATFORM_XENON
-		Display::g_ContextManager.FreePatchedVertexShader(m_VertexShader.GetGPUVertexShader());
-#endif
 		Display::Device()->Destroy(&m_VertexShader);
 	}
 	if(m_PixelShaderAlpha.IsCreated())

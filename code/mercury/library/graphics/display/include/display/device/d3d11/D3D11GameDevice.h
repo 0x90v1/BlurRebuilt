@@ -374,9 +374,6 @@ public:
 
 	C_DeviceParams						m_DeviceParams;
 
-#ifdef PLATFORM_XENON
-	bool								m_HighPrecisionColourSurface;
-#endif
 
 	E_Bool								m_BlendHighPrecisionEnable;
 	F32									m_SlopeScaledBias;

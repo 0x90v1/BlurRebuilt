@@ -5,11 +5,7 @@
 #include "Render/Shaders/vsConstants.h"
 #include "Samples/Section/SectionAntiAliasing.h"
 
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Effects/PCD3D9/psAntiAliasing.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Effects/XB2/psAntiAliasing.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Effects/PS3/psAntiAliasing.shader"
 #endif
 

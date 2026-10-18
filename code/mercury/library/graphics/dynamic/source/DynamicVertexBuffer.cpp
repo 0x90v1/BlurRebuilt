@@ -272,7 +272,7 @@ C_DynamicVertexBufferBlock	C_DynamicVertexBuffer::Begin(const Util::C_String128&
 
 	// return a buffer block to the client for filling
 	C_DynamicVertexBufferBlock block;
-	block.pVertices = (void*)((U32)m_VertexBuffers[m_CurrentVertexBuffer].pVertices + m_CurrentVertexOffset);
+	block.pVertices = (void*)((INTPTR)m_VertexBuffers[m_CurrentVertexBuffer].pVertices + m_CurrentVertexOffset);	// [Blur2PC][x64]
 	m_CurrentVertexOffset += vertexSize * vertexCount;
 
 	// if we're using index buffers then store relevant data here
@@ -282,7 +282,7 @@ C_DynamicVertexBufferBlock	C_DynamicVertexBuffer::Begin(const Util::C_String128&
 		m_Blocks[m_CurrentBlock].indexBufferIndex = m_CurrentIndexBuffer;
 		m_Blocks[m_CurrentBlock].indexCount = indexCount;
 
-		block.pIndices = (void*)((U32)m_IndexBuffers[m_CurrentIndexBuffer].pIndices + m_CurrentIndexOffset);
+		block.pIndices = (void*)((INTPTR)m_IndexBuffers[m_CurrentIndexBuffer].pIndices + m_CurrentIndexOffset);	// [Blur2PC][x64]
 		m_CurrentIndexOffset += sizeof(U16) * indexCount;
 	}
 	else

@@ -163,19 +163,6 @@ namespace Audio
 #endif  // PLATFORM_SPU
 		
 		
-#ifdef PLATFORM_XENON
-		TaskData *pData = (TaskData*)pTask->ParamData;
-		cFrameAdd* frameAdd = pData->gpFrameAdd;
-		for (U32 x = 0 ; x < pData->gFrameAddIndex; x++)
-		{
-		
-			F32* dest = frameAdd[x].mpTo;
-			const F32* srcA = frameAdd[x].mpFromA;
-			const F32* srcB = frameAdd[x].mpFromB;
-			
-			Frame::DoAdd( dest, srcA, srcB );
-		}
-#endif
 
 #ifdef PLATFORM_PC
 		TaskData *pData = (TaskData*)pTask->ParamData;

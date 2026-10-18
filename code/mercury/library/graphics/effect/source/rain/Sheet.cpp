@@ -60,12 +60,6 @@ bool C_SheetRenderer::OnCreate()
 {
 	RESOURCE_MEMORY_ID("RainSheet");
 
-	#if defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
-	if (!Display::CreateVertexShaderFromFunc("Shaders/vsSheet", 0, &m_VertexShader, REF_SHADER(vsSheet)))
-		return false;
-	if (!Display::CreatePixelShaderFromFunc("Shaders/psRainSheet", 0, &m_PixelShader, REF_SHADER(psRainSheet)))
-		return false;
-	#endif
 	if (!Display::CreateTexture2DFromFile("Textures/RainSheet.dds", &m_Texture))
 		return false;
 

@@ -2,13 +2,11 @@
 #include "Display/Utils/Screenshot.h"
 #include "Display/Device/Device.h"
 #include <system/debug/Blur2PCAutomation.h>
-#if defined(BLUR_USE_DX11)
 #include <d3d11sdklayers.h>
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <DirectXPackedVector.h>
-#endif
 
 enum E_DisplayScreenShot
 {
@@ -28,7 +26,6 @@ Debug::Enum<E_DisplayScreenShot> g_debugDisplayScreenshotMode("Graphics.Render.S
 namespace Display
 {
 
-#if defined(BLUR_USE_DX11)
 // [Blur1PCDX11] Copy the current D3D11 target to CPU memory and write TGA.
 static void SaveNativeTargetAsTGA(const Sys::C_FilePath& path, ID3D11Texture2D* source, bool scRGB = false, F32 paperWhiteScale = 1.0f)
 {
@@ -190,7 +187,6 @@ void TakeD3D11BackBufferScreenshot(const char* fileName, ID3D11Texture2D* source
 	if (fileName && source)
 		SaveNativeTargetAsTGA(Sys::C_FilePath(fileName), source, scRGB, paperWhiteScale);
 }
-#endif
 
 void SaveAsTGA(const Sys::C_FilePath& fileName, const S32 width, const S32 height, const U8* pData)
 {
@@ -276,38 +272,7 @@ void TakeScreenshot(const Sys::C_FilePath& fileName, const C_Surface* pSurface)
 	const Sys::C_FilePath filePath = 
 		Sys::GetDefaultFileSystem()->GetWorkingDirectory() + "/" + fileName;
 	
-#if defined(BLUR_USE_DX11)
 	SaveNativeTargetAsTGA(filePath, pSurface->m_pd3dSurface);
-#elif defined(PLATFORM_PC)
-	const HRESULT hr = D3DXSaveSurfaceToFile(
-		filePath.Chars(),
-		D3DXIFF_TGA,
-		pSurface->m_pd3dSurface,
-		NULL,
-		NULL);
-	if(FAILED(hr))
-	{
-		LOGWARN(g_Log, "Failed to save screenshot '%s'\n", filePath.Chars());
-	}
-#else
-	U32 width = pSurface->GetWidth();
-	U32 height = pSurface->GetHeight();
-	const U8* pAddress = (const U8*)pSurface->GetAddress();
-	E_Multisample multisample = (E_Multisample)pSurface->GetMultisample();
-	
-	switch(multisample)
-	{
-	case E_Multisample_2:
-		width *= 2;
-		break;
-	case E_Multisample_4:
-		width *= 2;
-		height *= 2;
-		break;
-	}
-	
-	SaveAsTGA(filePath, width, height, pAddress);
-#endif
 }
 
 void TakeScreenshot(const Sys::C_FilePath fileName)
@@ -335,23 +300,6 @@ void TakeScreenshot(const Sys::C_FilePath fileName)
 			target->Release();
 		}
 		context->Release();
-	}
-	#elif defined(GRAPHICS_D3D9)
-	{
-		const Util::C_String filePath = 
-			(Sys::GetDefaultFileSystem()->GetWorkingDirectory() + "/" + fileName).Chars();
-		IDirect3DSurface9* pd3dSurface = NULL;
-		Display::Device()->GetD3DDevice()->GetRenderTarget(0, &pd3dSurface);
-		const HRESULT hr = D3DXSaveSurfaceToFile(filePath.Chars(), D3DXIFF_TGA, pd3dSurface, NULL, NULL);
-		if(SUCCEEDED(hr))
-		{
-			LOGINFO(g_Log, "Successfully wrote file '%s'\n", filePath.Chars());
-			pd3dSurface->Release();
-		}
-		else
-		{
-			LOGWARN(g_Log, "Failed to write file '%s'\n", filePath.Chars());
-		}
 	}
 	#elif defined(GRAPHICS_GCM)
 	{

@@ -8,19 +8,7 @@
 namespace Framework
 {
 
-#if defined(PLATFORM_XENON)
-
-//! C_ApplicationParams360. Params for creating the application on the 360.
-
-class C_ApplicationParams360
-{
-public:
-
-	C_ApplicationParams360();
-	~C_ApplicationParams360();
-};
-
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 
 //! C_ApplicationParamsPS3. Params for creating the application on the PS3.
 
@@ -63,9 +51,7 @@ public:
 
 public:
 
-	#if defined(PLATFORM_XENON)
-	C_ApplicationParams360				m_360;
-	#elif defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 	C_ApplicationParamsPS3				m_PS3;
 	#elif defined(PLATFORM_PC)
 	C_ApplicationParamsPC				m_PC;

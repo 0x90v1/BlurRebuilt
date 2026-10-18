@@ -21,9 +21,6 @@
 #endif
 #endif
 
-#ifdef PLATFORM_XENON
-#include "xaudio2.h"
-#endif	//	PLATFORM_XENON
 
 #ifdef PLATFORM_PS3
 #ifdef PS3_OUTPUT_TO_MULTISTREAM
@@ -816,14 +813,6 @@ namespace Audio
 
 		virtual bool TitleHasControl() = 0;
 
-#ifdef PLATFORM_XENON
-		
-
-		virtual void SetMusicEffectVolume(F32 fVolume) = 0;
-		virtual void SetMusicEffectMode(U32 uMode) = 0;
-
-		
-#endif	//	PLATFORM_XENON
 
 #if defined(ENABLE_DEBUG_EXTENSIONS)
 		virtual Core::Lock* GetLock() = 0;

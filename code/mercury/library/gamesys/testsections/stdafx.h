@@ -7,13 +7,6 @@
 
 #if defined(PLATFORM_SPU)
 
-#elif defined(PLATFORM_XENON)
-
-#include <xtl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-
 #elif defined(PLATFORM_PS3)
 
 #include <limits.h>

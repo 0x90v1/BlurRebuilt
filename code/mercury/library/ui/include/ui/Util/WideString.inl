@@ -42,7 +42,7 @@ C_WideString<m_Size>::C_WideString( const char* str )
 	mbsrtowcs( m_Chars, &str, m_Size, NULL );	// Doesnt copy or add the end of string marker so
 	m_Chars[ ( len > m_Size - 1 ) ? m_Size - 1 : len ] = '\0';			// need to add it ourselfs.
 #else // Xbox and PC are the same.
-	U32 convertedChars = 0;
+	size_t convertedChars = 0;	// [Blur2PC][x64]
 	mbstowcs_s( &convertedChars, m_Chars, m_Size, str, _TRUNCATE );
 #endif
 }

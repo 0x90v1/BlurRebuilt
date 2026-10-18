@@ -13,12 +13,8 @@
 #include <stdarg.h>
 #include <algorithm> // This is the STL header for the sort template
 
-#if defined(_XBOX)
-    #include <xtl.h>
-#else
     #include <limits.h>
 //    #include <D3D8.h>
-#endif
 
 #include "AtgStrip.h"
 

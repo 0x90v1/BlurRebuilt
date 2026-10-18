@@ -72,14 +72,6 @@ U32 Audio::StereoLoopingSound::CoreMemory(U32 uOffset)
 		}
         break;
 
-#ifdef _XBOX360
-	case Core::uXMA16Bit:
-	case Core::uXMA216Bit:
-		{
-			uOffset += AUDIO_CORE_ALIGN_16(sizeof(Core::XMADecoder));
-		}
-        break;
-#endif // _XBOX360
 
 	case Core::uInvalidFormat:
 		COMPONENT_ERROR("could not get wave format for wave '%s' from bank '%s'. %s", m_pObject->GetString(pInitData->strWave), m_pObject->GetString(pInitData->strBank), m_hWave==INVALID_HANDLE?"Wave handle does not exist.":"");
@@ -241,65 +233,6 @@ void Audio::StereoLoopingSound::InitContext(Instance* pInstance)
 			}
 			break;
 
-	#ifdef _XBOX360
-		case Core::uXMA16Bit:
-		case Core::uXMA216Bit:
-			{
-				//  XMA wave data
-				Core::XMADecoder::WaveData waveData;
-
-				//  get wave
-				if (Success != m_pObject->GetWaveManager()->GetWave(m_hWave, &waveData, pInstance->GetNumStreamsCreatedPointer(), pInstance->GetNextStreamInfoSlot()))
-				{
-					COMPONENT_ERROR("cannot get wave '%s' from bank '%s'", m_pObject->GetString(pInitData->strWave), m_pObject->GetString(pInitData->strBank));
-					m_uDecoder = ixDecoderNone;
-					break;
-				}
-
-				#ifndef CFG_GOLD
-				//  check data
-				if (waveData.uChannels != 2)
-				{
-					COMPONENT_ERROR("wave '%s' from bank '%s' is not stereo", m_pObject->GetString(pInitData->strWave), m_pObject->GetString(pInitData->strBank));
-					m_uDecoder = ixDecoderNone;
-					break;
-				}
-
-				if (waveData.bLoop == false)
-				{
-					COMPONENT_ERROR("wave '%s' from bank '%s' is not a loop", m_pObject->GetString(pInitData->strWave), m_pObject->GetString(pInitData->strBank));
-					m_uDecoder = ixDecoderNone;
-					break;
-				}
-				#endif
-
-				//  XMA decoder
-				Core::XMADecoder* pXMADecoder = NULL;
-				if ((waveData.uSampleRate == Core::uSampleRate) &&
-					(pInitData->optFrequency.ctrl.sCom == -1) &&
-					(pInitData->optFrequency.fVal == 1.f) &&
-					(pInitData->optPitch.ctrl.sCom == -1) &&
-					(pInitData->optPitch.fVal == 0.f))
-				{
-					//	assume no SRC
-					pXMADecoder = new(pDecoder) Core::XMADecoder(pState->sFormat, false, waveData);
-				}
-				else
-					pXMADecoder = new(pDecoder) Core::XMADecoder(pState->sFormat, true, waveData);
-
-				//  set wave data
-				//	pXMADecoder->SetWaveData(waveData);
-
-				//  reset wave context
-				pXMADecoder->Reset(pInstance->GetDecoderDataInfo());
-
-//				pXMADecoder->SetCallbackId(m_uStateOffset, Component::eStereoLoopingSound);
-				pXMADecoder->SetHasCallback();
-
-				pXMADecoder->SetWaveName(m_pObject->GetString(pInitData->strWave),m_pObject->GetString(pInitData->strBank));
-			}
-			break;
-	#endif // _XBOX360
 
 		case Core::uInvalidFormat:
 			COMPONENT_ERROR("could not get format for wave '%s' from bank. '%s'", m_pObject->GetString(pInitData->strWave), m_pObject->GetString(pInitData->strBank), m_hWave==INVALID_HANDLE?"Wave handle does not exist.":"");
@@ -322,7 +255,7 @@ void Audio::StereoLoopingSound::InitContext(Instance* pInstance)
 	}
 
     //  for callback
-    pState->u32ComponentOffset = (U32)((void*)this) - (U32)((void*)(m_pObject->GetComponents()));
+    pState->u32ComponentOffset = (U32)((U8*)this - (U8*)(m_pObject->GetComponents()));	// [Blur2PC][x64] byte offset
 
     pState->fFrequency = -1.f;
     pState->fLevel = -1.f;

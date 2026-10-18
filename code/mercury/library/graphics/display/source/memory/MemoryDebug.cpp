@@ -58,7 +58,7 @@ void C_MemoryDebug::Check()
 		{
 			if(g_debugDisplayBreakOnMemoryStomping)
 			{
-				LOGERROR(g_Log, "Memory has been changed : size '%i' orig '%i' copy '%i'\n", pItem->m_Size, (U32)pItem->m_pOrigAddress, (U32)pItem->m_pCopyAddress);
+				LOGERROR(g_Log, "Memory has been changed : size '%i' orig '%i' copy '%i'\n", pItem->m_Size, (U32)(INTPTR)pItem->m_pOrigAddress, (U32)(INTPTR)pItem->m_pCopyAddress);	// [Blur2PC][x64] log only
 			}
 		}
 

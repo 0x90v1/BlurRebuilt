@@ -1,4 +1,4 @@
-# [Blur1PCDX11] Native D3D11 foundation, separate from the D3D9 game path.
+# [Blur1PCDX11] Native D3D11 renderer (the only PC renderer on the x64 branch).
 # This target can be built and checked while the engine's display types are ported.
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 file(GLOB _fxc_bins LIST_DIRECTORIES true
@@ -62,7 +62,7 @@ add_custom_command(OUTPUT ${_dx11_fx_stamp}
 add_custom_target(dx11_fx_all DEPENDS ${_dx11_fx_stamp})
 set_target_properties(dx11_fx_all PROPERTIES FOLDER "dx11")
 
-if(TARGET Amax AND BLUR_USE_DX11)
+if(TARGET Amax)
     # [Blur1PCDX11] Technique permutations are runtime inputs, so a game build
     # must regenerate them along with the native executable.
     add_dependencies(Amax dx11_fx_all)
@@ -143,7 +143,7 @@ target_compile_features(blur_dx11 PRIVATE cxx_std_17)
 target_link_libraries(blur_dx11 PUBLIC d3d11 dxgi d3dcompiler blur_fx11)
 set_target_properties(blur_dx11 PROPERTIES FOLDER "dx11")
 
-if(TARGET fx AND BLUR_USE_DX11)
+if(TARGET fx)
     target_sources(fx PRIVATE
         ${BLUR_TOP}/code/mercury/library/graphics/fx/source/NativeFX11.cpp)
     target_include_directories(fx PRIVATE ${_fx11_dir}/inc)
@@ -152,30 +152,24 @@ endif()
 # [Blur1PCDX11] Compile the native Display2 implementation against the game's
 # actual headers. Keep it as an object target until its remaining device and
 # context methods are ported and the generated game target can link it.
-if(TARGET display2 AND BLUR_USE_DX11)
+if(TARGET display2)
     add_library(display2_dx11_backend OBJECT
         ${BLUR_TOP}/code/mercury/library/graphics/display2/source/context/D3D11Context.cpp
         ${BLUR_TOP}/code/mercury/library/graphics/display2/source/device/D3D11Device.cpp
         ${BLUR_TOP}/code/mercury/library/graphics/display2/source/device/PCD3D11Device.cpp)
     target_include_directories(display2_dx11_backend PRIVATE
         $<TARGET_PROPERTY:display2,INCLUDE_DIRECTORIES>)
-    target_compile_definitions(display2_dx11_backend PRIVATE BUILD_CONFIG_SPEED BLUR_USE_DX11=1)
+    target_compile_definitions(display2_dx11_backend PRIVATE BUILD_CONFIG_SPEED)
     # [Blur1PCDX11] Texture ownership now releases the shared native view helper.
     target_link_libraries(display2_dx11_backend PRIVATE blur_dx11)
     set_target_properties(display2_dx11_backend PROPERTIES FOLDER "dx11")
 
-    # The generated Jam list is the retail D3D9 selection. Exclude its device
-    # implementations in this branch; Display2 must resolve only native calls.
-    get_target_property(_display2_sources display2 SOURCES)
-    list(FILTER _display2_sources EXCLUDE REGEX
-        "(D3D9Context|D3D9Device|PCD3D9Device|PCD3D9Memory|PCD3D9Utils)\\.cpp$")
-    set_property(TARGET display2 PROPERTY SOURCES "${_display2_sources}")
     target_sources(display2 PRIVATE
         $<TARGET_OBJECTS:display2_dx11_backend>
         ${BLUR_TOP}/code/mercury/library/graphics/display2/source/memory/PCD3D11Memory.cpp)
 endif()
 
-if(TARGET display AND BLUR_USE_DX11)
+if(TARGET display)
     add_library(display_dx11_context_backend OBJECT
         ${_dx11_builtin_embedded}
         ${BLUR_TOP}/code/mercury/library/graphics/display/source/context/Context_D3D11.cpp
@@ -187,25 +181,13 @@ if(TARGET display AND BLUR_USE_DX11)
         ${BLUR_TOP}/code/mercury/library/graphics/display/source/manager/d3d11/D3D11Manager.cpp)
     target_include_directories(display_dx11_context_backend PRIVATE
         $<TARGET_PROPERTY:display,INCLUDE_DIRECTORIES>)
-    target_compile_definitions(display_dx11_context_backend PRIVATE BUILD_CONFIG_SPEED BLUR_USE_DX11=1)
+    target_compile_definitions(display_dx11_context_backend PRIVATE BUILD_CONFIG_SPEED)
     set_target_properties(display_dx11_context_backend PROPERTIES FOLDER "dx11")
 
-    get_target_property(_display_sources display SOURCES)
-    list(FILTER _display_sources EXCLUDE REGEX "/[dD]3[dD]9/")
-    list(FILTER _display_sources EXCLUDE REGEX "Context_D3D9\\.cpp$")
-    set_property(TARGET display PROPERTY SOURCES "${_display_sources}")
     target_sources(display PRIVATE
         $<TARGET_OBJECTS:display_dx11_context_backend>
         ${BLUR_TOP}/code/mercury/library/graphics/display/source/occlusion/d3d11/D3D11OcclusionQuery.cpp
         ${BLUR_TOP}/code/mercury/library/graphics/display/source/texture/d3d11/D3D11TextureLoad.cpp)
-endif()
-
-if(TARGET movie AND BLUR_USE_DX11)
-    # [Blur1PCDX11] The installed Bink SDK is a decoder stub; exclude the old
-    # D3D9 texture renderer rather than linking any D3D9 runtime into Amax.
-    get_target_property(_movie_sources movie SOURCES)
-    list(FILTER _movie_sources EXCLUDE REGEX "/w32/bink/binktextures\\.cpp$")
-    set_property(TARGET movie PROPERTY SOURCES "${_movie_sources}")
 endif()
 
 add_executable(dx11_probe
@@ -221,22 +203,14 @@ target_compile_features(dx11_hdr_reference PRIVATE cxx_std_17)
 target_link_libraries(dx11_hdr_reference PRIVATE blur_dx11)
 set_target_properties(dx11_hdr_reference PROPERTIES FOLDER "dx11")
 
-# [Blur1PCDX11] Isolated reference probe for legacy texel semantics. This is
-# deliberately separate from blur_dx11 and the game's native-only link graph.
-add_executable(d3d9_sampling_reference
-    ${BLUR_TOP}/code/tools/dx11_probe/d3d9_sampling_reference.cpp)
-target_compile_features(d3d9_sampling_reference PRIVATE cxx_std_17)
-target_link_libraries(d3d9_sampling_reference PRIVATE d3d9 d3dcompiler)
-set_target_properties(d3d9_sampling_reference PROPERTIES FOLDER "dx11")
-
 # [Blur1PCDX11] Verify queued dynamic VB/IB writes through the game's actual
 # Display2 lock implementation, including resource reuse before GPU completion.
-if(TARGET display2 AND BLUR_USE_DX11)
+if(TARGET display2)
     add_executable(dx11_dynamic_buffer_reference
         ${BLUR_TOP}/code/tools/dx11_probe/dynamic_buffer_reference.cpp)
     target_include_directories(dx11_dynamic_buffer_reference PRIVATE
         $<TARGET_PROPERTY:display2,INCLUDE_DIRECTORIES>)
-    target_compile_definitions(dx11_dynamic_buffer_reference PRIVATE BUILD_CONFIG_SPEED BLUR_USE_DX11=1)
+    target_compile_definitions(dx11_dynamic_buffer_reference PRIVATE BUILD_CONFIG_SPEED)
     target_compile_features(dx11_dynamic_buffer_reference PRIVATE cxx_std_17)
     target_link_libraries(dx11_dynamic_buffer_reference PRIVATE blur_dx11 display2 core)
     set_target_properties(dx11_dynamic_buffer_reference PROPERTIES FOLDER "dx11")

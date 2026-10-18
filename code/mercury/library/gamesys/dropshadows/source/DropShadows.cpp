@@ -183,9 +183,6 @@ void C_DropShadows::OnDestroy()
 	{
 		Display::Device()->Destroy(&m_PixelShader[shaderNo]);
 	}
-#if PLATFORM_XENON
-	Display::g_ContextManager.FreePatchedVertexShader(m_VertexShader.GetGPUVertexShader());
-#endif
 	Display::Device()->Destroy(&m_VertexShader);
 
 	Display::Device()->Destroy(&m_VertexBuffer);
@@ -345,7 +342,7 @@ void C_DropShadows::Render(Display::C_Context* pContext) const
 	Display::C_Float4 vViewUpVector;
 	vViewUpVector = Display::C_Float4(pContext->GetView()->GetViewSettings3D().GetCameraToWorld().AX().Y(), pContext->GetView()->GetViewSettings3D().GetCameraToWorld().AY().Y(), pContext->GetView()->GetViewSettings3D().GetCameraToWorld().AZ().Y(), 1.f);
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	const F32 fOffsetX = +1.0f / (F32) pContext->GetDepthStencilTexture()->GetWidth();
 	const F32 fOffsetY = +1.0f / (F32) pContext->GetDepthStencilTexture()->GetHeight();
 #else
@@ -356,9 +353,6 @@ void C_DropShadows::Render(Display::C_Context* pContext) const
 	Display::C_Float4 vsUVScale(0.5f, -0.5f, 0.5f + 0.5f * fOffsetX, 0.5f + 0.5f * fOffsetY);
 	pContext->SetVertexShaderConstantF(CV_RENDER_SETTINGS_4, (F32*)&vsUVScale, 1);
 
-	#if defined(PLATFORM_XENON)
-		pContext->SetHalfPixelOffset(Display::E_Bool_True);
-	#endif
 
 #ifdef PLATFORM_PS3
 	//Clear cache
@@ -484,9 +478,6 @@ void C_DropShadows::Render(Display::C_Context* pContext) const
 	pContext->SetDepthEnable(Display::E_Bool_True);
 	pContext->SetDepthWriteEnable(Display::E_Bool_True);
 
-#if defined(PLATFORM_XENON)
-	pContext->SetHalfPixelOffset(Display::E_Bool_False);
-#endif
 
 	m_DropShadows[viewIndex].Clear();
 }

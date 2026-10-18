@@ -6,11 +6,7 @@
 #include "Samples/Section/SectionAmbientOcclusion.h"
 #include "System/Misc/Random.h"
 
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Effects/PCD3D9/psAmbientOcclusion.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Effects/XB2/psAmbientOcclusion.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Effects/PS3/psAmbientOcclusion.shader"
 #endif
 
@@ -58,30 +54,6 @@ bool C_SectionAmbientOcclusion::OnCreate()
 	if (!Display::Device()->CreateTexture3D(32, 32, 32, 1, 0, Display::E_Format_A8R8G8B8, &m_Texture3D))
 		return false;
 
-#if defined(PLATFORM_XENON)
-	Maths::HVec4 vHalf(0.5f, 0.5f, 0.5f, 0.5f);
-	Util::C_Random rng;
-
-	D3DLOCKED_BOX box;
-	m_Texture3D.Get()->LockBox(0, &box, 0, 0);
-
-	U32 * pData = (U32 *) box.pBits;
-	for (U32 z = 0; z < 32; ++z)
-	{
-		const U32 toSlice = z * box.SlicePitch / 4;
-		for (U32 y = 0; y < 32; ++y)
-		{
-			const U32 toRow = y * box.RowPitch / 4;
-			for (U32 x = 0; x < 32; ++x)
-			{
-				Maths::HVec4 vNormal = Maths::HVec4(rng.SphereRand()) * vHalf + vHalf;
-				Maths::Store((Maths::V128) vNormal, (MathsStorage::UByteN4 *) &pData[x + toRow + toSlice]);
-			}
-		}
-	}
-	
-	m_Texture3D.Get()->UnlockBox(0);
-#endif
 
 	return true;
 }

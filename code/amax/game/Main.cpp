@@ -177,15 +177,6 @@ int AmaxApplicationMain(Framework::C_CoreSystemsParams& coreSystemsParams, Frame
 
 		// This is for the Virtual Tester to ensure we always play in Master mode
 		// We also disable debug variable writing so we don't really mess up the end user's environment
-#if defined(PLATFORM_XENON) && !defined(CFG_GOLD)
-		const char* commandLine = GetCommandLine();
-
-		if (strstr(commandLine, "VirtualTester"))
-		{
-			gGameSaveDebugVariables = NULL;
-			g_UiDebugLaunchMode = UI::C_UiManager::E_LaunchMode_Master;
-		}
-#endif
 
 		// TODO: Initialise cross-platform application params here.
 		applicationParams.m_NetworkStackAlreadyStarted	= pCoreSystems->NetworkInitialised();
@@ -197,9 +188,6 @@ int AmaxApplicationMain(Framework::C_CoreSystemsParams& coreSystemsParams, Frame
 
 		hr = pApplication->Initialise(applicationParams);
 
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_PRESENTIMMEDIATETHRESHOLD, 100);
-#endif
 
 		Framework::g_debugPresentInterval = 2;
 
@@ -220,9 +208,7 @@ int AmaxApplicationMain(Framework::C_CoreSystemsParams& coreSystemsParams, Frame
 
 		LOGDEBUG( Framework::g_BootLog, "Advertising::Initialise - BEGIN");
 
-#if defined(PLATFORM_XENON)
-		Advertising::Initialise("atvi_blur_x360", "0.0");
-#elif defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		Advertising::Initialise("atvi_blur_pc", "0.0");
 #endif
 

@@ -7,9 +7,6 @@
 #include "Windows.h"
 #endif
 
-#if defined(PLATFORM_XENON)
-#include "Xtl.h"
-#endif
 
 #if defined(PLATFORM_PS3)
 #include <stdio.h>
@@ -40,7 +37,7 @@ namespace Audio
 			m_uAlign = uAlign;
 
 			m_pBase = new U8[ uSize + uBaseAlign ];
-			m_pData = (U8*)( ( (U32)m_pBase + uAdjust ) & ~uAdjust );
+			m_pData = (U8*)( ( (INTPTR)m_pBase + uAdjust ) & ~(INTPTR)uAdjust );	// [Blur2PC][x64] align the full address
 
 #if defined (PLATFORM_PS3) && defined (PLATFORM_SPU)
 			m_pSPUBase = 0;
@@ -103,7 +100,7 @@ namespace Audio
 			if( uSize != m_uSize )
 			{
 				m_pBase = new U8[ uSize + m_uBaseAlign ];
-				m_pData = (U8*)( ( (U32)m_pBase + uAdjust ) & ~uAdjust );
+				m_pData = (U8*)( ( (INTPTR)m_pBase + uAdjust ) & ~(INTPTR)uAdjust );	// [Blur2PC][x64] align the full address
 
 				m_uSize = uSize;
 
@@ -174,7 +171,7 @@ namespace Audio
 		//	won't work if base address has changed since obtaining the pointer
 		inline U32 GetIndex( void* pData )
 		{
-			return (U32)pData - (U32)m_pData;
+			return (U32)((U8*)pData - m_pData);	// [Blur2PC][x64] byte index
 		}
 
 		inline void* Start()

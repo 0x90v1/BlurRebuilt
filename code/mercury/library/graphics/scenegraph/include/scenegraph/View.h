@@ -271,9 +271,6 @@ INLINE void C_View::AddVisibleNode(const C_StaticPrimitive* pStaticPrimitive, co
 		visibleNodeList.m_StaticPrimitives.PushBack();
 		C_VisibleNode& node = visibleNodeList.m_StaticPrimitives.Back();
 		node.m_pNode = (I_RenderNode*)pStaticPrimitive;
-#ifdef PLATFORM_XENON
-		node.m_Predication = predication;
-#endif
 		node.m_VolatileNodeInfo.data = volatileInfo;
 	}
 }
@@ -290,9 +287,6 @@ INLINE void C_View::AddVisibleNode(const C_StaticInstance* pStaticInstance, cons
 		visibleNodeList.m_StaticInstances.PushBack();
 		C_VisibleNode& node = visibleNodeList.m_StaticInstances.Back();
 		node.m_pNode = (I_RenderNode*)pStaticInstance;
-#ifdef PLATFORM_XENON
-		node.m_Predication = predication;
-#endif
 		node.m_VolatileNodeInfo.data = volatileInfo;
 	}
 }
@@ -309,9 +303,6 @@ INLINE void C_View::AddVisibleNode(const C_ModelInstance* pModelInstance, const 
 		visibleNodeList.m_ModelInstances.PushBack();
 		C_VisibleNode& node = visibleNodeList.m_ModelInstances.Back();
 		node.m_pNode = (I_RenderNode*)pModelInstance;
-#ifdef PLATFORM_XENON
-		node.m_Predication = predication;
-#endif
 		node.m_VolatileNodeInfo.data = volatileInfo;
 	}
 }

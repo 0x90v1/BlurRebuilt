@@ -33,9 +33,6 @@ enum
 	TL_MEMALLOC_WRITECOMBINE = 0x00020000, // Xenon and Xbox only
 	TL_MEMALLOC_FIFO         = 0x00040000, // GC, Revolution only
 
-#if TL_PLAT_XENON
-	TL_MEMALLOC_NOCACHE      = 0x00080000,
-#endif
 
 #if TL_PLAT_PS3
 	TL_MEMALLOC_RSXMAIN      = 0x00080000, // PS3 only, rsx-mapped main memory

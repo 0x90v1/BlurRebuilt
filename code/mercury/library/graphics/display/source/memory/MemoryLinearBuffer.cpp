@@ -8,8 +8,6 @@ C_LinearBuffer::C_LinearBuffer()
 {
 #if defined(PLATFORM_PS3)
 	m_eHeap		= E_AllocHeap_Video;
-#elif defined(PLATFORM_XENON)
-	m_eHeap		= E_AllocHeap_Large;
 #endif
 	m_pBase		= 0;
 	m_pTop		= 0;
@@ -52,8 +50,8 @@ void* C_LinearBuffer::Allocate(const U32 size, const U32 alignment)
 	if (pAllocTop > m_pTop)
 		return 0;
 
-	const U32 alignmentMask = alignment - 1;
-	pAllocPos = (U8*)((U32)(pAllocPos + alignmentMask) & ~alignmentMask);
+	const INTPTR alignmentMask = alignment - 1;	// [Blur2PC][x64] align the full address
+	pAllocPos = (U8*)((INTPTR)(pAllocPos + alignmentMask) & ~alignmentMask);
 
 	m_pPosition	= pAllocTop;
 

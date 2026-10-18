@@ -17,9 +17,6 @@
 #if defined(PLATFORM_PC)
 #define EXTERN_SHADER(name) extern "C" { extern S32 *_binary_##name##_bin_start, *_binary_##name##_bin_end; }
 #define REF_SHADER(name) 0, *(C_ShaderData*)&_binary_##name##_bin_start
-#elif defined(PLATFORM_XENON)
-#define EXTERN_SHADER(name) extern "C" { extern S32 *_binary_##name##_bin_start, *_binary_##name##_bin_end; }
-#define REF_SHADER(name) (int)&_binary_##name##_bin_end-(int)&_binary_##name##_bin_start, (S32*)&_binary_##name##_bin_start
 #else
 #define EXTERN_SHADER(name) extern "C" { extern S32 *_binary_##name##_bin_start, *_binary_##name##_bin_end; }
 #define REF_SHADER(name) (int)&_binary_##name##_bin_end-(int)&_binary_##name##_bin_start, (S32*)&_binary_##name##_bin_start

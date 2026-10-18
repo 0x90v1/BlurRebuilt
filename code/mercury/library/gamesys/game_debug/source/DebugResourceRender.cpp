@@ -157,9 +157,6 @@ const char* C_DebugResourceRenderPaneTexture::GetTextureFormatName(const Display
 	case Display2::E_TextureFormat_DXT3:		return "DXT3";
 	case Display2::E_TextureFormat_DXT5:		return "DXT5";
 	case Display2::E_TextureFormat_L8:			return "L8";
-#if PLATFORM_XENON
-	case Display2::E_TextureFormat_DXN:			return "DXN";
-#endif
 	default:									return "UNKNOWN";
 	}
 }

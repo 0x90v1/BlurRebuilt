@@ -22,7 +22,11 @@
 
 #include "UI/UIDefines.h"
 
+#if defined(_WIN64) // [Blur2PC][x64] m_UserData and m_Callback are pointer-sized
+BIZ_STATIC_ASSERT(sizeof(UI::C_Sprite) == 136);
+#else
 BIZ_STATIC_ASSERT(sizeof(UI::C_Sprite) == 128); // Must be 128 bytes in size
+#endif
 
 
 #ifdef CFG_ALLOW_OPTIMIZE_OFF_UI
@@ -450,7 +454,7 @@ void C_Simple2D::Init( lua_State* pState, const U32 sprite_alloc_cnt, const U32 
 		}
 
 #ifndef CFG_GOLD
-	if( sizeof(C_Sprite) > 128 )
+	if( sizeof(C_Sprite) > 128 + (sizeof(void*) - 4) * 2 )	// [Blur2PC][x64] see the static assert
 	{
 		size_t c_sprite_size = sizeof(C_Sprite);
 		LOGWARN( g_Log, "C_Sprite = %d\n", c_sprite_size );
@@ -1330,9 +1334,6 @@ void C_Simple2D::Render( const LayerIndex uLayer, const PanelIndex uPanel )
 		}
 
 		// Draw normally
-#ifdef PLATFORM_XENON
-//		__dcbt(0, pSprite);
-#endif
 		if(currentRunCount == 0)
 		{
 #ifndef CFG_GOLD
@@ -1928,9 +1929,6 @@ void C_Simple2D::C_RenderTargetAlternateTexture::EndScene()
 	if ( !m_bInitialised )
 		return;
 
-#ifdef PLATFORM_XENON
-	Display::Device()->Resolve( Display::E_Resolve_Colour, &m_RenderTexture.GetTexture() );
-#endif
 	Display::Device()->SetColourDepthStencilSurface();
 	Display::Device()->InvalidateState();
 //	Display::Device()->EndScene();

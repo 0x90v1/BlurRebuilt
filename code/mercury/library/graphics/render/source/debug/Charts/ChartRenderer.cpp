@@ -11,13 +11,7 @@ EXTERN_SHADER(vsDebug2D);
 EXTERN_SHADER(psDebug);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Debug/PCD3D9/vsDebug2D.shader"
-#include "Render/Shaders/Debug/PCD3D9/psDebug.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Debug/XB2/vsDebug2D.shader"
-#include "Render/Shaders/Debug/XB2/psDebug.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Debug/PS3/vsDebug2D.shader"
 #include "Render/Shaders/Debug/PS3/psDebug.shader"
 #endif

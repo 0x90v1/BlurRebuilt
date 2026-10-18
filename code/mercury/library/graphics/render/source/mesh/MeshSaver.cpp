@@ -20,8 +20,6 @@ void SaveMesh(const Util::C_String fileName, const C_MeshBuilder& meshBuilder)
 
 	#if defined(PLATFORM_PC)
 	filePath += ".pcm";
-	#elif defined(PLATFORM_XENON)
-	filePath += ".xem";
 	#elif defined(PLATFORM_PS3)
 	filePath += ".p3m";
 

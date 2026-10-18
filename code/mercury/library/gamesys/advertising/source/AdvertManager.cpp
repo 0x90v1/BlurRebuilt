@@ -358,13 +358,8 @@ void AdvertManager::Render(const Display::C_View* view)
 	const bool isGamePaused = Framework::C_ApplicationBase::GetInstance()->IsPaused();
 
 	// Rendering to the screen is at 1024x768 - we still work internally to the real viewport size
-#ifdef PLATFORM_XENON
-	float realScreenWidth = (float)Display::Device()->m_DeviceParams.m_ScreenWidth;
-	float realScreenHeight = (float)Display::Device()->m_DeviceParams.m_ScreenHeight;
-#else
 	float realScreenWidth = (float)view->m_Viewport.GetW();
 	float realScreenHeight = (float)view->m_Viewport.GetH();
-#endif
 
 	// Massive wants to calculate all the values for themselves now, so tell them
 #ifdef ENABLE_MASSIVE
@@ -374,18 +369,10 @@ void AdvertManager::Render(const Display::C_View* view)
 		{
 			static MAD_RECT viewport;
 	        
-#ifdef PLATFORM_XENON
-			// Viewport always reported as 1280x720 - scale to actual screen size
-			viewport.left	= (realScreenWidth / 1280.f) * view->m_Viewport.GetX();
-			viewport.right	= (realScreenWidth / 1280.f) * (view->m_Viewport.GetX() + view->m_Viewport.GetW());
-			viewport.top	= (realScreenHeight / 720.f) * view->m_Viewport.GetY();
-			viewport.bottom	= (realScreenHeight / 720.f) * (view->m_Viewport.GetY() + view->m_Viewport.GetH());
-#else
 			viewport.left	= view->m_Viewport.GetX();
 			viewport.right	= view->m_Viewport.GetX() + view->m_Viewport.GetW();
 			viewport.top	= view->m_Viewport.GetY();
 			viewport.bottom	= view->m_Viewport.GetY() + view->m_Viewport.GetH();
-#endif
 
 			static MAD_UPDATE_PARAMS updateParams;
 
@@ -829,10 +816,6 @@ void AdvertManager::EnterZone_PostLoad(GameResource::C_LevelResource *pLevelReso
 {
 	m_lock.Enter();
 
-#ifdef PLATFORM_XENON
-	Display::Device()->AcquireThreadOwnership(); // prevent TCR # 022 as following code can stall for a while
-	Display::Device()->GetD3DDevice()->Suspend();
-#endif
 
 	m_pLevelInstance = pLevelInstance;
 
@@ -876,10 +859,6 @@ void AdvertManager::EnterZone_PostLoad(GameResource::C_LevelResource *pLevelReso
 		}
 	}
 
-#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->Resume();
-	Display::Device()->ReleaseThreadOwnership();
-#endif
 
 #ifndef CFG_GOLD
 	if (noMatch)
@@ -1107,7 +1086,7 @@ void AdvertManager::CreateRenderData()
 			const AdvertPosition& ape = (*it)->Extents();
 
 			memcpy((void*)&pVertices->x, &ape.lowerLeft, 12);
-#if defined(PLATFORM_XENON) | defined(PLATFORM_PC)
+#if 0 | defined(PLATFORM_PC)
 			pVertices->c = 0xff888888;
 #else
 			pVertices->c = 0x888888ff;
@@ -1116,7 +1095,7 @@ void AdvertManager::CreateRenderData()
 			pVertices->v = 1.f;
 			pVertices++;
 			memcpy((void*)&pVertices->x, &ape.upperLeft, 12);
-#if defined(PLATFORM_XENON) | defined(PLATFORM_PC)
+#if 0 | defined(PLATFORM_PC)
 			pVertices->c = 0xff888888;
 #else
 			pVertices->c = 0x888888ff;
@@ -1125,7 +1104,7 @@ void AdvertManager::CreateRenderData()
 			pVertices->v = 0.f;
 			pVertices++;
 			memcpy((void*)&pVertices->x, &ape.upperRight, 12);
-#if defined(PLATFORM_XENON) | defined(PLATFORM_PC)
+#if 0 | defined(PLATFORM_PC)
 			pVertices->c = 0xff888888;
 #else
 			pVertices->c = 0x888888ff;
@@ -1134,7 +1113,7 @@ void AdvertManager::CreateRenderData()
 			pVertices->v = 0.f;
 			pVertices++;
 			memcpy((void*)&pVertices->x, &ape.lowerRight, 12);
-#if defined(PLATFORM_XENON) | defined(PLATFORM_PC)
+#if 0 | defined(PLATFORM_PC)
 			pVertices->c = 0xff888888;
 #else
 			pVertices->c = 0x888888ff;
@@ -1220,44 +1199,7 @@ Btl::String16 AdvertDownload::Name(bool alternateName) const
 	return r;
 }
 
-#if defined(ENABLE_MASSIVE) && defined(PLATFORM_XENON)
-
-bool AdvertManager::TextureDownloaded(int index, const U8* textureData, size_t textureLength, U32 type)
-{
-	AdvertDownload& advert = m_downloads[index];
-
-	const Btl::String16& advertName = advert.Name();
-
-	// We only want to create a texture the first time we come across this placement
-	if (advert.m_downloadedAdvert)
-	{
-		LOGDEBUG(gLog, "AdvertManager::TextureDownloaded - name(%s) - MATCH", advertName.Chars());
-		return false;
-	}
-
-	LOGDEBUG(gLog, "AdvertManager::TextureDownloaded - name(%s) - ADDING - length(%d) - type(%d)", advertName.Chars(), textureLength, type);
-
-	const size_t d3dHeaderSize = sizeof(advert.m_advertTexture.m_d3dTexture);
-
-	memcpy(&advert.m_advertTexture.m_d3dTexture, textureData, d3dHeaderSize);
-	advert.m_advertTexture.SetSize(textureLength - d3dHeaderSize);
-
-	Display::AllocateTextureMemory(&advert.m_advertTexture);
-
-	U8 *dstTextureData = advert.m_advertTexture.GetAddress();
-	
-	if (dstTextureData)
-	{
-		memcpy(dstTextureData, textureData + d3dHeaderSize, textureLength - d3dHeaderSize);
-		advert.m_downloadedAdvert = true;
-		
-		return true;
-	}
-
-	return false;
-}
-
-#elif defined(ENABLE_IGA) || (defined(ENABLE_MASSIVE) && defined(PLATFORM_PC))
+#if defined(ENABLE_IGA) || (defined(ENABLE_MASSIVE) && defined(PLATFORM_PC))
 
 bool AdvertManager::TextureDownloaded(int index, const U8* textureData, size_t textureLength)
 {
@@ -1448,25 +1390,11 @@ void NextAdvert(void *)
 	AdvertManager::Instance().NextAdvert();
 }
 
-#ifdef PLATFORM_XENON
-
-extern Debug::String g_ZoneName;
-
-void JumpToZone(void *)
-{
-	CallbackTeleportToZone(g_ZoneName);
-}
-
-#endif
 
 Debug::Function g_AdvertGotoCurrent("System.Advertising.GotoCurrentAdvert", GotoCurrentAdvert, NULL);
 Debug::Function g_AdvertPrev("System.Advertising.PreviousAdvert", PrevAdvert, NULL);
 Debug::Function g_AdvertNext("System.Advertising.NextAdvert", NextAdvert, NULL);
 
-#ifdef PLATFORM_XENON
-Debug::String g_ZoneName("System.Advertising.ZoneName", "");
-static Debug::Function g_JumpToZone("System.Advertising.JumpToZone", JumpToZone, NULL);
-#endif
 
 #endif
 

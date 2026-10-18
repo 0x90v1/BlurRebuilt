@@ -15,10 +15,6 @@ struct C_TileSetup
 	U32				m_Width;
 	U32				m_Height;
 	E_Multisample	m_Multisample;
-	#ifdef PLATFORM_XENON
-	U32				m_TileCount;
-	D3DRECT			m_Tiles[4];
-	#endif
 };
 
 C_TileSetup LookupTileSetup(const U32 width, const U32 height, const E_Format colourFormat, const E_Format depthStencilFormat, const E_Multisample multisample);

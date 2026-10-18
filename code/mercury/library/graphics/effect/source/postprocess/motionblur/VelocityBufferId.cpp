@@ -95,46 +95,7 @@ void C_VelocityBufferId::Render() const
 	}
 	else if (E_VelocityBufferIdMethod_Stencil == m_eMethod)
 	{
-	#if PLATFORM_XENON
-		Display::C_Texture2D* pDisplayTexture = const_cast<Display::C_Texture2D*>(Render::GetGlobalDepthStencilBuffer());
-
-		IDirect3DTexture9* pSrcDepthStencilTexture = (IDirect3DTexture9*)pDisplayTexture->GetGPUTexture();
-
-		XGTEXTURE_DESC srcTextureDesc;
-
-		XGGetTextureDesc(pSrcDepthStencilTexture, 0, &srcTextureDesc);
-
-		UINT Width = srcTextureDesc.Width;
-		UINT Height = srcTextureDesc.Height;
-		UINT Levels = 1;
-		DWORD Usage = 0;
-		D3DFORMAT Format = D3DFMT_A8R8G8B8;
-		D3DPOOL Pool = 0;
-		UINT BaseOffset = 0;
-		UINT MipOffset = 0;
-		UINT Pitch = srcTextureDesc.Width * 4;
-		UINT *pBaseSize = NULL;
-		UINT *pMipSize = NULL;
-
-		IDirect3DTexture9 d3dStencilTexture;
-		UINT size =  XGSetTextureHeader(Width,
-										Height,
-										Levels,
-										Usage,
-										Format,
-										Pool,
-										BaseOffset,
-										MipOffset,
-										Pitch,
-										&d3dStencilTexture,
-										pBaseSize,
-										pMipSize);
-
-		XGOffsetResourceAddress(&d3dStencilTexture, pDisplayTexture->GetAddress());
-
-		Display::Device()->GetD3DDevice()->SetTexture(1, &d3dStencilTexture);
-	
-	#elif PLATFORM_PS3
+	#if PLATFORM_PS3
 	
 		CellGcmTexture* pSrcGcmTexture = (CellGcmTexture*) Render::GetGlobalDepthStencilBuffer()->GetGPUTexture();
 
@@ -182,9 +143,6 @@ void C_VelocityBufferId::Render() const
 		Display::Device()->SetTextureFilter(i, Display::E_TextureFilter_Default);
 	}
 
-	#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetTexture(1, 0);
-	#endif
 
 	#ifndef PLATFORM_PS3
 	Display::Device()->SetColourDepthStencilSurface(pColourSurface, pDepthStencilSurface);

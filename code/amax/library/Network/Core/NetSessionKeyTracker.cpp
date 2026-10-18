@@ -24,7 +24,6 @@ namespace RacerNet
 
 	void C_NetSessionKeyTracker::Add(const NetPlay::SessionSecurity& sessionData)
 	{
-#if !defined (PLATFORM_XENON)
 		if (m_Active)
 		{
 			// if we are already active then move the current active key to our previous list.
@@ -36,7 +35,6 @@ namespace RacerNet
 				LOGFATAL(g_Log, "C_NetSessionKeyTracker::Add() - not enough storage allocated to track active secure keys.");
 			}
 		}
-#endif
 
 		m_Active = true;
 		m_Current = sessionData;
@@ -53,7 +51,6 @@ namespace RacerNet
 
 	void C_NetSessionKeyTracker::Poll(const SecurityKeyIds& inUse)
 	{
-#if !defined (PLATFORM_XENON)
 		if (m_Previous.Size() == 0)
 			return;
 		SecurityKeyIds toRemove;
@@ -87,12 +84,10 @@ namespace RacerNet
 				}
 			}
 		}
-#endif
 	}
 
 	void C_NetSessionKeyTracker::Flush(void)
 	{
-#if !defined (PLATFORM_XENON)
 
 		for (S32 i=0; i<m_Previous.Size(); i++)
 			Unregister(m_Previous[i]);
@@ -102,9 +97,6 @@ namespace RacerNet
 
 		m_Active = false;
 		m_Previous.Clear();
-#else
-		m_Active = false;
-#endif
 	}	
 
 	bool C_NetSessionKeyTracker::IsRegistered(const bdSecurityID& secId)
@@ -116,20 +108,17 @@ namespace RacerNet
 		if (memcmp(m_Current.m_Id.ab, secId.ab, BD_SECURITY_ID_LENGTH) == 0)
 			return true;
 
-#if !defined (PLATFORM_XENON)
 		for (S32 i=0; i<m_Previous.Size(); i++)
 		{
 			if (memcmp(m_Previous[i].ab, secId.ab, BD_SECURITY_ID_LENGTH) == 0)
 				return true;
 		}
-#endif
 
 		return false;
 	}
 	
 	void C_NetSessionKeyTracker::Unregister(const bdSecurityID& id, const bool warn)
 	{
-#if !defined (PLATFORM_XENON)
 		bdNetImpl *const net = bdNet::getInstance();
 		if (net->getStatus() == bdNetImpl::BD_NET_DONE)
 		{
@@ -148,7 +137,6 @@ namespace RacerNet
 				}
 			}
 		}
-#endif
 	}
 } // end namespace RacerNet
 

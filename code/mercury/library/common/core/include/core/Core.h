@@ -11,9 +11,6 @@
 #endif
 
 // [Rog] This is needed to define _XBOX_VER
-#if defined(_XBOX) && defined(_XENON)
-#include <xtl.h>
-#endif
 
 /*****************************************************************************/
 // Name: Core.h - Mandatory include for Core Tech 
@@ -107,15 +104,7 @@
 	//#pragma message( "COMPILER_VC" )
 	#define COMPILER_VC
 	//Is it an Xbox, Xenon or PC?
-	#ifdef _XBOX_VER
-		#if _XBOX_VER >= 200 
-			#define COMPILER_XENON
-			//#pragma message( "COMPILER_XENON" )
-		#else
-			#define COMPILER_XBOX
-			//#pragma message( "COMPILER_XBOX" )
-		#endif
-	#elif ( _MSC_VER < 1400 )
+	#if ( _MSC_VER < 1400 )
 		#define COMPILER_VC_7
 		//#pragma message( "COMPILER_VC_7" )
 	#else
@@ -157,20 +146,7 @@
 // PLATFORM_PC, PLATFORM_XENON, PLATFORM_PS3, PLATFORM_PSP, 
 
 // Look for specified target e.g. PS3/Xenon/Revolution, otherwise assume PC.
-#ifdef _XBOX_VER
-//Xbox or Xenon
-	#define WORD_SIZE 32
-	#if _XBOX_VER >= 200 
-		#ifndef PLATFORM_XENON
-		#define PLATFORM_XENON 1
-		#endif
-		//#pragma message( "PLATFORM_XENON" )
-	#else
-		#define PLATFORM_XBOX 1
-		//#pragma message( "PLATFORM_XBOX" )
-	#endif
-	//#pragma message ("32-BIT WORD SIZE")
-#elif defined SN_TARGET_PS3_SPU
+#if defined SN_TARGET_PS3_SPU
 	#define WORD_SIZE 32
 	#ifndef PLATFORM_SPU
 	#define PLATFORM_SPU 1
@@ -410,7 +386,11 @@ typedef double F64;
 typedef float F32;
 
 typedef unsigned long       DWORD;
+#if defined(_WIN64) // [Blur2PC][x64] INTPTR holds pointers for AlignUp/AlignDown and address arithmetic.
+typedef unsigned __int64 INTPTR;
+#else
 typedef	unsigned int	INTPTR;		//TODO:"the integer the same size as a pointer"- check defines for 32 v 64bit
+#endif
 
 #define FORCE_INLINE __forceinline
 #define ALWAYS_INLINE
@@ -459,7 +439,7 @@ typedef	unsigned int	INTPTR;		//TODO:"the integer the same size as a pointer"- c
 	#define DEPRECATED __declspec(deprecated)
 #endif 
 
-#if defined (COMPILER_XENON) || defined (COMPILER_VC_8) //restrict only supported in later MS compilers
+#if defined(COMPILER_VC_8) //restrict only supported in later MS compilers
 //#define RESTRICT __restrict
 #else
 #define __restrict
@@ -472,15 +452,6 @@ typedef	unsigned int	INTPTR;		//TODO:"the integer the same size as a pointer"- c
 // Cache control - Prefetch(DCBT), Flush(DCBF), Allocate&Clear(DCBZ128)
 #define	STANDARD_PREFETCH_AHEAD_DIST 1024
 
-#if defined (COMPILER_XENON)
-#define CACHELINE_SIZE		128
-#define DCBT(offset, base)		__dcbt(offset, base) 
-#define DCBF(offset, base)		__dcbf(offset, base) 
-#define DCBZ128(offset, base)	__dcbz128(offset, base) 
-#define DCBT_AHEAD(offset, base)		__dcbt(offset+STANDARD_PREFETCH_AHEAD_DIST, base) 
-#define DCBF_BEHIND(offset,base)		__dcbf(0,  (void*)(((offset+(INTPTR)(base))&(~(CACHELINE_SIZE-1)))-CACHELINE_SIZE ) )
-
-#else
 
 #define CACHELINE_SIZE		128
 #ifdef PLATFORM_PS3
@@ -499,7 +470,6 @@ typedef	unsigned int	INTPTR;		//TODO:"the integer the same size as a pointer"- c
 
 
 // TODO - WHATS THE POINTER-INT TYPE ?
-#endif
 
 
 
@@ -738,12 +708,6 @@ struct __attribute__((aligned(16))) __vector4
 // 360 Typedefs
 /*****************************************************************************/
 
-#ifdef PLATFORM_XENON
-
-// We allocate a unique ID to identify memory allocated via XMemAlloc as coming from SharedTech
-const DWORD eXALLOCAllocatorId_Mercury = 126;
-
-#endif
 
 /*****************************************************************************/
 // PC Typedefs
@@ -817,11 +781,7 @@ const DWORD eXALLOCAllocatorId_Mercury = 126;
 #endif
 
 // macro to get a symbol generated using objcopy
-#ifdef PLATFORM_XENON
-#define OCSYMBOL(X) (char*)&X
-#else
 #define OCSYMBOL(X) X
-#endif
 
 
 #ifndef PLATFORM_PS3

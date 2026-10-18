@@ -474,37 +474,6 @@ void C_PhotoCamera2::ProcessContacts()
 
 void C_PhotoCamera2::ReadProfileSettings()
 {
-#ifdef PLATFORM_XENON
-	DWORD settingIds[2] = {XPROFILE_GAMER_YAXIS_INVERSION, XPROFILE_GAMER_ACTION_MOVEMENT_CONTROL};
-	int settingsCount = 2;
-	DWORD bufferSize = 0;
-	
-	DWORD ret = XUserReadProfileSettings(0, 0, settingsCount, settingIds, &bufferSize, 0, 0);
-	if (ret != ERROR_SUCCESS && ret != ERROR_INSUFFICIENT_BUFFER)
-		return;
-
-	U8* buffer = (U8*)alloca(bufferSize);
-	if (!buffer)
-		return;
-
-	memset(buffer, 0, bufferSize);
-	
-	XUSER_READ_PROFILE_SETTING_RESULT* result = (XUSER_READ_PROFILE_SETTING_RESULT*)buffer;
-	
-	XUserReadProfileSettings(0, 0, settingsCount, settingIds, &bufferSize, result, 0);
-
-	if (result->pSettings)
-	{
-		// Get Y-Invert setting:
-		const XUSER_PROFILE_SETTING& invert = result->pSettings[0];
-		m_InvertY = (invert.data.nData == XPROFILE_YAXIS_INVERSION_ON);
-
-		// Get Move Stick setting:
-		const XUSER_PROFILE_SETTING& stick = result->pSettings[1];
-		m_RightStick = (stick.data.nData == XPROFILE_ACTION_MOVEMENT_CONTROL_R_THUMBSTICK);
-	}
-		
-#endif
 }
 
 void C_PhotoCamera2::AutoFocusUpdate()
@@ -551,11 +520,7 @@ void C_PhotoCamera2::AutoFocus()
 
 S32 C_PhotoCamera2::CalcAddr(S32 x, S32 y, S32 pitch)
 {
-#ifdef PLATFORM_XENON
-	return XGAddress2DTiledOffset(x,y,pitch >> 2,4) << 2;
-#else
 	return y * pitch + (x << 2);
-#endif
 }
 
 // Return the distance of ground below a point or -1 if there isn't any

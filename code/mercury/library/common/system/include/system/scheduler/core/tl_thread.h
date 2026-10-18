@@ -12,7 +12,7 @@
 
 // TODO: some of the functions in this file are deprecated and have moved to core/thread/atomic.h
 
-#if TL_PLAT_PC + TL_PLAT_XENON + TL_PLAT_PS3 + TL_PLAT_PS3_SPU + TL_PLAT_REV != 1
+#if TL_PLAT_PC + 0 + TL_PLAT_PS3 + TL_PLAT_PS3_SPU + TL_PLAT_REV != 1
 #error This module is only implemented for PC, Xenon and Playstation3 platforms.
 #endif
 
@@ -21,9 +21,6 @@
 #if TL_PLAT_PC
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#endif
-#if TL_PLAT_XENON
-#include <xtl.h>
 #endif
 #if TL_PLAT_PS3
 #include <cell/atomic.h>
@@ -53,7 +50,7 @@
 	On SPU, it is the SPU number (not the same as the SPU thread handle).
     On Revolution, it is a zero-extended OSThread pointer. 64 bit it is not.
 */
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 typedef U64 /*HANDLE*/ tlThreadHandle;
 #endif
 #if TL_PLAT_PS3
@@ -86,7 +83,7 @@ typedef U64 tlThreadId;
 //! Cross platform thread priority.
 enum tlThreadPriority
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	TL_THREAD_PRIORITY_IDLE = THREAD_PRIORITY_LOWEST,
 	TL_THREAD_PRIORITY_LOWEST = THREAD_PRIORITY_LOWEST,
 	TL_THREAD_PRIORITY_BELOW_NORMAL = THREAD_PRIORITY_BELOW_NORMAL,
@@ -112,7 +109,7 @@ enum tlThreadPriority
 //! Cross platform thread flags.
 enum tlThreadFlags
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	TL_THREAD_JOINABLE         = 0,                //!< Pass this flag if you expect to call tlWaitForThread on the thread.
 	TL_THREAD_CREATE_SUSPENDED = CREATE_SUSPENDED, //!< Creates the thread in suspended mode.  Not supported on PS3 or Revolution.
 #endif
@@ -130,7 +127,7 @@ enum tlThreadFlags
 /// Returns a handle to the currently active thread.
 inline tlThreadHandle tlGetCurrentThread()
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	return (tlThreadHandle)GetCurrentThread();
 #endif
 #if TL_PLAT_PS3
@@ -149,7 +146,7 @@ inline tlThreadHandle tlGetCurrentThread()
 /// Returns the ID of the currently active thread.
 inline tlThreadId tlGetCurrentThreadId()
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	return (tlThreadId)GetCurrentThreadId();
 #endif
 #if TL_PLAT_PS3
@@ -168,7 +165,7 @@ inline tlThreadId tlGetCurrentThreadId()
 /// Causes the current thread to sleep for the given number of milliseconds.
 inline void tlSleep(U32 milliseconds)
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	Sleep(milliseconds);
 #endif
 #if TL_PLAT_PS3
@@ -182,7 +179,7 @@ inline void tlSleep(U32 milliseconds)
 #if !TL_PLAT_PS3_SPU
 
 // See SetThreadName in the Xenon SDK documentation.  Used by tlCreateThread.
-#if TL_PLAT_PC || TL_PLAT_XENON || TL_PLAT_XBOX
+#if TL_PLAT_PC
 typedef struct tagTHREADNAME_INFO 
 {
     DWORD dwType;     // Must be 0x1000
@@ -216,7 +213,7 @@ inline void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName )
 /** \typedef tlThreadFunction
 	\brief Callback function declaration for thread entry functions.
 */
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 typedef DWORD (__stdcall *tlThreadFunction)(LPVOID lpThreadParameter);
 #endif
 #if TL_PLAT_PS3
@@ -245,7 +242,7 @@ typedef U32 (*tlThreadFunction)(void*);
 
 	\warning When using ThreadParam, always cast to a U32 since the type is different between platforms. 
 */
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 #define TL_THREAD_FUNCTION(name) DWORD __stdcall name(void* ThreadParam)
 #endif
 #if TL_PLAT_PS3
@@ -259,7 +256,7 @@ typedef U32 (*tlThreadFunction)(void*);
 	\brief Macro to return from thread entry functions.
 	\param exitcode - Thread exit code.
 */
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 #define TL_THREAD_RETURN(exitcode) return exitcode
 #endif
 #if TL_PLAT_PS3
@@ -278,20 +275,17 @@ typedef U32 (*tlThreadFunction)(void*);
 	\param flags - Platform specific thread creation flags.  See tlThreadFlags.
 */
 inline tlThreadHandle tlCreateThread(
-	tlThreadFunction entry, U32 param, 
+	tlThreadFunction entry, INTPTR param, // [Blur2PC][x64] carries a pointer
 	const char* name, 
 	int priority = TL_THREAD_PRIORITY_NORMAL, 
 	U32 stacksize = TL_THREAD_DEFAULT_STACK_SIZE, 
 	U32 flags = TL_THREAD_DEFAULT_FLAGS)
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	name; priority;
 	DWORD id;
 	HANDLE thr = CreateThread(NULL, stacksize, entry, (LPVOID)param, flags, &id);
 	assert(thr != 0); // tlCreateThread failed to create thread.
-#if TL_PLAT_XENON
-	SetThreadName(id, name);
-#endif
 	return (tlThreadHandle)thr;
 #endif
 #if TL_PLAT_PS3
@@ -333,7 +327,7 @@ inline tlThreadHandle tlCreateThread(
 }
 
 //! Wrapper for tlCreateThread to support old calling convention.
-inline tlThreadHandle tlCreateThread(tlThreadFunction entry, U32 param, int priority, U32 stacksize, U32 flags, const char* name)
+inline tlThreadHandle tlCreateThread(tlThreadFunction entry, INTPTR param, int priority, U32 stacksize, U32 flags, const char* name) // [Blur2PC][x64] INTPTR param
 {
 	return tlCreateThread(entry, param, name, priority, stacksize, flags);
 }
@@ -343,7 +337,7 @@ inline tlThreadHandle tlCreateThread(tlThreadFunction entry, U32 param, int prio
 */
 inline void tlExitThread(U32 exitcode)
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	ExitThread(exitcode);
 #endif
 #if TL_PLAT_PS3
@@ -360,7 +354,7 @@ inline void tlExitThread(U32 exitcode)
 */
 inline U32 tlWaitForThread(tlThreadHandle thr)
 {
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 	WaitForSingleObject((HANDLE)thr, INFINITE);
 	DWORD ret;
 	GetExitCodeThread((HANDLE)thr, &ret);
@@ -386,7 +380,7 @@ inline U32 tlWaitForThread(tlThreadHandle thr)
 */
 inline void tlSetCurrentThreadName(const char* name)
 {
-#if TL_PLAT_PC || TL_PLAT_XENON || TL_PLAT_XBOX
+#if TL_PLAT_PC
 	SetThreadName((DWORD)-1, name);
 #endif
 }
@@ -408,7 +402,7 @@ inline void tlSetCurrentThreadName(const char* name)
 	tl_threadlocal int OneOfThesePerThread;
 	\endcode
 */
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 #define tl_threadlocal __declspec(thread)
 #endif
 #if TL_PLAT_PS3

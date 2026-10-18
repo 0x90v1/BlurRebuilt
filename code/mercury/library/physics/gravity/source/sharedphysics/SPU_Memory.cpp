@@ -9,8 +9,8 @@ namespace SharedPhysics
 	{
 		U32 size = (_size + align - 1) & ~(align-1);
 		void* result = Alloc(size);
-		U32 addy = (U32)result;
-		addy = (addy + (align - 1)) & ~(align-1);
+		INTPTR addy = (INTPTR)result;	// [Blur2PC][x64] full address
+		addy = (addy + (align - 1)) & ~(INTPTR)(align-1);
 		return (void*)addy;
 	}
 
@@ -54,7 +54,7 @@ namespace SharedPhysics
 		//PERF_EVENT("gravity.sharedphysics.AllocateBlock");
 		m_Mutex.Wait();
 		//OK - in between here, we need to allocate on of our buffer objects!
-		C_SPUMemoryBlock* ppuBlock = (C_SPUMemoryBlock*)Spu::Get((U32*)&m_pFreeList->m_pFreeElems);
+		C_SPUMemoryBlock* ppuBlock = (C_SPUMemoryBlock*)Spu::Get((INTPTR*)&m_pFreeList->m_pFreeElems);
 		BIZ_ASSERT(ppuBlock);
 		//Got original ptr to memory block, now extract block!
 #ifndef PLATFORM_SPU
@@ -62,7 +62,7 @@ namespace SharedPhysics
 #else
 		Spu::Fetch(spuBlock, ppuBlock, sizeof(C_SPUMemoryBlock));
 #endif
-		Spu::Set((U32*)&m_pFreeList->m_pFreeElems, (U32)(spuBlock->m_pNext));
+		Spu::Set((INTPTR*)&m_pFreeList->m_pFreeElems, (INTPTR)(spuBlock->m_pNext));	// [Blur2PC][x64] pointer-wide
 		m_Mutex.Release();
 		spuBlock->m_pNext = NULL;
 		//spuBlock->m_pPPUPtr = ppuBlock;
@@ -75,13 +75,13 @@ namespace SharedPhysics
 		//PERF_EVENT("gravity.sharedphysics.ReleaseBlock");
 		m_Mutex.Wait();
 		//Read in the first block!
-		C_SPUMemoryBlock* ppuBlock = (C_SPUMemoryBlock*)Spu::Get((U32*)&m_pFreeList->m_pFreeElems);
+		C_SPUMemoryBlock* ppuBlock = (C_SPUMemoryBlock*)Spu::Get((INTPTR*)&m_pFreeList->m_pFreeElems);
 		pBlock->m_pNext = ppuBlock;
 		pBlock->m_CurrentIndex = 0;
 #ifdef PLATFORM_SPU
 		Spu::Store(pBlock->m_pPPUPtr, pBlock, sizeof(C_SPUMemoryBlock));
 #endif
-		Spu::Set((U32*)&m_pFreeList->m_pFreeElems, (U32)(pBlock->m_pPPUPtr));
+		Spu::Set((INTPTR*)&m_pFreeList->m_pFreeElems, (INTPTR)(pBlock->m_pPPUPtr));	// [Blur2PC][x64] pointer-wide
 		m_Mutex.Release();
 	}
 
@@ -100,17 +100,17 @@ namespace SharedPhysics
 		}
 
 		//m_Mutex.Wait();
-		lastBlock->m_pNext = (C_SPUMemoryBlock*)Spu::Get((U32*)&m_pFreeList->m_pFreeElems);
+		lastBlock->m_pNext = (C_SPUMemoryBlock*)Spu::Get((INTPTR*)&m_pFreeList->m_pFreeElems);
 #ifdef PLATFORM_SPU
 		Spu::Store(lastBlock->m_pPPUPtr, lastBlock, sizeof(C_SPUMemoryBlock));
 #endif
-		Spu::Set((U32*)&m_pFreeList->m_pFreeElems, (U32)(_pBlock->m_pPPUPtr));
+		Spu::Set((INTPTR*)&m_pFreeList->m_pFreeElems, (INTPTR)(_pBlock->m_pPPUPtr));
 		m_Mutex.Release();*/
 
 		
 		m_Mutex.Wait();
 		C_SPUMemoryBlock* pBlock = _pBlock;
-		C_SPUMemoryBlock* ppuBlock = (C_SPUMemoryBlock*)Spu::Get((U32*)&m_pFreeList->m_pFreeElems);
+		C_SPUMemoryBlock* ppuBlock = (C_SPUMemoryBlock*)Spu::Get((INTPTR*)&m_pFreeList->m_pFreeElems);
 		while(pBlock)
 		{
 			C_SPUMemoryBlock *pNextBlock = pBlock->m_pNext;
@@ -124,7 +124,7 @@ namespace SharedPhysics
 			pBlock = pNextBlock;
 		}
 		
-		Spu::Set((U32*)&m_pFreeList->m_pFreeElems, (U32)(ppuBlock));
+		Spu::Set((INTPTR*)&m_pFreeList->m_pFreeElems, (INTPTR)(ppuBlock));	// [Blur2PC][x64] pointer-wide
 		m_Mutex.Release();
 	}
 

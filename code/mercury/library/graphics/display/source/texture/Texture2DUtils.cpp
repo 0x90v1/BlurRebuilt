@@ -18,79 +18,6 @@
 namespace Display
 {
 
-#if PLATFORM_XENON
-
-bool UploadTexture2D_Tiled(C_Texture2D* pTexture, C_TextureParams* pTextureParams)
-{
-	BIZ_ASSERT(pTexture);
-	BIZ_ASSERT(pTexture->IsCreated());
-	BIZ_ASSERT(pTextureParams);
-	BIZ_ASSERT(pTextureParams->m_pMipData);
-
-	if(pTextureParams->m_MipCopy)
-	{
-		IDirect3DTexture9* pd3dTexture = (IDirect3DTexture9*)&pTexture->m_d3dTexture2D;
-
-		U32 maxSize = pTexture->GetSize();
-		BIZ_ASSERT(maxSize > 0);
-		
-		U32 size = pTextureParams->m_MipSize;
-		BIZ_ASSERT(size > 0);
-
-		BIZ_ASSERT(pTextureParams->m_MipOffset + pTextureParams->m_MipSize <= maxSize);
-		
-		U8* pData = &pTextureParams->m_pMipData[pTextureParams->m_MipOffset];
-		BIZ_ASSERT(pData);
-
-		D3DLOCKED_RECT lockedRect;
-		pd3dTexture->LockRect(pTextureParams->m_MipHead, &lockedRect, NULL, D3DLOCK_NOSYSLOCK);
-		
-		#ifdef PLATFORM_XENON
-		if(pTextureParams->m_Flags & E_Format_Cached)
-			XMemCpyStreaming_Cached(lockedRect.pBits, pData, size);
-		else
-			memcpy_s(lockedRect.pBits, size, pData, size);
-		#else
-		memcpy_s(lockedRect.pBits, size, pData, size);
-		#endif
-
-		#ifdef PLATFORM_XENON
-		if(!(pTextureParams->m_Flags & E_Format_Cached))
-			FlushCacheForGPU(lockedRect.pBits, size);
-		#endif
-
-		pd3dTexture->UnlockRect(pTextureParams->m_MipHead);
-	}
-	else
-	{
-		U32 size = pTexture->GetSize();
-		BIZ_ASSERT(pTextureParams->m_MipOffset + pTextureParams->m_MipSize <= size);
-
-		U8* pSrc = &pTextureParams->m_pMipData[pTextureParams->m_MipOffset];
-		BIZ_ASSERT(pSrc);
-
-		U8* pDst = (U8*)pTexture->GetAddress();
-		BIZ_ASSERT(pDst);
-
- 		#ifdef PLATFORM_XENON
-		if(pTextureParams->m_Flags & E_Format_Cached)
-			XMemCpyStreaming_Cached(pDst, pSrc, size);
-		else
-			memcpy_s(pDst, size, pSrc, size);
-		#else
-		memcpy_s(pDst, size, pSrc, size);
-		#endif
-
-		#ifdef PLATFORM_XENON
-		if(!(pTextureParams->m_Flags & E_Format_Cached))
-			FlushCacheForGPU(pDst, size);
-		#endif
-	}
-
-	return true;
-}
-
-#endif
 
 #if PLATFORM_PS3
 
@@ -159,7 +86,7 @@ bool UploadTexture2D_Tiled(C_Texture2D* pTexture, C_TextureParams* pTextureParam
 
 bool UploadTexture2D(C_Texture2D* pTexture, C_TextureParams* pTextureParams)
 {
-#if PLATFORM_XENON || PLATFORM_PS3
+#if PLATFORM_PS3
 	if(!(pTextureParams->m_Flags & E_Format_Linear))
 		return UploadTexture2D_Tiled(pTexture, pTextureParams);
 #endif
@@ -197,14 +124,7 @@ bool UploadTexture2D(C_Texture2D* pTexture, C_TextureParams* pTextureParams)
 
 		BIZ_ASSERT(pData+size <= pTextureParams->m_pMipData+pTextureParams->m_MipSize);
 			
-#if PLATFORM_XENON
-		D3DFORMAT d3dFormat = D3D9Format(pTextureParams->m_Format, pTextureParams->m_Flags);
-		if(pTextureParams->m_Flags & E_Format_SRGB)
-			d3dFormat = (D3DFORMAT)MAKESRGBFMT(d3dFormat);
-		XGEndianSwapVolume(lockedRect.GetBits(), lockedRect.GetPitch(), 0, pData, pitch, 0, width, height, 1, d3dFormat);
-#else
 		memcpy(lockedRect.GetBits(), pData, size);
-#endif
 		
 		pData += size;
 
@@ -223,68 +143,14 @@ bool UploadTexture2D(C_Texture2D* pTexture, C_TextureParams* pTextureParams)
 
 U32 GetTexture2DSize(const U32 width, const U32 height, const U32 flags, const E_Format format)
 {
-#if PLATFORM_XENON
-	return XGSetTextureHeader(width, height, 1, 0, D3D9Format(format), 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-#else
 	return Display2::GetTexture2DSize(width, height, flags, GetTextureFormatFromFormat(format));
-#endif
 }
 
 U32 GetTexture2DSize(U32 width, U32 height, const U32 levels, const U32 flags, const E_Format format)
 {
-#ifdef PLATFORM_XENON
-	return XGSetTextureHeader(width, height, levels, 0, D3D9Format(format), 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-#else
 	return Display2::GetTexture2DSize(width, height, levels, flags, GetTextureFormatFromFormat(format));
-#endif
 }
 
-#if defined(GRAPHICS_D3D9)
-bool D3DXCreateTexture2DFromFile(const Util::C_String& fileName, C_Texture2D* pTexture)
-{
-#if 1
-	BIZ_ASSERT_FAIL("TODO: Fix me!");
-#else
-	D3D_MEMORY_STAT_TEXTURE_2D
-
-	assert(pTexture);
-
-	if(pTexture->IsCreated())
-	{
-		LOGERROR(g_Log, "Failed to create the 2d texture as its already created %s\n", fileName.Chars());
-		return false;
-	}
-
-	U32 fileSize = 0;
-	U8* pFileData = NULL;
-	if(!GetFileData(fileName.Chars(), fileSize, &pFileData))
-		return false;
-
-	IDirect3DTexture9* pd3dTexture = NULL;
-	const HRESULT hr = D3DXCreateTextureFromFileInMemory(Device()->GetD3DDevice(), pFileData, fileSize, &pd3dTexture);
-
-	SAFE_DELETE_ARY(pFileData);
-	
-	if(FAILED(hr))
-	{
-		LOGERROR(g_Log, "Failed to create the 2d texture from file in memory %s\n", fileName.Chars());
-		return false;
-	}
-
-	pTexture->m_pd3dTexture = pd3dTexture;
-
-	pTexture->SetSize(GetTexture2DSize(pTexture->GetWidth(), pTexture->GetHeight(), pTexture->GetLevels(), pTexture->GetFormat()));
-	pTexture->SetFlags(E_Usage_Managed);
-	pTexture->SetFileName(fileName);
-	
-	Device()->m_Texture2Ds.Insert(pTexture);
-
-	pTexture->Acquire();
-#endif
-	
-	return true;
-}
-#endif
 
 bool CreateTexture2DFromFile(Util::C_String fileName, C_Texture2D* pTexture)
 {
@@ -402,13 +268,7 @@ U32 GetRenderTexture2DSize(U32 width, U32 height, const U32 levels, const U32 fl
 	U32 size = 0;
 	for(U32 level=0; level<levels; level++)
 	{
-#if PLATFORM_XENON
-		const D3DFORMAT d3dFormat = D3D9Format(format, flags);
-		const D3DFORMAT d3dRenderTextureFormat = D3D9RenderTextureFormat(d3dFormat, flags);
-		return XGSetTextureHeader(width, height, levels, 0, d3dRenderTextureFormat, 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-#else
 		size += GetSurfaceSize(width, height, flags, format, multisample);
-#endif
 		if(width > 1)
 			width >>= 1;
 		if(height > 1)
@@ -424,20 +284,6 @@ U32 GetActiveDataSize(const C_Texture2D* pTexture)
 
 	U32 size = 0;
 
-#if defined(PLATFORM_XENON)
-
-	LPDIRECT3DTEXTURE9 pGpuTexture = (LPDIRECT3DTEXTURE9) &pTexture->m_d3dTexture;
-
-	for (U32 level = 0; level < pGpuTexture->GetLevelCount(); level++)
-	{
-		XGTEXTURE_DESC desc;
-		XGGetTextureDesc(pGpuTexture, level, &desc);
-		size += desc.BytesPerBlock * desc.HeightInBlocks * desc.WidthInBlocks;
-	}
-
-	return size;
-
-#else
 
 	U32 width = pTexture->GetWidth();
 	U32 height = pTexture->GetHeight();
@@ -449,7 +295,6 @@ U32 GetActiveDataSize(const C_Texture2D* pTexture)
 		height = Maths::Max(height / 2, (U32) 1);
 	}
 
-#endif
 
 	return size;
 }

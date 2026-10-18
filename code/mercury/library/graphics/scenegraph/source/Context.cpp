@@ -244,13 +244,8 @@ void C_Context::RenderTask(const RenderSubtask *pTask, const U32 subtechnique, c
 		m_pDisplay->SetStencilState(pRenderStates->stencilState);
 
 	// colour writes don't work properly inside the command buffer
-#if PLATFORM_XENON
-	if(m_RenderFlags.setColourWrite && !multiThreaded)
-		m_pDisplay->SetColourWriteEnable(pRenderStates->colourWriteEnable);
-#else
 	if(m_RenderFlags.setColourWrite)
 		m_pDisplay->SetColourWriteEnable(pRenderStates->colourWriteEnable);
-#endif
 
 	m_pFX->SetRenderFlags(pRenderStates->renderFlagsFX);
 	m_pRD->SetRenderFlags(pRenderStates->renderFlagsRD);
@@ -259,9 +254,6 @@ void C_Context::RenderTask(const RenderSubtask *pTask, const U32 subtechnique, c
 	{
 		// disable blending and colour writes
 		m_pDisplay->SetBlendEnable(pRenderStates->blendEnable);
-		#ifdef PLATFORM_XENON
-		m_pDisplay->SetBlendHighPrecisionEnable(pRenderStates->blendHighPrecisionEnable);
-		#endif
 		m_pDisplay->SetBlendState(pRenderStates->srcBlend, pRenderStates->destBlend, pRenderStates->blendOp);
 		m_pDisplay->SetAlphaTestState(pRenderStates->alphaTestEnable, pRenderStates->alphaRef);
 		m_pDisplay->SetAlphaToMaskEnable(pRenderStates->alphaToMaskEnable);
@@ -278,13 +270,7 @@ void C_Context::RenderTask(const RenderSubtask *pTask, const U32 subtechnique, c
 		m_pDisplay->SetPixelShader(pRenderStates->pPixelShader);
 	}
 
-#ifdef PLATFORM_XENON
-	bool predication = m_pView->GetViewData().pTileSetup && (m_pRenderPass->GetVolatileInfoFlags() & E_VolatileNodeInfo_Predication);
-	if(predication)
-		m_pDisplay->SetPredication(0);
-#else
 	bool predication = false;
-#endif
 
 	assert(pVisibleNodeList);
 	Spu::FetchAlloc(pVisibleNodeList);
@@ -303,10 +289,6 @@ void C_Context::RenderTask(const RenderSubtask *pTask, const U32 subtechnique, c
 	}
 	RenderModelInstances(pVisibleNodeList, pTask->modelInstanceStart, pTask->modelInstanceEnd, subtechniqueHandle, distanceSubtechniqueHandle, predication);
 
-#ifdef PLATFORM_XENON
-	if(predication)
-		m_pDisplay->SetPredication(0);
-#endif
 
 	m_pFX->SetRenderFlags(FX::RenderFlags());
 	m_pRD->SetRenderFlags(RenderingData::Target::RenderFlags());
@@ -417,10 +399,6 @@ void C_Context::RenderPrimitives(const C_VisibleNodeList* pVisibleNodeList, cons
 
 		const C_StaticPrimitive* pStaticPrimitive = pNode->GetNode<C_StaticPrimitive>();
 		
-#ifdef PLATFORM_XENON
-		if(predication)
-			m_pDisplay->SetPredication(pNode->GetPredication());
-#endif
 		Render(pStaticPrimitive, subtechniqueHandle);
 	}
 }
@@ -441,10 +419,6 @@ void C_Context::RenderInstances(const C_VisibleNodeList* pVisibleNodeList, const
 
 		const C_StaticInstance* pStaticInstance = pNode->GetNode<C_StaticInstance>();
 
-#ifdef PLATFORM_XENON
-		if(predication)
-			m_pDisplay->SetPredication(pNode->GetPredication());
-#endif
 		Render(pStaticInstance, subtechniqueHandle);
 	}
 }
@@ -467,10 +441,6 @@ void C_Context::RenderModelInstances(const C_VisibleNodeList* pVisibleNodeList, 
 
 		const C_ModelInstance* pModelInstance = pNode->GetNode<C_ModelInstance>();
 
-#ifdef PLATFORM_XENON
-		if(predication)
-			m_pDisplay->SetPredication(pNode->GetPredication());
-#endif
 
 		Render(pModelInstance, subtechniqueHandle, m_pView->GetTypeFlag());
 	}

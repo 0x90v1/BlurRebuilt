@@ -4,8 +4,6 @@
 
 #if defined( PLATFORM_PC )
 #include <windows.h>
-#elif defined( PLATFORM_XENON )
-#include <xtl.h>
 #elif defined( PLATFORM_PS3 )
 #if CELL_SDK_VERSION >= 0x240001
 #include <sys/ppu_thread.h>
@@ -330,33 +328,6 @@ U32 Thread::_ThreadRunProc()
 }
 
 // See SetThreadName in the Xenon SDK documentation.  Used by tlCreateThread.
-#if PLATFORM_XENON
-typedef struct tagTHREADNAME_INFO 
-{
-    DWORD dwType;     // Must be 0x1000
-    LPCSTR szName;    // Pointer to name (in user address space)
-    DWORD dwThreadID; // Thread ID (-1 for caller thread)
-    DWORD dwFlags;    // Reserved for future use; must be zero
-} THREADNAME_INFO;
-
-inline void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName )
-{
-    THREADNAME_INFO info;
-	
-    info.dwType = 0x1000;
-    info.szName = szThreadName;
-    info.dwThreadID = dwThreadID;
-    info.dwFlags = 0;
-	
-    __try
-    {
-        RaiseException( 0x406D1388, 0, sizeof(info)/sizeof(DWORD), (DWORD *)&info );
-    }
-    __except( EXCEPTION_CONTINUE_EXECUTION )
-    {
-    }
-}
-#endif
 
 // called from outside the thread
 void Thread::Start( const U32 stackSize, const S32 priority, char const * threadName )
@@ -366,18 +337,6 @@ void Thread::Start( const U32 stackSize, const S32 priority, char const * thread
     
     U32 dwStackSize = stackSize;
     
-    #if defined( PLATFORM_XENON )
-    
-    const U32 sixteen_Kb( 16 * 1024 );
-    const U32 sixty_four_Kb( sixteen_Kb * 4 );
-    
-    if ( stackSize > sixty_four_Kb ) // check for greater than default minimum!
-    {
-        // Round stack size up to 64Kb so that optimal size pages are used!
-        dwStackSize = ( stackSize + (sixty_four_Kb-1) ) & ~(sixty_four_Kb-1);
-    }
-    
-    #endif
     
     const LPVOID  pvParam = (LPVOID)this;
     const DWORD   dwCreationFlags = CREATE_SUSPENDED;
@@ -388,13 +347,10 @@ void Thread::Start( const U32 stackSize, const S32 priority, char const * thread
     
     m_Handle = ::CreateThread( lpsa, dwStackSize, MT::ThreadRunProc, pvParam, dwCreationFlags, &threadID );
     
-    #if defined( PLATFORM_PC ) || defined( PLATFORM_XENON )
+    #if defined(PLATFORM_PC)
 	m_Id = threadID;
     #endif
 
-#if PLATFORM_XENON
-	SetThreadName(m_Id, threadName);
-#endif
 
     if ( !m_Handle )
     {
@@ -425,11 +381,7 @@ void Thread::Join()
 // return PID
 int GetProcessID()
 {
-#if defined( PLATFORM_XENON )
-	return 0; // only needed on PC
-#else
 	return (int)GetCurrentProcessId();
-#endif
 }
 
 #endif

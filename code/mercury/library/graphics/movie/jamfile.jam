@@ -30,14 +30,9 @@ source/ps3/PS3Movie.cpp
 source/ps3/bink/gcmtextures.cpp
 ;
 
-XENONSRC =
-source/xb2/xb2movie.cpp
-source/xb2/bink/binktextures.cpp
-;
 
 PCSRC =
 source/w32/W32Movie.cpp
-source/w32/bink/binktextures.cpp
 ;
 
 SHADERSRC =

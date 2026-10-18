@@ -12,7 +12,7 @@
 #include <sys/fs_external.h>
 #include <cell/fs/cell_fs_file_api.h>
 #endif
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 #include <system/misc/stringutil.h>
 #endif
 
@@ -31,7 +31,7 @@ C_File::C_File() :
 	m_iVersion(0),
 	m_bEndianSwapFlag(false),
 	m_IsCritical(true)
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	,m_f(INVALID_HANDLE_VALUE)
 #else
 	,m_f(0)
@@ -78,7 +78,7 @@ bool C_File::Open(const C_FilePath& fileName,
 	m_Name = fileName.Chars();
 	assert(!m_bIsOpen);
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 	static const S32  fileAccess[4] = { NULL, GENERIC_READ, GENERIC_WRITE , GENERIC_WRITE  };
 	static const S32  disposition[4] = { NULL, OPEN_EXISTING, CREATE_ALWAYS , OPEN_ALWAYS  };
@@ -92,7 +92,7 @@ bool C_File::Open(const C_FilePath& fileName,
 						NULL // handle to template file
 						);
 						
-	if ((U32)m_f == 0xffffffff)
+	if (m_f == INVALID_HANDLE_VALUE)	// [Blur2PC][x64] was (U32)m_f == 0xffffffff
 	{
 		DWORD err = GetLastError();
 
@@ -185,7 +185,7 @@ void C_File::Close()
 
 		m_bIsOpen = false;
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		SetEndOfFile( m_f );
 		CloseHandle( m_f );
 #elif defined(PLATFORM_PS3)
@@ -217,7 +217,7 @@ const C_StreamSize C_File::Length()
 	}
 	else
 	{
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 		long iLength = GetFileSize( m_f, NULL );
 #elif defined(PLATFORM_PS3)
 		CellFsStat stat;
@@ -273,7 +273,7 @@ void C_File::SetPosition( const C_StreamPos newPosition )
 		}
 	}
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 	//[Ken] Adding large file support.
 	LARGE_INTEGER li;
@@ -318,7 +318,7 @@ bool C_File::Overflow()
 	assert(IsWriting());
 	U32 n = (U32)(m_pCurBuffer - buffer);
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	DWORD nrWritten = 0;
 	WriteFile( m_f, buffer, n, &nrWritten, NULL );
 #elif defined(PLATFORM_PS3)
@@ -342,7 +342,7 @@ bool C_File::DoFileRead(U8* data, U32 size, U32* nrRead)
 {
 	if (size > 0)
 	{
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	DWORD bytesRead = 0;
 
 	if (ReadFile(m_f, data, size, &bytesRead, 0) == FALSE)
@@ -459,7 +459,7 @@ void C_File::SetVersionNumber(U32 iVersion)
 /// Flush the contents of the file to disk
 void C_File::Flush()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	FlushFileBuffers( m_f );
 #elif defined(PLATFORM_PS3)
 	cellFsFsync( m_f );

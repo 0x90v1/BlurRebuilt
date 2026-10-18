@@ -52,9 +52,7 @@ void Main()
 #include <winsock2.h>
 #endif
 
-#if !defined(PLATFORM_XENON)
 #include <ws2tcpip.h>
-#endif
 
 #else
 #include <fcntl.h>

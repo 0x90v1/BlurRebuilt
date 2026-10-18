@@ -432,9 +432,6 @@ public:
     /// Cast to D3DMATRIX
     NOALIAS __forceinline operator const D3DMATRIX () const;
     
-    /// Cast to D3DXMATRIX
-    NOALIAS __forceinline operator const D3DXMATRIX () const;
-    
     #endif
     
     /// Copy Assignment
@@ -726,9 +723,6 @@ public:
     /// Convert to D3DMATRIX
     NOALIAS __forceinline operator const D3DMATRIX () const __restrict;
     
-    /// Convert to D3DXMATRIX
-    NOALIAS __forceinline operator const D3DXMATRIX () const __restrict;
-    
     #endif
     
     /// Accessor: Get Rotation
@@ -951,9 +945,6 @@ public:
     
     /// Cast to D3DMATRIX
     NOALIAS __forceinline operator const D3DMATRIX () const __restrict;
-    
-    /// Cast to D3DXMATRIX
-    NOALIAS __forceinline operator const D3DXMATRIX () const __restrict;
     
     #endif
     

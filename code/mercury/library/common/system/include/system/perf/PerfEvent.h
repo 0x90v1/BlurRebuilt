@@ -4,10 +4,6 @@
 // header file for the CPU-only version of PERF_EVENT
 // the PERF_EVENT macro will be overridden if mercury/graphics/display is included
 
-#if (defined(CFG_DEBUG) || defined(CFG_PROFILE) || defined(CFG_RELEASE)) && defined(PLATFORM_XENON)
-#define ENABLE_PIX
-#include "pix.h"	// pix.h is not very big, so we don't mind including it here
-#endif
 
 #include <system/Perf/Profiler.h>
 

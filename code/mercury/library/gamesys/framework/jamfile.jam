@@ -63,11 +63,5 @@ SRC +=
 ;
 }
 
-if $(PLATFORM) = "XENON"
-{
-SRC += 
-./source/Application/Application360.cpp
-;
-}
 
 Library framework : $(SRC) $($(PLATFORM)SRC) : FrameworkPch.cpp : FrameworkPch.h ;

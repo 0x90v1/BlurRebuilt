@@ -437,12 +437,6 @@ C_Texture* C_Renderer::LoadTexture(const Util::C_String& filename)
 
 		if(pTexture->IsCreated())
 		{
-		#ifdef PLATFORM_XENON
-			if(GetSRGB())
-			{
-				pTexture->SetSRGB();
-			}
-		#endif
 			m_Textures.Insert(Textures::DataType(filenameLower, pTexture));
 		}
 		else

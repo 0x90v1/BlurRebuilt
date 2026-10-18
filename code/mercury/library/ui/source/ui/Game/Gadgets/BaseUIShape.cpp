@@ -177,7 +177,7 @@ void BaseUIShape::RenderFill( const C_AdobeShape* pShape, const Maths::HVec3& vP
 	for ( S32 i = 0; i < pShape->Fill().Size(); i++ )
 	{
 		// Push the sprite onto the stack
-		gSimple2D.AddSprite( m_Layer, vPos, fSizeX, fSizeY, fillColour, m_Panel, E_SpriteType_TriList, m_RenderState, (U32)pShape->Fill()[i] ); 
+		gSimple2D.AddSprite( m_Layer, vPos, fSizeX, fSizeY, fillColour, m_Panel, E_SpriteType_TriList, m_RenderState, (INTPTR)pShape->Fill()[i] );	// [Blur2PC][x64] 
 
 		if( pShape->FillStyle().Kind() == C_AdobeFillStyle::E_FillStyle_Kind_Gradient )
 		{
@@ -219,7 +219,7 @@ void BaseUIShape::RenderStroke( const C_AdobeShape* pShape, const Maths::HVec3& 
 		m_RenderState.m_EffectParam = ( minVertex & 0xffff) | (maxVertex & 0xffff) << 16;
 
 		// Add the user data as a sprite so it can be rendered.
-		gSimple2D.AddSprite( m_Layer, vPos, fSizeX, fSizeY, strokeColour, m_Panel, E_SpriteType_TriStrip, m_RenderState, (U32)pShape->Stroke()[i] ); 
+		gSimple2D.AddSprite( m_Layer, vPos, fSizeX, fSizeY, strokeColour, m_Panel, E_SpriteType_TriStrip, m_RenderState, (INTPTR)pShape->Stroke()[i] );	// [Blur2PC][x64] 
 		gSimple2D.AddTexUVs( 0, GetTextureParam( 0 ) );
 
 		if ( m_StrokeEffect == E_StrokeEffect_AM_AudioEqAlpha || m_StrokeEffect == E_StrokeEffect_AM_AudioEqIntensityAsAlpha )

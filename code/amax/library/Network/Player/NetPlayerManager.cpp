@@ -421,9 +421,6 @@ namespace RacerNet
 
 							pConn->m_TimeSinceLastSentUnReliable = 0.0f;
 
-#if defined ( PLATFORM_XENON )
-							//LOGDEBUG(g_Log, "Sending keepalive - %S %d connection : %d", it->m_User.Name(), GetTickCount(), a);
-#endif
 						}
 					}
 				}
@@ -718,16 +715,6 @@ namespace RacerNet
 			// update keepalive for specified connection.
 			if (pConn->m_JoinId != 0)
 			{
-#if defined (PLATFORM_XENON)
-				if (partySession)
-				{
-					//LOGDEBUG(g_Log, "received party keepalive - %S %d", it->m_User.Name(), GetTickCount());
-				}
-				else
-				{
-					//LOGDEBUG(g_Log, "received race keepalive - %S %d", it->m_User.Name(), GetTickCount());
-				}
-#endif
 				pConn->m_TimeSinceLastReceivedKeepAlive.Start();
 			}
 		}

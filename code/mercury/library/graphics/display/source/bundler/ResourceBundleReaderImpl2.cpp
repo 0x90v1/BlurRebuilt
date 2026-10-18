@@ -83,9 +83,7 @@ bool C_ResourceBundleReaderImpl2::Read(
 	Sys::BinaryDeserialiser<Ut::NoEndianSwap> ar(file);
 	header.Deserialise(ar);
 
-	#if defined(PLATFORM_XENON)
-	assert(header.platformCode == E_Platform_Xbox360);
-	#elif defined(PLATFORM_PC)
+	#if defined(PLATFORM_PC)
 	assert(header.platformCode == E_Platform_PC);
 	#elif defined(PLATFORM_PS3)
 	assert(	header.platformCode == E_Platform_PS3_OpenGL || 
@@ -164,7 +162,7 @@ bool C_ResourceBundleReaderImpl2::Read(
 			}
 			if (!pResHeader->offsetNext)
 				break;
-			pResHeader = (C_ResourceHeaderOld*)(U32(pResHeader) + pResHeader->offsetNext);
+			pResHeader = (C_ResourceHeaderOld*)((U8*)pResHeader + pResHeader->offsetNext);	// [Blur2PC][x64]
 		}
 
 		//Set our count so that our bundle can allocate any memory it needs to.
@@ -276,7 +274,7 @@ bool C_ResourceBundleReaderImpl2::Read(
 			}
 			if (!pResHeader->offsetNext)
 				break;
-			pResHeader = (C_ResourceHeaderOld*)(U32(pResHeader) + pResHeader->offsetNext);
+			pResHeader = (C_ResourceHeaderOld*)((U8*)pResHeader + pResHeader->offsetNext);	// [Blur2PC][x64]
 		}
 	}
 	

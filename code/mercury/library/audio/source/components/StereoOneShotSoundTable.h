@@ -98,7 +98,7 @@ namespace Audio
 		}
 		// the array of wave handles occupy the memory directly after the object.
 		// we make sure the address is 4 byte aligned
-		WM_WAVE_HANDLE* WaveHandleArrayPtr() { return (WM_WAVE_HANDLE*)(((U32)(this+1)+3) & ~3); }
+		WM_WAVE_HANDLE* WaveHandleArrayPtr() { return (WM_WAVE_HANDLE*)(((INTPTR)(this+1)+3) & ~(INTPTR)3); } // [Blur2PC][x64] full address
 
         void InitContext(Instance* pInstance);
         void ReleaseContext(Instance* pInstance);

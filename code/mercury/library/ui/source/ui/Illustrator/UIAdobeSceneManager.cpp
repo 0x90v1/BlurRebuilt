@@ -48,9 +48,9 @@ C_AdobeSceneManager::~C_AdobeSceneManager()
 
 bool C_AdobeSceneManager::CreateLuaEnums( lua_State *pState )
 {
-	if((U32)pState == 0xffffffff || !pState)
+	if(pState == (lua_State*)(INTPTR)-1 || !pState)	// [Blur2PC][x64] was (U32)pState == 0xffffffff
 	{
-		LOGFATAL( g_Log, DBSTR " : lua_State is invalid : %x", (U32)pState );
+		LOGFATAL( g_Log, DBSTR " : lua_State is invalid : %x", (U32)(INTPTR)pState );
 		return false;
 	}
 
@@ -59,7 +59,7 @@ bool C_AdobeSceneManager::CreateLuaEnums( lua_State *pState )
 	// Common textures
 	if(lua_type(pState, -1) != LUA_TTABLE)
 	{
-		LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_SCENE_TABLE_NAME, (U32)pState, lua_gettop(pState) );
+		LOGFATAL( g_Log, DBSTR " : failed to create new %s table : %x - stack top %d", LUA_SCENE_TABLE_NAME, (U32)(INTPTR)pState, lua_gettop(pState) );
 		return false;
 	}
 

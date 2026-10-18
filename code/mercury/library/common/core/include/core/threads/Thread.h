@@ -49,7 +49,7 @@ public:
 						/// retrieve the platform-dependant thread identifier
 	ThreadHandle		*GetHandle() const { return m_Handle; }
 
-#if defined( PLATFORM_PC ) || defined( PLATFORM_XENON )
+#if defined(PLATFORM_PC)
 	U32					GetId() const { return m_Id; }
 #endif
     
@@ -79,7 +79,7 @@ private:
     ThreadHandle        *m_Handle; 
     S32                 m_Priority;
 	bool				m_bIsRunning;
-#if defined( PLATFORM_PC ) || defined( PLATFORM_XENON )
+#if defined(PLATFORM_PC)
 	U32					m_Id;
 #endif
 };

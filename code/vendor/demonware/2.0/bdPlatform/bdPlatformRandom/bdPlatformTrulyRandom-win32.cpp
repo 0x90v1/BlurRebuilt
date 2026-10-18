@@ -16,7 +16,7 @@
 #include <wincrypt.h>
 
 // The handle to the random generator.
-static bdULong s_provider;
+static HCRYPTPROV s_provider;	// [Blur2PC][x64] ULONG_PTR; bdULong is 32-bit
 
 class bdPlatformTrulyRandomInit
 {

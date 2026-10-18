@@ -105,10 +105,6 @@ void LoadingStatistics::Stats::Initialise()
 
 void LoadingStatistics::Stats::Read(U64 offset, U64 size)
 {
-#ifdef PLATFORM_XENON
-	if (lastOffset > 0)
-		totalSeekDistance += Maths::Abs(S64(lastOffset) - S64(offset));
-#endif
 	lastOffset = offset + size;
 	bytesRead += size;
 	nReads++;

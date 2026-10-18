@@ -67,7 +67,7 @@ namespace Scoreboard
 			F32			m_F32;		
 			S64			m_S64;		
 			F64			m_F64;
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 			FILETIME	m_DateTime;
 #endif
 		}m_Data;
@@ -85,7 +85,7 @@ namespace Scoreboard
 		/// Setup internal data to be of type Float64
 		void SetF64(const U32 fieldId,  const F64 data) {m_FieldId = fieldId; m_DataType = Scoreboard::Float64; m_Data.m_F64 = data;}
 
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		/// Setup internal data to be of type DateTime
 		void SetFiletime(const U32 fieldId,  const FILETIME data) {m_FieldId = fieldId; m_DataType = Scoreboard::DateTime; m_Data.m_DateTime = data;}
 #endif

@@ -22,9 +22,6 @@ public:
 
 	virtual bool Forwards()
 	{
-		#ifdef PLATFORM_XENON
-		Display::Device()->BlockUntilIdle();
-		#endif
 
 		m_pTestSectionManager->ExitSection();
 

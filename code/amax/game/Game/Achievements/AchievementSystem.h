@@ -68,18 +68,10 @@ public:
 		mInitialised = false;
 		mInstalling = false;
 #endif
-#ifdef PLATFORM_XENON
-		mhSchedulerGroup = Scheduler::JQ_GROUP_NONE;
-		mUserIndex = 0;
-		mProcessingTask = false;
-#endif
 	};
 
 	~C_AchievementSystem()
 	{
-#ifdef PLATFORM_XENON
-		Scheduler::DestroyGroup(mhSchedulerGroup);
-#endif
 	};
 
 	void Init();
@@ -98,9 +90,6 @@ public:
 
 	static C_AchievementSystem& Instance(){return s_instance;};
 
-#ifdef PLATFORM_XENON
-	void GetAchievementDetailsDeferred();
-#endif
 	virtual bool MessageHandler(const  Messaging::C_MessageBase* pMessage);
 
 private:
@@ -147,27 +136,9 @@ public:
 	void SetInstalling( bool set ) { mInstalling = set; }
 #endif
 private:
-#elif PLATFORM_XENON
-	typedef struct AchievementOverlappedTracker
-	{
-		XOVERLAPPED *mOverlapped;
-		HANDLE mHandle;
-		XUSER_ACHIEVEMENT *xenon_achievement;
-	}AchievementOverlappedTracker;
-
-	Btl::Vector<AchievementOverlappedTracker> mGiveAchievementTasksStore;
-
-	BYTE mAchievementDetails[XACHIEVEMENT_SIZE_FULL * BLUR_ACHIEVEMENT_MAX];
-		
-	Scheduler::GroupHandle mhSchedulerGroup;
-	int mUserIndex;
-	bool mProcessingTask;
 #endif
 };
 
-#if PLATFORM_XENON
-void DeferredGetAchievementDetails(Scheduler::Task* pTask);
-#endif
 
 } // namespace Game
 

@@ -72,17 +72,10 @@ namespace Audio
                 F32 m_fB0;
                 F32 m_fB1;
 
-#if defined(PLATFORM_XENON)
-                D3DXVECTOR4 garbage;
-                D3DXVECTOR4 m_vPrevIn[6];
-                D3DXVECTOR4 m_vPrevOut0[6];
-                D3DXVECTOR4 m_vPrevOut1[6];
-#else
                 F32 m_fPrevIn0[6];
                 F32 m_fPrevOut0[6];
                 F32 m_fPrevIn1[6];
                 F32 m_fPrevOut1[6];
-#endif
             };
 	    };
 	};

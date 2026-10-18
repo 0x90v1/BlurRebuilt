@@ -873,9 +873,6 @@ __forceinline void C_Line::Serialise( T_Stream& stream ) __restrict
 
 /// Default Constructor
 NOALIAS __forceinline C_Sphere::C_Sphere()
-#if defined( PLATFORM_XENON )
-    : m_V( __vzero() )
-#endif
 {
 }
 
@@ -888,57 +885,33 @@ NOALIAS __forceinline C_Sphere::C_Sphere( const V128 PCREF src )
 #endif
 
 /// Copy Constructor
-#if !defined( PLATFORM_XENON )
 NOALIAS __forceinline C_Sphere::C_Sphere( const C_Sphere& copy )
     : m_V( copy.m_V )
 {
 }
-#endif
 
 /// Constructor: HF32 XYZ & Radius
 NOALIAS __forceinline C_Sphere::C_Sphere( const HF32 PCREF x, const HF32 PCREF y, const HF32 PCREF z, const HF32 PCREF r )
-    #if defined( PLATFORM_XENON )
-    : m_V( __vmrghw( __vmrghw( x.m_F, z.m_F ),
-                     __vmrghw( y.m_F, r.m_F ) ) )
-    #else
     : m_V( x, y, z, r )
-    #endif
 {
 }
 
 /// Constructor: Vertex & Radius
 NOALIAS __forceinline C_Sphere::C_Sphere( const C_Vertex PCREF centre, const HF32 PCREF radius )
-    #if defined( PLATFORM_XENON )
-    : m_V( __vrlimi( centre.m_V.m_V, radius.m_F, VMX_MASK_INSERT_W, 0 ) )
-    #else
     : m_V( HVec3( centre ) || HVecW( radius ) )
-    #endif
 {
 }
 
 /// Accessor: Returns the centre as a Vertex
 NOALIAS __forceinline const C_Vertex C_Sphere::Centre() const __restrict
 {
-    #if defined( PLATFORM_XENON )
-    C_Vertex result( UNDEFINED );
-    result.m_V.m_V = __vrlimi( m_V, __vzero(), VMX_MASK_INSERT_W, 0 );
-    //result.m_V.m_V = m_V;
-    return result;
-    #else
     return C_Vertex( m_V );
-    #endif
 }
 
 /// Accessor: Returns the radius as a HF32
 NOALIAS __forceinline const HF32 C_Sphere::Radius() const __restrict
 {
-    #if defined( PLATFORM_XENON )
-    HF32 result( UNDEFINED );
-    result.m_F = __vspltw( m_V, VW );
-    return result;
-    #else
     return HF32( HVecW( m_V ).W() );
-    #endif
 }
 
 /// Line-Sphere Intersection
@@ -1030,9 +1003,7 @@ template < typename T_Stream > __forceinline void C_Sphere::Deserialise( T_Strea
 {
     HVec4 vec;
     stream >> vec;
-    #if defined( PLATFORM_XENON )
-    m_V = vec.m_V;
-	#elif (defined (PLATFORM_PC) && !defined(_SIMD_))
+	#if (defined (PLATFORM_PC) && !defined(_SIMD_))
     m_V.m_V[0] = vec.m_V[0];
     m_V.m_V[1] = vec.m_V[1];
     m_V.m_V[2] = vec.m_V[2];

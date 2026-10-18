@@ -3,8 +3,6 @@
 
 #if defined( PLATFORM_PC )
 #include <windows.h>
-#elif defined( PLATFORM_XENON)
-#include <xtl.h>
 #else
 #if defined ( PLATFORM_PS3 )
 #include <cell/atomic.h>

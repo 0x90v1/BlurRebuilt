@@ -72,55 +72,6 @@ const vector unsigned char g_VectorPermuteZXY =
     (char)((3<<2)+0), (char)((3<<2)+1), (char)((3<<2)+2), (char)((3<<2)+3)
 };
 
-#elif defined( PLATFORM_XENON )
-
-inline const float IntBitsToFloat( const int bits )
-{
-    typedef union { int i; float f; } I2F;
-    I2F convert;
-    convert.i = bits;
-    return convert.f;
-}
-
-const __vector4 g_VectorAbsMask  = { IntBitsToFloat( 0x7FFFFFFF ), IntBitsToFloat( 0x7FFFFFFF ), IntBitsToFloat( 0x7FFFFFFF ), IntBitsToFloat( 0x7FFFFFFF ) };
-const __vector4 g_VectorSignMask = { IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x80000000 ) };
-
-const __vector4 g_VectorSignMaskXY = { IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x00000000 ), IntBitsToFloat( 0x00000000 ) };
-const __vector4 g_VectorSignMaskXZ = { IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x00000000 ), IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x00000000 ) };
-const __vector4 g_VectorSignMaskYZ = { IntBitsToFloat( 0x00000000 ), IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x80000000 ), IntBitsToFloat( 0x00000000 ) };
-
-const __vector4 g_VectorUnitX = { 1.0f, 0.0f, 0.0f, 0.0f };
-const __vector4 g_VectorUnitY = { 0.0f, 1.0f, 0.0f, 0.0f };
-const __vector4 g_VectorUnitZ = { 0.0f, 0.0f, 1.0f, 0.0f };
-const __vector4 g_VectorUnitW = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-const __vector4 g_VectorZero     = {  0.0f,  0.0f,  0.0f,  0.0f };
-const __vector4 g_VectorHalf     = {  0.5f,  0.5f,  0.5f,  0.5f };
-const __vector4 g_VectorOne      = {  1.0f,  1.0f,  1.0f,  1.0f };
-const __vector4 g_VectorMinusOne = { -1.0f, -1.0f, -1.0f, -1.0f };
-
-const __vector4 g_VectorTwo       = {  2.0f,  2.0f,  2.0f,  2.0f };
-const __vector4 g_VectorThree     = {  3.0f,  3.0f,  3.0f,  3.0f };
-const __vector4 g_VectorFour      = {  4.0f,  4.0f,  4.0f,  4.0f };
-const __vector4 g_VectorFive      = {  5.0f,  5.0f,  5.0f,  5.0f };
-const __vector4 g_VectorEight     = {  8.0f,  8.0f,  8.0f,  8.0f };
-const __vector4 g_VectorSixteen   = { 16.0f, 16.0f, 16.0f, 16.0f };
-const __vector4 g_VectorThirtyTwo = { 32.0f, 32.0f, 32.0f, 32.0f };
-
-const __vector4 g_VectorFloat_00_01_02_03 = {  0.0f,  1.0f,  2.0f,  3.0f };
-const __vector4 g_VectorFloat_04_05_06_07 = {  4.0f,  5.0f,  6.0f,  7.0f };
-const __vector4 g_VectorFloat_08_09_0A_0B = {  8.0f,  9.0f, 10.0f, 11.0f };
-const __vector4 g_VectorFloat_0C_0D_0E_0F = { 12.0f, 13.0f, 14.0f, 15.0f };
-const __vector4 g_VectorFloat_10_11_12_13 = { 16.0f, 17.0f, 18.0f, 19.0f };
-const __vector4 g_VectorFloat_14_15_16_17 = { 20.0f, 21.0f, 22.0f, 23.0f };
-const __vector4 g_VectorFloat_18_19_1A_1B = { 24.0f, 25.0f, 26.0f, 27.0f };
-const __vector4 g_VectorFloat_1C_1D_1E_1F = { 28.0f, 29.0f, 30.0f, 31.0f };
-
-const __vector4 g_VectorEpsilon = { fEpsilon, fEpsilon, fEpsilon, fEpsilon };
-
-const __vector4 g_VectorFltMin = { FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN };
-const __vector4 g_VectorFltMax = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
-
 #else
 
 const F32 g_VectorUnitX[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
@@ -335,17 +286,6 @@ const Matrix Matrix::operator + ( const Vector v ) const
     const vector float pos( vx * AX + vy * AY + vz * AZ + Pos );
     return Matrix( pos, AX, AY, AZ );
     
-    #elif defined( PLATFORM_XENON )
-    
-    const __vector4 v_xyz1( __vrlimi( v.xyz, g_VectorOne, MASK_INSERT_W, 0 ) );
-    const __vector4 x( __vmsum4fp( v_xyz1, CX.xyzw ) );
-    const __vector4 y( __vmsum4fp( v_xyz1, CY.xyzw ) );
-    const __vector4 z( __vmsum4fp( v_xyz1, CZ.xyzw ) );
-    const __vector4 cx( __vrlimi( CX.xyzw, x, MASK_INSERT_W, 0 ) );
-    const __vector4 cy( __vrlimi( CY.xyzw, y, MASK_INSERT_W, 0 ) );
-    const __vector4 cz( __vrlimi( CZ.xyzw, z, MASK_INSERT_W, 0 ) );
-    return Matrix( cx, cy, cz );
-    
     #else
 	
 	return Matrix( MakeVector3( v.x * AX.x + v.y * AY.x + v.z * AZ.x,
@@ -419,19 +359,6 @@ const Matrix Matrix::operator ! () const	//inverse
 	const Matrix m( pos, ax, ay, az );
 	return m - MakeVector3( Pos );
     
-    #elif defined( PLATFORM_XENON )
-    
-    const __vector4 tmp0( __vmrghw( CX.xyzw, CZ.xyzw   ) );
-    const __vector4 tmp1( __vmrghw( CY.xyzw, __vzero() ) );
-    const __vector4 tmp2( __vmrglw( CX.xyzw, CZ.xyzw   ) );
-    const __vector4 tmp3( __vmrglw( CY.xyzw, __vzero() ) );
-    const __vector4 cx ( __vmrghw( tmp0, tmp1 ) );
-    const __vector4 cy ( __vmrglw( tmp0, tmp1 ) );
-    const __vector4 cz ( __vmrghw( tmp2, tmp3 ) );
-    const __vector4 pos( __vmrglw( tmp2, tmp3 ) );
-    const Matrix m( cx, cy, cz );
-    return m - MakeVector3( pos );
-    
     #else
 	
 	const Matrix m( MakeVector3( 0.0f, 0.0f, 0.0f ),
@@ -488,52 +415,6 @@ const Matrix Matrix::operator * ( const Matrix& m ) const
     
     return Matrix( pos, ax, ay, az );
     
-    #elif defined( PLATFORM_XENON )
-    
-    // cx.x = m.AX.x  * AX.x + m.AX.y  * AY.x + m.AX.z  * AZ.x
-    // cx.y = m.AY.x  * AX.x + m.AY.y  * AY.x + m.AY.z  * AZ.x
-    // cx.z = m.AZ.x  * AX.x + m.AZ.y  * AY.x + m.AZ.z  * AZ.x
-    // cx.w = m.Pos.x * AX.x + m.Pos.y * AY.x + m.Pos.z * AZ.x + 1 * Pos.x
-    
-    // cy.x = m.AX.x  * AX.y + m.AX.y  * AY.y + m.AX.z  * AZ.y
-    // cy.y = m.AY.x  * AX.y + m.AY.y  * AY.y + m.AY.z  * AZ.y
-    // cy.z = m.AZ.x  * AX.y + m.AZ.y  * AY.y + m.AZ.z  * AZ.y
-    // cy.w = m.Pos.x * AX.y + m.Pos.y * AY.y + m.Pos.z * AZ.y + 1 * Pos.y
-    
-    // cz.x = m.AX.x  * AX.z + m.AX.y  * AY.z + m.AX.z  * AZ.z
-    // cz.y = m.AY.x  * AX.z + m.AY.y  * AY.z + m.AY.z  * AZ.z
-    // cz.z = m.AZ.x  * AX.z + m.AZ.y  * AY.z + m.AZ.z  * AZ.z
-    // cz.w = m.Pos.x * AX.z + m.Pos.y * AY.z + m.Pos.z * AZ.z + 1 * Pos.z
-    
-    const __vector4 tmp0( __vmrghw( m.CX.xyzw, m.CZ.xyzw     ) );
-    const __vector4 tmp1( __vmrghw( m.CY.xyzw, g_VectorUnitW ) );
-    const __vector4 tmp2( __vmrglw( m.CX.xyzw, m.CZ.xyzw     ) );
-    const __vector4 tmp3( __vmrglw( m.CY.xyzw, g_VectorUnitW ) );
-    
-    const __vector4 m_AX_xyz0( __vmrghw( tmp0, tmp1 ) );
-    const __vector4 m_AY_xyz0( __vmrglw( tmp0, tmp1 ) );
-    const __vector4 m_AZ_xyz0( __vmrghw( tmp2, tmp3 ) );
-    const __vector4 m_AW_xyz1( __vmrglw( tmp2, tmp3 ) );
-    
-    const __vector4 cx_x( __vmsum3fp( CX.xyzw, m_AX_xyz0 ) );
-    const __vector4 cx_y( __vmsum3fp( CX.xyzw, m_AY_xyz0 ) );
-    const __vector4 cx_z( __vmsum3fp( CX.xyzw, m_AZ_xyz0 ) );
-    const __vector4 cx_w( __vmsum4fp( CX.xyzw, m_AW_xyz1 ) );
-    
-    const __vector4 cy_x( __vmsum3fp( CY.xyzw, m_AX_xyz0 ) );
-    const __vector4 cy_y( __vmsum3fp( CY.xyzw, m_AY_xyz0 ) );
-    const __vector4 cy_z( __vmsum3fp( CY.xyzw, m_AZ_xyz0 ) );
-    const __vector4 cy_w( __vmsum4fp( CY.xyzw, m_AW_xyz1 ) );
-    
-    const __vector4 cz_x( __vmsum3fp( CZ.xyzw, m_AX_xyz0 ) );
-    const __vector4 cz_y( __vmsum3fp( CZ.xyzw, m_AY_xyz0 ) );
-    const __vector4 cz_z( __vmsum3fp( CZ.xyzw, m_AZ_xyz0 ) );
-    const __vector4 cz_w( __vmsum4fp( CZ.xyzw, m_AW_xyz1 ) );
-    
-    return Matrix( __vmrghw( __vmrghw( cx_x, cx_z ), __vmrghw( cx_y, cx_w ) ),
-                   __vmrghw( __vmrghw( cy_x, cy_z ), __vmrghw( cy_y, cy_w ) ),
-                   __vmrghw( __vmrghw( cz_x, cz_z ), __vmrghw( cz_y, cz_w ) ) );
-    
     #else
     
 	return Matrix( MakeVector3( m.Pos.x * AX.x + m.Pos.y * AY.x + m.Pos.z * AZ.x + Pos.x,
@@ -559,14 +440,6 @@ const Matrix Matrix::operator * ( const Vector v ) const
 {
     #if defined( _AUDIO_MATHS_PPU_ ) || defined( _AUDIO_MATHS_SPU_ )
 	return Matrix( Pos * v.xyz, AX, AY, AZ );
-	#elif defined( PLATFORM_XENON )
-	const __vector4 v_111x( __vrlimi( g_VectorOne, v.xyz, MASK_INSERT_W, 1 ) );
-	const __vector4 v_111y( __vrlimi( g_VectorOne, v.xyz, MASK_INSERT_W, 2 ) );
-	const __vector4 v_111z( __vrlimi( g_VectorOne, v.xyz, MASK_INSERT_W, 3 ) );
-	const __vector4 cx = __vmulfp( CX.xyzw, v_111x );
-	const __vector4 cy = __vmulfp( CY.xyzw, v_111y );
-	const __vector4 cz = __vmulfp( CZ.xyzw, v_111z );
-	return Matrix( cx, cy, cz );
     #else
 	return Matrix( Pos * v, AX, AY, AZ );
 	#endif
@@ -581,13 +454,6 @@ const Matrix Matrix::operator * ( const float& scale ) const
 	return Matrix( Pos * spu_splats( scale ), AX, AY, AZ );
     #elif defined( _AUDIO_MATHS_PPU_ )
 	return Matrix( Pos * make_scalar( scale ), AX, AY, AZ );
-	#elif defined( PLATFORM_XENON )
-	const __vector4 scale_x( __lvlx( &scale, 0x0 ) );
-	const __vector4 v_111s( __vrlimi( g_VectorOne, scale_x, MASK_INSERT_W, 1 ) );
-	const __vector4 cx = __vmulfp( CX.xyzw, v_111s );
-	const __vector4 cy = __vmulfp( CY.xyzw, v_111s );
-	const __vector4 cz = __vmulfp( CZ.xyzw, v_111s );
-	return Matrix( cx, cy, cz );
 	#else
 	return Matrix( Pos * _Scalar( scale ), AX, AY, AZ );
 	#endif
@@ -715,11 +581,6 @@ const Vector Matrix::Rotate( const Vector v ) const
     return Vector( MakeVector3( vec_madd( vector_splat_x( v.xyz ), AX,
                                 vec_madd( vector_splat_y( v.xyz ), AY,
                                 vec_madd( vector_splat_z( v.xyz ), AZ, g_VectorZero ) ) ) ) );
-    #elif defined( PLATFORM_XENON )
-    const __vector4 x( __vmsum3fp( CX.xyzw, v.xyz ) );
-    const __vector4 y( __vmsum3fp( CY.xyzw, v.xyz ) );
-    const __vector4 z( __vmsum3fp( CZ.xyzw, v.xyz ) );
-    return MakeVector3( __vmrghw( __vmrghw( x, z ), __vmrghw( y, __vzero() ) ) );
 	#else
 	return MakeVector3( v.x * AX.x + v.y * AY.x + v.z * AZ.x,
 			            v.x * AX.y + v.y * AY.y + v.z * AZ.y,
@@ -734,11 +595,6 @@ const Matrix Matrix::Billboard() const
 {
     #if defined( _AUDIO_MATHS_PPU_ ) || defined( _AUDIO_MATHS_SPU_ )
 	return Matrix( MakeVector3( Pos ) );
-    #elif defined( PLATFORM_XENON )
-    const __vector4 tmp0( __vmrglw( CX.xyzw, CZ.xyzw ) );
-    const __vector4 tmp1( __vmrglw( CY.xyzw, __vzero() ) );
-    const __vector4 pos( __vmrglw( tmp0, tmp1 ) );
-    return Matrix( MakeVector3( pos ) );
     #else
 	return Matrix( MakeVector3( Pos.x, Pos.y, Pos.z ) );
 	#endif

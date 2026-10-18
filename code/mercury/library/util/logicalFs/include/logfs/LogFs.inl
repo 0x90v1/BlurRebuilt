@@ -16,7 +16,7 @@ Sys::I_File* C_LogFs<FILE_SYSTEM>::Open(
 	Sys::I_File *pFile = FILE_SYSTEM::Open(filePath, fileAccess, params);
 	C_LogFsManager::Instance().LogMessage(m_name.Chars(),
 		pFile ? DebugLevel::Info : DebugLevel::Error, 
-		"Open(\"%s\", %u)\treturned 0x%x", filePath.Chars(), fileAccess, (U32)pFile);
+		"Open(\"%s\", %u)\treturned 0x%x", filePath.Chars(), fileAccess, (U32)(INTPTR)pFile);	// [Blur2PC][x64] log only
 	C_LogFsManager::Instance().LogFileAccess(m_name.Chars(),
 		filePath.Chars());
 	return pFile;

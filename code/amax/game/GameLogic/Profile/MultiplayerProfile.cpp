@@ -872,32 +872,12 @@ U32 C_MultiplayerProfile::GetLastCarUsed( const AmaxCarClass carClass ) const
 
 bool C_MultiplayerProfile::IsBlurDeveloper()
 {
-#ifdef PLATFORM_XENON
-	SysProfile::FullProfile myProfile;
-	SysProfile::C_Manager::Instance().GetProfile(SysProfile::C_Manager::Instance().GetPrimaryPadNo(), myProfile);
-
-	U64 XboxUid = myProfile.m_Uid;
-
-	// Grab the list of developer XUIDs and look for a match.
-	if(C_MultiplayerData::Instance().m_pConfig)
-	{
-		for(int i = 0; i < C_MultiplayerData::Instance().m_pConfig->m_DeveloperXUIDs.count; i++)
-		{
-			if(XboxUid == C_MultiplayerData::Instance().m_pConfig->m_DeveloperXUIDs[i])
-				return true;	//	We're a Blur developer, and as such can spread the Achievement
-		}
-	}
-#endif
 	return false;
 }
 
 bool C_MultiplayerProfile::HasBeatenBizarre()
 {
-#ifdef PLATFORM_XENON
-	return(C_AchievementSystem::Instance().HasAchievement(SysProfile::C_Manager::Instance().GetPrimaryPadNo(), BLUR_ACHIEVEMENT_BEAT_BIZARRE));
-#else
 	return false;	// avoids checking anything on PS3/PC since this doesn't exist as a trophy.
-#endif
 }
 
 ResprayMap& C_MultiplayerProfile::GetRespraysMP()

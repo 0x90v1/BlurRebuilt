@@ -202,39 +202,8 @@ int WsSocket::TestConnection(WsSockAddr& sockAddr)
 		return 1;
 	}
 
-#ifdef PLATFORM_XENON
-	fd_set fwrite;
-	fd_set fexcept;
-
-	FD_ZERO(&fwrite);
-	FD_ZERO(&fexcept);
-
-	FD_SET(_socket, &fwrite);
-	FD_SET(_socket, &fexcept);
-
-	TIMEVAL tv;
-
-	tv.tv_sec	= 0;
-	tv.tv_usec	= 0;
-
-	int result = select(1, 0, &fwrite, &fexcept, &tv);
-
-	if (result == 0)
-		return 0;
-	else if (result < 0)
-		return -1;
-
-	if (FD_ISSET(_socket, &fexcept))
-		return -1;
-
-	if (FD_ISSET(_socket, &fwrite))
-		return 1;
-
-	return 0;
-#else
 	if (connect(_socket, 0, 0) == 0)
 		return 1;
-#endif
 
 #ifdef PLATFORM_PC
 	switch(WSAGetLastError())

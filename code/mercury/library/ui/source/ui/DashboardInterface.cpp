@@ -26,15 +26,6 @@ void C_DashboardInterface::Init()
 		BIZ_ASSERT_FAIL( "cellSysutilRegisterCallback - ret %d", ret );
 		return;
 	}
-#elif defined PLATFORM_XENON
-	// Determine if we was launched as a demo
-	DWORD dwStatus = XGetLaunchDataSize( &m_LaunchDataSize );
-	if( dwStatus == ERROR_SUCCESS )
-	{
-	   BYTE* pLaunchData = new BYTE [ m_LaunchDataSize ];
-	   dwStatus = XGetLaunchData( pLaunchData, m_LaunchDataSize );
-	   m_pDemoData = (LD_DEMO*)( pLaunchData );
-	}
 #endif
 
 	mInitialised = true;
@@ -42,21 +33,17 @@ void C_DashboardInterface::Init()
 
 const bool C_DashboardInterface::StartXenonKeyboardUI(const WCHAR *DefaultText,const WCHAR *TitleText,const WCHAR *DescText,const int NumChars, U64 uFlags )
 {
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	memset(&mOverlapped,0,sizeof(XOVERLAPPED));
 #endif	
 
 	mResultText[0] = 0;
 
 	bool success = true;
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	// PR - defaulting to Kerbz's flags if it's not been overridden
 	if ( uFlags == MAGIC_KEYBOARD_OVERRIDE )
-#ifdef PLATFORM_XENON
-		uFlags = VKBD_DEFAULT | VKBD_HIGHLIGHT_TEXT | VKBD_LATIN_GAMERTAG;	// putting full keyboard below breaks shooter as I pass my own custom flags in
-#else
 		uFlags = VKBD_DEFAULT | VKBD_HIGHLIGHT_TEXT;
-#endif
 
 	DWORD error = XShowKeyboardUI(mUserIndex, (DWORD)uFlags, DefaultText,TitleText,DescText,mResultText,NumChars,&mOverlapped);
 	success = (error == ERROR_IO_PENDING);
@@ -74,7 +61,7 @@ const bool C_DashboardInterface::StartXenonKeyboardUI(const WCHAR *DefaultText,c
 
 const bool C_DashboardInterface::StartXenonSigninUI( const S32 numPlayers, const E_SignInType type )
 {
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	DWORD flags;
 	switch(type)
 	{
@@ -101,7 +88,7 @@ const bool C_DashboardInterface::StartXenonSigninUI( const S32 numPlayers, const
 
 const bool C_DashboardInterface::StartXenonPlayersUI( )
 {
-#if defined(PLATFORM_XENON)	|| defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	if(XShowPlayersUI(mUserIndex)  != ERROR_SUCCESS)
 	{
 		return false;
@@ -115,7 +102,7 @@ void C_DashboardInterface::Update()
 {
 	if(mKeyboardActive)
 	{
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		if(XHasOverlappedIoCompleted(&mOverlapped))
 		{
 			if ( mOverlapped.dwExtendedError == ERROR_CANCELLED )
@@ -306,30 +293,6 @@ bool C_DashboardInterface::StartPs3KeyboardUI( const WCHAR* pDefaultText, const 
 	return false;
 }
 
-#if defined(PLATFORM_XENON)
-void C_DashboardInterface::ReturnToDemoLauncher() const
-{
-    if( m_pDemoData != NULL )
-    {
-        XSetLaunchData( m_pDemoData, m_LaunchDataSize );
-        XLaunchNewImage( m_pDemoData->szLauncherXEX, 0 );
-    }
-    else
-    {
-        XLaunchNewImage( XLAUNCH_KEYWORD_DEFAULT_APP, 0 );
-    }
-}
-
-bool C_DashboardInterface::LaunchedAsDemo() const
-{
-	return ( m_pDemoData != NULL );
-}
-
-U64	C_DashboardInterface::GetDemoTimeout() const
-{
-	return ( LaunchedAsDemo() ? (U64)( m_pDemoData->dwTimeout / 1000 ) : 0 ); // Stored as milliseconds
-}
-#endif // PLATFORM_XENON
 
 void C_DashboardInterface::ValidateKeyboardString()
 {

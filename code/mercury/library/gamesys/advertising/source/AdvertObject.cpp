@@ -34,20 +34,7 @@ using namespace MassiveAdClient3;
 //--------------------------------------------------------------------------------------
 static BOOL TextureReplacementFunction(MAD_MEDIA_PARAMS *pRequiredParams, MAD_MEDIA_OPTIONAL *pOptionalParams, void *pGameObject)
 {
-#ifdef PLATFORM_XENON
-	MEMORY_TRACKER_CONTEXT("advertising");
-
-	AdvertObject *advertObject = (AdvertObject*) pGameObject;
-
-	LOGDEBUG(gLog, "Advertising: TRF: %s", advertObject->Name().Chars());
-	LOGDEBUG(gLog, "Advertising: TRF: pMediaData(0x%x) uDataLength(%d) uMediaType(%d)", pRequiredParams->pMediaData, pRequiredParams->uDataLength, pRequiredParams->uMediaType);
-
-	bool created = AdvertManager::Instance().TextureDownloaded(advertObject->GetDownloadIndex(), (U8*)pRequiredParams->pMediaData, pRequiredParams->uDataLength, pRequiredParams->uMediaType);
-
-	return (created ? TRUE : FALSE);
-#else
 	return FALSE;
-#endif
 }
 
 //--------------------------------------------------------------------------------------

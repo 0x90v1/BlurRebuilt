@@ -110,7 +110,7 @@ FORCE_INLINE void C_EventInstance::SetLighting(const MathsStorage::Float4A16& vL
 INLINE void C_EventInstance::RemoveEmitter(const S32 index)
 {
 	assert(index >= 0 && index < m_Emitters.Size());
-	Spu::Set((U32*)&m_Emitters[index], 0);
+	Spu::Set((INTPTR*)&m_Emitters[index], (INTPTR)0);	// [Blur2PC][x64] pointer-wide
 }
 
 }

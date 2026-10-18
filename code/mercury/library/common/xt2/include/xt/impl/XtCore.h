@@ -17,7 +17,7 @@ enum XtEndian
 	kXtBigEndian
 };
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3) || defined(PLATFORM_WII) || defined(PLATFORM_SPU)
+#if defined(PLATFORM_PS3) || defined(PLATFORM_WII) || defined(PLATFORM_SPU)
 	inline XtEndian XtGetEndian() { return kXtBigEndian; }
 #elif defined(PLATFORM_PC) || defined(PLATFORM_LINUX)
 	inline XtEndian XtGetEndian() { return kXtLittleEndian; }

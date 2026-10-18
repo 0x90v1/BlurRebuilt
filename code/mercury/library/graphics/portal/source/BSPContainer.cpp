@@ -110,12 +110,12 @@ NOALIAS const U32 C_BSPContainer::Classify(const Maths::HVec3& rkWorldPosition, 
 #pragma warning(push)
 #pragma warning(disable: 4146)
 #endif // _MSC_VER
-		const U32				mask			= -static_cast<U32>(pSplitPlane->GetPlane().Distance(rkWorldPosition) > 0.0f);
+		const INTPTR			mask			= -static_cast<INTPTR>(pSplitPlane->GetPlane().Distance(rkWorldPosition) > 0.0f);	// [Blur2PC][x64] pointer-wide select
 #ifdef _MSC_VER 
 #pragma warning(pop)
 #endif // _MSC_VER 
-		const U32				a				= (const U32)&pSplitPlane->GetFront();
-		const U32				b				= (const U32)&pSplitPlane->GetBack();
+		const INTPTR			a				= (const INTPTR)&pSplitPlane->GetFront();
+		const INTPTR			b				= (const INTPTR)&pSplitPlane->GetBack();
 		const C_BSPRegion*		pRegion			= (const C_BSPRegion*)(((b^a)&mask)^b);
 		return Classify(rkWorldPosition, pRegion);
 	}
@@ -182,13 +182,13 @@ void C_BSPContainer::Trace(C_TraceResults& rkResults,
 #pragma warning(push)
 #pragma warning(disable: 4146)
 #endif // _MSC_VER
-		const U32				iStartMask		= -static_cast<U32>(fStartDistance >= 0.0f);
-		const U32				iEndMask		= -static_cast<U32>(fEndDistance >= 0.0f);
+		const INTPTR			iStartMask		= -static_cast<INTPTR>(fStartDistance >= 0.0f);	// [Blur2PC][x64] pointer-wide select
+		const INTPTR			iEndMask		= -static_cast<INTPTR>(fEndDistance >= 0.0f);
 #ifdef _MSC_VER 
 #pragma warning(pop)
 #endif // _MSC_VER 
-		const U32				iBack			= (U32)(&pSplitPlane->GetBack());
-		const U32				iFront			= (U32)(&pSplitPlane->GetFront());
+		const INTPTR			iBack			= (INTPTR)(&pSplitPlane->GetBack());
+		const INTPTR			iFront			= (INTPTR)(&pSplitPlane->GetFront());
 		const C_BSPRegion*		pThisSide		= (const C_BSPRegion*)(((iBack ^ iFront) & iStartMask) ^ iBack);
 		const C_BSPRegion*		pOtherSide		= (const C_BSPRegion*)(((iBack ^ iFront) & iEndMask) ^ iBack);
 

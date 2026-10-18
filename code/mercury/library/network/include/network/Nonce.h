@@ -37,14 +37,8 @@ namespace NetPlay
 		 */
 		bool Create(void)
 		{
-#if defined (PLATFORM_XENON)
-			if (XNetRandom(m_Nonce, Size()) == 0)
-				return false;
-			return true;
-#else
 			bdTrulyRandom::getInstance()->getRandomUByte8(m_Nonce, Size());
 			return true;
-#endif
 		}
 
 		// overloaded operators..

@@ -185,7 +185,7 @@ bool LoadTextureFromMemory(U8* pData, const size_t size, C_TextureParams* pParam
 		return false;
 	}
 
-#if PLATFORM_XENON || PLATFORM_PS3
+#if PLATFORM_PS3
 	U32* pPtr = &pTexture->m_Size;
 	for(U32 i=0; i<(sizeof(DDS_TEXTURE)-4)/4; i++)
 	{

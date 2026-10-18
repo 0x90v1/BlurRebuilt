@@ -116,7 +116,7 @@ IoRequestImpl::~IoRequestImpl()
 
 void IoRequestImpl::Acquire()
 {
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	InterlockedIncrement((LONG*)&references);
 #else
 	cellAtomicIncr32((U32*)&references);
@@ -125,7 +125,7 @@ void IoRequestImpl::Acquire()
 
 void IoRequestImpl::Release()
 {
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	if (InterlockedDecrement((LONG*)&references) <= 0)
 #else
 	if (cellAtomicDecr32((U32*)&references) <= 1)

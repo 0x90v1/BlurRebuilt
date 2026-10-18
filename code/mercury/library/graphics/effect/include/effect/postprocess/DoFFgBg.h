@@ -69,9 +69,6 @@ private:
 
 	Render::Texture::C_GaussianBlur	m_GaussianBlurUtil;
 
-#if defined(PLATFORM_XENON)
-	RenderTextures					m_QuarterSizeRenderTextures;
-#endif
 	RenderTextures					m_DownsampleRenderTextures;
 	RenderTextures					m_LargeBlurRenderTextures;
 	RenderTextures					m_SmallBlurRenderTextures;

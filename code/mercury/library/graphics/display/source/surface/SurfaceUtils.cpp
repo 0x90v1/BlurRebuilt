@@ -10,11 +10,7 @@ namespace Display
 
 U32 GetSurfaceSize(const U32 width, const U32 height, const U32 flags, const E_Format format, const E_Multisample multisample)
 {
-#if PLATFORM_XENON
-	return XGSurfaceSize(width, height, D3D9Format(format), D3D9Multisample(multisample));
-#else
 	return Display2::GetSurfaceSize(width, height, flags, GetSurfaceFormatFromFormat(format), (Display2::E_Multisample)multisample);
-#endif
 }
 
 }; // namespace Display

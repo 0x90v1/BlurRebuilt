@@ -33,12 +33,6 @@ namespace Display
 			virtual const char* GetResourceName(const S32 index) { return NULL; }
 
 		//[HACK] Remove this, we ought to be using a cross-platform texture abstraction.
-		#ifdef PLATFORM_XENON
-			virtual IDirect3DTexture9* GetTexture(const S32 index) const { return NULL; }
-			virtual IDirect3DTexture9* GetTexture(const char* name) const { return NULL; }
-			virtual IDirect3DCubeTexture9* GetCubeMap(const char* name) const { return NULL; }
-			virtual IDirect3DVolumeTexture9* GetVolumeTexture(const char* name) const { return NULL; }
-		#endif
 
 			virtual U32 CalculateVideoMemorySize() = 0;
 

@@ -11,8 +11,6 @@
 
 #if defined(PLATFORM_PC)
 #include <wincrypt.h>
-#elif defined(PLATFORM_XENON)
-#include <xbox.h>
 #elif defined(PLATFORM_PS3)
 #include <cell/hash/libsha1.h>
 #endif

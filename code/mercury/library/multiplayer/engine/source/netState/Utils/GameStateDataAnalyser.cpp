@@ -44,11 +44,6 @@ bool C_DataAnalyser::IncomingState(C_EntityState* pxEntityState, const char* str
 	xTypeData.m_xIncoming.m_uFullCount			+= bFullState ? 1:0;
 	xTypeData.m_xIncoming.m_uCompCount			+= bFullState ? 0:1;
 
-	#ifdef PLATFORM_XENON
-		int uSize = (C_TypeData::E_NAME_LENGTH < strlen(strTypeName)) ? C_TypeData::E_NAME_LENGTH : strlen(strTypeName);
-		memcpy_s(xTypeData.m_strTypeName, uSize, strTypeName, uSize);
-		xTypeData.m_strTypeName[uSize] = '\0';
-	#endif
 
 #endif
 
@@ -85,11 +80,6 @@ bool C_DataAnalyser::OutgoingState(C_EntityState* pxEntityState, const char* str
 	xTypeData.m_xOutgoing.m_uFullCount			+= bFullState ? 1:0;
 	xTypeData.m_xOutgoing.m_uCompCount			+= bFullState ? 0:1;
 
-	#ifdef PLATFORM_XENON
-		int uSize = (C_TypeData::E_NAME_LENGTH < strlen(strTypeName)) ? C_TypeData::E_NAME_LENGTH : strlen(strTypeName);
-		memcpy_s(xTypeData.m_strTypeName, uSize, strTypeName, uSize);
-		xTypeData.m_strTypeName[uSize] = '\0';
-	#endif
 
 #endif
 

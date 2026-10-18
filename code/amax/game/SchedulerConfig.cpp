@@ -120,9 +120,6 @@ S32 C_SchedulerConfig::Initialise()
 	m_PakPolicy = Scheduler::CreatePolicy( piPak );
 #endif
 
-#ifdef PLATFORM_XENON
-	Scheduler::jqEnableWorkers(2|4|8|16|32);
-#endif
 #ifdef PLATFORM_PC
 	Scheduler::jqEnableWorkers(1|2);
 #endif

@@ -9,22 +9,10 @@
 
 #if PLATFORM_PC
 
-	#if defined(BLUR_USE_DX11) // [Blur1PCDX11] Independent native Display2 backend.
 	#define DEVICE_D3D11 1
 	#define DEVICE_D3D11_PC 1
 	#define DEVICE_PC 1
-	#else
-	#define DEVICE_D3D9 1
-	#define DEVICE_D3D9_PC 1
-	#define DEVICE_PC 1
-	#endif
 
-#elif PLATFORM_XENON
-
-	#define DEVICE_D3D9 1
-	#define DEVICE_D3D9_XB2 1
-	#define DEVICE_XB2 1
-	
 #elif PLATFORM_PS3 || PLATFORM_SPU
 
 	#define DEVICE_GCM 1

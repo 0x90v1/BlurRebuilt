@@ -80,9 +80,7 @@ namespace RacerNet
 		bool m_Active;
 		NetPlay::SessionSecurity m_Current;
 
-#if !defined (PLATFORM_XENON)
 		SecurityKeyIds m_Previous;
-#endif
 	};
 }// end namespace RacerNet
 

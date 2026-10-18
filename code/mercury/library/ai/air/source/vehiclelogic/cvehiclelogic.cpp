@@ -719,9 +719,6 @@ namespace airacingtech
 		PERF_EVENT("AI.VehicleLogic.Update");
 
 
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CVehicleLogic::Update()");
-#endif
 
 		const CObjectId& id = GetObjectId();
 

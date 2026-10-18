@@ -15,10 +15,6 @@
 #include "Display/Occlusion/GL/GLOcclusionQuery.h"
 #elif defined(DEVICE_PCGL)
 #include "Display/Occlusion/GL/GLOcclusionQuery.h"
-#elif defined(DEVICE_PCD3D9)
-#include "Display/Occlusion/D3D9/D3D9OcclusionQuery.h"
-#elif defined(DEVICE_XB2D3D9)
-#include "Display/Occlusion/D3D9/D3D9OcclusionQuery.h"
 #endif
 
 #include "Display/Device/Device.h"

@@ -153,7 +153,7 @@ public:
 								 const F32 fActualWidth );
 
 	/// use to set a polygon font item
-	__forceinline	void	Set( const I_GlyphAttributes::E_GlyphType eFontType, const U32 uUserData, const bool bLineBreak, 
+	__forceinline	void	Set( const I_GlyphAttributes::E_GlyphType eFontType, const INTPTR uUserData, const bool bLineBreak, 
 								 const E_Type eItemType, const Maths::HVec3& pos, const F32 sx,const F32 sy, 
 								 const C_UISpriteColours& col, 
 								 const bool bDropShadow, const bool bItalics, 
@@ -165,7 +165,7 @@ public:
 	I_GlyphAttributes::E_GlyphType	m_eFontType;
 
 	C_TextureHandleIndex			m_Texture;
-	U32								m_UserData;
+	INTPTR							m_UserData;		// [Blur2PC][x64] carries pointers
 
 	C_UISpriteColours				m_Col;
 

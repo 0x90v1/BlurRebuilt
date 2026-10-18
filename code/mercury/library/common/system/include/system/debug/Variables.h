@@ -17,7 +17,7 @@
 
 // Prevent warning spam
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #pragma warning(disable:4355)	// This used in initialiser list
 #endif
 

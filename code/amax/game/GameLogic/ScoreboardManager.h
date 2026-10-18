@@ -46,7 +46,7 @@ struct SessionScoreboardData
 {
 	WCHAR* m_Name; // Gamertag
 
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	XUID m_Uid; // User Id
 #elif defined (PLATFORM_PS3)
 	SceNpId m_Uid;
@@ -63,7 +63,7 @@ struct SessionScoreboardData
 	SessionScoreboardData& operator = (const SessionScoreboardData &sessionData)
 	{
 		m_Name = sessionData.m_Name;
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		m_Uid = sessionData.m_Uid;
 #endif
 		m_IsLocal = sessionData.m_IsLocal;

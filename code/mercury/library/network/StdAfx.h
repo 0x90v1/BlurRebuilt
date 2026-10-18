@@ -14,28 +14,7 @@
 #include <wchar.h>
 #include <bdNet/bdNet.h>
 
-#if defined (PLATFORM_XENON)
-// XBOX360 system header files
-#include <stdio.h>
-#include <stdlib.h>
-#include <xtl.h>
-#include <xonline.h>
-
-#pragma comment (lib, "xonline.lib")
-
-#if defined ( USE_XHV2 )
-#include <xaudio2.h>
-#include <xhv2.h>
-#pragma comment (lib, "xhv2.lib")
-#else
-#include <xaudio.h>
-#include <xhv.h>
-#pragma comment (lib, "xhv.lib")
-#endif
-
-
-
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 // PS3 system header files
 #include <stdio.h>
 #include <stdlib.h>

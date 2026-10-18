@@ -7,9 +7,6 @@
 #include "..\..\include\audio.h"
 #include "..\systemheaders.h"
 
-#ifdef _XBOX360
-#include <xtl.h>
-#endif // _XBOX360	
 
 //using namespace Audio;
 
@@ -218,7 +215,7 @@ bool Audio::Core::SendQueue::ReceiveItem()
 		break;
 	}
 
-	#if defined PLATFORM_XENON || defined PLATFORM_PS3			
+	#if defined(PLATFORM_PS3)
 	__lwsync();
 	#else
 	// apparently unnecessary on pc.. jkc
@@ -293,7 +290,7 @@ bool Audio::Core::ReturnQueue::ReceiveItem()
 			break;
 	}
 
-	#if defined PLATFORM_XENON || defined PLATFORM_PS3			
+	#if defined(PLATFORM_PS3)
 	__lwsync();
 	#else
 	// apparently unnecessary on pc.. jkc

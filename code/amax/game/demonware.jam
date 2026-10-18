@@ -32,10 +32,6 @@ if $(BUILD) = Master || $(BUILD) = Speed || $(BUILD) = Profile || $(BUILD) = Rel
 		LINKLIBS += $(TOP)/code/vendor/demonware/2.0/lib/win32-vs8/release-mt/$(DEMONWARE_LIBS).lib ;
 	 	LINKLIBS += $(TOP)/code/vendor/demonware/2.0/lib/win32-vs8/release-mt/$(DEMONWARE_HTTP_LIBS).lib ;
 	}
-	if $(PLATFORM) = XENON
-	{
-		LINKLIBS += $(TOP)/code/vendor/demonware/2.0/lib/xenon-vs8/release/$(DEMONWARE_LIBS).lib ;
-	}
 }
 else
 {
@@ -47,9 +43,5 @@ else
 	{
 		LINKLIBS += $(TOP)/code/vendor/demonware/2.0/lib/win32-vs8/debug-mt/$(DEMONWARE_LIBS).lib ;
 	 	LINKLIBS += $(TOP)/code/vendor/demonware/2.0/lib/win32-vs8/debug-mt/$(DEMONWARE_HTTP_LIBS).lib ;
-	}
-	if $(PLATFORM) = XENON
-	{
-		LINKLIBS += $(TOP)/code/vendor/demonware/2.0/lib/xenon-vs8/debug/$(DEMONWARE_LIBS).lib ;
 	}
 }

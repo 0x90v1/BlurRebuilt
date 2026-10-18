@@ -34,7 +34,7 @@ bool C_SkeletonResource::LoadResourceData()
 	if (m_skeleton == NULL)
 	{
 		m_skeleton = new C_Skeleton;
-		#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+		#if defined(PLATFORM_PS3)
 		BIZ_ASSERT( (((U32) m_skeleton) & 0xf) == 0 );
 		#endif
 	}

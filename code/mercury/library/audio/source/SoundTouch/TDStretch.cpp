@@ -656,7 +656,7 @@ void TDStretch::acceptNewOverlapLength(uint newOverlapLength)
 
         pRefMidBufferUnaligned = new SAMPLETYPE[2 * overlapLength + 16 / sizeof(SAMPLETYPE)];
         // ensure that 'pRefMidBuffer' is aligned to 16 byte boundary for efficiency
-        pRefMidBuffer = (SAMPLETYPE *)((((ulong)pRefMidBufferUnaligned) + 15) & -16);
+        pRefMidBuffer = (SAMPLETYPE *)((((INTPTR)pRefMidBufferUnaligned) + 15) & ~(INTPTR)15);	// [Blur2PC][x64] ulong is 32-bit
     }
 }
 
@@ -977,89 +977,9 @@ double TDStretch::calcCrossCorrStereoVMXOPTIMISED(const float *mixingPos, const 
 
 __forceinline LONG_SAMPLETYPE TDStretch::calcVMSCrossProduct(const float* mixingPos, const float* compare,uint i) const
 {
-#ifdef PLATFORM_XENON
-		 __vector4 const* const __restrict pvFromA =  (__vector4*)  mixingPos;
-		 __vector4 const* const __restrict pvFromB =  (__vector4*)  compare;
-
-		register __vector4 vTemp00( __vmsum4fp( __loadunalignedvector(pvFromA + i + 0 ), __lvx( pvFromB, 0x000 + i * 16)) );
-		register __vector4 vTemp01( __vmsum4fp( __loadunalignedvector(pvFromA + i + 1 ), __lvx( pvFromB, 0x010 + i * 16)) );
-		register __vector4 vTemp02( __vmsum4fp( __loadunalignedvector(pvFromA + i + 2 ), __lvx( pvFromB, 0x020 + i * 16)) );
-		register __vector4 vTemp03( __vmsum4fp( __loadunalignedvector(pvFromA + i + 3 ), __lvx( pvFromB, 0x030 + i * 16)) );
-		register __vector4 vTemp04( __vmsum4fp( __loadunalignedvector(pvFromA + i + 4 ), __lvx( pvFromB, 0x040 + i * 16)) );
-		register __vector4 vTemp05( __vmsum4fp( __loadunalignedvector(pvFromA + i + 5 ), __lvx( pvFromB, 0x050 + i * 16)) );
-		register __vector4 vTemp06( __vmsum4fp( __loadunalignedvector(pvFromA + i + 6 ), __lvx( pvFromB, 0x060 + i * 16)) );
-		register __vector4 vTemp07( __vmsum4fp( __loadunalignedvector(pvFromA + i + 7 ), __lvx( pvFromB, 0x070 + i * 16)) );
-		register __vector4 vTemp08( __vmsum4fp( __loadunalignedvector(pvFromA + i + 8 ), __lvx( pvFromB, 0x080 + i * 16)) );
-		register __vector4 vTemp09( __vmsum4fp( __loadunalignedvector(pvFromA + i + 9 ), __lvx( pvFromB, 0x090 + i * 16)) );
-		register __vector4 vTemp10( __vmsum4fp( __loadunalignedvector(pvFromA + i + 10), __lvx( pvFromB, 0x0A0 + i * 16)) );
-		register __vector4 vTemp11( __vmsum4fp( __loadunalignedvector(pvFromA + i + 11), __lvx( pvFromB, 0x0B0 + i * 16)) );
-		register __vector4 vTemp12( __vmsum4fp( __loadunalignedvector(pvFromA + i + 12), __lvx( pvFromB, 0x0C0 + i * 16)) );
-		register __vector4 vTemp13( __vmsum4fp( __loadunalignedvector(pvFromA + i + 13), __lvx( pvFromB, 0x0D0 + i * 16)) );
-		register __vector4 vTemp14( __vmsum4fp( __loadunalignedvector(pvFromA + i + 14), __lvx( pvFromB, 0x0E0 + i * 16)) );
-		register __vector4 vTemp15( __vmsum4fp( __loadunalignedvector(pvFromA + i + 15), __lvx( pvFromB, 0x0F0 + i * 16)) );
-
-		register __vector4 vTemp16( __vmsum4fp( __loadunalignedvector(pvFromA + i + 16), __lvx( pvFromB, 0x100 + i * 16)) );
-		register __vector4 vTemp17( __vmsum4fp( __loadunalignedvector(pvFromA + i + 17), __lvx( pvFromB, 0x110 + i * 16)) );
-		register __vector4 vTemp18( __vmsum4fp( __loadunalignedvector(pvFromA + i + 18), __lvx( pvFromB, 0x120 + i * 16)) );
-		register __vector4 vTemp19( __vmsum4fp( __loadunalignedvector(pvFromA + i + 19), __lvx( pvFromB, 0x130 + i * 16)) );
-		register __vector4 vTemp20( __vmsum4fp( __loadunalignedvector(pvFromA + i + 20), __lvx( pvFromB, 0x140 + i * 16)) );
-		register __vector4 vTemp21( __vmsum4fp( __loadunalignedvector(pvFromA + i + 21), __lvx( pvFromB, 0x150 + i * 16)) );
-		register __vector4 vTemp22( __vmsum4fp( __loadunalignedvector(pvFromA + i + 22), __lvx( pvFromB, 0x160 + i * 16)) );
-		register __vector4 vTemp23( __vmsum4fp( __loadunalignedvector(pvFromA + i + 23), __lvx( pvFromB, 0x170 + i * 16)) );
-		register __vector4 vTemp24( __vmsum4fp( __loadunalignedvector(pvFromA + i + 24), __lvx( pvFromB, 0x180 + i * 16)) );
-		register __vector4 vTemp25( __vmsum4fp( __loadunalignedvector(pvFromA + i + 25), __lvx( pvFromB, 0x190 + i * 16)) );
-		register __vector4 vTemp26( __vmsum4fp( __loadunalignedvector(pvFromA + i + 26), __lvx( pvFromB, 0x1A0 + i * 16)) );
-		register __vector4 vTemp27( __vmsum4fp( __loadunalignedvector(pvFromA + i + 27), __lvx( pvFromB, 0x1B0 + i * 16)) );
-		register __vector4 vTemp28( __vmsum4fp( __loadunalignedvector(pvFromA + i + 28), __lvx( pvFromB, 0x1C0 + i * 16)) );
-		register __vector4 vTemp29( __vmsum4fp( __loadunalignedvector(pvFromA + i + 29), __lvx( pvFromB, 0x1D0 + i * 16)) );
-		register __vector4 vTemp30( __vmsum4fp( __loadunalignedvector(pvFromA + i + 30), __lvx( pvFromB, 0x1E0 + i * 16)) );
-		register __vector4 vTemp31( __vmsum4fp( __loadunalignedvector(pvFromA + i + 31), __lvx( pvFromB, 0x1F0 + i * 16)) );
-
-
-		register __vector4 vSumTemp00 = __vaddfp(vTemp00, vTemp01);
-		register __vector4 vSumTemp01 = __vaddfp(vTemp02, vTemp03);
-		register __vector4 vSumTemp02 = __vaddfp(vTemp04, vTemp05);
-		register __vector4 vSumTemp03 = __vaddfp(vTemp06, vTemp07);
-		register __vector4 vSumTemp04 = __vaddfp(vTemp08, vTemp09);
-		register __vector4 vSumTemp05 = __vaddfp(vTemp10, vTemp11);
-		register __vector4 vSumTemp06 = __vaddfp(vTemp12, vTemp13);
-		register __vector4 vSumTemp07 = __vaddfp(vTemp14, vTemp15);
-
-		register __vector4 vSumTemp08 = __vaddfp(vTemp16, vTemp17);
-		register __vector4 vSumTemp09 = __vaddfp(vTemp18, vTemp19);
-		register __vector4 vSumTemp10 = __vaddfp(vTemp20, vTemp21);
-		register __vector4 vSumTemp11 = __vaddfp(vTemp22, vTemp23);
-		register __vector4 vSumTemp12 = __vaddfp(vTemp24, vTemp25);
-		register __vector4 vSumTemp13 = __vaddfp(vTemp26, vTemp27);
-		register __vector4 vSumTemp14 = __vaddfp(vTemp28, vTemp29);
-		register __vector4 vSumTemp15 = __vaddfp(vTemp30, vTemp31);
-
-		register __vector4 vSumAgain00 = __vaddfp(vSumTemp00, vSumTemp01);
-		register __vector4 vSumAgain01 = __vaddfp(vSumTemp02, vSumTemp03);
-		register __vector4 vSumAgain02 = __vaddfp(vSumTemp04, vSumTemp05);
-		register __vector4 vSumAgain03 = __vaddfp(vSumTemp06, vSumTemp07);
-
-		register __vector4 vSumAgain04 = __vaddfp(vSumTemp08, vSumTemp09);
-		register __vector4 vSumAgain05 = __vaddfp(vSumTemp10, vSumTemp11);
-		register __vector4 vSumAgain06 = __vaddfp(vSumTemp12, vSumTemp13);
-		register __vector4 vSumAgain07 = __vaddfp(vSumTemp14, vSumTemp15);
-
-		register __vector4 vSumAgain08 = __vaddfp(vSumAgain00, vSumAgain01);
-		register __vector4 vSumAgain09 = __vaddfp(vSumAgain02, vSumAgain03);
-		register __vector4 vSumAgain10 = __vaddfp(vSumAgain04, vSumAgain05);
-		register __vector4 vSumAgain11 = __vaddfp(vSumAgain06, vSumAgain07);
-
-		register __vector4 vSumAgain12 = __vaddfp(vSumAgain08, vSumAgain09);
-		register __vector4 vSumAgain13 = __vaddfp(vSumAgain10, vSumAgain11);
-
-		register __vector4 vSumFinal = __vaddfp(vSumAgain12, vSumAgain13);
-	
-		return vSumFinal.w;
-#else
 
 	return 0;
 
-#endif
 
 }
 

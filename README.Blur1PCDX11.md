@@ -50,6 +50,8 @@ Eleven GPU checks verify live FX11 sampler address/filter/border/LOD settings,
 including immediate reapply, encoded PC bias and disabled mip selection.
 The separate `d3d9_sampling_reference` target verifies 23 corresponding
 legacy and live-sampler cases on D3D9. It is not linked into the native game.
+(The x64 child branch removes this D3D9 probe with the rest of the D3D9 code;
+see `docs/blur1pcdx11/x64.md`.)
 `dx11_shaders_all` compiles all 693 Jam-selected built-in shader variants to
 SM5 `.cso` files. The probe draws using those compiled binaries; its source
 shader compiler is retained for diagnosis.

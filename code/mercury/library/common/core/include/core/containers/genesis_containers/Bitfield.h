@@ -88,7 +88,7 @@ public:
 	    const U32 itemIndex( ItemIndex( bitNo ) );
 	    const U32 itemBit( ItemBit( bitNo ) );
 	    
-	    #if !defined( PLATFORM_XENON ) && !defined( PLATFORM_PS3 )
+	    #if !defined(PLATFORM_PS3)
 	    
 	    const U32 result( ( m_Data[itemIndex] >> itemBit ) & 1 );
 		m_Data[ itemIndex ] |= ( 1 << itemBit );

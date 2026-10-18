@@ -182,9 +182,7 @@ void ServiceThread::ThreadMain()
 	// Microsoft implementation
 	HANDLE hv[MAXIMUM_WAIT_OBJECTS];
 	memset(hv, 0, sizeof(hv));
-#if !defined(PLATFORM_XENON)
 	WSANETWORKEVENTS ne;
-#endif
 
 	for(;;)
 	{
@@ -282,25 +280,6 @@ void ServiceThread::ThreadMain()
 			else if(ne.lNetworkEvents & FD_WRITE)
 				p->Output();
 
-#elif defined( PLATFORM_XENON )
-			WSASetLastError(0);
-
-			// xenon does not support WSAEnumNetworkEvents, so we always call both read and write
-			if (p->m_bDetectPending)
-				p->Pending();
-			if (p->m_bDetectOutput)
-				p->Output();
-
-			// detect disconnect errors and call 'Disconnect' when appropriate
-			int iError = WSAGetLastError();
-			if (iError == WSAESHUTDOWN || 
-				iError == WSAECONNRESET || 
-				iError == WSAETIMEDOUT ||
-				iError == WSAENOTCONN)
-			{
-				p->m_bDetectDisconnect = false;
-				p->Disconnect();
-			}
 #endif
 
 			break;

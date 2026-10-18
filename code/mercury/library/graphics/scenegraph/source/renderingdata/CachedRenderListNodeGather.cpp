@@ -5,9 +5,6 @@
 #include "SceneGraph/Bounds.h"
 #include "SceneGraph/Enums.h"
 #include <system/perf.h>
-#ifdef PLATFORM_XENON
-#include <display\window\WindowBase.h> 
-#endif 
 #ifdef PLATFORM_SPU
 #include "System/Debug/Log/DebugLogSPU.h"
 #include "../source/maths/hvec/VectorConst.cpp"
@@ -16,9 +13,6 @@
 namespace SceneGraph
 {
 
-#ifdef PLATFORM_XENON
-Debug::Bool g_UsePredication("Graphics.SceneGraph.UsePredication", true);
-#endif
 
 #ifndef PLATFORM_SPU
 Debug::Bool g_UseLightCulling("Graphics.SceneGraph.UseLightCulling", true);
@@ -156,22 +150,6 @@ void CullBounds(const CachedRenderListNodeData::PassData::Input* pInput, CachedR
 							if(visible)
 							{
 								result.index = pInput->pIndices[i];
-							#ifdef PLATFORM_XENON
-								if(pViewData->pTileSetup && g_UsePredication && (volatileInfoFlags & E_VolatileNodeInfo_Predication))
-								{
-									U32 predication;
-									if(pViewData->pTileSetup->m_TileCount == 4)
-										predication = pViewFrustum->CalculateAxisBoxPredication4(centreW, size);
-									else if(pViewData->pTileSetup->m_TileCount == 3)
-										predication = pViewFrustum->CalculateAxisBoxPredication3(centreW, size);
-									else if(pViewData->pTileSetup->m_TileCount == 2)
-										predication = pViewFrustum->CalculateAxisBoxPredication2(centreW, size);
-								
-									result.predication = predication;
-								}
-								else
-									result.predication = 0;
-							#endif
 								++num[v];
 							}
 						}
@@ -271,24 +249,6 @@ void CullBoundsDistance(const CachedRenderListNodeData::PassData::Input* pInput,
 
 							result.index = pInput->pIndices[i];
 							
-						#ifdef PLATFORM_XENON
-							if(pViewData->pTileSetup && g_UsePredication && (volatileInfoFlags & E_VolatileNodeInfo_Predication))
-							{
-								U32 predication;
-								if(pViewData->pTileSetup->m_TileCount == 4)
-									predication = pViewFrustum->CalculateAxisBoxPredication4(centreW, size);
-								else if(pViewData->pTileSetup->m_TileCount == 3)
-									predication = pViewFrustum->CalculateAxisBoxPredication3(centreW, size);
-								else if(pViewData->pTileSetup->m_TileCount == 2)
-									predication = pViewFrustum->CalculateAxisBoxPredication2(centreW, size);
-							
-								result.predication = predication;
-
-								assert(predication < 1000);
-							}
-							else
-								result.predication = 0;
-						#endif
 
 							result.volatileInfo.distanceSubtechnique = (pViewData->distanceSubtechniqueEnable && depth > pViewData->distanceSubtechniqueDistance) ? 1 : 0;
 							result.volatileInfo.distance = (U32)depthScaled;

@@ -10,7 +10,7 @@
 #include <Input/DeviceManager.h>
 #include <Input/GameInputMapping.h>
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #include <Input/Pad360.h>
 #endif
 
@@ -43,7 +43,7 @@ C_TestSectionLivery::C_TestSectionLivery(const Util::C_String& name) : C_TestSec
 	Input::C_GameInput* pGameInput = Input::GetGameInput(0);
 	Input::C_Device* pPad = C_Application::GetInstance()->GetPad(0);
 	
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 
 	pGameInput->SetButtonInput(E_LiveryAppButton_Toggle,		new Input::C_ButtonInputFromDevice(pPad, 	Input::C_Pad360::E_Button_Y));
 	pGameInput->SetButtonInput(E_LiveryAppButton_MenuDown,		new Input::C_ButtonInputFromDevice(pPad, 	Input::C_Pad360::E_Button_DPadDown));

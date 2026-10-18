@@ -9,9 +9,6 @@
 #include <windows.h>
 #endif
 
-#if TL_PLAT_XENON
-#include <xtl.h>
-#endif
 
 namespace Scheduler
 {
@@ -24,13 +21,9 @@ enum jqProcessor
 	JQ_CORE_3 = 1 << 3,
 	JQ_CORE_4 = 1 << 4,
 	JQ_CORE_5 = 1 << 5,
-#if TL_PLAT_XENON
-	JQ_CORE_ALL = JQ_CORE_0 | JQ_CORE_1 | JQ_CORE_2 | JQ_CORE_3 | JQ_CORE_4 | JQ_CORE_5
-#else
 	JQ_CORE_6 = 1 << 6,
 	JQ_CORE_7 = 1 << 7,
 	JQ_CORE_ALL = JQ_CORE_0 | JQ_CORE_1 | JQ_CORE_2 | JQ_CORE_3 | JQ_CORE_4 | JQ_CORE_5 | JQ_CORE_6 | JQ_CORE_7
-#endif
 };
 
 //! Pointer to the function that is responsible for actually processing a batch of data.

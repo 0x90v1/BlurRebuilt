@@ -93,9 +93,7 @@ void C_CubeMapView::Create()
 	
 
 		//Create render views
-#if defined(PLATFORM_XENON)
-	Display::E_Multisample cubemapMultisample = Display::E_Multisample_4;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::E_Multisample cubemapMultisample = Display::E_Multisample_None;
 #else
 	Display::E_Multisample cubemapMultisample = Display::E_Multisample_None;

@@ -86,9 +86,6 @@ bool C_BloomFeedback::CreateVolatile()
 		viewport.m_H = colourSurface.GetHeight();
 		Display::Device()->SetViewport(viewport);
 		Display::Device()->Clear(Display::E_Clear_Colour, Maths::RGBA(0x00000000));
-#ifdef PLATFORM_XENON
-		Display::Device()->Resolve(Display::E_Resolve_Colour, &m_FeedbackTextures[i]->GetTexture());
-#endif
 	}
 
 	return I_Bloom::CreateVolatile();

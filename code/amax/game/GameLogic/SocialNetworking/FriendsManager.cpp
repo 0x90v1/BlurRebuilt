@@ -33,9 +33,6 @@ void C_FriendsManager::Init()
 
 	Clear();
 
-#if defined ( PLATFORM_XENON )
-	mListenerHandle = XNotifyCreateListener(XNOTIFY_FRIENDS);
-#endif 
 }
 
 void C_FriendsManager::Clear()
@@ -112,18 +109,6 @@ void C_FriendsManager::AddFriend(SysProfile::BaseProfile prof)
 
 void C_FriendsManager::Update()
 {
-#if defined ( PLATFORM_XENON )
-	DWORD	notification = 0;
-	ULONG	parameter = 0;
-
-	if(XNotifyGetNext(mListenerHandle, 0, &notification, &parameter))
-	{
-		if( notification == XN_FRIENDS_FRIEND_ADDED || notification == XN_FRIENDS_FRIEND_REMOVED )
-		{
-			StartEnumeration();
-		}
-	}
-#endif
 
 	if(mEnumerating)
 	{

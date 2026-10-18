@@ -1302,7 +1302,7 @@ void C_Cycle::Evaluate(
 	
 	const C_Segment* segments = (const C_Segment*) Spu::FetchAllocAsync( m_segments, m_numSegments * sizeof( C_Segment ), segmentsDmaTag );
 	const U8* constantCurveData = (const U8*) Spu::FetchAllocAsync( m_constantCurveData, m_constantCurveDataSize, constantCurveDataDmaTag );
-	const U16* channelInfo = (const U16*) Spu::FetchAllocAsync( m_channelInfo, Btl::AlignUp( (m_totalVaryingCurves + m_totalConstantCurves) * sizeof(U16), 16u ), constantCurveDataDmaTag );
+	const U16* channelInfo = (const U16*) Spu::FetchAllocAsync( m_channelInfo, Btl::AlignUp( U32( (m_totalVaryingCurves + m_totalConstantCurves) * sizeof(U16) ), 16u ) /* [Blur2PC][x64] size_t is 64-bit */, constantCurveDataDmaTag );
 		
 	const F32 timeInFrames = GetFramesFromSeconds( time, loopMode );
 	const U32 prevFrame = static_cast< U32 >( timeInFrames );
@@ -1322,9 +1322,6 @@ void C_Cycle::Evaluate(
 	const U32 segmentSize = Btl::AlignUp( segments[ segmentIndex ].m_size + m_initialFrameSize, 16 );
 	const U8* segmentData = (const U8*) Spu::FetchAllocAsync( segments[ segmentIndex ].m_data, segmentSize, segmentsDmaTag );
 
-#if defined(PLATFORM_XENON)
-	//__dcbt( 0, segmentData );
-#endif
 		
 	//
 	// Process joints with constant data.

@@ -18,10 +18,6 @@
 #include <Game/Messaging/GameflowMessages.h>
 #include "Framework/Framework.h"
 
-#ifdef PLATFORM_XENON
-#include "xbdm.h"	// DmIsDebuggerPresent
-#include <xmp.h>
-#endif
 
 #ifdef PLATFORM_PS3
 #include <sysutil/sysutil_bgmplayback.h>
@@ -85,12 +81,8 @@ Debug::Bool gbDebugPrintGameState("Audio.System.LogGamestate", false, Debug::Per
 
 Debug::Bool gbAudioCacheCommonResources("Audio.CacheCommonResources", true, Debug::Persist());
 
-#ifdef PLATFORM_XENON
-Debug::Float g_debugMovieVolumeScale("Audio.Bink.VolumeScale", 0.7f, Debug::Range(0.0f, 2.f));
-#else
 Debug::Float g_debugMovieVolumeScale("Audio.Bink.VolumeScale", 0.7f, Debug::Range(0.0f, 2.f));
 Debug::Int g_PS3DBVolumeScale("Audio.Bink.Ps3dbVolumeScale", -2, Debug::Range(-60, 60));
-#endif
 
 C_AudioEntityTypeList gAudioDynObjLevelEntities;
 
@@ -1129,9 +1121,6 @@ bool C_GameAudioLayer::MessageHandler(const  Messaging::C_MessageBase* pMessage)
 			if(gbDebugPrintGameState)
 			LOGINFO(Game::g_Log, "\nE_GAMEFLOWMESSAGE_CUTSCENEVIDEOFINSHED\n");
 
-#ifdef PLATFORM_XENON
-			XMPRestoreBackgroundMusic();
-#endif
 #ifdef PLATFORM_PS3
 			cellSysutilEnableBgmPlayback();
 #endif
@@ -1148,9 +1137,6 @@ bool C_GameAudioLayer::MessageHandler(const  Messaging::C_MessageBase* pMessage)
 			if(gbDebugPrintGameState)
 				LOGINFO(Game::g_Log, "\nE_GAMEFLOWMESSAGE_CUTSCENEVIDEOSTARTED\n");
 
-#ifdef PLATFORM_XENON
-			XMPOverrideBackgroundMusic();
-#endif
 #ifdef PLATFORM_PS3
 			cellSysutilDisableBgmPlayback();
 #endif
@@ -1814,10 +1800,6 @@ void Audio::C_ErrorHandler::Log(Debug::LogEvent *pEvent)
 	if (IsDebuggerPresent())
 		DebugBreak();
 	#endif*/
-	#ifdef PLATFORM_XENON
-	if (DmIsDebuggerPresent())
-		DebugBreak();
-	#endif
 	#ifdef PLATFORM_PS3
 	__asm__ volatile ( "tw 31,1,1" );
 	#endif

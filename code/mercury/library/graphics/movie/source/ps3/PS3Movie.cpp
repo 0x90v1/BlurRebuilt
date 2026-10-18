@@ -93,7 +93,7 @@ bool C_PS3Movie::CreateBink(const C_MovieParams& params)
 			{
 				pFile->Read(m_pMovieData, fileSize);
 
-				#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+				#if defined(PLATFORM_PS3)
 				U32 *pData = (U32*)m_pMovieData;
 				for(U32 i=0; i<u32fileSize/4; i++)
 				{

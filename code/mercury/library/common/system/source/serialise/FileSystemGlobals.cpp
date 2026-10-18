@@ -104,7 +104,7 @@ void FsLog(Debug::Logger& logger, ::DebugLevel::Level level, bool isSpam, const 
 	str += levelStr;
 	str += buffer;
 
-	#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+	#if defined(PLATFORM_PC)
 		str += "\n";
 		OutputDebugString(str.Chars());
 	#else

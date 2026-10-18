@@ -2256,12 +2256,6 @@ NOALIAS __forceinline HMat43::operator const D3DMATRIX () const __restrict
     return (D3DMATRIX)HMat44( *this );
 }
 
-/// Convert to D3DXMATRIX
-NOALIAS __forceinline HMat43::operator const D3DXMATRIX () const __restrict
-{
-    return (D3DXMATRIX)HMat44( *this );
-}
-
 #endif
 
 /// Accessor: Get Rotation
@@ -3460,59 +3454,6 @@ NOALIAS __forceinline HMat44::HMat44( const C_Plane PCREF plane )
 NOALIAS __forceinline HMat44::operator const D3DMATRIX () const __restrict
 {
     D3DMATRIX result;
-    
-    #if defined( _VMX128_ )
-    
-    const V128 tmp0( __vmrghw( m_CX, m_CZ ) );
-    const V128 tmp1( __vmrghw( m_CY, m_CW ) );
-    const V128 tmp2( __vmrglw( m_CX, m_CZ ) );
-    const V128 tmp3( __vmrglw( m_CY, m_CW ) );
-    
-    __storeunalignedvector( __vmrghw( tmp0, tmp1 ), &result._11 );
-    __storeunalignedvector( __vmrglw( tmp0, tmp1 ), &result._21 );
-    __storeunalignedvector( __vmrghw( tmp2, tmp3 ), &result._31 );
-    __storeunalignedvector( __vmrglw( tmp2, tmp3 ), &result._41 );
-    
-    #elif defined( _SSE_ )
-    
-    SIMD_StoreUnaligned( m_AX.m_V, &result._11 );
-    SIMD_StoreUnaligned( m_AY.m_V, &result._21 );
-    SIMD_StoreUnaligned( m_AZ.m_V, &result._31 );
-    SIMD_StoreUnaligned( m_AW.m_V, &result._41 );
-    
-    #else
-    
-    const HMat44 m = *this;
-    
-    result._11 = m[MX][VX];
-    result._12 = m[MX][VY];
-    result._13 = m[MX][VZ];
-    result._14 = m[MX][VW];
-    
-    result._21 = m[MY][VX];
-    result._22 = m[MY][VY];
-    result._23 = m[MY][VZ];
-    result._24 = m[MY][VW];
-    
-    result._31 = m[MZ][VX];
-    result._32 = m[MZ][VY];
-    result._33 = m[MZ][VZ];
-    result._34 = m[MZ][VW];
-    
-    result._41 = m[MW][VX];
-    result._42 = m[MW][VY];
-    result._43 = m[MW][VZ];
-    result._44 = m[MW][VW];
-    
-    #endif
-    
-    return result;
-}
-
-/// Cast to D3DXMATRIX
-NOALIAS __forceinline HMat44::operator const D3DXMATRIX () const __restrict
-{
-    D3DXMATRIX result;
     
     #if defined( _VMX128_ )
     

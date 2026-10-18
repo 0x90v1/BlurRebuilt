@@ -84,8 +84,6 @@ Should drop in really quickly and it hides a ton of platform specific ugliness!
 
 #if defined(__RADPS3__) || defined(__RADWII__) || defined(__RADNGC__)
   #define if_used_3d_device // no global 3D device handle on ps3, wii or ngc
-#elif defined(__RADXBOX__)
-  #define if_used_3d_device LPDIRECT3DDEVICE8 d3d_device,
 #else
   #define if_used_3d_device LPDIRECT3DDEVICE9 d3d_device,
 #endif
@@ -115,14 +113,6 @@ typedef struct BINKFRAMETEXTURES
   U32 cBsize;
   U32 Asize;
 
-  #if defined( __RADXBOX__ )
-
-    LPDIRECT3DTEXTURE8 Ytexture;
-    LPDIRECT3DTEXTURE8 cRtexture;
-    LPDIRECT3DTEXTURE8 cBtexture;
-    LPDIRECT3DTEXTURE8 Atexture;
-
-  #else
 
     // xenon and windows use dx9
     LPDIRECT3DTEXTURE9 Ytexture;
@@ -130,7 +120,6 @@ typedef struct BINKFRAMETEXTURES
     LPDIRECT3DTEXTURE9 cBtexture;
     LPDIRECT3DTEXTURE9 Atexture;
 
-  #endif
 
 #endif
 } BINKFRAMETEXTURES;
@@ -221,16 +210,6 @@ RADDEFFUNC void Draw_Bink_textures( if_used_3d_device
   // make sure the GPU isn't using the next set of textures
   RADDEFFUNC void Wait_for_Bink_textures( BINKTEXTURESET * set_textures );
 
-  #ifdef __RADXBOX__
-    //
-    // on Xbox 1, you can only flush all memory (rather than just a 
-    //   specific texture)
-    //
-
-    // sync the textures out to main memory (so that the GPU can see them)
-    RADDEFFUNC void Sync_all_Bink_textures( void );
-
-  #else
 
     //
     // on Wii, NGC, Xenon and PS3, we can flush specific textures
@@ -239,13 +218,12 @@ RADDEFFUNC void Draw_Bink_textures( if_used_3d_device
     // sync the textures out to main memory (so that the GPU can see them)
     RADDEFFUNC void Sync_Bink_textures( BINKTEXTURESET * set_textures );
 
-  #endif
 
 #endif
 
 //=============================================================================
 
-#if defined(__RADXENON__) || defined(__RADNT__) || defined(__RADPS3__)
+#if defined(__RADNT__) || defined(__RADPS3__)
 
   //
   // we only have to compile the shaders on Xenon, PS3 and PC, they 

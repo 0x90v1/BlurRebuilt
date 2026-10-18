@@ -58,15 +58,6 @@ SRC =
 ./source/LogicalFs.cpp
 ;
 
-if $(PLATFORM) = "XENON"
-{
-SUBDIRHDRS += \"$(XENONSDK)/include/xbox/\" ;
-
-SRC +=
-./source/pakfs/impl/PakCompressXMem.cpp 
-./source/pakfs/impl/PakCompressPacketXMem.cpp
-;
-}
 	
 if $(CFG_CONVERTER) = 1
 {

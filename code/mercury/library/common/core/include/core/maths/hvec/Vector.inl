@@ -1513,7 +1513,6 @@ NOALIAS __forceinline HVec3::HVec3()
 }
 #endif
 
-#if !defined( PLATFORM_XENON )
 /// Copy Constructor
 NOALIAS __forceinline HVec3::HVec3( const HVec3& copy )
     #if defined( _SIMD_ )
@@ -1526,7 +1525,6 @@ NOALIAS __forceinline HVec3::HVec3( const HVec3& copy )
     m_V[VZ] = copy.m_V[VZ];
     #endif
 }
-#endif
 
 /// Zero Init Constructor
 NOALIAS __forceinline HVec3::HVec3( const _ZERO_INIT /*zero_init*/ )
@@ -4670,7 +4668,6 @@ NOALIAS __forceinline HVec4::HVec4( const _UNDEFINED /*undefined*/ )
 }
 
 /// Copy Constructor
-#if !defined( PLATFORM_XENON )
 NOALIAS __forceinline HVec4::HVec4( const HVec4& copy )
     #if defined( _SIMD_ )
     : m_V( copy.m_V )
@@ -4683,7 +4680,6 @@ NOALIAS __forceinline HVec4::HVec4( const HVec4& copy )
     m_V[VW] = copy.m_V[VW];
     #endif
 }
-#endif
 
 /// HVecX Constructor
 NOALIAS __forceinline HVec4::HVec4( const HVecX PCREF x )

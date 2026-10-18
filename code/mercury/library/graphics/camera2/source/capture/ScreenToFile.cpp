@@ -6,20 +6,13 @@
 #include <Framework/application/CoreSystems.h>
 #include <System/Serialise/I_FileSystem.h>
 #pragma warning (pop)
-#ifdef PLATFORM_XENON
-#include <xgraphics.h>
-#endif
 
 namespace Cam2
 {
 
 static inline S32 CalcAddr(S32 x, S32 y, S32 pitch)
 {
-#ifdef PLATFORM_XENON
-	return XGAddress2DTiledOffset(x,y,pitch >> 2,4) << 2;
-#else
 	return y * pitch + (x << 2);
-#endif
 }
 
 S32 ScreenToTgaFile(Sys::I_File* file)

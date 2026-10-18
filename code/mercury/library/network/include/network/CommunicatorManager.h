@@ -22,13 +22,6 @@
 // forward declerations
 namespace SysProfile { struct FullProfile; struct UserIdentifier; }
 
-#if defined (PLATFORM_XENON)
-	#if defined ( USE_XHV2 )
-		struct IXHV2Engine;
-	#else
-		struct IXHVEngine;
-	#endif
-#endif
 
 namespace Communicator
 {
@@ -267,13 +260,7 @@ namespace Communicator
 
 		bool							m_Initialised;
 
-#if defined(PLATFORM_XENON)
-#if defined ( USE_XHV2 )
-		IXHV2Engine*					m_pXHV;
-#else
-		IXHVEngine*						m_pXHV;
-#endif
-#elif defined (PLATFORM_PC)
+#if defined (PLATFORM_PC)
 #elif defined(PLATFORM_PS3)
 		C_VoiceThread					m_VoiceThread;
 		sys_ipc_key_t					m_VoiceEventKey;

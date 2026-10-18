@@ -28,7 +28,7 @@ struct PixelShader
 	static C_PixelShader			m_PixelShaderTextureA;
 	static C_PixelShader			m_PixelShaderTextureD;
 	
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	static C_PixelShader			m_PixelShaderDepth;
 	static C_PixelShaderParameter	m_PixelShaderDepth_PixelSize;
 	

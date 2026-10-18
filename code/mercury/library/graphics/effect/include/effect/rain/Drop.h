@@ -151,9 +151,7 @@ private:
 
 	Display::C_VertexDeclaration*	m_pVertexDeclaration;
 	Display::C_VertexBuffer			m_VertexBuffer;
-#ifndef PLATFORM_XENON
 	Display::C_IndexBuffer			m_IndexBuffer;
-#endif
 	Display::C_Texture2D			m_WhiteTexture;
 	Display::C_Texture2D*			m_pTexture;
 	Display::C_VertexShader			m_VertexShader;
@@ -167,9 +165,7 @@ private:
 
 	Display::E_PrimitiveType			m_ePrimitiveType;
 	U32									m_iVertexCount;
-#ifndef PLATFORM_XENON
 	U32									m_iIndexCount;
-#endif
 
 	MathsStorage::Float4				m_vLighting;
 

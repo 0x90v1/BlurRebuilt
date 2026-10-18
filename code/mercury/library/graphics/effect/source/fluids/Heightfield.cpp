@@ -87,7 +87,7 @@ void C_HeightfieldCpuSolver::ClearSurface(C_HeightfieldSurface* pSurface) const
 		Display::C_RenderTexture2D* pRenderTexture = &pSurface->m_HeightTextures[i];
 		Display::C_Surface* pColourSurface = &pRenderTexture->GetSurface();
 		
-		#if PLATFORM_XENON || PLATFORM_PS3
+		#if PLATFORM_PS3
 		U8* const pAddress = pColourSurface->GetAddress();
 		U32 const iSize = pColourSurface->GetSize();
 		memset(pAddress, 0, iSize);
@@ -97,7 +97,7 @@ void C_HeightfieldCpuSolver::ClearSurface(C_HeightfieldSurface* pSurface) const
 
 void C_HeightfieldCpuSolver::ModifySurface(C_HeightfieldSurface* pSurface, Display::C_Texture2D* pTexture, const Display::C_Float4& vTransformU, const Display::C_Float4& vTransformV, const F32 fHeight)
 {
-#if PLATFORM_XENON || PLATFORM_PS3
+#if PLATFORM_PS3
 	m_ModifyData.m_pNext			= pSurface->m_pNextTexture->GetTexture().GetAddress();
 	m_ModifyData.m_pCurrent			= pSurface->m_pCurrentTexture->GetTexture().GetAddress();
 	m_ModifyData.m_iSurfaceWidth	= pSurface->m_iTextureSize;
@@ -127,7 +127,7 @@ void C_HeightfieldCpuSolver::SolveSurface(C_HeightfieldSurface* pSurface, const 
 
 void C_HeightfieldCpuSolver::SolveSurface(C_HeightfieldSurface* pSurface, Display::C_Texture2D* pTop, Display::C_Texture2D* pBottom, Display::C_Texture2D* pLeft, Display::C_Texture2D* pRight, const F32 fTimeStep)
 {
-#if PLATFORM_XENON || PLATFORM_PS3
+#if PLATFORM_PS3
 	m_SolveData.m_pNext		= pSurface->m_pNextTexture->GetTexture().GetAddress();
 	m_SolveData.m_pCurrent	= pSurface->m_pCurrentTexture->GetTexture().GetAddress();
 	m_SolveData.m_pPrevious	= pSurface->m_pPreviousTexture->GetTexture().GetAddress();
@@ -372,22 +372,9 @@ void C_HeightfieldGpuSolver::SolveInterior(const C_HeightfieldSurface* pSurface,
 	// always use this vertex shader
 	Display::Device()->SetVertexShader(&Display::VertexShader_XY::m_VertexShader);
 		
-#ifdef PLATFORM_XENON
-	// get transformation from projected position to uv (allows flipping of views etc)
-	MathsStorage::Float4 vPositionUvVector(0.5f - u, v - 0.5f, 0.f, 0.f);
-	Display::Device()->SetVertexShaderConstantF(CV_DISPLAY_POSITION_UV_VECTOR, (F32*)&vPositionUvVector, 1);
-
-	Display::Vertex_XY* pVertex = (Display::Vertex_XY*)Display::Device()->BeginVertices(Display::E_PrimitiveType_RectList, 3, sizeof(Display::Vertex_XY), Display::Vertex_XY::m_pDeclaration);
-#else
 	Display::Vertex_XY_UV* pVertex = (Display::Vertex_XY_UV*)Display::Device()->BeginVertices(Display::E_PrimitiveType_TriangleList, 6, sizeof(Display::Vertex_XY_UV), Display::Vertex_XY_UV::m_pDeclaration);
-#endif
 	if(pVertex)
 	{
-		#ifdef PLATFORM_XENON
-		pVertex->x = x0;		pVertex->y = y0;		pVertex++;
-		pVertex->x = x0 + dx;	pVertex->y = y0;		pVertex++;
-		pVertex->x = x0;		pVertex->y = y0 + dy;	pVertex++;
-		#else
 		// tri 1
 		pVertex->x = x0;		pVertex->y = y0;		pVertex->u = u;			pVertex->v = v;			pVertex++;
 		pVertex->x = x0 + dx;	pVertex->y = y0;		pVertex->u = u + du;	pVertex->v = v;			pVertex++;
@@ -397,7 +384,6 @@ void C_HeightfieldGpuSolver::SolveInterior(const C_HeightfieldSurface* pSurface,
 		pVertex->x = x0;		pVertex->y = y0 + dy;	pVertex->u = u;			pVertex->v = v + dv;	pVertex++;
 		pVertex->x = x0 + dx;	pVertex->y = y0;		pVertex->u = u + du;	pVertex->v = v;			pVertex++;
 		pVertex->x = x0 + dx;	pVertex->y = y0 + dy;	pVertex->u = u + du;	pVertex->v = v + dv;	pVertex++;
-		#endif
 
 		Display::Device()->EndVertices(pVertex);
 	}
@@ -406,21 +392,13 @@ void C_HeightfieldGpuSolver::SolveInterior(const C_HeightfieldSurface* pSurface,
 void C_HeightfieldGpuSolver::SolveTop(const C_HeightfieldSurface* pSurface, const Display::C_Texture2D* pTop, const F32 fTimeStep) const
 {
 	const F32 fPixelSize = 1.0f / (F32) pSurface->m_iTextureSize;
-#if PLATFORM_XENON
-	SolveEdge(pSurface, pTop, E_Shader_Top, -1.0f, +1.0f, +1.0f, +1.0f, 0.0f, 0.0f, fTimeStep);
-#else
 	SolveEdge(pSurface, pTop, E_Shader_Top, -1.0f, +1.0f - 2.0f * fPixelSize, +1.0f, +1.0f - 2.0f * fPixelSize, 0.0f, -fPixelSize, fTimeStep);
-#endif
 }
 
 void C_HeightfieldGpuSolver::SolveBottom(const C_HeightfieldSurface* pSurface, const Display::C_Texture2D* pBottom, const F32 fTimeStep) const
 {
 	const F32 fPixelSize = 1.0f / (F32) pSurface->m_iTextureSize;
-#if PLATFORM_XENON
-	SolveEdge(pSurface, pBottom, E_Shader_Bottom, -1.0f, -1.0f + 2.0f * fPixelSize, +1.0f, -1.0f + 2.0f * fPixelSize, 0.0f, 0.0f, fTimeStep);
-#else
 	SolveEdge(pSurface, pBottom, E_Shader_Bottom, -1.0f, -1.0f, +1.0f, -1.0f, 0.0f, -fPixelSize, fTimeStep);
-#endif
 }
 
 void C_HeightfieldGpuSolver::SolveLeft(const C_HeightfieldSurface* pSurface, const Display::C_Texture2D* pLeft, const F32 fTimeStep) const
@@ -453,21 +431,6 @@ void C_HeightfieldGpuSolver::SolveEdge(const C_HeightfieldSurface* pSurface, con
 
 	Display::Device()->SetVertexShader(&Display::VertexShader_XY::m_VertexShader);
 
-#if PLATFORM_XENON
-	Display::Vertex_XY* pVertex = (Display::Vertex_XY*)Display::Device()->BeginVertices(Display::E_PrimitiveType_LineList, 2, sizeof(Display::Vertex_XY), Display::Vertex_XY::m_pDeclaration);
-	if (pVertex)
-	{
-		pVertex->x = x1;
-		pVertex->y = y1;
-		pVertex++;
-
-		pVertex->x = x2;
-		pVertex->y = y2;
-		pVertex++;
-
-		Display::Device()->EndVertices();
-	}
-#else
 	Display::Vertex_XY_UV* pVertex = (Display::Vertex_XY_UV*)Display::Device()->BeginVertices(Display::E_PrimitiveType_LineList, 2, sizeof(Display::Vertex_XY_UV), Display::Vertex_XY_UV::m_pDeclaration);
 	if (pVertex)
 	{
@@ -485,7 +448,6 @@ void C_HeightfieldGpuSolver::SolveEdge(const C_HeightfieldSurface* pSurface, con
 
 		Display::Device()->EndVertices();
 	}
-#endif
 }
 
 }; // namespace Effect

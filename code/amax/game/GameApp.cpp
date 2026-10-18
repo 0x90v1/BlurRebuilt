@@ -266,31 +266,6 @@ void C_GameApp::SetupDeviceMemoryParams( )
 	#ifndef CFG_GOLD
 	m_DisplayDeviceParams.m_SystemMemorySize	-= 1024*1024*g_debugEmergencySystemMemoryClawBack;
 	#endif
-#elif PLATFORM_XENON
-	m_DisplayDeviceParams.m_LargeHeapSize		= 1024*1024*293;		// Allocs greater than 8K
-	m_DisplayDeviceParams.m_DynamicHeapSize		= 1024*1024*11;			// Allocs requiring PAGE_WRITECOMBINE flag
-	m_DisplayDeviceParams.m_SmallHeapSize		= 1024*1024*4;			// Allocs less than or equal to 8K
-	#ifndef CFG_SPEED
-	m_DisplayDeviceParams.m_LargeHeapSize		-= 1024*1024*6;			// Difference between static allocations in a Release and a Speed version
-	#endif
-	#ifdef CFG_RELEASE
-	m_DisplayDeviceParams.m_LargeHeapSize		-= 1024*1024*10;		// Add more for a Release version
-	#endif
-	#ifdef CFG_DEBUG
-	m_DisplayDeviceParams.m_LargeHeapSize		-= 1024*1024*26;		// Add more for a Debug version
-	#endif
-	m_DisplayDeviceParams.m_RingBufferSecondarySize	= 1024*1024*1;
-	#ifdef INCREMENTAL_LINKING 
-	m_DisplayDeviceParams.m_LargeHeapSize		-= 1024*1024*16;		// Take into account Incremental Linking
-	#endif
-	#ifndef CFG_GOLD	
-	m_DisplayDeviceParams.m_LargeHeapSize		-= 1024*1024*g_debugEmergencySystemMemoryClawBack;
-	#endif
-
-	#ifndef CFG_GOLD
-	if (g_debugSuperSpecialCutSceneVideoMode)
-		m_DisplayDeviceParams.m_LargeHeapSize		+= 1024*1024*28;
-	#endif
 #endif
 }
 
@@ -590,9 +565,7 @@ void C_GameApp::OnShutdown()
 
 	if (m_RunState == Framework::E_RunState_QuitForced)
 	{
-	#ifdef PLATFORM_XENON
-		BIZ_ASSERT_FAIL("360 should not call forced shutdown function!");
-	#elif PLATFORM_PS3
+	#if PLATFORM_PS3
 	PRINT_SHUTDOWN_PROCESS;
 		sys_timer_sleep( 1 );
 	PRINT_SHUTDOWN_PROCESS;
@@ -926,9 +899,6 @@ void C_GameApp::RenderNow()
 		SetUpdatePresentRender(g_UpdatePresentRender);
 	#endif
 
-#ifdef PLATFORM_XENON
-	Display::Device()->SetShaderGPRAllocation(0, 36, 92); // these values work well for Amax
-#endif
 
 	if(BeginRender())
 	{
@@ -942,10 +912,6 @@ void C_GameApp::RenderNow()
 
 		CommonRender();
 
-#ifdef PLATFORM_XENON
-		// Must reset to default before presenting:
-		Display::Device()->SetShaderGPRAllocation(0, 0, 0);
-#endif
 		EndRender();
 
 		Display::RingBuffer()->EndFrame();

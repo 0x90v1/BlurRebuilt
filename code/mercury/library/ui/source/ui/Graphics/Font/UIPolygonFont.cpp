@@ -848,7 +848,7 @@ void C_UICharacter::BuildVertexAndIndexBuffer( UIPolygonList& resolvedList, UIPo
 #ifndef CFG_GOLD
 void C_UICharacter::DebugRender( const F32 x, const F32 y, const F32 fFontHeight, const C_UIColour& colour, const bool bOutline )
 {
-	U32 uUserData = ( m_pCharacterData->Character() == L' ' ) ? 0 : (U32)&m_RenderInfo;
+	INTPTR uUserData = ( m_pCharacterData->Character() == L' ' ) ? 0 : (INTPTR)&m_RenderInfo;	// [Blur2PC][x64]
 
 	C_RenderState renderState = C_RenderState::Instance();
 
@@ -986,7 +986,7 @@ void C_UIPolygonFont::GenerateHashMap( )
 	}
 }
 
-U32 C_UIPolygonFont::GetUserData( const WCHAR c )
+INTPTR C_UIPolygonFont::GetUserData( const WCHAR c )
 {
 	if ( c == L' ' )
 		return 0;	// space is never rendered - but will have spacing info in the glyphmetrics
@@ -994,7 +994,7 @@ U32 C_UIPolygonFont::GetUserData( const WCHAR c )
 	C_UICharacter* pCharacter = (C_UICharacter*)LookupGlyph( c, true );
 
 	if ( pCharacter )
-		return (U32)&pCharacter->GetRenderInfo();
+		return (INTPTR)&pCharacter->GetRenderInfo();
 
 	return 0;
 }
@@ -1339,7 +1339,7 @@ const char*	C_UIPolygonFontTest::GetFontName( const U32 uSlot )
 	return NULL;
 }
 
-U32 C_UIPolygonFontTest::GetUserData( const U32 uFont, const WCHAR c )
+INTPTR C_UIPolygonFontTest::GetUserData( const U32 uFont, const WCHAR c )
 {
 	if ( ( uFont < m_uMaxPolygonFonts ) && m_Fonts[ uFont ] && m_Fonts[ uFont ]->Initialised() )
 		return m_Fonts[ uFont ]->GetUserData( c );

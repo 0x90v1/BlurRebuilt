@@ -71,68 +71,12 @@ HVec3 ConvexBase::ProjectSupportAxisSIMD8(const C_Normal &vNormal, int *pI) cons
 }
 #endif
 
-#ifdef _XBOX
-
-/// calculate the point on the convex hull that is farthest along the support axis
-HVec3 ConvexBase::ProjectSupportAxisSIMD8(const C_Normal &vNormal, int *pI) const
-{
-	// load points in SOA format
-	HMat44 verts[2]={Maths::UNDEFINED, Maths::UNDEFINED};
-	((HVec4*)verts)[0] = m_Points[0];
-	((HVec4*)verts)[1] = m_Points[1];
-	((HVec4*)verts)[2] = m_Points[2];
-	((HVec4*)verts)[3] = m_Points[3];
-	((HVec4*)verts)[4] = m_Points[4];
-	((HVec4*)verts)[5] = m_Points[5];
-	((HVec4*)verts)[6] = m_Points[6];
-	((HVec4*)verts)[7] = m_Points[7];
-	verts[0].Transpose();
-	verts[1].Transpose();
-	HVec4 *_verts = (HVec4*)&verts;
-
-	static const __vector4 idx[2] = { {0,1,2,3}, {4,5,6,7} };
-	__vector4 idx1=idx[0], idx2=idx[1], mask, bestidx, bestmax, max1, max2;
-
-	// calculate maximum
-	(HVec4&)max1 = vNormal.X() * _verts[0] + vNormal.Y() * _verts[1] + vNormal.Z() * _verts[2];
-	(HVec4&)max2 = vNormal.X() * _verts[4] + vNormal.Y() * _verts[5] + vNormal.Z() * _verts[6];
-
-	// calculate max of the 8 elements and carry over the correct indices
-	mask = __vcmpgtfp(max1, max2);
-	bestidx = __vor(__vand(mask,idx1), __vandc(idx2, mask));
-	bestmax = __vmaxfp(max1, max2);
-
-	// unpack
-	max1 = __vmrghw(bestmax, bestmax); max2 = __vmrglw(bestmax, bestmax);
-	idx1 = __vmrghw(bestidx, bestidx); idx2 = __vmrglw(bestidx, bestidx);
-
-	// calculate max of the 4 elements and carry over the correct indices
-	mask = __vcmpgtfp(max1, max2);
-	bestidx = __vor(__vand(mask,idx1), __vandc(idx2, mask));
-	bestmax = __vmaxfp(max1, max2);
-
-	// unpack
-	max1 = __vmrghw(bestmax, bestmax); max2 = __vmrglw(bestmax, bestmax);
-	idx1 = __vmrghw(bestidx, bestidx); idx2 = __vmrglw(bestidx, bestidx);
-
-	// calculate max of the 2 elements and carry over the correct indices
-	mask = __vcmpgtfp(max1, max2);
-	bestidx = __vor(__vand(mask,idx1), __vandc(idx2, mask));
-
-	// unpack index
-    int i;
-    __stvewx( __vctsxs( bestidx, 0 ), &i, 0 );
-	*pI = i;
-	return m_Points[i];
-}
-
-#endif
 
 /// calculate the point on the convex hull that is farthest along the support axis
 HVec3 ConvexBase::ProjectSupportAxis(const C_Normal &vNormal, int *pI) const
 {
 	assert(m_Points.Size() > 0);
-#if defined( PLATFORM_PC ) || defined( PLATFORM_XENON )
+#if defined(PLATFORM_PC)
 	if (m_Points.Size() == 8 && g_bProjectSupportSIMD)
 		return ProjectSupportAxisSIMD8(vNormal, pI);
 #endif

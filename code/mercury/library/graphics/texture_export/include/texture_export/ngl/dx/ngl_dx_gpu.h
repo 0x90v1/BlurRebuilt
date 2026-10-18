@@ -6,9 +6,6 @@
 #ifndef NGL_DX_GPU_H
 #define NGL_DX_GPU_H
 
-#if NGL_GPU_D3D_XENON
-#include <xgraphics.h>
-#endif
 
 #if NGL_GPU_D3D8
 // Compatibility layer to wrap some Xbox APIs into Xenon API format.
@@ -134,111 +131,8 @@ public:
 
 #endif // NGL_GPU_D3D8
 
-#if NGL_GPU_D3D_XENON && TL_PLAT_XENON
 
-//
-// Scary access to Xenon D3D internals for writing to the ring buffer directly.
-//
-// Example:
-//   gpuOwnMultiple(D3DTAG_INDEX(D3DTAG_DEPTHCONTROL), D3DREG_MASK_BIT(D3DTAG_DEPTHCONTROL));
-//   DWORD* push = gpuBeginPush();
-//   GPU_DEPTHCONTROL dc;
-//   dc.dword = 0;
-//   gpuPush(push, GPUOP_REGISTER(GPUREG_DEPTHCONTROL, 1));
-//   gpuPush(push, dc.dword);
-//   gpuEndPush(push);
-//   ...drawprimitive here
-//   gpuDisownMultiple(D3DREG_MASK_BIT(D3DTAG_DEPTHCONTROL));
-//
-namespace D3D
-{
-	class CDevice : public D3DDevice
-	{
-	public:
-		unsigned long* __cdecl BeginRing(void);
-		unsigned long* __cdecl BeginRingBig(unsigned long size);
-		void __cdecl EndRing(unsigned long* ring);
-		void __cdecl PutRaw(unsigned long* ring);
-	};
-
-	UINT64 SetPending_Shaders(CDevice *pDevice, UINT64 PendingMask2);
-};
-
-#define GPUPTYPE_REG 0 // Does not support predicate bit.
-#define GPUPTYPE_NOP 2 // Does not support predicate bit. Possibly used for more than just NOPs.
-#define GPUPTYPE_CMD 3
-#define GPUPACKET(ptype, dwords, dest, predicate) (DWORD)( ((ptype)<<30) | ((dwords)<<16) | (dest) | (predicate) )
-
-#define GPUOP(opcode, dwords, predicate) GPUPACKET( GPUPTYPE_CMD, (dwords)-1, (opcode) << 8, predicate )
-#define GPUOP_REGISTER(reg, dwords)      GPUPACKET( GPUPTYPE_REG, (dwords)-1, reg, 0 )
-#define GPUOP_NOP                        GPUPACKET( GPUPTYPE_NOP, 0, 0, 0 )
-
-inline DWORD* gpuBeginPush() 
-{ 
-	return ((D3D::CDevice*)gpuDev)->BeginRing(); 
-}
-
-inline DWORD* gpuBeginPushBig(unsigned long size) 
-{ 
-	return ((D3D::CDevice*)gpuDev)->BeginRingBig(size); 
-}
-
-inline void gpuEndPush(DWORD* ring) 
-{ 
-	((D3D::CDevice*)gpuDev)->PutRaw(ring);
-	((D3D::CDevice*)gpuDev)->EndRing(ring);
-}
-
-inline void gpuPush(DWORD* tl_restrict &ring, DWORD val) 
-{ 
-	storewordupdate(val, 4, ring); 
-}
-
-inline void gpuPush(DWORD* tl_restrict &ring, float val) 
-{ 
-	storefloatupdate(val, 4, ring); 
-}
-
-// Aligns ring buffer to 16byte push buffer boundary, to allow for AltiVec stores.
-// Note: gpuDev->m_pRing points 4 bytes *before* the current ring buffer position to allow use of 
-//   "storewordupdate", which preincrements the pointer before writing.
-// We're going to disable that little feature right away (see the +1) as we'll be using AltiVec copies 
-//   and want aligned pointers.
-inline DWORD* gpuBeginPushBigAligned(int size)
-{
-	DWORD* tl_restrict push = gpuBeginPushBig(size);
-	while ((size_t)(push+1) & 15)
-		gpuPush(push, GPUOP_NOP);
-	return push+1;
-}
-
-inline void gpuEndPushAligned(DWORD* push)
-{
-	gpuEndPush(push-1);
-}
-
-// Returns the mask value for a single GPU register.
-#define D3DTAG_MASK_BIT(Tag)  (((u64)(0x8000000000000000i64))>>D3DTAG_START(Tag))
-
-// Takes ownership of multiple GPU registers with a single call.  This is much faster than calling 
-//  gpuDev->GpuOwn multiple times.
-// note- All registers must share the same "index", see d3d9types.h.
-inline void gpuOwnMultiple(int idx, u64 regs)
-{
-	D3DTagCollection_Clear(&gpuDev->m_Pending, idx, regs);
-}
-
-// Releases ownership of multiple GPU registers with a single call.  This is much faster than calling 
-//  gpuDev->GpuDisown multiple times.
-// note- All registers must share the same "index", see d3d9types.h.
-inline void gpuDisownMultiple(int idx, u64 regs)
-{
-	D3DTagCollection_Set(&gpuDev->m_Pending, idx, regs);
-}
-
-#endif // NGL_GPU_D3D_XENON
-
-#if NGL_GPU_D3D_PC || NGL_GPU_D3D_XBOX
+#if NGL_GPU_D3D_PC
 #define SetRenderState_Inline SetRenderState
 #define SetSamplerState_Inline SetSamplerState
 #endif
@@ -291,43 +185,6 @@ inline void gpuDestroyVertexFormat(gpuVertexFormat& format)
 
 inline int gpuGetVertexElementSize(gpuVertexElementFormat Element)
 {
-#if NGL_GPU_D3D_XENON
-	int Format = (Element & D3DDECLTYPE_VERTEXFORMAT_MASK) >> D3DDECLTYPE_VERTEXFORMAT_SHIFT;
-
-	switch (Format)
-	{
-	case GPUVERTEXFORMAT_8_8_8_8:
-		return 4;
-	case GPUVERTEXFORMAT_2_10_10_10:
-		return 4;
-	case GPUVERTEXFORMAT_10_11_11:
-		return 4;
-	case GPUVERTEXFORMAT_11_11_10:
-		return 4;
-	case GPUVERTEXFORMAT_16_16:
-		return 4;
-	case GPUVERTEXFORMAT_16_16_16_16:
-		return 8;
-	case GPUVERTEXFORMAT_16_16_FLOAT:
-		return 4;
-	case GPUVERTEXFORMAT_16_16_16_16_FLOAT:
-		return 8;
-	case GPUVERTEXFORMAT_32:
-		return 4;
-	case GPUVERTEXFORMAT_32_32:
-		return 8;
-	case GPUVERTEXFORMAT_32_32_32_32:
-		return 16;
-	case GPUVERTEXFORMAT_32_FLOAT:
-		return 4;
-	case GPUVERTEXFORMAT_32_32_FLOAT:
-		return 8;
-	case GPUVERTEXFORMAT_32_32_32_32_FLOAT:
-		return 16;
-	case GPUVERTEXFORMAT_32_32_32_FLOAT:
-		return 24;
-	}
-#endif
 
 #if NGL_GPU_D3D_PC
   switch (Element)
@@ -397,17 +254,6 @@ inline void gpuCreateVertexBuffer(gpuVertexBuffer& buf, uint bytes, u32 flags, v
 	gpuDev->CreateVertexBuffer(bytes, (flags & GPU_BUFFER_MAIN) ? /*D3DUSAGE_DYNAMIC*/0 : 0, 0, GPU_D3D_POOL, &buf.vb, NULL);
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 Usage = (flags & GPU_BUFFER_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-	u32 MemFlags = (flags & GPU_BUFFER_CPU_CACHED_MEMORY) ? 0 : TL_MEMALLOC_WRITECOMBINE;
-
-	XGSetVertexBufferHeader(bytes, Usage, GPU_D3D_POOL, 0, buf.GetD3DVertexBuffer());
-
-	if (!address)
-		address = BizAlignedMalloc(bytes, D3DVERTEXBUFFER_ALIGNMENT);
-
-	XGOffsetResourceAddress(buf.GetD3DVertexBuffer(), address); 
-#endif
 }
 
 inline void gpuCreateVertexBuffer(gpuVertexBuffer& buf, uint nverts, const gpuVertexFormat* fmt, u32 flags, void* address)
@@ -426,20 +272,12 @@ inline void gpuDestroyVertexBuffer(gpuVertexBuffer& buf)
 	}
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	BizAlignedFree(buf.GetAddress());
-#endif
 }
 
 inline void* gpuMapVertexBuffer(gpuVertexBuffer& buf, uint offset, uint size)
 {
-#if NGL_GPU_D3D_XENON
-	char* data;
-	buf.GetD3DVertexBuffer()->Lock(0, 0, (void**)&data, GPU_D3D_LOCKTYPE);
-	data += offset;
-#endif
 
-#if NGL_GPU_D3D_PC || NGL_GPU_D3D_XBOX
+#if NGL_GPU_D3D_PC
 	IDirect3DLockType* data;
 	buf.GetD3DVertexBuffer()->Lock(offset, size, &data, GPU_D3D_LOCKTYPE);
 #endif
@@ -458,12 +296,6 @@ inline void* gpuVertexBuffer::GetAddress() const
 	return GetD3DVertexBuffer();
 #endif
 
-#if NGL_GPU_D3D_XBOX
-	return (void *)(vb.Data | 0x80000000);
-#endif
-#if NGL_GPU_D3D_XENON
-	return (void*)(vb.Format.BaseAddress << GPU_VERTEXBUFFER_ADDRESS_SHIFT);
-#endif
 }
 inline uint gpuVertexBuffer::GetSize() const
 { 
@@ -473,21 +305,12 @@ inline uint gpuVertexBuffer::GetSize() const
 	return desc.Size;
 #endif
 
-#if NGL_GPU_D3D_XBOX
-	return 0; // todo- should we store the size ourselves somewhere?
-#endif
-#if NGL_GPU_D3D_XENON
-	return (vb.Format.Size << GPU_VERTEXBUFFER_SIZE_SHIFT);
-#endif
 }
 
 #if NGL_GPU_D3D_PC
 inline D3DVertexBuffer* gpuVertexBuffer::GetD3DVertexBuffer() const { return vb; }
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-inline D3DVertexBuffer* gpuVertexBuffer::GetD3DVertexBuffer() const { return (D3DVertexBuffer*)&vb; }
-#endif
 
 inline bool operator==(const gpuVertexBuffer& a, const gpuVertexBuffer& b)
 {
@@ -504,17 +327,6 @@ inline void gpuCreateIndexBuffer(gpuIndexBuffer& buf, uint nindices, gpuIndexTyp
 	address;
 #endif
 
-#if NGL_GPU_D3D_XBOX || NGL_GPU_D3D_XENON
-	u32 Usage = (flags & GPU_BUFFER_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-	u32 MemFlags = (flags & GPU_BUFFER_CPU_CACHED_MEMORY) ? 0 : TL_MEMALLOC_WRITECOMBINE;
-
-	XGSetIndexBufferHeader(nindices*indexsize, Usage, (D3DFORMAT)indextype, GPU_D3D_POOL, 0, buf.GetD3DIndexBuffer());
-
-	if (!address)
-		address = BizAlignedMalloc(nindices*indexsize, D3DINDEXBUFFER_ALIGNMENT); // TODO: needs to be physical???
-
-	XGOffsetResourceAddress(buf.GetD3DIndexBuffer(), address); 
-#endif
 }
 
 inline void gpuDestroyIndexBuffer(gpuIndexBuffer& buf)
@@ -527,9 +339,6 @@ inline void gpuDestroyIndexBuffer(gpuIndexBuffer& buf)
 	}
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	BizAlignedFree(buf.GetAddress());
-#endif
 }
 
 inline void* gpuIndexBuffer::GetAddress() const
@@ -538,12 +347,6 @@ inline void* gpuIndexBuffer::GetAddress() const
 	return GetD3DIndexBuffer();
 #endif
 
-#if NGL_GPU_D3D_XBOX
-	return (void *)(ib.Data);
-#endif
-#if NGL_GPU_D3D_XENON
-	return (void*)(ib.Address);
-#endif
 }
 inline uint gpuIndexBuffer::GetSize() const
 { 
@@ -553,23 +356,12 @@ inline uint gpuIndexBuffer::GetSize() const
 	return desc.Size;
 #endif
 
-#if NGL_GPU_D3D_XBOX
-	return 0; // todo- should we store the size ourselves somewhere?
-#endif
-#if NGL_GPU_D3D_XENON
-	return ib.Size;
-#endif
 }
 
 inline void* gpuMapIndexBuffer(gpuIndexBuffer& buf, uint offset, uint size)
 {
-#if NGL_GPU_D3D_XENON
-	char* data;
-	buf.GetD3DIndexBuffer()->Lock(0, 0, (void**)&data, GPU_D3D_LOCKTYPE);
-	data += offset;
-#endif
 
-#if NGL_GPU_D3D_PC || NGL_GPU_D3D_XBOX
+#if NGL_GPU_D3D_PC
 	IDirect3DLockType* data;
 	buf.GetD3DIndexBuffer()->Lock(offset, size, &data, GPU_D3D_LOCKTYPE);
 #endif
@@ -586,9 +378,6 @@ inline void gpuUnmapIndexBuffer(gpuIndexBuffer& buf)
 inline D3DIndexBuffer* gpuIndexBuffer::GetD3DIndexBuffer() const { return ib; }
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-inline D3DIndexBuffer* gpuIndexBuffer::GetD3DIndexBuffer() const { return (D3DIndexBuffer*)&ib; }
-#endif
 
 // gpuSurface
 #if NGL_GPU_D3D_PC
@@ -596,10 +385,6 @@ inline D3DSurface* gpuSurface::GetD3DSurface() { return surf; }
 inline const D3DSurface* gpuSurface::GetD3DSurface() const { return surf; }
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-inline D3DSurface* gpuSurface::GetD3DSurface() { return (D3DSurface*)&surf; }
-inline const D3DSurface* gpuSurface::GetD3DSurface() const { return (D3DSurface*)&surf; }
-#endif
 
 // gpuTexture
 #if NGL_GPU_D3D_PC
@@ -622,108 +407,9 @@ inline gpuTextureType gpuTexture::GetType() const { return (gpuTextureType)desc.
 
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-
-inline D3DBaseTexture* gpuTexture::GetD3DBaseTexture() { return &tex.base; }
-inline D3DTexture* gpuTexture::GetD3DTexture() { return &tex.texture; }
-inline D3DCubeTexture* gpuTexture::GetD3DCubeTexture() { return &tex.cube; }
-inline D3DVolumeTexture* gpuTexture::GetD3DVolumeTexture() { return &tex.volume; }
-inline const D3DBaseTexture* gpuTexture::GetD3DBaseTexture() const { return &tex.base; }
-inline const D3DTexture* gpuTexture::GetD3DTexture() const { return &tex.texture; }
-inline const D3DCubeTexture* gpuTexture::GetD3DCubeTexture() const { return &tex.cube; }
-inline const D3DVolumeTexture* gpuTexture::GetD3DVolumeTexture() const { return &tex.volume; }
-
-inline int gpuTexture::GetWidth() const
-{
-#if NGL_GPU_D3D_XBOX
-	if (tex.base.Size)
-		return (tex.base.Size & D3DSIZE_WIDTH_MASK) + 1;
-	else
-		return 1 << ((tex.base.Format & D3DFORMAT_USIZE_MASK) >> D3DFORMAT_USIZE_SHIFT);
-#endif
-#if NGL_GPU_D3D_XENON
-	gpuTextureType type = GetType();
-	if (type == GPU_TEXTURE_2D)
-		return tex.base.Format.Size.TwoD.Width+1;
-	else if (type == GPU_TEXTURE_CUBE)
-		return tex.base.Format.Size.Stack.Width+1;
-	else if (type == GPU_TEXTURE_VOLUME)
-		return tex.base.Format.Size.ThreeD.Width+1;
-
-	return 0;
-#endif
-}
-
-inline int gpuTexture::GetHeight() const
-{
-#if NGL_GPU_D3D_XBOX
-	if (tex.base.Size)
-		return ((tex.base.Size & D3DSIZE_HEIGHT_MASK) >> D3DSIZE_HEIGHT_SHIFT) + 1;
-	else
-		return 1 << ((tex.base.Format & D3DFORMAT_USIZE_MASK) >> D3DFORMAT_USIZE_SHIFT);
-#endif
-#if NGL_GPU_D3D_XENON
-	gpuTextureType type = GetType();
-	if (type == GPU_TEXTURE_2D)
-		return tex.base.Format.Size.TwoD.Height+1;
-	else if (type == GPU_TEXTURE_CUBE)
-		return tex.base.Format.Size.Stack.Height+1;
-	else if (type == GPU_TEXTURE_VOLUME)
-		return tex.base.Format.Size.ThreeD.Height+1;
-
-	return 0;
-#endif
-}
-
-inline int gpuTexture::GetDepth() const
-{
-#if NGL_GPU_D3D_XBOX
-	// I think volume textures cannot be linear on Xbox.
-	return 1 << ((tex.base.Format & D3DFORMAT_PSIZE_MASK) >> D3DFORMAT_PSIZE_SHIFT);
-#endif
-#if NGL_GPU_D3D_XENON
-	gpuTextureType type = GetType();
-	if (type == GPU_TEXTURE_2D)
-		return 1;
-	else if (type == GPU_TEXTURE_CUBE)
-		return 6;
-	else if (type == GPU_TEXTURE_VOLUME)
-		return tex.base.Format.Size.ThreeD.Height+1;
-
-	return 0;
-#endif
-}
-
-inline int gpuTexture::GetLevels() const
-{
-	return ((gpuTexture*)this)->tex.base.GetLevelCount();
-}
-
-inline gpuTextureFormat gpuTexture::GetFormat() const
-{
-#if NGL_GPU_D3D_XBOX
-	return (gpuTextureFormat)((tex.base.Format & D3DFORMAT_FORMAT_MASK) >> D3DFORMAT_FORMAT_SHIFT);
-#endif
-#if NGL_GPU_D3D_XENON
-	const GPUTEXTURE_FETCH_CONSTANT& t = tex.base.Format;
-
-	return (gpuTextureFormat)MAKED3DFMT2(t.DataFormat, t.Endian, t.Tiled, t.SignX, t.SignY, t.SignZ, t.SignW,
-	                                     t.NumFormat, t.SwizzleX, t.SwizzleY, t.SwizzleZ, t.SwizzleW);
-#endif
-}
-
-inline gpuTextureType gpuTexture::GetType() const
-{
-	return (gpuTextureType)((gpuTexture*)this)->tex.base.GetType();
-}
-
-#endif
 
 inline bool gpuIsTextureFormatLinear(gpuTextureFormat format)
 {
-#if NGL_GPU_D3D_XENON
-	return (format & D3DFORMAT_TILED_MASK) == 0;
-#endif
 
 #if NGL_GPU_D3D_PC
 	format;
@@ -733,9 +419,6 @@ inline bool gpuIsTextureFormatLinear(gpuTextureFormat format)
 
 inline bool gpuIsTextureFormatSwizzled(gpuTextureFormat format)
 {
-#if NGL_GPU_D3D_XENON
-	return (format & D3DFORMAT_TILED_MASK) != 0;
-#endif
 
 #if NGL_GPU_D3D_PC
 	format;
@@ -745,25 +428,6 @@ inline bool gpuIsTextureFormatSwizzled(gpuTextureFormat format)
 
 inline bool gpuIsTextureFormatDXT(gpuTextureFormat format)
 {
-#if NGL_GPU_D3D_XENON
-	switch (XGGetGpuFormat((D3DFORMAT)format))
-	{
-	case GPUTEXTUREFORMAT_DXT1:
-	case GPUTEXTUREFORMAT_DXT2_3:
-	case GPUTEXTUREFORMAT_DXT4_5:
-	case GPUTEXTUREFORMAT_DXT1_AS_16_16_16_16:
-	case GPUTEXTUREFORMAT_DXT2_3_AS_16_16_16_16:
-	case GPUTEXTUREFORMAT_DXT4_5_AS_16_16_16_16:
-	case GPUTEXTUREFORMAT_DXT3A:
-	case GPUTEXTUREFORMAT_DXT5A:
-	case GPUTEXTUREFORMAT_DXT3A_AS_1_1_1_1:
-	case GPUTEXTUREFORMAT_DXN:
-		return true;
-
-	default:
-		return false;
-	}
-#endif
 
 #if NGL_GPU_D3D_PC
 	switch (format)
@@ -783,13 +447,6 @@ inline bool gpuIsTextureFormatDXT(gpuTextureFormat format)
 
 inline uint gpuGetTextureFormatBytesPerPixel(gpuTextureFormat format)
 {
-#if NGL_GPU_D3D_XENON
-
-	if (gpuIsTextureFormatDXT(format))
-		return XGBitsPerPixelFromFormat((D3DFORMAT)format) >> 1;
-	else
-		return XGBitsPerPixelFromFormat((D3DFORMAT)format) >> 3;
-#endif
 
 #if NGL_GPU_D3D_PC
 	switch (format)
@@ -883,18 +540,6 @@ inline void gpuCreateTexture(gpuTexture& tex, uint width, uint height, uint leve
 	address;
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 Usage = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-	u32 MemFlags = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? 0 : TL_MEMALLOC_WRITECOMBINE;
-
-	u32 TexSize = XGSetTextureHeader(width, height, levels, Usage, (D3DFORMAT)format, GPU_D3D_POOL, 0, 
-	                                 XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, (IDirect3DTexture*)&tex, NULL, NULL);
-
-	if (!address)
-		address = BizAlignedMalloc(TexSize, D3DTEXTURE_ALIGNMENT);
-
-	XGOffsetResourceAddress(tex.GetD3DTexture(), address); 
-#endif
 }
 
 inline void gpuCreateCubeTexture(gpuTexture& tex, uint size, uint levels, gpuTextureFormat format, u32 flags, void* address )
@@ -906,18 +551,6 @@ inline void gpuCreateCubeTexture(gpuTexture& tex, uint size, uint levels, gpuTex
 	address;
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 Usage = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-	u32 MemFlags = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? 0 : TL_MEMALLOC_WRITECOMBINE;
-
-	u32 TexSize = XGSetCubeTextureHeader(size, levels, Usage, (D3DFORMAT)format, GPU_D3D_POOL, 0, 
-	                                     XGHEADER_CONTIGUOUS_MIP_OFFSET, (IDirect3DCubeTexture*)&tex, NULL, NULL);
-
-	if (!address)
-		address = BizAlignedMalloc(TexSize, D3DTEXTURE_ALIGNMENT);
-
-	XGOffsetResourceAddress(tex.GetD3DCubeTexture(), address); 
-#endif
 }
 
 inline void gpuCreateVolumeTexture(gpuTexture& tex, uint width, uint height, uint depth, uint levels, gpuTextureFormat format, u32 flags, void* address)
@@ -929,18 +562,6 @@ inline void gpuCreateVolumeTexture(gpuTexture& tex, uint width, uint height, uin
 	address;
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 Usage = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-	u32 MemFlags = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? 0 : TL_MEMALLOC_WRITECOMBINE;
-
-	u32 TexSize = XGSetVolumeTextureHeader(width, height, depth, levels, Usage, (D3DFORMAT)format, GPU_D3D_POOL, 0, 
-	                                       XGHEADER_CONTIGUOUS_MIP_OFFSET, (IDirect3DVolumeTexture*)&tex, NULL, NULL);
-
-	if (!address)
-		address = BizAlignedMalloc(TexSize, D3DTEXTURE_ALIGNMENT);
-
-	XGOffsetResourceAddress(tex.GetD3DVolumeTexture(), address); 
-#endif
 }
 
 inline void gpuSetTextureHeader(gpuTexture& tex, uint width, uint height, uint levels, gpuTextureFormat format, u32 flags)
@@ -961,12 +582,6 @@ inline void gpuSetTextureHeader(gpuTexture& tex, uint width, uint height, uint l
 	tex.tex = NULL;
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 Usage = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-
-	XGSetTextureHeader(width, height, levels, Usage, (D3DFORMAT)format, GPU_D3D_POOL, 0, 
-	                   XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, (IDirect3DTexture*)&tex, NULL, NULL);
-#endif
 }
 
 inline void gpuSetCubeTextureHeader(gpuTexture& tex, uint size, uint levels, gpuTextureFormat format, u32 flags)
@@ -987,12 +602,6 @@ inline void gpuSetCubeTextureHeader(gpuTexture& tex, uint size, uint levels, gpu
 	tex.tex = NULL;
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 Usage = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-
-	XGSetCubeTextureHeader(size, levels, Usage, (D3DFORMAT)format, GPU_D3D_POOL, 0, 
-	                       XGHEADER_CONTIGUOUS_MIP_OFFSET, (IDirect3DCubeTexture*)&tex, NULL, NULL);
-#endif
 }
 
 inline void gpuSetVolumeTextureHeader(gpuTexture& tex, uint width, uint height, uint depth, uint levels, gpuTextureFormat format, u32 flags)
@@ -1013,12 +622,6 @@ inline void gpuSetVolumeTextureHeader(gpuTexture& tex, uint width, uint height, 
 	tex.tex = NULL;
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 Usage = (flags & GPU_TEXTURE_CPU_CACHED_MEMORY) ? D3DUSAGE_CPU_CACHED_MEMORY : 0;
-
-	XGSetVolumeTextureHeader(width, height, depth, levels, Usage, (D3DFORMAT)format, GPU_D3D_POOL, 0, 
-	                         XGHEADER_CONTIGUOUS_MIP_OFFSET, (IDirect3DVolumeTexture*)&tex, NULL, NULL);
-#endif
 }
 
 inline void gpuAllocTextureData(gpuTexture& tex)
@@ -1039,25 +642,6 @@ inline void gpuAllocTextureData(gpuTexture& tex)
 	nglGpuReleaseDevice();
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	u32 MemFlags = (tex.tex.base.Common & D3DCOMMON_CPU_CACHED_MEMORY) ? 0 : TL_MEMALLOC_WRITECOMBINE;
-
-	gpuTextureType type = tex.GetType();
-	u32 TexSize = 0;
-
-	if (type == GPU_TEXTURE_2D)
-		TexSize = XGSetTextureHeader(tex.GetWidth(), tex.GetHeight(), tex.GetLevels(), 0, (D3DFORMAT)tex.GetFormat(),
-		                             GPU_D3D_POOL, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, 0, NULL, NULL, NULL);
-	else if (type == GPU_TEXTURE_CUBE)
-		TexSize = XGSetCubeTextureHeader(tex.GetWidth(), tex.GetLevels(), 0, (D3DFORMAT)tex.GetFormat(),
-		                                 GPU_D3D_POOL, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-	else if (type == GPU_TEXTURE_VOLUME)
-		TexSize = XGSetVolumeTextureHeader(tex.GetWidth(), tex.GetHeight(), tex.GetDepth(), tex.GetLevels(), 0, (D3DFORMAT)tex.GetFormat(),
-		                                   GPU_D3D_POOL, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-
-	void* address = BizAlignedMalloc(TexSize, D3DTEXTURE_ALIGNMENT);
-	XGOffsetResourceAddress(tex.GetD3DTexture(), address); 
-#endif
 }
 
 inline void gpuFreeTextureData(gpuTexture& tex)
@@ -1067,10 +651,6 @@ inline void gpuFreeTextureData(gpuTexture& tex)
 		tex.tex->Release();
 #endif
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	BizAlignedFree((void*)(tex.tex.base.Format.BaseAddress << GPU_TEXTURE_ADDRESS_SHIFT));
-	tex.tex.base.Format.BaseAddress = 0;
-#endif
 }
 
 inline void gpuDestroyTexture(gpuTexture& tex)
@@ -1080,12 +660,8 @@ inline void gpuDestroyTexture(gpuTexture& tex)
 
 inline void* gpuMapTexture(gpuTexture& tex, int face, int level)
 {
-#if NGL_GPU_D3D_XENON
-	D3DBaseTexture* Tex = tex.GetD3DTexture();
-	return (void*)((Tex->Format.BaseAddress << GPU_TEXTURE_ADDRESS_SHIFT) + XGGetMipLevelOffset(Tex, face, level));
-#endif
 
-#if NGL_GPU_D3D_PC || NGL_GPU_D3D_XBOX
+#if NGL_GPU_D3D_PC
 	D3DLOCKED_RECT Rect;
 	D3DLOCKED_BOX Box;
 	gpuTextureType type = tex.GetType();
@@ -1110,7 +686,7 @@ inline void* gpuMapTexture(gpuTexture& tex, int face, int level)
 
 inline void gpuUnmapTexture(gpuTexture& tex, int face, int level)
 {
-#if NGL_GPU_D3D_PC || NGL_GPU_D3D_XBOX
+#if NGL_GPU_D3D_PC
 	gpuTextureType type = tex.GetType();
 	if (type == GPU_TEXTURE_2D)
 		tex.GetD3DTexture()->UnlockRect(level);
@@ -1127,16 +703,7 @@ inline void gpuSetSurfaceHeader(gpuSurface& surf, uint w, uint h, gpuSurfaceForm
 	surf; w; h; format; multisample; flags; address; hizaddress;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	surf.surf.Fence = 0;
-	D3DSURFACE_PARAMETERS SurfaceParams;
-	SurfaceParams.Base = (u32)address;
-	SurfaceParams.HierarchicalZBase = (u32)hizaddress;
-	SurfaceParams.ColorExpBias = 0;
-	XGSetSurfaceHeader(w, h, (D3DFORMAT)format, (D3DMULTISAMPLE_TYPE)multisample, &SurfaceParams, surf.GetD3DSurface(), NULL);
-#else
 	surf; w; h; format; multisample; flags; address; hizaddress;
-#endif
 }
 
 inline bool gpuIsSurfaceFormatDepth(gpuSurfaceFormat format)
@@ -1157,16 +724,6 @@ inline bool gpuIsSurfaceFormatDepth(gpuSurfaceFormat format)
 	}
 #endif
 
-#if NGL_GPU_D3D_XENON
-	switch (format)
-	{
-	case GPU_SURFACE_D16:
-	case GPU_SURFACE_D24S8:
-	case GPU_SURFACE_D24X8:
-	case GPU_SURFACE_D24FS8:
-		return true;
-	}
-#endif
 
 	return false;
 }
@@ -1177,61 +734,6 @@ inline gpuSurfaceFormat gpuTextureFormatToSurfaceFormat(gpuTextureFormat format)
 	return (gpuSurfaceFormat)format;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	switch (format)
-	{
-	case GPU_TEXTURE_A8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_L8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_R5G6B5: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_R6G5B5: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_L6V5U5: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_X1R5G5B5: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_A1R5G5B5: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_A8L8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_G8R8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_V8U8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_D16: return GPU_SURFACE_D16;
-	case GPU_TEXTURE_L16: return GPU_SURFACE_A16B16G16R16;
-	case GPU_TEXTURE_R16F: return GPU_SURFACE_R16F;
-	case GPU_TEXTURE_R16F_EXPAND: return GPU_SURFACE_R16F;
-	case GPU_TEXTURE_A8R8G8B8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_X8R8G8B8: return GPU_SURFACE_X8R8G8B8;
-	case GPU_TEXTURE_A8B8G8R8: return GPU_SURFACE_A8B8G8R8;
-	case GPU_TEXTURE_X8B8G8R8: return GPU_SURFACE_X8B8G8R8;
-	case GPU_TEXTURE_X8L8V8U8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_Q8W8V8U8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_A2R10G10B10: return GPU_SURFACE_A2R10G10B10;
-	case GPU_TEXTURE_X2R10G10B10: return GPU_SURFACE_X2R10G10B10;
-	case GPU_TEXTURE_A2B10G10R10: return GPU_SURFACE_A2B10G10R10;
-	case GPU_TEXTURE_A2W10V10U10: return GPU_SURFACE_A2W10V10U10;
-	case GPU_TEXTURE_A16L16: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_G16R16: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_V16U16: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_R10G11B11: return GPU_SURFACE_A16B16G16R16;
-	case GPU_TEXTURE_R11G11B10: return GPU_SURFACE_A16B16G16R16;
-	case GPU_TEXTURE_W10V11U11: return GPU_SURFACE_A16B16G16R16;
-	case GPU_TEXTURE_W11V11U10: return GPU_SURFACE_A16B16G16R16;
-	case GPU_TEXTURE_G16R16F: return GPU_SURFACE_G16R16F;
-	case GPU_TEXTURE_G16R16F_EXPAND: return GPU_SURFACE_G16R16F;
-	case GPU_TEXTURE_R32F: return GPU_SURFACE_R32F;
-	case GPU_TEXTURE_D24S8: return GPU_SURFACE_D24S8;
-	case GPU_TEXTURE_D24X8: return GPU_SURFACE_D24X8;
-	case GPU_TEXTURE_D24FS8: return GPU_SURFACE_D24FS8;
-	case GPU_TEXTURE_A16B16G16R16: return GPU_SURFACE_A16B16G16R16;
-	case GPU_TEXTURE_Q16W16V16U16: return GPU_SURFACE_Q16W16V16U16;
-	case GPU_TEXTURE_A16B16G16R16F: return GPU_SURFACE_A16B16G16R16F;
-	case GPU_TEXTURE_A16B16G16R16F_EXPAND: return GPU_SURFACE_A16B16G16R16F;
-	case GPU_TEXTURE_G32R32F: return GPU_SURFACE_G32R32F;
-	case GPU_TEXTURE_A32B32G32R32F: return GPU_SURFACE_A16B16G16R16F;
-	case GPU_TEXTURE_LE_X8R8G8B8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_LE_A8R8G8B8: return GPU_SURFACE_A8R8G8B8;
-	case GPU_TEXTURE_LE_X2R10G10B10: return GPU_SURFACE_X2R10G10B10;
-	case GPU_TEXTURE_LE_A2R10G10B10: return GPU_SURFACE_A2R10G10B10;
-	default:
-		assert(0); // Invalid format conversion.
-		return GPU_SURFACE_A8R8G8B8;
-	}
-#endif
 }
 
 inline gpuTextureFormat gpuSurfaceFormatToTextureFormat(gpuSurfaceFormat format)
@@ -1257,16 +759,7 @@ inline void gpuCreateSurface(gpuSurface& surf, uint w, uint h, gpuSurfaceFormat 
 	}
 #endif
 
-#if NGL_GPU_D3D_XBOX
-	uint Size = w*h*XGBytesPerPixelFromFormat((D3DFORMAT)format); // todo- is this right? what about FSAA?
-	void* Data = tlMemAlloc(Size, D3DTEXTURE_ALIGNMENT, TL_MEMALLOC_PHYSICAL | TL_MEMALLOC_WRITECOMBINE);
-	XGSetSurfaceHeader(w, h, (D3DFORMAT)format, &surf.surf, 0, 0);
-	surf.surf.Register(Data);
-#endif
 
-#if NGL_GPU_D3D_XENON
-	gpuSetSurfaceHeader(surf, w, h, format, multisample, flags, address, hizaddress);
-#endif
 }
 
 inline void gpuResolveRenderTarget(uint idx, gpuTexture& dst, uint miplevel)
@@ -1275,9 +768,6 @@ inline void gpuResolveRenderTarget(uint idx, gpuTexture& dst, uint miplevel)
 	idx; dst; miplevel;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->Resolve(D3DRESOLVE_RENDERTARGET0+idx, NULL, dst.GetD3DBaseTexture(), NULL, miplevel, 0, NULL, 0.0f, 0, NULL);
-#endif
 }
 
 #if NGL_GPU_D3D
@@ -1287,15 +777,12 @@ inline void gpuResolveDepthStencilTarget(gpuTexture& dst, uint miplevel)
 	dst; miplevel;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->Resolve(D3DRESOLVE_DEPTHSTENCIL, NULL, dst.GetD3DBaseTexture(), NULL, miplevel, 0, NULL, 0.0f, 0, NULL);
-#endif
 }
 #endif
 
 inline void gpuDestroySurface(gpuSurface& surf)
 {
-#if NGL_GPU_D3D_PC || NGL_GPU_D3D_XBOX
+#if NGL_GPU_D3D_PC
 	if (surf.GetD3DSurface())
 		surf.GetD3DSurface()->Release();
 #endif
@@ -1532,11 +1019,6 @@ GPU_EXTERN gpuFloat4 gpuVertexConstantCache[512];
 
 inline void* gpuBeginVertexConstant(gpuParameter idx, uint nelements)
 {
-#if NGL_GPU_D3D_XENON
-	D3DVECTOR4* ret;
-	gpuDev->GpuBeginVertexShaderConstantF4(idx, &ret, nelements);
-	return ret;
-#endif
 #if NGL_GPU_D3D_PC
 	nelements;
 	return &gpuVertexConstantCache[idx];
@@ -1545,9 +1027,6 @@ inline void* gpuBeginVertexConstant(gpuParameter idx, uint nelements)
 
 inline void gpuEndVertexConstant(gpuParameter idx, uint nelements)
 {
-#if NGL_GPU_D3D_XENON
-	gpuDev->GpuEndVertexShaderConstantF4();
-#endif
 #if NGL_GPU_D3D_PC
 	gpuSetVertexConstant(idx, &gpuVertexConstantCache[idx], nelements);
 #endif
@@ -1559,9 +1038,6 @@ inline void gpuOwnVertexConstant(gpuParameter idx, uint nelements)
 	idx; nelements;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->GpuOwnVertexShaderConstantF(idx, nelements);
-#endif
 }
 
 inline void gpuDisownVertexConstant(gpuParameter idx, uint nelements)
@@ -1570,9 +1046,6 @@ inline void gpuDisownVertexConstant(gpuParameter idx, uint nelements)
 	idx; nelements;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->GpuDisownVertexShaderConstantF(idx, nelements);
-#endif
 }
 
 inline void gpuSetPixelShader(gpuPixelShader& shader)
@@ -1659,11 +1132,6 @@ GPU_EXTERN gpuFloat4 gpuPixelConstantCache[1024];
 
 inline void* gpuBeginPixelConstant(gpuParameter idx, uint nelements)
 {
-#if NGL_GPU_D3D_XENON
-	D3DVECTOR4* ret;
-	gpuDev->GpuBeginPixelShaderConstantF4(idx, &ret, nelements);
-	return ret;
-#endif
 #if NGL_GPU_D3D_PC
 	nelements;
 	return &gpuPixelConstantCache[idx];
@@ -1672,9 +1140,6 @@ inline void* gpuBeginPixelConstant(gpuParameter idx, uint nelements)
 
 inline void gpuEndPixelConstant(gpuParameter idx, uint nelements)
 {
-#if NGL_GPU_D3D_XENON
-	gpuDev->GpuEndPixelShaderConstantF4();
-#endif
 #if NGL_GPU_D3D_PC
 	gpuSetPixelConstant(idx, &gpuPixelConstantCache[idx], nelements);
 #endif
@@ -1686,9 +1151,6 @@ inline void gpuOwnPixelConstant(gpuParameter idx, uint nelements)
 	idx; nelements;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->GpuOwnPixelShaderConstantF(idx, nelements);
-#endif
 }
 
 inline void gpuDisownPixelConstant(gpuParameter idx, uint nelements)
@@ -1697,9 +1159,6 @@ inline void gpuDisownPixelConstant(gpuParameter idx, uint nelements)
 	idx; nelements;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->GpuDisownPixelShaderConstantF(idx, nelements);
-#endif
 }
 
 // Sampler functions
@@ -1753,11 +1212,7 @@ inline void gpuSetSamplerWrap3D(gpuSampler idx, gpuAddressMode uwrap, gpuAddress
 inline void gpuSetVertexBuffer(gpuVertexBuffer& vtx, gpuVertexFormat* vertexformat, 
                                uint vtxoffset, uint streamidx)
 {
-#if NGL_GPU_D3D_XBOX
-	size_t hashbuf = (size_t)(vtx.vb.Data) + (size_t)vtxoffset + (size_t)(streamidx << 16);
-#else
 	size_t hashbuf = (size_t)&vtx + (size_t)vtxoffset + (size_t)(streamidx << 16);
-#endif
 	size_t hashfmt = (size_t)(vertexformat->VertexDeclaration);
 
 	if (hashbuf == gpuStateCache.VertexBuffer[streamidx] && hashfmt == gpuStateCache.VertexFormat)
@@ -1818,13 +1273,8 @@ inline void gpuDrawIndexedPrimitive(
 {
 	gpuSetVertexBuffer(vtx, vertexformat, vtxoffset);
 
-#if NGL_GPU_D3D_XBOX
-	BYTE *indices = (BYTE *)idx.ib.Data;
-	gpuDev->DrawIndexedVertices((D3DPRIMITIVETYPE)prim, nindices, (WORD *)(indices + idxoffset));
-#else
 	gpuSetIndexBuffer(idx);
 	gpuDev->DrawIndexedPrimitive((D3DPRIMITIVETYPE)prim, 0, 0, nverts, idxoffset / (indexformat == GPU_INDEX_16 ? 2 : 4), gpuGetPrimCount(prim, nindices));
-#endif
 }
 
 // Same as gpuDrawIndexedPrimitive, except draws inputs from memory without using vertex/index buffers.
@@ -1864,9 +1314,6 @@ inline void gpuSetPrimitiveResetIndex(uint index)
 	index;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->SetRenderState_Inline(D3DRS_PRIMITIVERESETINDEX, index);
-#endif
 }
 
 inline void gpuDrawIndexedPrimitive(gpuPrimType prim, uint nindices, gpuIndexType indexformat, uint nverts)
@@ -1883,52 +1330,6 @@ inline void gpuDrawPrimitive(gpuPrimType prim, uint nverts)
 	gpuDev->DrawPrimitive((D3DPRIMITIVETYPE)prim, 0, gpuGetPrimCount(prim, nverts));
 }
 
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-inline void *gpuBeginInlineVertices( gpuPrimType prim, uint nverts, gpuVertexFormat* vertexformat )
-{
-#if NGL_GPU_D3D_XENON
-	void *Output;
-	gpuDev->SetVertexDeclaration(vertexformat->VertexDeclaration);
-	gpuStateInvalidate();
-
-	gpuDev->BeginVertices( (D3DPRIMITIVETYPE)prim, nverts, vertexformat->VertexSize, &Output );
-	return Output;
-#endif
-#if NGL_GPU_D3D_XBOX
-	gpuClearVertexBuffer();
-	gpuClearIndexBuffer();
-	gpuDev->SetVertexDeclaration(vertexformat->VertexDeclaration);
-	gpuStateInvalidate();
-
-	uint DwordCount = (vertexformat->VertexSize * nverts) / sizeof(DWORD);
-	TL_ASSERT(DwordCount <= D3DPUSH_MAX_COUNT, "Push buffer INLINE_ARRAY overflow ! (too many vertices per call)");
-
-	// Gain direct access to the pushbuffer.
-	DWORD *PB;
-	uint PushBufferSize = DwordCount + 5;
-	gpuDev->BeginPush(PushBufferSize, &PB);
-
-	PB[0] = D3DPUSH_ENCODE( D3DPUSH_SET_BEGIN_END, 1 );
-	PB[1] = prim;
-	PB[2] = D3DPUSH_ENCODE( D3DPUSH_NOINCREMENT_FLAG | D3DPUSH_INLINE_ARRAY, DwordCount ); 
-	return PB + 3;
-#endif
-}
-
-inline void gpuEndInlineVertices( gpuPrimType prim, uint nverts, gpuVertexFormat* vertexformat )
-{
-#if NGL_GPU_D3D_XBOX
-	DWORD *PB = (DWORD *)end;
-	PB[0] = D3DPUSH_ENCODE( D3DPUSH_SET_BEGIN_END, 1 );
-	PB[1] = 0;
-
-	gpuDev->EndPush( PB + 2 );
-#endif
-#if NGL_GPU_D3D_XENON
-	gpuDev->EndVertices();
-#endif
-}
-#endif // NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
 
 inline void gpuSetCullMode(gpuCullMode cull)
 {
@@ -1942,9 +1343,7 @@ inline void gpuSetFillMode(gpuFillMode fill)
 
 inline void gpuSetShadeMode(gpuShadeMode shade)
 {
-#if !NGL_GPU_D3D_XENON
 	gpuDev->SetRenderState_Inline(D3DRS_SHADEMODE, shade);
-#endif
 }
 
 // Z buffer related render states.
@@ -2010,17 +1409,6 @@ inline void gpuSetSeparateAlpha(
 	colorsrc; colordest; colorconstant; alphasrc; alphadest; alphaconstant; colorop; alphaop;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	gpuDev->SetRenderState_Inline(D3DRS_ALPHABLENDENABLE, true);
-	gpuDev->SetRenderState_Inline(D3DRS_SRCBLEND, colorsrc);
-	gpuDev->SetRenderState_Inline(D3DRS_DESTBLEND, colordest);
-	gpuDev->SetRenderState_Inline(D3DRS_BLENDFACTOR, colorconstant);
-	gpuDev->SetRenderState_Inline(D3DRS_BLENDOP, colorop);
-	gpuDev->SetRenderState_Inline(D3DRS_SEPARATEALPHABLENDENABLE, true);
-	gpuDev->SetRenderState_Inline(D3DRS_SRCBLENDALPHA, alphasrc);
-	gpuDev->SetRenderState_Inline(D3DRS_DESTBLENDALPHA, alphadest);
-	gpuDev->SetRenderState_Inline(D3DRS_BLENDOPALPHA, alphaop);
-#endif
 }
 
 // Alpha test render states
@@ -2079,16 +1467,11 @@ inline void gpuSetTwoSidedStencil(gpuStencilOp pass, gpuStencilOp fail, gpuStenc
 	gpuDev->SetRenderState_Inline(D3DRS_CCW_STENCILFAIL, fail);
 	gpuDev->SetRenderState_Inline(D3DRS_CCW_STENCILZFAIL, zfail);
 	gpuDev->SetRenderState_Inline(D3DRS_CCW_STENCILFUNC, op);
- #if NGL_GPU_D3D_XENON
-	gpuDev->SetRenderState_Inline(D3DRS_CCW_STENCILMASK, mask);
-	gpuDev->SetRenderState_Inline(D3DRS_CCW_STENCILWRITEMASK, writemask);
- #endif
 #endif
 }
 
 // Render target binding.
 
-#if !NGL_GPU_D3D_XBOX
 inline void gpuSetRenderTarget(uint idx, gpuTexture& tex, uint miplevel)
 {
 	D3DSurface* surf;
@@ -2096,9 +1479,7 @@ inline void gpuSetRenderTarget(uint idx, gpuTexture& tex, uint miplevel)
 	gpuDev->SetRenderTarget(idx, surf);
 	surf->Release();
 }
-#endif
 
-#if !NGL_GPU_D3D_XBOX
 inline void gpuSetCubeRenderTarget(uint idx, gpuTexture& tex, gpuCubeMapFace face, uint miplevel)
 {
 	IDirect3DSurface* surf;
@@ -2106,29 +1487,12 @@ inline void gpuSetCubeRenderTarget(uint idx, gpuTexture& tex, gpuCubeMapFace fac
 	gpuDev->SetRenderTarget(idx, surf);
 	surf->Release();
 }
-#endif
 
-#if NGL_GPU_D3D_XBOX
-inline void gpuSetRenderDepthTarget(gpuSurface render, gpuSurface depth)
-{
-	gpuDev->SetRenderTarget(render.GetD3DSurface(), depth.GetD3DSurface());
-}
 
-inline void gpuSetCubeRenderDepthTarget(gpuTexture& tex, gpuCubeMapFace face, uint miplevel, gpuSurface depth)
-{
-	IDirect3DSurface* surf;
-	tex.GetD3DCubeTexture()->GetCubeMapSurface((D3DCUBEMAP_FACES)face, miplevel, &surf);
-	gpuDev->SetRenderTarget(surf, depth.GetD3DSurface());
-	surf->Release();
-}
-#endif
-
-#if !NGL_GPU_D3D_XBOX
 inline void gpuSetRenderTarget(uint idx, gpuSurface &surf)
 {
 	gpuDev->SetRenderTarget(idx, surf.GetD3DSurface());
 }
-#endif
 
 #if NGL_GPU_D3D9
 inline void gpuSetDepthStencilTarget(gpuSurface &surf)
@@ -2167,7 +1531,7 @@ inline void gpuSetColorWrite(uint target, gpuWriteMask mask)
 
 inline void gpuEnableGammaCorrect(bool enable)
 {
-#if NGL_GPU_D3D9 && !defined(NGL_GPU_D3D_XENON)
+#if NGL_GPU_D3D9
 	gpuDev->SetRenderState_Inline(D3DRS_SRGBWRITEENABLE, enable);
 #endif
 }
@@ -2210,9 +1574,7 @@ inline void gpuSetViewport(int x, int y, int w, int h, float minZ, float maxZ)
 inline void gpuEnableDither(bool enable)
 {
 	//note- unsupported on Xenon
-#if !NGL_GPU_D3D_XENON
 	gpuDev->SetRenderState_Inline(D3DRS_DITHERENABLE, enable);
-#endif
 }
 
 inline void gpuClear(gpuClearMask flags, uint color, float depth, uint stencil)
@@ -2232,17 +1594,7 @@ inline void gpuSetShaderBalance(float Balance)
 	Balance;
 #endif
 
-#if NGL_GPU_D3D_XENON
-	if (Balance != gpuStateCache.ShaderBalance)
-	{
-		uint GPRs = (int)(Balance * 128.0f);
-		GPRs = Maths::Clamp(GPRs, (uint)16, (uint)128-16);
-		gpuDev->SetShaderGPRAllocation(0, 128-GPRs, GPRs);
-		gpuStateCache.ShaderBalance = Balance;
-	}
-#else
 	Balance;
-#endif
 }
 
 // Fence related functions.
@@ -2250,9 +1602,6 @@ typedef DWORD gpuFenceHandle;
 
 inline gpuFenceHandle gpuInsertFence()
 {
-#if NGL_GPU_D3D_XENON
-	return gpuDev->InsertFence();
-#endif
 #if NGL_GPU_D3D_PC
 	return 0;
 #endif
@@ -2260,9 +1609,6 @@ inline gpuFenceHandle gpuInsertFence()
 
 inline bool gpuIsFencePending(gpuFenceHandle fence)
 {
-#if NGL_GPU_D3D_XENON
-	return gpuDev->IsFencePending(fence) != 0;
-#endif
 #if NGL_GPU_D3D_PC
 	fence;
 	return false;
@@ -2274,16 +1620,9 @@ inline void gpuBlockOnFence(gpuFenceHandle fence)
 #if NGL_GPU_D3D_PC
 	fence;
 #endif
-#if NGL_GPU_D3D_XENON
-	gpuDev->BlockOnFence(fence);
-#endif
 }
 
 // Callback related functions.
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-typedef D3DCALLBACK gpuCallback;
-#define GPU_CALLBACK(name) void name(DWORD data)
-#endif
 #if NGL_GPU_D3D_PC
 typedef void (__cdecl *gpuCallback)(DWORD);
 #define GPU_CALLBACK(name) void name(DWORD data)
@@ -2291,14 +1630,6 @@ typedef void (__cdecl *gpuCallback)(DWORD);
 
 enum gpuCallbackType
 {
-#if NGL_GPU_D3D_XENON
-	GPU_CALLBACK_ASYNC = D3DCALLBACK_IMMEDIATE,
-	GPU_CALLBACK_SYNC = D3DCALLBACK_IDLE,
-#endif
-#if NGL_GPU_D3D_XBOX
-	GPU_CALLBACK_ASYNC = D3DCALLBACK_READ,
-	GPU_CALLBACK_SYNC = D3DCALLBACK_WRITE,
-#endif
 #if NGL_GPU_D3D_PC
 	GPU_CALLBACK_ASYNC = 0,
 	GPU_CALLBACK_SYNC = 1,
@@ -2310,16 +1641,9 @@ inline void gpuInsertCallback(gpuCallbackType type, gpuCallback callback, void* 
 #if NGL_GPU_D3D_PC
 	type; callback; data;
 #endif
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-	gpuDev->InsertCallback((D3DCALLBACKTYPE)type, callback, (DWORD)data);
-#endif
 }
 
 // VBlank callback.
-#if NGL_GPU_D3D_XENON || NGL_GPU_D3D_XBOX
-typedef D3DVBLANKCALLBACK gpuVBlankCallback;
-#define GPU_VBLANK_CALLBACK(name) void name(D3DVBLANKDATA* pData)
-#endif
 #if NGL_GPU_D3D_PC
 typedef TIMECALLBACK gpuVBlankCallback;
 #define GPU_VBLANK_CALLBACK(name) void CALLBACK name(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
@@ -2327,9 +1651,6 @@ typedef TIMECALLBACK gpuVBlankCallback;
 
 inline void gpuSetVBlankCallback(gpuVBlankCallback callback)
 {
-#if NGL_GPU_D3D_XBOX || NGL_GPU_D3D_XENON
-	gpuDev->SetVerticalBlankCallback(callback);
-#endif
 #if NGL_GPU_D3D_PC
 	static MMRESULT timer = 0;
 	if (timer) timeKillEvent(timer);

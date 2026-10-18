@@ -11,8 +11,6 @@
 #include "Display/Window/D3D11/D3D11Window.h"
 #elif defined(DEVICE_PS3GCM)
 #include "Display/Window/GCM/GCMWindow.h"
-#elif defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
-#include "Display/Window/D3D9/D3D9Window.h"
 #else
 #pragma message("Unsupported device define when compiling Window.h")
 #endif

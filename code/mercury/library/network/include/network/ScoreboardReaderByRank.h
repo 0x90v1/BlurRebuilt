@@ -109,7 +109,7 @@ namespace Scoreboard
 		U32		m_NumScoreboardsToQuery;		// how many scoreboards are we querying in the server call..
 		void*	m_pRequriredScoreboards;		// list of all scoreboards we will bw querying.
 
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		HANDLE	m_Handle;
 		void*	m_pAsyncTask;					// asynchronous task used when requesting data from server.	
 		U8*		m_pResultsBuffer;				// pointer to a buffer to hold data read from the scoreboards.

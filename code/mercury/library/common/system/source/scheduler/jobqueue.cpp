@@ -377,9 +377,7 @@ void jqAssistWithJobs(DoneAssistingWithJobsFn callback, void* context)
 	assert(jqNextAvailTempWorker < jqNTempWorkers); // ran out of temp workers - worker thread calling jqAssistWithJobs, or jqAssistWithJobs being called recursively?
 	int tempWorkerIndex = MT::AtomicIncrement(&jqNextAvailTempWorker);
 	jqWorker* tempWorker = jqTempWorkers + tempWorkerIndex;
-#if TL_PLAT_XENON
-	tempWorker->Processor = GetCurrentProcessorNumber();
-#elif TL_PLAT_PC
+#if TL_PLAT_PC
 	tempWorker->Processor = -1;
 #elif TL_PLAT_PS3
 	tempWorker->Processor = -1;

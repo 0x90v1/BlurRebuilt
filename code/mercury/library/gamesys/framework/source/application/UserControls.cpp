@@ -7,7 +7,7 @@
 #include <Input/DeviceManager.h>
 #include <Input/GameInputMapping.h>
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #include <Input/Pad360.h>
 #endif
 
@@ -191,7 +191,7 @@ void SetupApplicationUserControls(Input::C_GameInput* pGameInput, Input::C_Devic
 	Input::C_ButtonInput* pFlyZoomShift =				new Input::C_ButtonInputFromDevice(pPad, 	Input::C_PadPS3::E_Button_Square);
 	pGameInput->SetAxisInput(E_Axis_FlyZoom,			new Input::C_AxisInputShifted( pFlyZoomAxis, pFlyZoomShift ));
 	
-	#elif defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+	#elif defined(PLATFORM_PC)
 	pGameInput->SetButtonInput(E_Button_Debug_ButtonA,	new Input::C_ButtonInputFromDevice(pPad, 	Input::C_Pad360::E_Button_A));
 	pGameInput->SetButtonInput(E_Button_Debug_ButtonB,	new Input::C_ButtonInputFromDevice(pPad, 	Input::C_Pad360::E_Button_B));
 	pGameInput->SetButtonInput(E_Button_Debug_ButtonX,	new Input::C_ButtonInputFromDevice(pPad, 	Input::C_Pad360::E_Button_X));

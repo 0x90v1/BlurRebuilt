@@ -74,8 +74,6 @@ $(SplinePath)/cspline.cpp
 PCSRC =
 ;
 
-XENONSRC =
-;
 
 PS3SRC = 
 ;

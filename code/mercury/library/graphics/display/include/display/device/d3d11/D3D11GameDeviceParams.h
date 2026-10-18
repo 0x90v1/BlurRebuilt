@@ -27,32 +27,6 @@ public:
 	ID3D11Device*	m_pd3dDevice;
 	IDXGIFactory1*			m_pd3dObject;
 
-	#ifdef PLATFORM_XENON
-	bool				m_HiDef;
-	bool				m_WideScreen;
-	U32					m_BackBufferWidth;
-	U32					m_BackBufferHeight;
-	E_Format			m_BackBufferColourFormat;
-	E_Format			m_BackBufferDepthStencilFormat;
-	E_Multisample		m_BackBufferMultisample;
-	U32					m_FrontBufferWidth;
-	U32					m_FrontBufferHeight;
-	E_Format			m_FrontBufferFormat;
-	U32					m_WindowBufferWidth;
-	U32					m_WindowBufferHeight;
-	E_Format			m_WindowBufferColourFormat;
-	E_Format			m_WindowBufferDepthStencilFormat;
-	E_Multisample		m_WindowBufferMultisample;
-	U32					m_ScreenWidth;					// Width/Height of the actual display setting
-	U32					m_ScreenHeight;
-	U32					m_LargeHeapSize;
-	U32					m_DynamicHeapSize;
-	U32					m_SmallHeapSize;
-	U32					m_DeviceMemorySize;
-	U32					m_RingBufferPrimarySize;
-	U32					m_RingBufferSecondarySize;
-	U32					m_FreeBeginVerticesSize;
-	#endif
 
 	#ifdef PLATFORM_PC
 	U32					m_Width;

@@ -154,21 +154,12 @@ bool netSessionSearch::update()
 					{
 						SysProfile::GameInvite data;
 						
-					#if defined(PLATFORM_XENON)
-						data.m_InviteData.hostInfo.sessionID	  = m_searchParams->m_session->getSecurityID();
-						data.m_InviteData.hostInfo.keyExchangeKey = m_searchParams->m_session->getSecurityKey();
-						
-						char secIdStr[128];
-						netDebug::getByteInfo(&data.m_InviteData.hostInfo.sessionID, sizeof(data.m_InviteData.hostInfo.sessionID), secIdStr, sizeof(secIdStr));
-						LOGINFO(netDebug::g_Log, "<netSessionSearch> started invite search [%s]...", secIdStr);
-					#else
 						data.m_Id = m_searchParams->m_session->getSecurityID();
 						data.m_Key = m_searchParams->m_session->getSecurityKey();
 
 						char secIdStr[128];
 						netDebug::getByteInfo(&data.m_Id, sizeof(data.m_Id), secIdStr, sizeof(secIdStr));
 						LOGINFO(netDebug::g_Log, "<netSessionSearch> started invite search [%s]...", secIdStr);
-					#endif	
 												
 						netInviteRef invite = new netInvite(data);
 						if(!m_onlineEnumerator->StartSearch(profile, *invite, m_searchParams->m_returnTypes, true))
@@ -256,21 +247,6 @@ bool netSessionSearch::update()
 							if(!m_onlineEnumerator->GetHostInfoFromEnumerated(i, sec, addr))
 								continue;
 
-					#if defined(PLATFORM_XENON)
-							// get gametype (ranked or standard)
-							if (m_onlineEnumerator->GetSessionParameterFromEnumerated(i, X_CONTEXT_GAME_TYPE, parameter))
-							{
-								// this should be a context not a property.
-								assert(parameter.m_ParameterType == NetPlay::SessionParameter::eTypeContext);
-							}
-
-							// get game mode
-							if (m_onlineEnumerator->GetSessionParameterFromEnumerated(i, X_CONTEXT_GAME_MODE, parameter))
-							{
-								// this should be a context not a property.
-								assert(parameter.m_ParameterType == NetPlay::SessionParameter::eTypeContext);
-							}
-					#endif
 							// get quality of service
 							if(!m_onlineEnumerator->GetQoSDataFromEnumerated(i, qos))
 							{

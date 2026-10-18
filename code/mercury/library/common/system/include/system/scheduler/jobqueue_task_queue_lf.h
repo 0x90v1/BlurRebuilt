@@ -25,6 +25,50 @@ namespace Scheduler
 	The union with a 64bit value allows the class to use 64bit atomic compare and swap operations on both the pointer value
 	and the change count simultaneously.
 */
+#if defined(_WIN64)
+// [Blur2PC][x64] With a 64-bit pointer, Ptr and Count no longer fit one 64-bit word. They form a
+// 16-byte pair operated on with cmpxchg16b, so the full 32-bit change count still guards against ABA.
+template<typename T>
+struct __declspec(align(16)) jqAtomicQueuePtr
+{
+	union
+	{
+		struct
+		{
+			T * volatile Ptr;            //!< Pointer to node data.
+			volatile unsigned int Count; //!< Change count for Ptr.  Incremented whenever Ptr changes.
+		};
+		volatile __int64 Val128[2];      //!< 128bit value for operating on Ptr and Count atomically.
+	};
+
+	jqAtomicQueuePtr() { Val128[0] = 0; Val128[1] = 0; }
+	jqAtomicQueuePtr(T* volatile Ptr, volatile unsigned int Count) { Val128[1] = 0; this->Ptr = Ptr; this->Count = Count; }
+	jqAtomicQueuePtr(const jqAtomicQueuePtr& o) { Val128[0] = o.Val128[0]; Val128[1] = o.Val128[1]; }
+	jqAtomicQueuePtr& operator=(const jqAtomicQueuePtr& o) { Val128[0] = o.Val128[0]; Val128[1] = o.Val128[1]; return *this; }
+};
+
+//! Atomic read of a pointer/count pair (a compare-exchange that stores back what it finds).
+template<typename T>
+inline jqAtomicQueuePtr<T> jqPtrLoad(const volatile jqAtomicQueuePtr<T>* p)
+{
+	jqAtomicQueuePtr<T> r;
+	_InterlockedCompareExchange128((volatile __int64*)p->Val128, 0, 0, (__int64*)r.Val128);
+	return r;
+}
+
+template<typename T>
+inline bool jqPtrCompareAndSwap(volatile jqAtomicQueuePtr<T>* p, const jqAtomicQueuePtr<T>& newvalue, const jqAtomicQueuePtr<T>& compare)
+{
+	__int64 cmp[2] = { compare.Val128[0], compare.Val128[1] };
+	return _InterlockedCompareExchange128(p->Val128, newvalue.Val128[1], newvalue.Val128[0], cmp) != 0;
+}
+
+template<typename T>
+inline bool jqPtrEqual(const jqAtomicQueuePtr<T>& a, const jqAtomicQueuePtr<T>& b)
+{
+	return a.Val128[0] == b.Val128[0] && a.Val128[1] == b.Val128[1];
+}
+#else
 template<typename T>
 struct jqAtomicQueuePtr
 {
@@ -42,6 +86,26 @@ struct jqAtomicQueuePtr
 	jqAtomicQueuePtr(U64 Val64) : Val64(Val64) {}
 	jqAtomicQueuePtr(T* volatile Ptr, volatile unsigned int Count) : Ptr(Ptr), Count(Count) {}
 };
+
+// [Blur2PC][x64] The 64-bit operations the queue always used, named so x64 can supply 128-bit ones.
+template<typename T>
+inline jqAtomicQueuePtr<T> jqPtrLoad(const volatile jqAtomicQueuePtr<T>* p)
+{
+	return jqAtomicQueuePtr<T>(Spu::Get((U64*)p));
+}
+
+template<typename T>
+inline bool jqPtrCompareAndSwap(volatile jqAtomicQueuePtr<T>* p, const jqAtomicQueuePtr<T>& newvalue, const jqAtomicQueuePtr<T>& compare)
+{
+	return MT::AtomicCompareAndSwap(&p->Val64, newvalue.Val64, compare.Val64);
+}
+
+template<typename T>
+inline bool jqPtrEqual(const jqAtomicQueuePtr<T>& a, const jqAtomicQueuePtr<T>& b)
+{
+	return a.Val64 == b.Val64;
+}
+#endif
 
 //! Unidirectional lock free queue class based on atomic primitives.
 /** 

@@ -219,14 +219,7 @@ F32 C_PercentageVisible::Visibility()
 {
 	if (m_pQueries && m_pQueries[m_CurrentQuery].m_Started)
 	{
-#if defined(PLATFORM_XENON)
-		F32 visibility = 0.0f;
-		Display::E_OcclusionQueryResult eResult	=	m_pQueries[m_CurrentQuery].m_OcclusionQuery.Visible(visibility);
-		if (Display::E_OcclusionQueryResult_Failed != eResult)
-		{
-			m_Visibility = visibility;
-		}
-#elif defined(PLATFORM_PC) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PC) || defined(PLATFORM_PS3)
 		U32 pixelsPassed = 0;
 		U32 pixelsTotal = 0;
 		Display::E_OcclusionQueryResult ePassedResult	=	m_pQueries[m_CurrentQuery].m_OcclusionQuery.Visible(pixelsPassed);

@@ -70,7 +70,7 @@ namespace NetPlay
 		U32 m_DownStream;
 		U32	m_MinUpStream;
 		U32 m_MinDownStream;
-#if defined(PLATFORM_XENON) || defined(LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		XNQOS*	m_pQos;
 #elif defined(PLATFORM_PS3)
 		bdBandwidthTestClient*	m_pClient;

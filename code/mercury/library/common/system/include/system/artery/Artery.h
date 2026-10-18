@@ -9,7 +9,7 @@
 // Types
 //
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XBOX) || defined(PLATFORM_XENON) 
+#if defined(PLATFORM_PC)
 
 typedef signed __int8 ArteryI8;
 typedef unsigned __int8 ArteryU8;
@@ -51,7 +51,7 @@ typedef float ArteryF32;
 // Includes
 //
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #include "System/Artery/WsSocket.h"
 typedef WsSocket ArterySocket;
 typedef WsSockAddr ArterySockAddr;

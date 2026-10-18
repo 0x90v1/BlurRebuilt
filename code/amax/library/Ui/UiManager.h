@@ -238,9 +238,7 @@ public:
 	void 								SendInvite( const U32 uIndex );
 	void 								JoinSessionInProgress( const U32 uIndex );
 
-#ifndef PLATFORM_XENON
 	void								BuildPresenceString( const U32 uIndex, C_WideString64& string );
-#endif
 									
 	bool								MessageHandler( const Messaging::C_MessageBase* pMessage );
 

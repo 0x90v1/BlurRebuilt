@@ -313,9 +313,6 @@ bool Audio::Core::DSP::IIRLowPass1stOrder::Process( void* pFrameData, const Proc
             const Vector4 fIn89AB( LoadAligned( &aSample[i+0] ) );
             const Vector4 fInCDEF( LoadAligned( &aSample[i+4] ) );
             
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &aSample[i+0] );
-            #endif
             
             const Vector4 fA_x_fIn0123_plus_fIn1234( fA * ( fIn0123 + RotateLeft<1>( fIn0123, fIn4567 ) ) );
             const Vector4 fA_x_fIn4567_plus_fIn5678( fA * ( fIn4567 + RotateLeft<1>( fIn4567, fIn89AB ) ) );
@@ -488,9 +485,6 @@ bool Audio::Core::DSP::IIRLowPass1stOrder::Process( void* pFrameData, const Proc
             fIn_18_19_1A_1B = LoadAligned( &aSample[i+0x8] );
             fIn_1C_1D_1E_1F = LoadAligned( &aSample[i+0xC] );
             
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &aSample[i+0x0] );
-            #endif
             
             // ----------------------------------------------------------------------------------------------------------------------
             // Loop optimisation: Don't need to calc here, pre-compute before loop & update after each iteration

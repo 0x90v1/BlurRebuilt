@@ -456,7 +456,7 @@ void C_FilePath::StoreFilePathAndDirty(const char* toFormat)
 
 char GetLocalDirToken() 
 {
-	#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+	#if defined(PLATFORM_PC)
 	return '\\';
 	#elif defined(PLATFORM_PS3) || defined(PLATFORM_SPU) || defined(PLATFORM_LINUX)  
 	return '/';
@@ -468,7 +468,7 @@ char GetLocalDirToken()
 
 char GetNotLocalDirToken()
 {
-	#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+	#if defined(PLATFORM_PC)
 	return '/';
 	#elif defined(PLATFORM_PS3) || defined(PLATFORM_SPU) || defined(PLATFORM_LINUX) 
 	return '\\';

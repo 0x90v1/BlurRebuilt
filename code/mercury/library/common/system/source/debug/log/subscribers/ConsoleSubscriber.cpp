@@ -11,11 +11,7 @@ IMPLEMENT_SUBSCRIBER(ConsoleSubscriber, "console");
 // constructor
 ConsoleSubscriber::ConsoleSubscriber()
 {
-#if defined( PLATFORM_XENON )
-	m_bConsole = false; // on Xenon, printf is the same as OutputDebugString
-#else
 	m_bConsole = true;
-#endif
 	m_bDebugOutput = true;
 }
 

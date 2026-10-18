@@ -165,7 +165,7 @@ void C_UiLayer::DestroyBloom( )
 	if( !m_pPostProcessMgr )
 		return;
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif	
 
@@ -853,9 +853,6 @@ HRESULT C_UiLayer::RenderFullscreen()
 #endif
 			if( m_pIgCompositeRT )
 			{
-#ifdef PLATFORM_XENON
-				Display::Device()->SetBlendHighPrecisionEnable(Display::E_Bool_False);
-#endif
 				Display::Device()->SetBlendMode( Display::E_BlendMode_Additive );
 				Display::Device()->SetAlphaTestEnable( Display::E_Bool_False );
 
@@ -865,9 +862,6 @@ HRESULT C_UiLayer::RenderFullscreen()
 				Display::Quad::DrawFullScreen( m_pBloomTexture );
 #endif
 
-#ifdef PLATFORM_XENON
-				Display::Device()->SetBlendHighPrecisionEnable(Display::E_Bool_True);
-#endif
 			}
 	}
 

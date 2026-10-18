@@ -134,11 +134,9 @@ bool C_ReflectionView::OnCreateVolatile()
 {
 	RESOURCE_MEMORY_ID("Reflection");
 	Display::E_Format blurFormat = Display::E_Format_A8R8G8B8;
-#if defined(BLUR_USE_DX11)
 	// [Blur2PC][HDR] Match sharp reflection storage through both blur writes/reset paths.
 	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
 		blurFormat = Display::E_Format_A16B16G16R16F;
-#endif
 
 #if PLATFORM_PC
 	// [Blur2PC] Retail PC (Blur.exe 1.2 0x00426500): the blur textures at half the reflection target, then the
@@ -159,9 +157,7 @@ bool C_ReflectionView::OnCreateVolatile()
 	U32 reflectionResolutionX = 512;
 	U32 reflectionResolutionY = 256;
 
-#if defined(PLATFORM_XENON)
-	Display::E_Multisample multisample = Display::E_Multisample_4;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::E_Multisample multisample = Display::E_Multisample_None;
 #else
 	Display::E_Multisample multisample = Display::E_Multisample_None;
@@ -186,9 +182,6 @@ bool C_ReflectionView::OnCreateVolatile()
 		case ReflectionResolution_High_1024x512:
 			reflectionResolutionX = 1024;
 			reflectionResolutionY = 512;
-#if defined(PLATFORM_XENON)
-			multisample = Display::E_Multisample_2; // Colour and depth stencil buffer at 4xAA doesn't fit in EDRAM
-#endif
 			break;
 		}
 	}
@@ -361,52 +354,7 @@ void C_ReflectionView::Render(C_View& gameView)
 	// bind the current view
 	m_pReflection->Bind();
 
-#ifdef PLATFORM_XENON
-	Display::Device()->Clear(Display::E_Clear_Colour, Maths::RGBA(0,0,0,255)); //Clear tiles
-#endif
 	//Set clipplane
-#ifdef PLATFORM_XENON
-	const Framework::C_View* pFrameworkView = gameView.GetFrameworkView();
-
-	// TODO: move this somewhere else!!!!
-	Maths::C_Plane reflectionPlane = m_pReflection->GetReflectionPlane();
-	D3DXPLANE tempPlane = D3DXPLANE(reflectionPlane.Normal().X(), reflectionPlane.Normal().Y(), reflectionPlane.Normal().Z(), reflectionPlane.DistanceToOrigin());
-	D3DXPLANE viewSpacePlane;
-	D3DXPLANE clipSpacePlane;
-	D3DXPlaneNormalize(&tempPlane, &tempPlane);
-
-	//transform the plane into view space
-	D3DXMATRIX  tempMatrix = D3DXMATRIX((FLOAT*)&m_pReflection->GetReflectedViewMatrix());
-	D3DXMatrixInverse(&tempMatrix, NULL, &tempMatrix);
-	D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
-	D3DXPlaneTransform(&viewSpacePlane, &tempPlane, &tempMatrix);
-
-	//transform the plane into clip space, or projection space
-	tempMatrix = D3DXMATRIX((FLOAT*)&m_pReflection->GetView().GetViewSettings3D().GetProjMatrix());
-	D3DXMatrixInverse(&tempMatrix, NULL, &tempMatrix);
-	D3DXMatrixTranspose(&tempMatrix, &tempMatrix);
-	D3DXPlaneTransform(&clipSpacePlane, &viewSpacePlane, &tempMatrix);
-
-
-	float clipPlane[4] = {clipSpacePlane.a, clipSpacePlane.b, clipSpacePlane.c, clipSpacePlane.d};
-
-	Maths::HMat44 m1(Maths::Load<Maths::HMat44>(&m_pReflection->GetReflectedViewMatrix()));
-	Maths::HMat44 m2(Maths::Load<Maths::HMat44>(&pFrameworkView->m_View.GetViewSettings3D().GetProjMatrix()));
-
-	Maths::C_Plane viewSpacePlane2;
-	Maths::C_Plane clipSpacePlane2;
-
-	viewSpacePlane2 = reflectionPlane * m1;
-	clipSpacePlane2 = viewSpacePlane2 * m2;
-
-	float clipPlane2[4] = {clipSpacePlane2.Normal().X(), clipSpacePlane2.Normal().Y(), clipSpacePlane2.Normal().Z(), clipSpacePlane2.DistanceToOrigin()};
-
-	if (g_ReflectionClipPlane)
-	{
-		Display::Device()->GetD3DDevice()->SetClipPlane(0, clipPlane);
-		Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
-	}
-#endif
 
 #ifdef PLATFORM_PS3
 	//Enabled first user clip plane in Ps3
@@ -417,9 +365,6 @@ void C_ReflectionView::Render(C_View& gameView)
 	m_pView->RenderGroup();
 	m_pView->EndRender();
 	
-#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-#endif
 
 #ifdef PLATFORM_PS3
 	//Disabled first user clip plane in Ps3

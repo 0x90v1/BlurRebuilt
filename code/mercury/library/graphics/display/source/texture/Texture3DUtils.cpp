@@ -12,23 +12,9 @@
 namespace Display
 {
 
-#if PLATFORM_XENON
-
-bool UploadTexture3D_Tiled(C_Texture3D* pTexture, C_TextureParams* pTextureParams)
-{
-	BIZ_ASSERT_FAIL("TODO: Implement me!");
-
-	return false;
-}
-
-#endif
 
 bool UploadTexture3D(C_Texture3D* pTexture, C_TextureParams* pTextureParams)
 {
-#if PLATFORM_XENON
-	if(!(pTextureParams->m_Flags & E_Format_Linear))
-		return UploadTexture3D_Tiled(pTexture, pTextureParams);
-#endif
 
 	BIZ_ASSERT(pTexture);
 	
@@ -67,14 +53,7 @@ bool UploadTexture3D(C_Texture3D* pTexture, C_TextureParams* pTextureParams)
 		
 		BIZ_ASSERT(pData+size <= pTextureParams->m_pMipData+pTextureParams->m_MipSize);
 
-#if PLATFORM_XENON
-		D3DFORMAT d3dFormat = D3D9Format(pTextureParams->m_Format, pTextureParams->m_Flags);
-		if(pTextureParams->m_Flags & E_Format_SRGB)
-			d3dFormat = (D3DFORMAT)MAKESRGBFMT(d3dFormat);
-		XGEndianSwapVolume(lockedBox.GetBits(), lockedBox.GetRowPitch(), lockedBox.GetSlicePitch(), pData, rowPitch, slicePitch, width, height, depth, d3dFormat);
-#else
 		memcpy(lockedBox.GetBits(), pData, size);
-#endif
 		
 		pData += size;
 		
@@ -94,69 +73,14 @@ bool UploadTexture3D(C_Texture3D* pTexture, C_TextureParams* pTextureParams)
 
 U32 GetTexture3DSize(const U32 width, const U32 height, const U32 depth, const U32 flags, const E_Format format)
 {
-#if PLATFORM_XENON
-	return XGSetVolumeTextureHeader(width, height, depth, 1, 0, D3D9Format(format), 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-#else
 	return Display2::GetTexture3DSize(width, height, depth, flags, GetTextureFormatFromFormat(format));
-#endif
 }
 
 U32 GetTexture3DSize(U32 width, U32 height, const U32 depth, const U32 levels, const U32 flags, const E_Format format)
 {
-#if PLATFORM_XENON
-	return XGSetVolumeTextureHeader(width, height, depth, 1, 0, D3D9Format(format), 0, 0, XGHEADER_CONTIGUOUS_MIP_OFFSET, NULL, NULL, NULL);
-#else
 	return Display2::GetTexture3DSize(width, height, depth, levels, flags, GetTextureFormatFromFormat(format));
-#endif
 }
 
-#if defined(GRAPHICS_D3D9)
-bool D3DXCreateTexture3DFromFile(const Util::C_String& fileName, C_Texture3D* pTexture)
-{
-#if 1
-	BIZ_ASSERT_FAIL("TODO: Fix me!");
-	return false;
-#else
-	D3D_MEMORY_STAT_TEXTURE_3D
-		
-	assert(pTexture);
-
-	if(pTexture->IsCreated())
-	{
-		LOGERROR(g_Log, "Failed to create the 3d texture as its already created %s\n", fileName.Chars());
-		return false;
-	}
-
-	U32 fileSize = 0;
-	U8* pFileData = NULL;
-	if(!GetFileData(fileName.Chars(), fileSize, &pFileData))
-		return false;
-
-	IDirect3DVolumeTexture9* pd3dTexture = NULL;
-	const HRESULT hr = D3DXCreateVolumeTextureFromFileInMemory(Device()->GetD3DDevice(), pFileData, fileSize, &pd3dTexture);
-
-	SAFE_DELETE_ARY(pFileData);
-	
-	if(FAILED(hr))
-	{
-		LOGERROR(g_Log, "Failed to create the 3d texture from file in memory %s\n", fileName.Chars());
-		return false;
-	}
-
-	pTexture->m_pd3dTexture = pd3dTexture;
-
-	pTexture->SetSize(GetTexture3DSize(pTexture->GetWidth(), pTexture->GetHeight(), pTexture->GetDepth(), pTexture->GetLevels(), pTexture->GetFormat()));
-	pTexture->SetFlags(E_Usage_Managed);
-	pTexture->SetFileName(fileName);
-	
-	Device()->m_Texture3Ds.Insert(pTexture);
-
-	pTexture->Acquire();
-
-	return true;
-#endif
-}
-#endif
 
 bool CreateTexture3DFromFile( Util::C_String fileName, C_Texture3D* pTexture, const U32 flags)
 {

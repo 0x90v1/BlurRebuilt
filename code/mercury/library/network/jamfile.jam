@@ -57,9 +57,6 @@ PCSRC =
 $(NETPATH)/AsyncTask_PC.cpp
 ;
 
-XENONSRC =
-$(NETPATH)/AsyncTask_Xenon.cpp
-;
 
 PS3SRC =
 $(PROFILEPATH)/NpThreadedFriendEnumerator.cpp

@@ -266,9 +266,6 @@ namespace airacingtech
 
 	void CRaceDirector::Update()
 	{	
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CRaceDirector::Update()");
-#endif
 
 		UpdateTrackLogic();
 

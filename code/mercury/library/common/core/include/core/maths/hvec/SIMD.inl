@@ -216,13 +216,17 @@ NOALIAS __forceinline const U32 Select( const C_SelectorBool& test, const U32 re
 template < typename T >
 NOALIAS __forceinline T* Select( const C_SelectorBool& test, T* result_if_true, T* result_if_false )
 {
-    return (T*)( ( ((U32)result_if_true) & test.m_Mask ) | ( ((U32)result_if_false) & ~test.m_Mask ) );
+    // [Blur2PC][x64] m_Mask is 0 or 0xFFFFFFFF; sign-extend it so it covers the whole pointer.
+    const INTPTR mask = (INTPTR)(S32)test.m_Mask;
+    return (T*)( ( ((INTPTR)result_if_true) & mask ) | ( ((INTPTR)result_if_false) & ~mask ) );
 }
 
 template < typename T >
 NOALIAS __forceinline T* Select( const C_SelectorBool& test, T const * result_if_true, T const * result_if_false )
 {
-    return (T*)( ( ((U32)result_if_true) & test.m_Mask ) | ( ((U32)result_if_false) & ~test.m_Mask ) );
+    // [Blur2PC][x64] m_Mask is 0 or 0xFFFFFFFF; sign-extend it so it covers the whole pointer.
+    const INTPTR mask = (INTPTR)(S32)test.m_Mask;
+    return (T*)( ( ((INTPTR)result_if_true) & mask ) | ( ((INTPTR)result_if_false) & ~mask ) );
 }
 
 

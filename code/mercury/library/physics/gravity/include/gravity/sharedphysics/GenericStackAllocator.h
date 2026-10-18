@@ -41,8 +41,8 @@ public:
 		Thing* thing;
 		if(bByteAlign)
 		{
-			U32 curAddy((U32)m_pCurrentPtr);
-			curAddy = (curAddy + 15) & 0xfffffff0;
+			INTPTR curAddy((INTPTR)m_pCurrentPtr);	// [Blur2PC][x64] align the full address
+			curAddy = (curAddy + 15) & ~(INTPTR)0xf;
 			thing = (Thing*)curAddy;
 			U8* newPtr = (U8*)(curAddy + sizeof(Thing));
 			BIZ_ASSERT((newPtr - &m_Data[0]) <= size);

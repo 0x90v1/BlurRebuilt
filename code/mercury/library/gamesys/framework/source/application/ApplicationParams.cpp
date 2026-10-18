@@ -4,19 +4,7 @@
 namespace Framework
 {
 
-#if defined(PLATFORM_XENON)
-
-// C_ApplicationParams360
-
-C_ApplicationParams360::C_ApplicationParams360()
-{
-}
-
-C_ApplicationParams360::~C_ApplicationParams360()
-{
-}
-
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 
 // C_ApplicationParamsPS3
 

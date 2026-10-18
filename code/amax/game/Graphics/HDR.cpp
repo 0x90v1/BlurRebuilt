@@ -479,7 +479,7 @@ void C_HighDynamicRange::SetLargeScreenshotBloomScale(const F32 fZoom, const F32
 
 void C_HighDynamicRange::ReloadNoiseTexture()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 	Display::Device()->Destroy(&m_NoiseTexture);
@@ -537,7 +537,7 @@ bool C_HighDynamicRange::CreateLookupTexture()
 
 void C_HighDynamicRange::ReloadLookupTexture()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 	Display::Device()->Destroy(&m_LookupTexture);
@@ -548,7 +548,7 @@ void C_HighDynamicRange::ReloadBloomCurve(const Render::C_HermiteCurve& curve, c
 {
 	if(uid != m_UID || HDR::g_bReloadBloomCurve)
 	{
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		Display::Device()->BlockUntilIdle();
 #endif
 	

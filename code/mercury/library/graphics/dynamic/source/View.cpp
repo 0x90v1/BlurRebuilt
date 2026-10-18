@@ -116,18 +116,13 @@ void C_View::BeginGather(const SceneGraph::C_View& view) const
 	m_RenderPassIndex = -1;
 }
 
-#if defined(BLUR_USE_DX11)
 // [Blur1PCDX11] Retail registers this default as true (0x00e189a0).
 // RetailDynamicEffectView_RenderPass (recovered, 0x0062cb80) flushes the
 // mapped pass before drawing, completing jobs and unlocking/uploading VBs.
 Debug::Bool g_debugDynamicEffectFlushJobs("Graphics.Dynamic.FlushJobs", true);
-#elif !defined(CFG_GOLD)
-Debug::Bool g_debugDynamicEffectFlushJobs("Graphics.Dynamic.FlushJobs", false);
-#endif
 
 void C_View::RenderPass(S32 renderPass) const
 {
-	#if defined(BLUR_USE_DX11) || !defined(CFG_GOLD)
 	if(g_debugDynamicEffectFlushJobs)
 	{
 		// we need to run this in release to avoid corruption
@@ -137,7 +132,6 @@ void C_View::RenderPass(S32 renderPass) const
 		if(pass != -1)
 			JobQueueFlushPass(pass);
 	}
-	#endif
 }
 
 void C_View::JobQueueFlushPass(S32 iRenderPass) const

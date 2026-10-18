@@ -20,20 +20,12 @@ public:
 	}
 	void Suspend()
 	{
-#ifdef PLATFORM_XENON
-		Display::Device()->AcquireThreadOwnership();
-		Display::Device()->GetD3DDevice()->Suspend();
-#endif
 		m_Suspended = true;
 	}
 
 	void Resume()
 	{
 		m_Suspended = false;
-#ifdef PLATFORM_XENON
-		Display::Device()->GetD3DDevice()->Resume();
-		Display::Device()->ReleaseThreadOwnership();
-#endif
 	}
 
 private:

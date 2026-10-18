@@ -46,7 +46,7 @@ void C_Scene::FillCache(Collision::C_CRAxisBox& box, Collision::C_LineCollisionC
 		if(m_pGroundPlane)
 		{
 			Spu::MemBaseMarker innerMarker;
-			Collision::C_Shape* pGroundShape = (Collision::C_Shape*)Spu::Get((U32*)&m_pGroundPlane->m_pShape);
+			Collision::C_Shape* pGroundShape = (Collision::C_Shape*)Spu::Get((INTPTR*)&m_pGroundPlane->m_pShape);	// [Blur2PC][x64] pointer-wide
 			Collision::C_PlaneShape* pPlaneShape = (Collision::C_PlaneShape*)Spu::FetchAlloc(pGroundShape, sizeof(Collision::C_PlaneShape));
 			if(pPlaneShape->m_Filter.CanCollide(pFilter) && (pPlaneShape->m_Plane.m_n | normal) <= maxCosAngle)
 			{

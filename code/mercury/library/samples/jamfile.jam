@@ -17,10 +17,6 @@ $(TOP)/Libs/Vendor/dx9sdk/current/include
 }
 
 _PLATFORM = $(PLATFORM) ;
-if $(PLATFORM) = "XENON"
-{
-	_PLATFORM = XB2 ;
-}
 
 SRC = 
 ./source/section/Section.cpp
@@ -40,8 +36,5 @@ PS3SRC =
 ./source/system/PS3Pad.cpp
 ;
 
-XENONSRC =
-./source/system/AtgInput.cpp
-;
 
 Library samples : $(SRC) $($(PLATFORM)SRC) : stdafx.cpp ;

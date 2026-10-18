@@ -327,9 +327,7 @@ void StreamData::DebugInfo() const
 		
 		DebugSizeInfo();
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetLargeHeap()->PrintDebug(g_LogDebug);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->GetVideoMemory()->PrintDebug(g_LogDebug);
 #endif
 	}

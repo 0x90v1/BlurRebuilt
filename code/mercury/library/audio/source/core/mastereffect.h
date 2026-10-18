@@ -90,11 +90,7 @@ HRESULT CAPOBase< APOClass, ParameterClass >::CreateInstance( void* pInitData, U
 template< typename APOClass, typename ParameterClass >
 CAPOBase< APOClass, ParameterClass >::CAPOBase() : CXAPOParametersBase( &m_regProps, (BYTE*)m_parameters, sizeof( ParameterClass ), FALSE )
 {
-#ifdef _XBOX_VER
-    XMemSet( (BYTE*)m_parameters, 0, sizeof( m_parameters ) );
-#else
     ZeroMemory( m_parameters, sizeof( m_parameters ) );
-#endif
 }
 
 //--------------------------------------------------------------------------------------

@@ -28,7 +28,7 @@ private:
 	Ut::Vector<F32>	m_AxisValues;
 };
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 class C_PadVirtual360 : public C_Device
 {
 public:

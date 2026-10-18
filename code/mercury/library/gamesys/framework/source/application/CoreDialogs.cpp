@@ -38,77 +38,6 @@ void CriticalReadErrorDialogClosed(int buttonType, void *userData)
 
 #endif
 
-#ifdef PLATFORM_XENON
-
-class C_DirtyDiscThread : public MT::Thread
-{
-public:
-	C_DirtyDiscThread() : MT::Thread()
-	{
-	}
-
-	virtual ~C_DirtyDiscThread() 
-	{
-	}
-
-protected:
-	virtual void ThreadMain()
-	{
-		//Allow some cleanup prior to exit so that we don't eat people's save games for example.
-		C_ApplicationBase::GetInstance()->ExitChecks();
-
-		S32 padIdx = GetPrimaryPadNo();
-		if (padIdx < 0 || padIdx > 3)
-			padIdx = 0;
-		XShowDirtyDiscErrorUI(padIdx);
-		//Shouldn't get here as the above call shouldn't return.
-		//Reboot to dashboard.
-		XLaunchNewImage(XLAUNCH_KEYWORD_DEFAULT_APP, 0);
-	}
-};
-
-C_DirtyDiscThread* g_pDirtyDiscThread = NULL;
-
-void DoCriticalReadErrorDialog360(const char* fileName)
-{
-	g_dialogMutex.Wait();
-
-	//Avoid blocking this thread.
-	if (g_pDirtyDiscThread) 
-	{
-		g_dialogMutex.Release();
-		return;
-	}
-	else
-	{
-		g_pDirtyDiscThread = new C_DirtyDiscThread();
-		g_pDirtyDiscThread->Start();
-	}
-
-	bool isRenderThread = Display::Device()->HaveThreadOwnership();
-	if (isRenderThread)
-	{
-		//Steal render loop if in main thread.
-		Display::Device()->AcquireThreadOwnership();
-		bool inScene = Display::Device()->InScene();
-		if (inScene) Display::Device()->EndScene();
-
-		while(true)
-		{
-			Display::Device()->BeginScene();
-
-			Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Depth | Display::E_Clear_Stencil);
-		
-			Display::Device()->EndScene();
-			Display::Device()->Present();
-			Display::RingBuffer()->EndFrame();
-		}
-	}
-
-	g_dialogMutex.Release();
-}
-
-#endif
 
 #ifdef PLATFORM_PS3
 
@@ -248,9 +177,7 @@ void CriticalReadErrorDialog(const char* fileName, bool writing, bool isCritical
 	DebugBreak();
 #endif
 
-#ifdef PLATFORM_XENON
-	DoCriticalReadErrorDialog360(fileName);
-#elif PLATFORM_PS3
+#if PLATFORM_PS3
 	DoCriticalReadErrorDialogPS3(fileName);
 #elif PLATFORM_PC
 	DoCriticalReadErrorDialogPC(fileName);

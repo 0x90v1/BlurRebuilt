@@ -384,43 +384,6 @@ void Tracker::Update()
 
 	if (m_mainTracker)
 	{
-#ifdef PLATFORM_XENON
-		// Update memory tracking information with stack usage
-		{
-			static ContextId stackMemID = TrackNodes::Instance().GetId("console.stacks");
-			static ContextId fileCacheMemID = TrackNodes::Instance().GetId("console.file_cache");
-			static ContextId pageTablesID = TrackNodes::Instance().GetId("console.page_tables");
-			static ContextId poolID = TrackNodes::Instance().GetId("console.pool");
-
-			ContextNode& stackNode = const_cast<ContextNode&>(GetContextNode(stackMemID));
-			ContextNode& fileCacheNode = const_cast<ContextNode&>(GetContextNode(fileCacheMemID));
-			ContextNode& pageTableNode = const_cast<ContextNode&>(GetContextNode(pageTablesID));
-			ContextNode& poolNode = const_cast<ContextNode&>(GetContextNode(poolID));
-
-			if (stackNode.Allocations() > 0)
-			{
-				const size_t oldSizeS = stackNode.Allocated();
-				const size_t oldSizeFC = fileCacheNode.Allocated();
-				const size_t oldSizePT = pageTableNode.Allocated();
-				const size_t oldSizePL = poolNode.Allocated();
-
-				UpdateMemory(stackMemID,		-int(oldSizeS), 0, -1, kMemType_System);
-				UpdateMemory(fileCacheMemID,	-int(oldSizeFC), 0, -1, kMemType_System);
-				UpdateMemory(pageTablesID,		-int(oldSizePT), 0, -1, kMemType_System);
-				UpdateMemory(poolID,			-int(oldSizePL), 0, -1, kMemType_System);
-			}
-
-			DM_MEMORY_STATISTICS MemStat = {0};
-			MemStat.cbSize = sizeof MemStat;
-			HRESULT hr = DmQueryTitleMemoryStatistics(&MemStat);
-			BIZ_ASSERT(XBDM_NOERR == hr);
-			
-			UpdateMemory(stackMemID,		MemStat.StackPages * 4096, 0, 1, kMemType_System);
-			UpdateMemory(fileCacheMemID,	MemStat.FileCachePages * 4096, 0, 1, kMemType_System);
-			UpdateMemory(pageTablesID,		(MemStat.VirtualPageTablePages + MemStat.SystemPageTablePages) * 4096, 0, 1, kMemType_System);
-			UpdateMemory(poolID,			(MemStat.PoolPages) * 4096, 0, 1, kMemType_System);
-		}
-#endif
 
 #ifdef PLATFORM_PS3
 		{
@@ -1286,12 +1249,6 @@ int Tracker::CheckForMemoryLeaks(U32 exclusionCount, U32* exclusionList, MemoryL
 
 	m_Lock.Enter();
 
-#ifdef PLATFORM_XENON
-	DM_MEMORY_STATISTICS MemStat = {0};
-	MemStat.cbSize = sizeof MemStat;
-	HRESULT hr = DmQueryTitleMemoryStatistics(&MemStat);
-	BIZ_ASSERT(XBDM_NOERR == hr);
-#endif
 
 	const unsigned int currentTag = TrackNodes::Instance().Tag();
 
@@ -1464,14 +1421,6 @@ int Tracker::CheckForMemoryLeaks(U32 exclusionCount, U32* exclusionList, MemoryL
 			}
 
 			// Used to check our own internal counts
-#ifdef PLATFORM_XENON
-			const DWORD actualPhySize = MemStat.ContiguousPages * 4096;
-			const DWORD actualTotal = (MemStat.TotalPages - MemStat.AvailablePages) * 4096;
-			const size_t totalAllocated = m_physicalMemoryNode.Allocated() + m_systemMemoryNode.Allocated();
-
-			info.physicalMemoryDifference = actualPhySize - m_physicalMemoryNode.Allocated() - heapPhy;
-			info.totalMemoryDifference = actualTotal - totalAllocated - heapSys;
-#endif
 		}
 		else
 		{
@@ -1772,12 +1721,6 @@ void Tracker::DebugTagAndNode(bool includeChildren)
 	Output( "---------------------------------------------------------------------------\n");
 
 	// Used to check our own internal counts
-#ifdef PLATFORM_XENON
-	DM_MEMORY_STATISTICS MemStat = {0};
-	MemStat.cbSize = sizeof MemStat;
-	HRESULT hr = DmQueryTitleMemoryStatistics(&MemStat);
-	BIZ_ASSERT(XBDM_NOERR == hr);
-#endif
 
 	// Only display this if we have both system and physical memory allocations
 	if (m_physicalMemoryNode.m_nAllocations && m_systemMemoryNode.m_nAllocations)
@@ -1791,24 +1734,6 @@ void Tracker::DebugTagAndNode(bool includeChildren)
 			"-", "-", "-", 0
 			);
 
-#ifdef PLATFORM_XENON
-		if (m_mainTracker)
-		{
-			DWORD actualPhySize = MemStat.ContiguousPages * 4096;
-
-			if (m_physicalMemoryNode.Allocated() != actualPhySize)
-			{
-				Output( formatString,
-					"Physical(Console status)", 
-					MemSizeToStringK(actualPhySize).Chars(),
-					MemSizeToStringK(0).Chars(),
-					0,
-					(100.0f * actualPhySize) / fTotal,
-					"-", "-", "-", 0
-					);
-			}
-		}
-#endif
 
 		Output( formatString,
 			"System", 
@@ -1836,40 +1761,6 @@ void Tracker::DebugTagAndNode(bool includeChildren)
 		totalAllocs
 		);
 
-#ifdef PLATFORM_XENON
-	if (m_mainTracker)
-	{
-		DWORD actualFree = MemStat.AvailablePages * 4096;
-		DWORD actualTotal = (MemStat.TotalPages - MemStat.AvailablePages) * 4096;
-		
-		Output( formatString,
-			"Total(Console status)", 
-			MemSizeToStringK(actualTotal).Chars(),
-			MemSizeToStringK(0).Chars(),
-			0,
-			(100.0f * actualTotal) / fTotal,
-			"-", "-", "-", 0
-			);
-
-		Output( formatString,
-			"Difference(Console status)", 
-			MemSizeToStringK(actualTotal - totalAllocated).Chars(),
-			MemSizeToStringK(0).Chars(),
-			0,
-			(100.0f * (actualTotal - totalAllocated)) / fTotal,
-			"-", "-", "-", 0
-			);
-
-		Output( formatString,
-			"Free(Console status)", 
-			MemSizeToStringK(actualFree).Chars(),
-			MemSizeToStringK(0).Chars(),
-			0,
-			(100.0f * actualFree) / fTotal,
-			"-", "-", "-", 0
-			);
-	}
-#endif
 
 
 	free(pList);
@@ -1931,46 +1822,12 @@ void Tracker::DumpMemoryRaw(const char* fname)
 		FILE *fh = fopen(filename, "wb");
 		if (fh)
 		{
-#if defined(PLATFORM_XENON)
-			fprintf(fh, "Platform XENON\n");
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 			fprintf(fh, "Platform PS3\n");
 #else
 			fprintf(fh, "Platform OTHER\n");
 #endif
 			// Try and find out where the PDB is located
-#ifdef PLATFORM_XENON
-			{
-				// Walk the list of loaded code modules.
-				HRESULT error;
-				PDM_WALK_MODULES pWalkMod = NULL;
-				DMN_MODLOAD modLoad;
-
-				while (XBDM_NOERR == (error = DmWalkLoadedModules(&pWalkMod, &modLoad)))
-				{
-					// Find the signature that describes the PDB file of the current module.
-					DM_PDB_SIGNATURE signature = {0};
-					HRESULT hr = DmFindPdbSignature( modLoad.BaseAddress, &signature );
-
-					if (hr == XBDM_NOERR)
-					{
-						fprintf(fh, "AddModule %x %x\n", modLoad.BaseAddress, modLoad.Size);
-						fprintf(fh, "%s\n", modLoad.Name);
-
-						fprintf(fh, "%d\n", sizeof(signature));
-
-						BYTE* bptr = (BYTE*)&signature;
-
-						fprintf(fh, "%d", *bptr++);
-
-						for (int ib=1; ib < sizeof(signature); ib++)
-							fprintf(fh, " %d", *bptr++);
-
-						fprintf(fh, "\n");
-					}
-				}
-			}
-#endif
 
 			// Write out the heap information
 			for (int iHeap=0; iHeap < m_subTrackers.Size(); iHeap++)
@@ -2267,12 +2124,6 @@ void Tracker::DumpNodeStats(bool bCSV, bool includeChildren)
 		Output( "---------------------------------------------------------------------------\n");
 
 	// Used to check our own internal counts
-#ifdef PLATFORM_XENON
-	DM_MEMORY_STATISTICS MemStat = {0};
-	MemStat.cbSize = sizeof MemStat;
-	HRESULT hr = DmQueryTitleMemoryStatistics(&MemStat);
-	BIZ_ASSERT(XBDM_NOERR == hr);
-#endif
 
 	// Only display this if we have both system and physical memory allocations
 	if (tempPhysNode.m_nAllocations && tempSysNode.m_nAllocations)
@@ -2293,32 +2144,6 @@ void Tracker::DumpNodeStats(bool bCSV, bool includeChildren)
 			Output( "Physical, %d, %d, %d, %d\n", tempPhysNode.AllocatedSingle(), tempPhysNode.WastedSingle(), tempPhysNode.AllocationsSingle(), tempPhysNode.AllocatedMaxSingle());
 		}
 
-#ifdef PLATFORM_XENON
-		if (m_mainTracker && !includeChildren)
-		{
-			DWORD actualPhySize = MemStat.ContiguousPages * 4096;
-
-			if (tempPhysNode.Allocated() != actualPhySize)
-			{
-				if (!bCSV)
-				{
-					Output( formatString,
-						"Physical(Console status)", 
-						MemSizeToStringK(actualPhySize).Chars(),
-						MemSizeToStringK(0).Chars(),
-						MemSizeToStringK(0).Chars(),
-						0,
-						(100.0f * actualPhySize) / fTotal,
-						"-", "-", "-", 0
-						);
-				}
-				else
-				{
-					Output( "Physical(Console status), %d, %d, %d, %d\n", actualPhySize, 0, 0, 0);
-				}
-			}
-		}
-#endif
 
 		if (!bCSV)
 		{
@@ -2360,36 +2185,11 @@ void Tracker::DumpNodeStats(bool bCSV, bool includeChildren)
 
 	if (!bCSV)
 	{
-#ifdef PLATFORM_XENON
-		DWORD actualFree = MemStat.AvailablePages * 4096;
-		DWORD actualTotal = (MemStat.TotalPages - MemStat.AvailablePages) * 4096;
-#endif
 
 		if (m_mainTracker)
 		{
 			if (!includeChildren)
 			{
-#ifdef PLATFORM_XENON
-				Output( formatString,
-					"Total(Console status)", 
-					MemSizeToStringK(actualTotal).Chars(),
-					MemSizeToStringK(0).Chars(),
-					MemSizeToStringK(0).Chars(),
-					0,
-					(100.0f * actualTotal) / fTotal,
-					"-", "-", "-", 0
-					);
-
-				Output( formatString,
-					"Difference(Console status)", 
-					MemSizeToStringK(actualTotal - totalAllocated).Chars(),
-					MemSizeToStringK(0).Chars(),
-					MemSizeToStringK(0).Chars(),
-					0,
-					(100.0f * (actualTotal - totalAllocated)) / fTotal,
-					"-", "-", "-", 0
-					);
-#endif
 			}
 			else
 			{
@@ -2428,17 +2228,6 @@ void Tracker::DumpNodeStats(bool bCSV, bool includeChildren)
 				);
 #endif
 
-#ifdef PLATFORM_XENON
-			Output( formatString,
-				"Free(Console status)", 
-				MemSizeToStringK(actualFree).Chars(),
-				MemSizeToStringK(0).Chars(),
-				MemSizeToStringK(0).Chars(),
-				0,
-				(100.0f * actualFree) / fTotal,
-				"-", "-", "-", 0
-				);
-#endif
 		}
 		else
 		{
@@ -2786,9 +2575,7 @@ void Tracker::SendAllocationList(int version, bool justSuspectedLeaks, ArteryCon
 	{
 		b.Write("MemoryCapture");
 		b.Write(0); // version
-#if defined(PLATFORM_XENON)
-		b.Write(0); // xenon
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		b.Write(1); // PS3
 #else
 		b.Write(2); // undefined
@@ -2802,57 +2589,6 @@ void Tracker::SendAllocationList(int version, bool justSuspectedLeaks, ArteryCon
 	}
 
 	// Try and find out where the PDB is located
-#ifdef PLATFORM_XENON
-	int nModules = 0;
-	for (int iPass=0; iPass<2; iPass++)
-	{
-		if (bSingleMessage && iPass == 1)
-			b.Write(nModules);
-
-        // Walk the list of loaded code modules.
-        HRESULT error;
-        PDM_WALK_MODULES pWalkMod = NULL;
-        DMN_MODLOAD modLoad;
-
-        while (XBDM_NOERR == (error = DmWalkLoadedModules(&pWalkMod, &modLoad)))
-        {
-            // Find the signature that describes the PDB file of the current module.
-            DM_PDB_SIGNATURE signature = {0};
-            HRESULT hr = DmFindPdbSignature( modLoad.BaseAddress, &signature );
-
-			if (hr == XBDM_NOERR)
-			{
-				if (iPass == 0)
-					nModules++;
-				else
-				{
-					if (!bSingleMessage)
-					{
-						b.Clear();
-						b.Write("AddModule");
-					}
-
-					//LOGWARN(g_Log, "AddModule - BA(0x%x) Size(0x%x) Name(%s)", modLoad.BaseAddress, modLoad.Size, modLoad.Name);
-
-					b.Write(ArteryU32(modLoad.BaseAddress));
-					b.Write(ArteryU32(modLoad.Size));
-					
-					b.Write(modLoad.Name);
-					
-					b.Write((int)sizeof(signature));
-					b.Write(&signature, sizeof(signature));
-
-					if (!bSingleMessage)
-					{
-						ArteryMessage newMsg;
-						if (b.Build(newMsg))
-							con.Send(newMsg);
-					}
-				}
-			}
-		}
- 	}
-#endif
 
 	// Send over heap information
 	if (version >= 1)
@@ -3142,9 +2878,7 @@ void Update(void)
 
 	if (g_memDumpToFile)
 	{
-#if defined(PLATFORM_XENON)
-		Tracker::Instance().DumpMemoryRaw("GAME:\\MemStats");
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 		Tracker::Instance().DumpMemoryRaw("/app_home/MemStats");
 #else
 		Tracker::Instance().DumpMemoryRaw("MemStats");

@@ -15,12 +15,8 @@ namespace Display
 
 #if defined(DEVICE_PCGL)
 Util::C_String g_VertexShaderExt = "pcglv";
-#elif defined(DEVICE_PCD3D9)
-Util::C_String g_VertexShaderExt = "pcv";
 #elif defined(PLATFORM_PS3)
 Util::C_String g_VertexShaderExt = "p3v";
-#elif defined(PLATFORM_XENON)
-Util::C_String g_VertexShaderExt = "xev";
 #else
 Util::C_String g_VertexShaderExt = "";
 #endif

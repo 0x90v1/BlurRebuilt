@@ -138,63 +138,17 @@ SRC +=
 ;
 }
 
-D3D9SRC = 
-./source/buffer/d3d9/D3D9IndexBuffer.cpp
-./source/buffer/d3d9/D3D9VertexBuffer.cpp
-./source/buffer/d3d9/D3D9VertexBufferPatched.cpp
-./source/buffer/d3d9/D3D9VertexDeclaration.cpp
-./source/device/d3d9/D3D9.cpp
-./source/device/d3d9/D3D9Device.cpp
-./source/device/d3d9/D3D9DeviceBuffers.cpp
-./source/device/d3d9/D3D9DeviceCaps.cpp
-./source/device/d3d9/D3D9DeviceParams.cpp
-./source/device/d3d9/D3D9DeviceStates.cpp
-./source/device/d3d9/D3D9MemoryTracker.cpp
-./source/manager/d3d9/D3D9Manager.cpp
-./source/shader/d3d9/D3D9PixelShader.cpp
-./source/shader/d3d9/D3D9VertexShader.cpp
-./source/surface/d3d9/D3D9Surface.cpp
-./source/texture/d3d9/D3D9RenderTexture2D.cpp
-./source/texture/d3d9/D3D9RenderTextureCube.cpp
-./source/texture/d3d9/D3D9Texture.cpp
-./source/texture/d3d9/D3D9Texture2D.cpp
-./source/texture/d3d9/D3D9Texture3D.cpp
-./source/texture/d3d9/D3D9TextureCube.cpp
-./source/texture/d3d9/D3D9TextureLoad.cpp
-./source/occlusion/D3D9/D3D9OcclusionQuery.cpp
-./source/window/d3d9/D3D9Window.cpp
-./source/context/Context_D3D9.cpp
-;
+# [Blur2PC][x64] D3D9SRC (the D3D9 device shared by PC and Xbox 360) is removed.
 
 if $(PLATFORM) = "PC"
 {
-SRC += $(D3D9SRC)
-./source/device/d3d9/PCD3D9Device.cpp
-./source/device/d3d9/PCD3D9CapsCheckerDevice.cpp
-./source/device/d3d9/PCD3D9CapsCheckerObject.cpp
-./source/device/d3d9/PCD3D9CapsBuilder.cpp
-./source/buffer/d3d9/D3D9CommandBuffer.cpp
-./source/memory/d3d9/D3D9RingBuffer.cpp
+# [Blur2PC][x64] the D3D9 device sources are removed; cmake/dx11.cmake adds the D3D11 backend
+SRC +=
 ./source/context/Context_PC.cpp
 ;
 
 }
 
-if $(PLATFORM) = "XENON"
-{
-SRC += $(D3D9SRC)
-./source/device/d3d9/XB2D3D9Device.cpp
-./source/device/d3d9/XB2D3D9DeviceRenderTarget.cpp
-./source/memory/d3d9/D3D9MemoryManager.cpp
-./source/memory/MemoryLinearBuffer.cpp
-#./source/memory/MemoryRingBuffer.cpp
-./source/context/Context_Xenon.cpp
-./source/context/XenonPatchVertexShader.cpp
-./source/buffer/d3d9/D3D9CommandBuffer.cpp
-./source/memory/d3d9/D3D9RingBuffer.cpp
-#./source/buffer/d3d9/D3D9CommandBufferAllocator.cpp
-;
-}
 
 SHADERS =
 ./include/display/shaders/occlusion/psOcclusion.psh
@@ -219,7 +173,7 @@ SHADERS +=
 ;
 }
 
-if $(PLATFORM) = PS3 || $(PLATFORM) = XENON
+if $(PLATFORM) = PS3
 {
 SRC +=
 ./source/memory/MemoryManager2.cpp
@@ -258,13 +212,6 @@ SHADERS += [ Shader ./include/display/shaders/render/psDownsample.psh :
 	"<Quincunx>-DUSE_QUINCUNX"
 	"<QuincunxAlt>-DUSE_QUINCUNX_ALT"
 	"<QuincunxShifted>-DUSE_QUINCUNX_SHIFTED" ] ;
-}
-if ( $(PLATFORM) = XENON )
-{
-SHADERS += [ Shader ./include/display/shaders/render/psDownsample.psh :
-	"<Texture2xAA>-DUSE_TEXTURE_2XAA"
-	"<Texture2x2>-DUSE_TEXTURE_2X2"
-	"<Depth>-DUSE_DEPTH" ] ;
 }
 
 SRC = [ Batch $(SRC) : StdAfx.h ] ;

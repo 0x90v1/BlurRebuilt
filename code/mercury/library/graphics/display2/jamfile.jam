@@ -25,32 +25,8 @@ source/memory/Memory.cpp
 source/utils/Utils.cpp
 ;
 
-if ( $(PLATFORM) = "XENON" || $(PLATFORM) = "PC" )
-{
-SRC +=
-source/context/D3D9Context.cpp
-source/device/D3D9Device.cpp
-;
-}
+# [Blur2PC][x64] The PC D3D9 device is removed; cmake/dx11.cmake adds the native D3D11 backend.
 
-if ( $(PLATFORM) = "PC" )
-{
-SRC +=
-source/device/PCD3D9Device.cpp
-source/memory/PCD3D9Memory.cpp
-source/utils/PCD3D9Utils.cpp
-;
-}
-
-if ( $(PLATFORM) = "XENON" )
-{
-SRC +=
-source/device/XB2Device.cpp
-source/memory/XB2Memory.cpp
-source/buffer/XB2Buffer.cpp
-source/utils/XB2Utils.cpp
-;
-}
 
 if ( $(PLATFORM) = "PS3" )
 {

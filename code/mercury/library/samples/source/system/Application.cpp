@@ -5,7 +5,7 @@
 #include "Display/Memory/MemorySystem.h"
 #include "Display/Memory/MemoryGraphics.h"
 #include "Display/Device/DeviceDebug.h"
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 #include "System/Memory.h"
 #endif
 #include "System/Debug/Log/AutoConfigure.h"
@@ -41,12 +41,10 @@ Debug::Enum<E_Resolution> g_debugResolution("Samples.Resolution", E_Resolution_D
 extern Debug::Bool g_debugDisplayUpdateResolution;
 #endif
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 void AssertOutOfMemory(void)
 {
-	#if defined(PLATFORM_XENON)
-	Memory::Tracker::Instance().DumpMemoryRaw("GAME:\\OutOfMemory");
-	#elif defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 	Memory::Tracker::Instance().DumpMemoryRaw("/app_home/OutOfMemory");
 	#endif
 
@@ -116,14 +114,12 @@ bool C_Application::Create()
 	if(!m_pDisplay->GetVideoMode(&videoMode))
 		return false;
 
-	#if defined(PLATFORM_PS3) || defined(PLATFORM_XENON)
+	#if defined(PLATFORM_PS3)
 	m_DeviceParams.m_HiDef = videoMode.m_HiDef;
 	m_DeviceParams.m_WideScreen = videoMode.m_WideScreen;
 	#endif
 
-	#if defined(PLATFORM_XENON)
-	Display::E_Multisample windowMultisample = Display::E_Multisample_4;
-	#elif defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 	Display::E_Multisample windowMultisample = Display::E_Multisample_2;
 	#else
 	Display::E_Multisample windowMultisample = Display::E_Multisample_None;
@@ -259,9 +255,6 @@ void C_Application::Update()
 
 	if(g_debugReloadableShaders)
 	{
-		#ifdef PLATFORM_XENON
-		m_pDevice->BlockUntilIdle();
-		#endif
 
 		Display::RefreshVertexShaders();
 		Display::RefreshPixelShaders();
@@ -269,9 +262,6 @@ void C_Application::Update()
 
 	if(g_debugReloadableTextures)
 	{
-	#ifdef PLATFORM_XENON
-		Display::RefreshTextures("GAME:\\Image\\Textures\\");
-	#endif
 	}
 }
 
@@ -745,11 +735,8 @@ void C_Application::ResizeWindows()
 			m_pDevice->m_DeviceParams.m_WindowBufferHeight			= pResolution->m_Height;
 			m_pDevice->m_DeviceParams.m_WindowBufferMultisample		= pResolution->m_Multisample;
 
-			#ifdef PLATFORM_XENON
-			m_pDevice->Unbind();
-			#endif
 
-			#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+			#if defined(PLATFORM_PS3)
 			m_pDevice->BlockUntilIdle();
 			#endif
 
@@ -786,9 +773,7 @@ void C_Application::UpdateMemoryManager()
 	
 	if(g_debugDumpSystemMemoryUsageToFile)
 	{
-		#if defined(PLATFORM_XENON)
-		Util::C_String filePath = "GAME:\\User\\";
-		#elif defined(PLATFORM_PS3)
+		#if defined(PLATFORM_PS3)
 		Util::C_String filePath = "\\app_home\\User\\";
 		#else
 		Util::C_String filePath = "";
@@ -803,9 +788,7 @@ void C_Application::UpdateMemoryManager()
 
 	if(g_debugDumpGraphicsMemoryUsageToFile)
 	{
-		#if defined(PLATFORM_XENON)
-		Util::C_String filePath = "GAME:\\User\\";
-		#elif defined(PLATFORM_PS3)
+		#if defined(PLATFORM_PS3)
 		Util::C_String filePath = "\\app_home\\User\\";
 		#else
 		Util::C_String filePath = "";

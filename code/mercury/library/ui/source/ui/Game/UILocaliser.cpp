@@ -124,24 +124,6 @@ E_UIRegion C_UILocaliser::ReadRegion()
 {
 	E_UIRegion eRegion;
 
-#ifdef PLATFORM_XENON
-	DWORD xRegion = XGetGameRegion();
-
-	switch ( xRegion )
-	{
-		case XC_GAME_REGION_NA_ALL:
-			eRegion = E_UIRegion_NorthAmerica;
-			break;
-		case XC_GAME_REGION_EUROPE_ALL:		// FALL THROUGH
-		case XC_GAME_REGION_EUROPE_AUNZ:	// FALL THROUGH
-		case XC_GAME_REGION_EUROPE_REST:
-			eRegion = E_UIRegion_Europe;
-			break;
-		default:
-			eRegion = E_UIRegion_Other;
-			break;
-	}
-#endif
 
 #ifdef PLATFORM_PS3
 
@@ -189,24 +171,6 @@ E_UILanguage C_UILocaliser::ReadLanguage( E_UIRegion eRegion, E_UILanguage eDefa
 {
 	E_UILanguage eLanguage = eDefaultLanguage;
 
-#ifdef PLATFORM_XENON
-	DWORD xLang = XGetLanguage();
-
-	switch ( xLang )
-	{
-		case XC_LANGUAGE_FRENCH:	eLanguage = E_UILanguage_French;				break;
-		case XC_LANGUAGE_GERMAN:	eLanguage = E_UILanguage_German;				break;
-		case XC_LANGUAGE_ITALIAN:	eLanguage = E_UILanguage_Italian;				break;
-		case XC_LANGUAGE_SPANISH:	eLanguage = E_UILanguage_Spanish;				break;
-		case XC_LANGUAGE_RUSSIAN:	eLanguage = E_UILanguage_Russian;				break;
-		case XC_LANGUAGE_POLISH:	eLanguage = E_UILanguage_Polish;				break;
-		case XC_LANGUAGE_SCHINESE:	eLanguage = E_UILanguage_SimplifiedChinese;		break;
-		case XC_LANGUAGE_TCHINESE:	eLanguage = E_UILanguage_TraditionalChinese;	break;
-		case XC_LANGUAGE_JAPANESE:	eLanguage = E_UILanguage_Japanese;				break;
-		case XC_LANGUAGE_KOREAN:	eLanguage = E_UILanguage_Korean;				break;
-		default:					eLanguage = E_UILanguage_English;				break;
-	}
-#endif
 
 
 #ifdef PLATFORM_PC

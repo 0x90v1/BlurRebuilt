@@ -6,9 +6,6 @@
 #include "types.h"
 #include "SampleTypes.h"
 
-#ifdef _XBOX360
-#include "xtl.h"
-#endif // _XBOX360
 
 namespace Audio
 {	
@@ -248,10 +245,6 @@ namespace Audio
 		char*			m_pchFilename;
 
 
-#ifdef _XBOX360
-		void*			m_pXMAWaveBankBuffer;		// We allocate a single buffer for all waves
-		size_t			m_xmaWaveBankBufferSize;
-#endif
 
 		// the waves
 		Ut::Vector<Wave*> m_vpWaves;

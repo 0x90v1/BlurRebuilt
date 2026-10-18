@@ -61,11 +61,7 @@ bool C_Manager::OnCreateVolatile()
 
 	for(S32 iView = 0; iView < m_Views.Size(); ++iView)
 	{
-		#if defined(PLATFORM_XENON)
-		Display::E_Format eColourFormat = m_bFullPrecision ? Display::E_Format_A2B10G10R10F : Display::E_Format_A8R8G8B8;
-		#else
 		Display::E_Format eColourFormat = m_bFullPrecision ? Display::E_Format_A16B16G16R16F : Display::E_Format_A8R8G8B8;
-		#endif
 
 		bool bCreateTexture = true;
 		U32 iMapping = 0;
@@ -107,11 +103,6 @@ bool C_Manager::OnCreateVolatile()
 			// colour surfaces
 			const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
 			Display::C_SurfaceParams surfaceParams;
-			#if defined(PLATFORM_XENON)
-			surfaceParams.Base = 0;
-			surfaceParams.Base += XGSurfaceSize(backBuffer.GetWidth(), backBuffer.GetHeight(), Display::D3D9::D3D9Format(backBuffer.GetColourFormat()), Display::D3D9::D3D9Multisample(backBuffer.GetMultisample()));
-			surfaceParams.Base += XGSurfaceSize(backBuffer.GetWidth(), backBuffer.GetHeight(), Display::D3D9::D3D9Format(backBuffer.GetDepthStencilFormat()), Display::D3D9::D3D9Multisample(backBuffer.GetMultisample()));
-			#endif
 
 			if (!Display::Device()->CreateRenderTexture2D(iWidth4, iHeight4, 1, Display::E_Usage_Colour | Display::E_Usage_Expand, eColourFormat, Display::E_Multisample_None, &surfaceParams, renderTarget4.pColourRenderTexture))
 			{
@@ -139,10 +130,6 @@ bool C_Manager::OnCreateVolatile()
 			#endif
 
 			// depth surfaces
-			#if defined(PLATFORM_XENON)
-			surfaceParams.Base += XGSurfaceSize(iWidth4, iHeight4, Display::D3D9::D3D9Format(eColourFormat), D3DMULTISAMPLE_NONE);
-			surfaceParams.HierarchicalZBase = XGHierarchicalZSize(iWidth, iHeight, D3DMULTISAMPLE_NONE);
-			#endif
 
 			if (!Display::Device()->CreateDepthStencilSurface(iWidth4, iHeight4, 0, eDepthStencilFormat, Display::E_Multisample_None, &surfaceParams, renderTarget4.pDepthStencilSurface))
 			{

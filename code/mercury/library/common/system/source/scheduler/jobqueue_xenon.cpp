@@ -28,13 +28,9 @@ void _Init()
 {
 	jqPoolLock = 0;
 
-#if TL_PLAT_XENON
-	jqMaxWorkers = MAXIMUM_PROCESSORS-1;
-#else
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
 	jqMaxWorkers = si.dwNumberOfProcessors - 1;
-#endif
 
 	for (int i=0; i<8; i++)
 	{
@@ -70,20 +66,6 @@ void _Start(U32 processorsMask)
 	for ( int i = 0; i < jqNWorkers; i++ )
 	{
 		char ThreadName[256];
-#if TL_PLAT_XENON
-		//	get requested core and set thread to run on it
-		_jqGetNextBitSet(curProcessor, processorsMask);
-		assert(curProcessor < 32); // bit twiddling error
-		jqWorkers[i].Processor = curProcessor;
-		sprintf(ThreadName, "JQ Worker %d (CPU %d)", i, jqWorkers[i].Processor);
-
-		GenerateWorkerPolicyOrder(&jqWorkers[i].PolicyOrder, curProcessor);
-		// Ed: A lot more stack space is required with optimisations off.
-		// If this needs to be smaller we could set it per build.
-		jqWorkers[i].WorkerID = i;
-		jqWorkers[i].Thread = (HANDLE)tlCreateThread(jqWorkerThread, (U32)&jqWorkers[i], 0, 65536 * 2, CREATE_SUSPENDED, ThreadName);
-		XSetThreadProcessor(jqWorkers[i].Thread, jqWorkers[i].Processor);
-#else
 		//	On PC we don't have any way to set threads to cores so just make jqNWorkers threads and let the
 		//	OS distribute them
 		sprintf(ThreadName, "JQ Worker %d", i);
@@ -91,8 +73,7 @@ void _Start(U32 processorsMask)
 		assert(curProcessor < 32); // bit twiddling error
 		jqWorkers[i].Processor = curProcessor;
 		GenerateWorkerPolicyOrder(&jqWorkers[i].PolicyOrder, i+1);
-		jqWorkers[i].Thread = (HANDLE)tlCreateThread(jqWorkerThread, (U32)&jqWorkers[i], 0, 65536, CREATE_SUSPENDED, ThreadName);
-#endif
+		jqWorkers[i].Thread = (HANDLE)tlCreateThread(jqWorkerThread, (INTPTR)&jqWorkers[i], 0, 65536, CREATE_SUSPENDED, ThreadName);
 		ResumeThread(jqWorkers[i].Thread);
 	}
 

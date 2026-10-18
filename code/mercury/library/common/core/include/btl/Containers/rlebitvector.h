@@ -475,11 +475,7 @@ void RleBitVector_t<StorageType>::Init( int numElements, int numUncompressedElem
 	m_elements.Resize( numElements );
 
 	if ( numElements )
-#ifdef _XENON
-	XMemSet( &m_elements[0], 0, sizeof(U8) * numElements );
-#else
 	memset( &m_elements[0], 0, sizeof(U8) * numElements );
-#endif
 
 	m_numUncompressedElements = numUncompressedElements;
 }

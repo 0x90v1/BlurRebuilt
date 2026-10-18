@@ -200,9 +200,6 @@ void C_Manager::SetShaderConstants(const E_Shader eShader)
 	Display::C_Matrix mTemp;
 	Display::MatrixSetIdentity(&mTemp);
 	mTemp._11 = +2.0f;	mTemp._22 = -2.0f;
-#if defined(PLATFORM_XENON)
-	mTemp._33 = -1.0f;	mTemp._43 = 1.0f;
-#endif
 	mTemp._41 = -1.0f;	mTemp._42 = +1.0f;
 
 	const Maths::HMat44 mTexture = Maths::Load<Maths::HMat44>(&mTemp);

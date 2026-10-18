@@ -120,9 +120,6 @@ bool Audio::Core::DSP::Saturator::Process(void* pFrameData, const ProcessInfo& i
             const Vector4 vSample_08_09_0A_0B = aSample[ uQuadSampleIndex + 2 ];
             const Vector4 vSample_0C_0D_0E_0F = aSample[ uQuadSampleIndex + 3 ];
             
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &aSample[ uQuadSampleIndex + 0 ] );
-            #endif
             
 			const Vector4 vAbsSample_00_01_02_03 = Abs( vSample_00_01_02_03 );
 			const Vector4 vAbsSample_04_05_06_07 = Abs( vSample_04_05_06_07 );

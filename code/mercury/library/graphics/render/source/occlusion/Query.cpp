@@ -31,12 +31,7 @@ void C_PercentageQuery::DestroyVolatile()
 
 F32 C_PercentageQuery::Visible()
 {
-#if defined(PLATFORM_XENON)
-	F32 visibility = 0.0f;
-	Display::E_OcclusionQueryResult eResult = m_Query.Visible(visibility);
-	if (Display::E_OcclusionQueryResult_Failed != eResult)
-		return visibility;
-#elif defined(PLATFORM_PC) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PC) || defined(PLATFORM_PS3)
 	U32 pixelsPassed = 0;
 	U32 pixelsTotal = 0;
 	Display::E_OcclusionQueryResult ePassedResult = m_Query.Visible(pixelsPassed);

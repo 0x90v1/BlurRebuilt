@@ -13,10 +13,6 @@
 #ifdef PLATFORM_PS3
 	#include <libsn.h>
 #endif
-#ifdef PLATFORM_XENON
-	#include <xbdm.h>
-	extern "C" void __cdecl _assert (const char *, const char *,unsigned);
-#endif
 
 #ifdef CFG_ALLOW_OPTIMIZE_OFF
 #pragma optimize( "", off )
@@ -51,10 +47,6 @@ bool TheClubAssert(const char *pszFunction, const char *pszExpression, const cha
 		#endif
 		#ifdef PLATFORM_PC
 		if (IsDebuggerPresent() && dbg_breakOnAssert)
-				DebugBreak();
-		#endif
-		#ifdef PLATFORM_XENON
-			if (DmIsDebuggerPresent() && dbg_breakOnAssert)
 				DebugBreak();
 		#endif
 		#if (defined(PLATFORM_PS3))

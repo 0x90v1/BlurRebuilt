@@ -58,49 +58,6 @@ bool C_UiRenderBuffer::OnCreateVolatile()
 
 	Display::C_SurfaceParams surfaceParams;
 
-#if PLATFORM_XENON
-	m_TileSetup = Display::GetTileSetup(m_Width, m_Height, m_ColourFormat, m_DepthStencilFormat, m_Multisample);
-	
-	U32 adjustedWidth = 0;
-	U32 adjustedHeight = 0;
-
-	Display::CalculateTileSize(m_TileSetup, adjustedWidth, adjustedHeight);
-
-	if(!Display::Device()->CreateColourSurface(
-		adjustedWidth,
-		adjustedHeight,
-		0,
-		m_ColourFormat,
-		m_Multisample,
-		&surfaceParams,
-		&m_ColourSurface))
-	{
-		LOGFATAL(Display::g_Log, "Failed to create ui colour surface\n");
-		return false;
-	}
-
-	#if TRACK_DISPLAY2_RESOURCES
-	Display2::Device()->SetSurfaceName(&m_ColourSurface, "_UiRenderBufferC");
-	#endif
-	
-	surfaceParams.AfterSurface(&m_ColourSurface);
-	
-	if(!Display::Device()->CreateTexture2D(
-		m_Width,
-		m_Height,
-		1,
-		0,
-		m_ColourFormat,
-		&m_ColourTexture))
-	{
-		LOGFATAL(Display::g_Log, "Failed to create ui texture\n");
-		return false;
-	}
-
-	#if TRACK_DISPLAY2_RESOURCES
-	Display2::Device()->SetTextureName(&m_ColourTexture, "_UiRenderBufferColourSurface");
-	#endif
-#else
 	U32 adjustedWidth = m_Width;
 	U32 adjustedHeight = m_Height;
 
@@ -121,7 +78,6 @@ bool C_UiRenderBuffer::OnCreateVolatile()
 	#if TRACK_DISPLAY2_RESOURCES
 	Display2::Device()->SetRenderTexture2DName(&m_ColourRenderTexture, "_UiRenderBufferRT");
 	#endif
-#endif
 
 #if PLATFORM_PS3
 	U32 depthStencilSurfaceFlags = Display::E_Usage_DepthStencil;
@@ -164,14 +120,7 @@ bool C_UiRenderBuffer::OnCreateVolatile()
 
 void C_UiRenderBuffer::OnDestroyVolatile()
 {
-#if PLATFORM_XENON
-	Display::Device()->BlockUntilIdle();
-
-	Display::Device()->Destroy(&m_ColourSurface);
-	Display::Device()->Destroy(&m_ColourTexture);
-#else
 	Display::Device()->Destroy(&m_ColourRenderTexture);
-#endif
 	Display::Device()->Destroy(&m_DepthStencilSurface);
 }
 
@@ -179,12 +128,7 @@ bool C_UiRenderBuffer::Bind()
 {
 	assert(!m_Bound);
 
-#if PLATFORM_XENON
-	Display::Device()->SetColourDepthStencilSurface( &m_ColourSurface, &m_DepthStencilSurface );
-	Display::Device()->BeginTiling(m_TileSetup.m_TileCount, m_TileSetup.m_Tiles);
-#else
 	Display::Device()->SetColourDepthStencilSurface(&m_ColourRenderTexture.GetSurface(), &m_DepthStencilSurface );
-#endif
 	
 	m_Bound = true;
 
@@ -193,25 +137,6 @@ bool C_UiRenderBuffer::Bind()
 
 void C_UiRenderBuffer::Unbind( const bool bDoResolve )
 {
-#if PLATFORM_XENON
-	if( bDoResolve )
-	{
-		for(U32 tileIndex=0; tileIndex<m_TileSetup.m_TileCount; tileIndex++)
-		{
-			Display::Device()->GetD3DDevice()->SetPredication(D3DPRED_TILE(tileIndex));
-
-			D3DRECT* pSrcRect = &m_TileSetup.m_Tiles[tileIndex];
-
-			D3DPOINT* pDstPoint = (D3DPOINT*)pSrcRect;
-			
-			Display::Device()->Resolve( D3DRESOLVE_RENDERTARGET0, &m_ColourTexture, pSrcRect, pDstPoint);
-		}
-	}
-
-	Display::Device()->GetD3DDevice()->SetPredication(D3DPRED_TILE(0));
-
-	Display::Device()->EndTiling(NULL);
-#endif
 
 	m_Bound = false;
 }
@@ -219,9 +144,6 @@ void C_UiRenderBuffer::Unbind( const bool bDoResolve )
 
 void C_UiRenderBuffer::FinalResolve()
 {
-#if PLATFORM_XENON
-	Display::Device()->Resolve( Display::E_Resolve_Colour, &m_ColourTexture );
-#endif
 }
 
 } // namespace UI

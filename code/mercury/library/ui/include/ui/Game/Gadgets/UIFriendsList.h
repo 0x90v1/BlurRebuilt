@@ -30,9 +30,7 @@ public:
 	virtual void SendInvite( const U32 uIndex )											{ /**/ }
 	virtual void JoinSessionInProgress( const U32 uIndex )								{ /**/ }
 
-#ifndef PLATFORM_XENON
 	virtual void BuildPresenceString( const U32 uIndex, C_WideString64& string )		{ /**/ }
-#endif
 };
 
 // -----------

@@ -21,7 +21,7 @@ typedef U64 ThreadId;
 /// Returns the ID of the currently active thread.
 inline ThreadId GetThreadId()
 {
-#if PLATFORM_PC || PLATFORM_XENON
+#if PLATFORM_PC
 	return (ThreadId)GetCurrentThreadId();
 #endif
 #if PLATFORM_PS3
@@ -39,9 +39,6 @@ inline void YieldThread()
 {
 #if PLATFORM_PC
 //	SwitchToThread();
-#endif
-#if  PLATFORM_XENON
-	SwitchToThread();
 #endif
 #if PLATFORM_PS3
 	sys_ppu_thread_yield();

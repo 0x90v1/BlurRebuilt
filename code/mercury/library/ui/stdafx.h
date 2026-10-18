@@ -7,12 +7,7 @@
 
 #include <core/core.h>
 
-#if defined(PLATFORM_XENON)
-
-#include <xtl.h>
-#include <xbdm.h>
-
-#elif defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 #define WIN32_LEAN_AND_MEAN
 #define _WIN32_WINNT 0x0501 

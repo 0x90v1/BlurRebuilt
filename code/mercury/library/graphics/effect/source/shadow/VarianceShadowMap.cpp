@@ -33,9 +33,6 @@ bool C_VarianceShadowMap::Create()
 
 	#if PLATFORM_PS3
 	PS3CreateDepthTextureFromSurface(&m_DepthStencilSurface, &m_ColourRenderTexture);
-	#elif PLATFORM_XENON
-	if (!Display::Device()->CreateRenderTexture2D(m_iWidth, m_iHeight, 1, 0, eDepthStencilFormat, Display::E_Multisample_None, 0, &m_ColourRenderTexture))
-		return false;
 	#else
 	if (!Display::Device()->CreateRenderTexture2D(m_iWidth, m_iHeight, 1, 0, eColourFormat, Display::E_Multisample_None, 0, &m_ColourRenderTexture))
 		return false;
@@ -68,7 +65,7 @@ void C_VarianceShadowMap::Bind()
 	m_pSavedDepthStencilSurface = Display::Device()->GetRenderTarget().GetDepthStencilSurface();
 	m_SavedViewport = Display::Device()->GetViewport();
 
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	Display::Device()->SetColourDepthStencilSurface(0, &m_DepthStencilSurface);
 	Display::Device()->SetColourWriteEnable(0);
 	Display::Device()->Clear(Display::E_Clear_Depth | Display::E_Clear_Stencil);
@@ -89,11 +86,8 @@ void C_VarianceShadowMap::Bind()
 
 void C_VarianceShadowMap::Unbind()
 {
-	#if PLATFORM_XENON
-	Display::Device()->Resolve(Display::E_Resolve_DepthStencil, &m_ColourRenderTexture.GetTexture());
-	#endif
 
-	#if PLATFORM_XENON || PLATFORM_PS3
+	#if PLATFORM_PS3
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_All);
 	#endif
 

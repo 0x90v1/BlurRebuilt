@@ -54,24 +54,6 @@ void C_FriendChallenges::Init()
 
 	Clear();
 
-#if defined ( PLATFORM_XENON )
-	mListenerHandle = XNotifyCreateListener(XNOTIFY_CUSTOM);
-
-	mIsNameOk=false;
-	mIsDescOk=false;
-
-	mCheckingName=false;
-	mCheckingDesc=false;
-
-	ZeroMemory(&m_StringVerifyNameTask, sizeof(XOVERLAPPED));
-	ZeroMemory(&m_StringVerifyDescTask, sizeof(XOVERLAPPED));
-	
-	mCheckingNameTimer=0.f;
-	mCheckingDescTimer=0.f;
-
-	mInvalidNameTimer=0.f;
-	mInvalidDescTimer=0.f;
-#endif 
 }
 
 void C_FriendChallenges::Clear()
@@ -98,126 +80,6 @@ void C_FriendChallenges::Update()
 {
 	UploadStats();
 
-#if defined ( PLATFORM_XENON )
-	DWORD	notification = 0;
-	ULONG	parameter = 0;
-
-	if(XNotifyGetNext(mListenerHandle, 0, &notification, &parameter))
-	{
-		if( notification ==  XN_CUSTOM_ACTIONPRESSED)
-		{
-			WORD payload_size = sizeof(BYTE) * MAX_FRIEND_DEMAND_KEY;
-
-			XCustomGetLastActionPressEx( &m_ActionPressedUserIndex, &m_ActionPressed, &m_ActionPressedXUID, &m_ActionPressedKey[0], &payload_size );
-
-			if(m_ActionPressed == 1)
-			{
-				int friend_index=-1;
-				for(int a=0;a<Game::C_FriendsManager::Instance().GetNumFriends();a++)
-				{
-					if(XOnlineAreUsersIdentical(Game::C_FriendsManager::Instance().GetFriendProfileFromIndex(a)->m_Uid, m_ActionPressedXUID))
-					{
-						friend_index=Game::C_FriendsManager::Instance().GetFriendIDFromIndex(a);
-						break;
-					}
-				}
-				Lua::Call( UI::g_pUILua->GetState(), "CustomActionButtonPressed", "iii", m_ActionPressedUserIndex, m_ActionPressed, friend_index );
-			}
-		}
-	}
-
-	if(mCheckingName)
-	{
-		if (XHasOverlappedIoCompleted(&m_StringVerifyNameTask))
-		{
-			const DWORD res = XGetOverlappedResult(&m_StringVerifyNameTask, NULL, false);
-			if (ERROR_SUCCESS == res)
-			{
-				STRING_VERIFY_RESPONSE* p = reinterpret_cast<STRING_VERIFY_RESPONSE*> (m_pStringNameVerifyResults);
-				if (p->wNumStrings > 0)
-				{
-					if (S_OK == p->pStringResult[0])
-					{
-						mIsNameOk = true;
-						wcsncpy(mFriendDemand.mName, mCheckingNameStr, MAX_FRIEND_CHALLENGE_NAME);
-					}
-					else
-					{
-						mInvalidNameTimer=2.f + mCheckingNameTimer;
-					}
-				}
-			}
-
-			ZeroMemory(&m_StringVerifyNameTask, sizeof(XOVERLAPPED));
-
-			if (m_pStringNameVerifyResults)
-				delete [] m_pStringNameVerifyResults;
-
-			m_pStringNameVerifyResults = NULL;
-
-			mCheckingName=false;
-		}
-	}
-
-	if(mCheckingDesc)
-	{
-		if (XHasOverlappedIoCompleted(&m_StringVerifyDescTask))
-		{
-			const DWORD res = XGetOverlappedResult(&m_StringVerifyDescTask, NULL, false);
-			if (ERROR_SUCCESS == res)
-			{
-				STRING_VERIFY_RESPONSE* p = reinterpret_cast<STRING_VERIFY_RESPONSE*> (m_pStringDescVerifyResults);
-				if (p->wNumStrings > 0)
-				{
-					if (S_OK == p->pStringResult[0])
-					{
-						mIsDescOk = true;
-						wcsncpy(mFriendDemand.mDescription, mCheckingDescriptionStr, MAX_FRIEND_CHALLENGE_DESC);
-					}
-					else
-					{
-						mInvalidDescTimer=2.f + mCheckingDescTimer;
-					}
-				}
-			}
-
-			ZeroMemory(&m_StringVerifyDescTask, sizeof(XOVERLAPPED));
-
-			if (m_pStringDescVerifyResults)
-				delete [] m_pStringDescVerifyResults;
-
-			m_pStringDescVerifyResults = NULL;
-
-			mCheckingDesc=false;
-		}
-	}
-
-	float frame_time=C_GameApp::GetInstance()->GetTimeStep();
-	if(mCheckingNameTimer)
-	{
-		mCheckingNameTimer-=frame_time;
-		if(mCheckingNameTimer < 0.f)
-			mCheckingNameTimer=0.f;
-	}
-	if(mCheckingDescTimer)
-	{
-		mCheckingDescTimer-=frame_time;
-		if(mCheckingDescTimer < 0.f)
-			mCheckingDescTimer=0.f;
-	}
-	if(mInvalidNameTimer)
-	{
-		mInvalidNameTimer-=frame_time;
-		if(mInvalidNameTimer < 0.f)
-			mInvalidNameTimer=0.f;
-	}
-	if(mInvalidDescTimer)
-	{
-		mInvalidDescTimer-=frame_time;
-		if(mInvalidDescTimer < 0.f)
-			mInvalidDescTimer=0.f;
-	}
-#endif
 
 	if(mGettingTaleOfTheTape==FRIEND_CHALLENGE_TOTT_STAGE_GETTING_NUMBER)
 	{
@@ -390,39 +252,6 @@ int C_FriendChallenges::GetKeyedServerIndex()
 {
 	int index=-1;
 
-#if defined ( PLATFORM_XENON )
-	for(U32 i = 0; i < Game::C_MessagingManager::Instance().GetNumberOfMails(); i++)
-	{
-		const Game::FriendChallenge *fc=(Game::FriendChallenge *)Game::C_MessagingManager::Instance().GetMailBody(i)->m_mailBody;
-		const bdOnlineUserID fc_id=Game::C_MessagingManager::Instance().GetMailHeader(i)->m_senderID;
-
-		SysProfile::BaseProfile *prof=Game::C_FriendsManager::Instance().GetFriendProfileFromOnlineID(m_ActionPressedXUID);
-
-#ifdef PLATFORM_PS3
-		bool identical_ids=fc_id == bdAuthUtility::getUserID(prof->m_Uid.handle.data;
-		if(!wcscmp(fc->mChallenger, prof->Name()) || identical_ids)
-#else
-		bool identical_ids=XOnlineAreUsersIdentical(prof->m_Uid, fc_id) ? true : false;
-		if(!wcsicmp(fc->mChallenger, prof->Name()) || identical_ids)
-#endif
-		{
-			int count=0;
-			for(int a=0;a<MAX_FRIEND_DEMAND_KEY;a++)
-			{
-				if(fc->mKey[a] == m_ActionPressedKey[a])
-				{
-					count++;
-				}
-			}
-
-			if(count == MAX_FRIEND_DEMAND_KEY)
-			{
-				index=i;
-				break;
-			}
-		}
-	}
-#endif
 
 	return index;
 }
@@ -431,39 +260,6 @@ int C_FriendChallenges::GetKeyedLocalIndex()
 {
 	int index=-1;
 
-#if defined ( PLATFORM_XENON )
-	for(int i=0;i<Game::MAX_FRIEND_DEMANDS;i++)
-	{
-		const Game::FriendChallenge *fc=&mFriendDemandStore[i];
-		const bdOnlineUserID fc_id=mFriendDemandUserIDStore[i];
-
-		SysProfile::BaseProfile *prof=Game::C_FriendsManager::Instance().GetFriendProfileFromOnlineID(m_ActionPressedXUID);
-
-#ifdef PLATFORM_PS3
-		bool identical_ids=fc_id == bdAuthUtility::getUserID(prof->m_Uid.handle.data;
-		if(fc->mEventID != 0 && (!wcscmp(fc->mChallenger, prof->Name()) || identical_ids ))
-#else
-		bool identical_ids=XOnlineAreUsersIdentical(prof->m_Uid, fc_id) ? true : false;
-		if(fc->mEventID != 0 && (!wcsicmp(fc->mChallenger, prof->Name()) || identical_ids ))
-#endif
-		{
-			int count=0;
-			for(int a=0;a<MAX_FRIEND_DEMAND_KEY;a++)
-			{
-				if(fc->mKey[a] == m_ActionPressedKey[a])
-				{
-					count++;
-				}
-			}
-
-			if(count == MAX_FRIEND_DEMAND_KEY)
-			{
-				index=i;
-				break;
-			}
-		}
-	}
-#endif
 
 	return index;
 }
@@ -1188,14 +984,10 @@ void C_FriendChallenges::CreateActualFriendDemand()
 
 	mFriendDemand.mReChallenge=false;
 
-#if defined ( PLATFORM_XENON )
-	XNetRandom(&mFriendDemand.mKey[0], sizeof(BYTE) * MAX_FRIEND_DEMAND_KEY);
-#else
 	for(int a=0;a<MAX_FRIEND_DEMAND_KEY;a++)
 	{
 		mFriendDemand.mKey[a]=0;
 	}
-#endif
 	Game::C_GameProfile* game_profile = Game::C_GameProfileManager::Instance().GetPrimaryProfile();
 
 	const Game::C_LevelState& levelstate = Game::C_Game::GetInstance()->GetLevelState();
@@ -1465,138 +1257,17 @@ const WCHAR *C_FriendChallenges::GetFriendDemandDescription(int store_index)
 		return mFriendDemandStore[store_index].mDescription;
 }
 
-#if defined ( PLATFORM_XENON )
-
-const char *gLocaleAcronyms[13] =
-{
-    "en-en", 	// English
-    "en-us", 	// US English
-    "ja-jp", 	// Japanese
-    "de-de", 	// German
-    "fr-fr", 	// French
-    "es-es", 	// Spanish
-    "it-it", 	// Italian
-    "ko-kr", 	// Korean
-    "zh-cht",	// Traditional Chinese
-    "pt-pt",  	// Portuguese
-	"zh-zh",  	// Simplified Chinese
-	"pl-pl",  	// Polish
-	"ru-ru",  	// Russian
-};
-#endif
 
 void C_FriendChallenges::SetFriendDemandName(const WCHAR *name, bool do_check)
 {
-#if defined ( PLATFORM_XENON )
-	if(do_check)
-	{
-		DWORD xLang = XGetLanguage();
-
-		wcsncpy(mCheckingNameStr, name, MAX_FRIEND_CHALLENGE_NAME);
-
-		mIsNameOk=false;
-		ZeroMemory(&m_StringVerifyNameTask, sizeof(XOVERLAPPED));
-
-		m_StringNameData.pszString		= mCheckingNameStr;
-		m_StringNameData.wStringSize	= wcslen(mCheckingNameStr);
-
-		const DWORD resultsSize = sizeof(STRING_VERIFY_RESPONSE) + sizeof(HRESULT);
-
-		m_pStringNameVerifyResults = new U8[resultsSize];
-		if (m_pStringNameVerifyResults)
-		{
-			const DWORD res = XStringVerify(SysProfile::C_Manager::Instance().GetPrimaryPadNo(),
-										gLocaleAcronyms[xLang],
-										1,
-										&m_StringNameData,
-										resultsSize,
-										(STRING_VERIFY_RESPONSE*)m_pStringNameVerifyResults,
-										&m_StringVerifyNameTask);
-
-			if (ERROR_IO_PENDING == res)
-			{
-				mCheckingName=true;
-				mCheckingNameTimer=2.f;
-			}
-			else
-			{
-				ZeroMemory(&m_StringVerifyNameTask, sizeof(XOVERLAPPED));
-
-				if (m_pStringNameVerifyResults)
-					delete [] m_pStringNameVerifyResults;
-
-				m_pStringNameVerifyResults = NULL;
-
-				mCheckingName=false;
-			}
-		}
-	}
-	else
-	{
-		mIsNameOk=true;
-		wcsncpy(mFriendDemand.mName, name, MAX_FRIEND_CHALLENGE_NAME);
-	}
-#else
 	mIsNameOk=true;
 	wcsncpy(mFriendDemand.mName, name, MAX_FRIEND_CHALLENGE_NAME);
-#endif
 }
 
 void C_FriendChallenges::SetFriendDemandDescription(const WCHAR *desc, bool do_check)
 {
-#if defined ( PLATFORM_XENON )
-	if(do_check)
-	{
-		DWORD xLang = XGetLanguage();
-
-		wcsncpy(mCheckingDescriptionStr, desc, MAX_FRIEND_CHALLENGE_DESC);
-
-		mIsDescOk=false;
-		ZeroMemory(&m_StringVerifyDescTask, sizeof(XOVERLAPPED));
-
-		m_StringDescData.pszString		= mCheckingDescriptionStr;
-		m_StringDescData.wStringSize	= wcslen(mCheckingDescriptionStr);
-
-		const DWORD resultsSize = sizeof(STRING_VERIFY_RESPONSE) + sizeof(HRESULT);
-
-		m_pStringDescVerifyResults = new U8[resultsSize];
-		if (m_pStringDescVerifyResults)
-		{
-			const DWORD res = XStringVerify(SysProfile::C_Manager::Instance().GetPrimaryPadNo(),
-										gLocaleAcronyms[xLang],
-										1,
-										&m_StringDescData,
-										resultsSize,
-										(STRING_VERIFY_RESPONSE*)m_pStringDescVerifyResults,
-										&m_StringVerifyDescTask);
-
-			if (ERROR_IO_PENDING == res)
-			{
-				mCheckingDesc=true;
-				mCheckingDescTimer=2.f;
-			}
-			else
-			{
-				ZeroMemory(&m_StringVerifyDescTask, sizeof(XOVERLAPPED));
-
-				if (m_pStringDescVerifyResults)
-					delete [] m_pStringDescVerifyResults;
-
-				m_pStringDescVerifyResults = NULL;
-
-				mCheckingDesc=false;
-			}
-		}
-	}
-	else
-	{
-		mIsDescOk=true;
-		wcsncpy(mFriendDemand.mDescription, desc, MAX_FRIEND_CHALLENGE_DESC);
-	}
-#else
 	mIsDescOk=true;
 	wcsncpy(mFriendDemand.mDescription, desc, MAX_FRIEND_CHALLENGE_DESC);
-#endif
 }
 
 FriendChallenge *C_FriendChallenges::GetFriendDemand(int store_index)

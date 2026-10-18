@@ -23,8 +23,6 @@ bool C_SectionResourceBundler::OnCreate()
 
 	#if defined(PLATFORM_PC)
 	m_BundleName = "./Bundles/ui_frontend.bpr";
-	#elif defined(PLATFORM_XENON)
-	m_BundleName = "./bundles/ui_frontend.bpr";
 	#elif defined(PLATFORM_PS3)
 	m_BundleName = "./Bundles/ui_frontend.bpr";
 	#endif

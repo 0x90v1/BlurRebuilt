@@ -46,7 +46,7 @@ void BizNonTrackedAlignedFree(void* lpAddress)
 #endif
 }
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 size_t Biz_aligned_msize(void *memblock)
 {
@@ -63,13 +63,13 @@ size_t Biz_aligned_msize(void *memblock)
     ptr = (ptr & ~(PTR_SZ -1)) - PTR_SZ;
 
 #ifdef _DEBUG
-	ptr -= 4;	// Take into account the 4-byte under-run buffer-check stuff
+	ptr -= sizeof(void*);	// Take into account the 4-byte under-run buffer-check stuff [Blur2PC][x64] the CRT header pads it to pointer size
 #endif
 
     /* ptr is the pointer to the start of memory block*/
     ptr = *((uintptr_t *)ptr);
     
-	return _msize((void *)ptr) - (long(memblock) - long(ptr));
+	return _msize((void *)ptr) - ((uintptr_t)memblock - ptr);	// [Blur2PC][x64] was long(memblock) - long(ptr)
 }
 #endif
 

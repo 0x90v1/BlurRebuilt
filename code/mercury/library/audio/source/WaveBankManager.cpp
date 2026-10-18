@@ -565,7 +565,7 @@ Audio::Result Audio::WaveBankManager::SetupCoreWave(Audio::WaveBank::Wave* pBank
 				// hack for Amax, stops PCM actually doing disk reads-
 				// for the silent PCM sample used for interactive music syncronisation-
 				// saves hammering the disk just to read silence
-#if defined  (PLATFORM_XENON) || defined (PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 				streamCreateParams.m_bTempAmaxNullFileReadHack = true;
 #endif
 
@@ -601,105 +601,6 @@ Audio::Result Audio::WaveBankManager::SetupCoreWave(Audio::WaveBank::Wave* pBank
 			}
 		}
 		break;
-#ifdef PLATFORM_XENON
-		case Audio::Core::uXMA16Bit:
-		case Audio::Core::uXMA216Bit:
-		{
-			Audio::Core::XMADecoder::WaveData* pXmaWave=(Audio::Core::XMADecoder::WaveData*)pCoreWave;
-			Audio::WaveBank::XMAWave* pBankXmaWave = pBankWave->XmaWave();
-			pXmaWave->psData = (S16*)pBankWave->m_pvWaveData; 
-			pXmaWave->uChannels = (U8)pBankWave->XmaWave()->uNumChannels;
-			pXmaWave->uSampleRate = pBankWave->XmaWave()->uSampleRate;
-			pXmaWave->uLength = pBankWave->m_baseHeader.uDataLength; 
-			pXmaWave->bLoop = pBankWave->XmaWave()->uNumLoops == 255 ? true : false;
-			pXmaWave->uLoopStartOffsetBit = pBankWave->XmaWave()->uLoopStartOffsetBit;
-			pXmaWave->uLoopEndOffsetBit = pBankWave->XmaWave()->uLoopEndOffsetBit;
-			pXmaWave->uSubframeData = pBankWave->XmaWave()->uSubframeData;
-			pXmaWave->uFrames = pBankWave->XmaWave()->uNumFrames;
-			if (pBankWave->m_baseHeader.uFlags & FLAG_HAS_XMA_SEEK_TABLE)
-				pXmaWave->puSeekData = (U32*)((U8*)pBankWave->m_pExtraHeader + sizeof(Audio::WaveBank::XMAWave));
-			else
-				pXmaWave->puSeekData = 0;
-
-			if (pBankEntry->hFileStream.IsValid() && pStreamInfo)
-			{
-				Core::WaveServerStreamCreateParams streamCreateParams;
-
-				streamCreateParams.m_hSourceHandle = pBankEntry->hFileStream;
-				streamCreateParams.m_u32DataProcessMaxChunkSize = 256 * 4 * 2;
-				streamCreateParams.m_u32FileReadChunkSize = gAudioDebugXmaReadChunkSize * 1024;
-				streamCreateParams.m_u32NumInitialWriteChunks = 2;
-				streamCreateParams.m_u32BufferSizeInReadChunks = 3;
-				streamCreateParams.m_u32FileStartPosition = pBankWave->m_baseHeader.uDataStart;
-				streamCreateParams.m_u32FileEndPosition = pBankWave->m_baseHeader.uDataStart + pBankWave->m_baseHeader.uDataLength;
-				streamCreateParams.m_u32ReturnBufferAlignment = 2048;
-				streamCreateParams.m_u32HeaderSkipSize = 0;
-				streamCreateParams.m_bReturnBufferPhysicalMemory = true;
-				streamCreateParams.m_bLoop = pXmaWave->bLoop;
-				streamCreateParams.m_bPrecache = false;
-				streamCreateParams.m_u32MaxReturnBufferSize = 4096;
-				streamCreateParams.m_u32StreamEncodedDataFormat = pBankWave->m_baseHeader.uFormat;
-
-
-				#ifndef CFG_SPEED
-				streamCreateParams.m_strBankFilename = Misc::ExtractFilename(pBankEntry->strFullPath.Chars());
-				streamCreateParams.m_strWaveName = pBankWave->m_baseHeader.pchName;
-				#endif
-
-				pStreamInfo->Init();
-
-				bool bNewStream = Audio::System::Get()->GetWaveServer()->CreateStream(pStreamInfo->hWaveData, streamCreateParams);
-
-				Assert (bNewStream && pStreamInfo->hWaveData.IsValid());
-
-				pXmaWave->hWaveData = *(pu32StreamIndex);
-				*(pu32StreamIndex) = *(pu32StreamIndex) + 1;
-
-				pBankEntry->m_vhStream.PushBack(pStreamInfo->hWaveData);
-
-
-
-				//Audio::Core::FileStreamDef streamDef;
-
-				//streamDef.m_hFile = pBankEntry->hFileStream;
-				//streamDef.m_u32FileStartPosition = pBankWave->m_baseHeader.uDataStart;
-				//streamDef.m_u32FileEndPosition = pBankWave->m_baseHeader.uDataStart + pBankWave->m_baseHeader.uDataLength;
-				//streamDef.m_u32BufferSizeInReadChunks = 4;
-				//streamDef.m_u32NumInitialWriteChunks = 2;
-				//streamDef.m_u32FileReadChunkSize = gAudioDebugXmaReadChunkSize;
-				//streamDef.m_u32DataProcessMaxChunkSize = 256 * 4 * 2;	// temp hack- needs to be frame length * 4 (pitch shift 2 8ve up) * 2 (2 bytes per sample)
-				//streamDef.m_bLoop = pXmaWave->bLoop;					// m_u32DataProcessMaxChunkSize needs to be a multiple of 2k otherwise XMAPlaybackSubmitData wont like it
-				//streamDef.m_u32ReturnBufferAlignment = 2048;
-				//streamDef.m_bReturnBufferPhysicalMemory = true;
-
-				//// debug
-				//#ifdef ENABLE_DEBUG_EXTENSIONS
-				//strncpy(streamDef.m_pchBankFilename, pBankEntry->pWaveBank->Filename(), 128);
-				//strncpy(streamDef.m_pchWaveName, pBankWave->m_baseHeader.pchName, 32);
-				//#endif
-
-				//pXmaWave->hStream = Audio::System::Get()->GetStreamManager()->CreateStream(streamDef);
-
-				//if (pXmaWave->hStream == -1)
-				//	AUDIO_SYS_FATAL("WaveBankManager::SetupCoreWave() - Could not create stream for XMA wave '%s', bank '%s'\n", pBankWave->m_baseHeader.pchName, pBankEntry->pWaveBank->Filename());
-
-				//pBankEntry->m_vhStream.PushBack(pXmaWave->hStream);
-
-				////if (pStreamInfo && pu32StreamIndex)
-				////{
-				////	pStreamInfo->pPpuBuffer = 0;
-				////	pStreamInfo->u16BytesReadOnSpu = 0;
-				////	pStreamInfo->u16StateFlags = STREAM_YET_TO_UPDATE | STREAM_DATA_NOT_READY;
-				////	pStreamInfo->u32RequiredFilePosition = 0;
-				////	pStreamInfo->hStream = pXmaWave->hStream;
-
-				////	pXmaWave->hStream = *(pu32StreamIndex);
-				////	*(pu32StreamIndex)++;
-				////}
-			}
-		}
-		break;
-#endif //_XBOX360
 #ifdef PLATFORM_PS3
 		case Audio::Core::uMP3:
 		{

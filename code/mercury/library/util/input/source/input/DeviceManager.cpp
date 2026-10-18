@@ -62,7 +62,7 @@ void C_DeviceManager::CreateDevice( const S32 userIndex, const E_Device deviceTy
 		default:
 		break;
 
-		#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+		#if defined(PLATFORM_PC)
 		case E_Device_Pad360:
 			pNewDevice = (C_Device*)new C_Pad360( this, userIndex );
 		break;

@@ -53,9 +53,7 @@ C_SectionTracerFire::C_SectionTracerFire(const Util::C_String& name) : C_Section
 	{
 		m_pPostProcessHdr->SetType(PostProcess::E_Type_Final);
 
-		#ifndef PLATFORM_XENON
 			m_pPostProcessHdr->SetHighDynamicRangeType(PostProcess::E_HighDynamicRangeType_ShaderU32);
-		#endif
 	}
 
 	m_pDynamicEffectRenderer = &DynamicEffect::C_Renderer::Instance();

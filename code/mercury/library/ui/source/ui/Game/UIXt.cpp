@@ -2058,7 +2058,7 @@ const bool CreateLuaTableFromEnumType( lua_State *pState, const char *type_name,
 	for( XtU32 i = 0; i < pType->fieldCount; i++)
 	{
 		XtField &field = pType->fields[i];
-		Lua::AddDataMember( pState, field.name, field.value );
+		Lua::AddDataMember( pState, field.name, (S32)field.value );	// [Blur2PC][x64] XtIntPtr is int on x86, the S32 overload
 	}
 
 	lua_rawset(pState,-3);

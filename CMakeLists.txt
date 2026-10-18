@@ -27,12 +27,8 @@ if(BLUR_DX11_ONLY)
     return()
 endif()
 
-# [Blur1PCDX11] Native renderer selection. Keep the D3D9 game build available
-# while the D3D11 Display and Display2 implementations are being ported.
-option(BLUR_USE_DX11 "Build Amax with the native Direct3D 11 backend" ON)
-if(BLUR_USE_DX11)
-    add_compile_definitions(BLUR_USE_DX11=1)
-endif()
+# [Blur2PC][x64] Direct3D 11 is the only PC renderer: the D3D9 device and the
+# Xbox 360 code are removed from this branch (see docs/blur1pcdx11/x64.md).
 
 # ---- phase defines (each phase branch adds its own line here) ----------------
 
@@ -42,6 +38,4 @@ include(${BLUR_TOP}/cmake/overrides.cmake)
 
 # ---- phase additions (each phase branch includes its own cmake file here) ----
 include(${BLUR_TOP}/cmake/dx11.cmake)
-if(BLUR_USE_DX11)
-    target_link_libraries(Amax PRIVATE blur_dx11)
-endif()
+target_link_libraries(Amax PRIVATE blur_dx11)

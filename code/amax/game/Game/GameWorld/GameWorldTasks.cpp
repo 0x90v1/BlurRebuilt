@@ -1,8 +1,6 @@
 #include <stdafx.h>
-#if defined(BLUR_USE_DX11)
 #include <misc_shared/types/Float16.h> // [Blur2PC][HDR] Native floating light-cube packing.
 #include <Game/GameWorld/VehicleLightRGBM.h>
-#endif
 
 #ifndef PLATFORM_SPU
 #include <Core/Maths/HVec/New/IncludeMinimal.h>
@@ -924,7 +922,6 @@ namespace Game
 							pixelValue += factor * rimGeneratorVector[j].m_Colour;
 						}
 
-#if defined(BLUR_USE_DX11)
 						if (lightCubeInfo[i].m_FloatRGBM)
 						{
 							const Maths::C_RGBA_F32 radiance((Maths::HVec4(pixelValue)));
@@ -939,7 +936,6 @@ namespace Game
 							pLockedMemory += 2;
 						}
 						else
-#endif
 						{
 							//Convert to RGBM (Max 8.f)
 							Maths::HF32 maxValue = Maths::Max(pixelValue.X(), Maths::Max(pixelValue.Y(), pixelValue.Z()));
@@ -962,11 +958,7 @@ namespace Game
 					}
 
 					// [Blur2PC][HDR] Row pitch is bytes; float RGBM consumes two words per pixel.
-#if defined(BLUR_USE_DX11)
 					pLockedMemory += pitch - GameWorld_LightCubeMapSize * (lightCubeInfo[i].m_FloatRGBM ? 2 : 1);
-#else
-					pLockedMemory += (pitch - GameWorld_LightCubeMapSize);
-#endif
 				}
 #ifdef PLATFORM_SPU
 				//DMA out to the texture

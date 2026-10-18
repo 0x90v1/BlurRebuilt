@@ -35,16 +35,8 @@ public:
 	C_SaveInfoInterfaceProfile()
 		: C_SaveInfoInterface()
 	{
-	#if PLATFORM_XENON || PLATFORM_PC
+	#if PLATFORM_PC
 		m_EnumerationFileExtension = "save";
-	#endif
-	#ifdef PLATFORM_XENON
-		m_SaveRoot = "SAVE";
-	#ifndef CFG_GOLD
-		m_bRoamable = true;
-	#else
-		m_bRoamable = false;
-	#endif
 	#endif
 	#ifdef PLATFORM_PS3
 		m_TitleId = PlatformPS3::g_ps3_titleId;
@@ -135,10 +127,6 @@ public:
 					C_SaveFileInfo(
 						  uFileSize												// m_uFileSize
 						, "AMAXSAVE"											// m_FileName
-					#ifdef PLATFORM_XENON
-						, "SAVE:\\savegame"										// m_InternalName
-						, UI::C_TextStringID( "PRO_SAVE_GAME_NAME" ).String()	// m_DisplayName
-					#endif
 					)
 				);
 			}
@@ -210,12 +198,8 @@ public:
 		: C_SaveInfoInterface()
 	{
 		m_eType = E_UiSaveInfoType_Enumerate;
-	#if PLATFORM_XENON || PLATFORM_PC
+	#if PLATFORM_PC
 		m_EnumerationFileExtension = "photo";
-	#endif
-	#ifdef PLATFORM_XENON
-		m_SaveRoot = "PHOTO";
-		m_bRoamable = true;
 	#endif
 	#ifdef PLATFORM_PS3
 		m_TitleId = PlatformPS3::g_ps3_titleId;
@@ -339,17 +323,9 @@ public:
 
 					m_Encoder.SetComments(comment_str.Chars(), comment_str.Length() + 1);
 
-					#ifdef PLATFORM_XENON
-					Display::Device()->AcquireThreadOwnership(); // prevent TCR # 022 as following code can stall for a while
-					Display::Device()->GetD3DDevice()->Suspend();
-					#endif
 
 					m_Encoder.EncodeFromBuffer(bits, pitch, width, height, format);
 
-					#ifdef PLATFORM_XENON
-					Display::Device()->GetD3DDevice()->Resume();
-					Display::Device()->ReleaseThreadOwnership();
-					#endif
 
 					photoCapture.UnlockBitmap();
 
@@ -358,32 +334,18 @@ public:
 					// current time
 					Time::C_DecomposedTime time( Time::GetCurrentTime() );
 
-				#if PLATFORM_XENON || PLATFORM_PC
+				#if PLATFORM_PC
 					m_FileName.Printf( "%S.photo", C_UILocaliser::Instance().ConvertSystemTimeToFileName( time ) );
-				#endif
-				#if PLATFORM_XENON
-					C_WideString32 dateString = C_UILocaliser::Instance().ConvertSystemTimeToDateOnly( time );
-					C_WideString32 timeString = C_UILocaliser::Instance().ConvertSystemTimeToTimeOnly( time );
-
-					m_DisplayName.Format( 
-						UI::C_TextStringID( "PRO_SAVE_GAME_NAME_PHOTO" ).String(), 
-						dateString.Chars(), 
-						timeString.Chars()
-					);					
 				#endif
 				}
 
 				m_FileInfo.PushBack( 
 					C_SaveFileInfo(
 						  uFileSize							// m_uFileSize
-					#if PLATFORM_XENON || PLATFORM_PC
+					#if PLATFORM_PC
 						, m_FileName						// m_FileName
 					#else
 						, "PHOTO"							// m_FileName
-					#endif
-					#if PLATFORM_XENON
-						, "PHOTO:\\photos"					// m_InternalName
-						, m_DisplayName						// m_DisplayName
 					#endif
 					)
 				);
@@ -425,11 +387,8 @@ public:
 	JpegHelper::C_JpegEncoder 	m_Encoder;
 	JpegHelper::C_JpegDecoder 	m_Decoder;
 
-#if PLATFORM_XENON || PLATFORM_PC
+#if PLATFORM_PC
 	Util::C_FixedString< SAVE_FILENAME_SIZE >		m_FileName;
-#endif
-#if PLATFORM_XENON
-	C_WideString64				m_DisplayName;
 #endif
 };
 

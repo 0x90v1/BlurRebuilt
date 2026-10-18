@@ -63,7 +63,7 @@ namespace Audio
 
             void Increment(S32* psThis, S32 sBy)
             {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
                 InterlockedExchangeAdd((LONG*)psThis, sBy);
 #endif // _XBOX
 
@@ -80,19 +80,6 @@ namespace Audio
 
 			void AcquireLock(void)
 			{
-#if defined(PLATFORM_XENON)
-				for (;;)
-				{
-					// *pLock is -1 when available, 0 when locked.
-					if (-1 == InterlockedCompareExchange(&m_sLock, 0, -1))
-					{
-						// At this point, you have safely acquired the lock. However, if you do not have an import
-						// barrier, then subsequent reads might get stale copies of data that has been updated in L2.
-						__lwsync(); // Import barrier
-						return;
-					}
-				}
-#endif
 
 #ifdef PLATFORM_PC
 				EnterCriticalSection(&m_CriticalSection);
@@ -131,12 +118,6 @@ namespace Audio
 
 			void ReleaseLock(void)
 			{
-#ifdef PLATFORM_XENON
-				// You are about to release the lock, but if you do not have an export barrier, then some of your previous
-				// writes may not get to the cache until after the write to *pLock.
-				// Interlocked operations are not needed here because no other thread is allowed to write to *pLock at this time.
-				__lwsync();
-#endif
 
 #ifdef PLATFORM_PS3
 				__lwsync();
@@ -170,12 +151,8 @@ namespace Audio
 			U32 m_uQueueArraySize;
 
 			// TODO: Need these to be on different cache lines
-#if defined(PLATFORM_XENON)
-			volatile LONG m_sLock;
-#else
 			volatile S32 m_sLock __attribute__((aligned(128)));
 			S32 padding[31];
-#endif
 			S32 m_sReadOffset;
 			S32 m_sWriteOffset;
 

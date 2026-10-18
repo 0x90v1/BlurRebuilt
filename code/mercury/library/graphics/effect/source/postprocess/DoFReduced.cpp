@@ -65,19 +65,8 @@ bool C_DoFReduced::Create()
 bool C_DoFReduced::CreateVolatile()
 {
 	Display::C_SurfaceParams surfaceParams;
-#if defined(PLATFORM_XENON)
-	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
-	surfaceParams.Base = 0;
-	surfaceParams.Base += XGSurfaceSize(backBuffer.GetWidth(), backBuffer.GetHeight(), Display::D3D9Format(backBuffer.GetColourFormat()), Display::D3D9Multisample(backBuffer.GetMultisample()));
-	if(m_Manager.GetViewCount() > 1)
-		surfaceParams.Base += m_Manager.GetMaximumSurfaceSize();
-#endif
 
-#if defined(PLATFORM_XENON)
-	const Display::E_Format eFormat = Display::E_Format_A16B16G16R16F;
-#else
 	const Display::E_Format eFormat = Display::E_Format_Unknown;
-#endif
 
 	U32 flags = Display::E_Usage_Colour | Display::E_Usage_ReadWrite | Display::E_Usage_Expand;
 	if(m_pTextureBuffer)
@@ -141,39 +130,6 @@ void C_DoFReduced::Display() const
 
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_All);
 
-#if defined(PLATFORM_XENON)
-	{
-		const Display::C_RenderTarget& renderTarget = Display::Device()->GetRenderTarget();
-		const Display::C_Surface* pColourSurface = renderTarget.GetColourSurface();
-
-		U32 size = 0;
-
-		XGTEXTURE_DESC xgColourSurfaceDesc;
-		XGGetSurfaceDesc((D3DSurface*)&pColourSurface->m_d3dSurface, &xgColourSurfaceDesc);
-
-		static D3DSurface d3dColourSurface;
-
-		D3DSURFACE_PARAMETERS d3dSurfaceParams;
-		d3dSurfaceParams.Base = pColourSurface->m_d3dSurface.ColorInfo.ColorBase;
-		d3dSurfaceParams.ColorExpBias = pColourSurface->m_d3dSurface.ColorInfo.ColorExpBias;
-		d3dSurfaceParams.HierarchicalZBase = 0;
-		d3dSurfaceParams.HiZFunc = D3DHIZFUNC_DEFAULT;
-
-		size =  XGSetSurfaceHeader(xgColourSurfaceDesc.Width / 2,
-									xgColourSurfaceDesc.Height / 2,
-									xgColourSurfaceDesc.Format,
-									D3DMULTISAMPLE_4_SAMPLES,
-									&d3dSurfaceParams,
-									&d3dColourSurface,
-									0);
-		XGOffsetSurfaceAddress(&d3dColourSurface, 0, 0);
-
-		void* pTexture = m_DownsampleRenderTextures[iRenderTarget]->GetTexture().GetGPUTexture();
-		Display::Device()->SetColourDepthStencilSurface(0, 0);
-		Display::Device()->GetD3DDevice()->SetRenderTarget(0, &d3dColourSurface);
-		Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, 0, (D3DBaseTexture*)pTexture, 0, 0, 0, 0, 0.0f, 0, 0);
-	}
-#endif
 
 	// downsample the main colour buffer
 	{
@@ -209,29 +165,9 @@ void C_DoFReduced::Display() const
 		Display::Device()->SetPixelShaderParameterF(m_DownsampleDepthParameter, (F32*)&vDepth);
 		Display::Device()->SetPixelShader(&m_DownsampleShader);
 
-#if defined(PLATFORM_XENON)
-		{
-			Display::C_Texture2D* pTexture = const_cast<Display::C_Texture2D*>(&pRenderTexture->GetTexture());
-			IDirect3DTexture9* pD3DTexture = (IDirect3DTexture9*)pTexture->Get();
-
-			XGTEXTURE_DESC xgTextureDesc;
-			XGGetTextureDesc(pD3DTexture, 0, &xgTextureDesc);
-			if(xgTextureDesc.Format == D3DFMT_A16B16G16R16F_EXPAND)
-				xgTextureDesc.Format = D3DFMT_A16B16G16R16F;
-
-			static IDirect3DTexture9 d3dTexture;
-			U32 size =  XGSetTextureHeader(xgTextureDesc.Width, xgTextureDesc.Height, 1, 0, xgTextureDesc.Format, 0, 0, 0, xgTextureDesc.Width * 8, &d3dTexture, 0, 0);
-
-			XGOffsetResourceAddress(&d3dTexture, pTexture->GetAddress());
-			Display::Device()->GetD3DDevice()->SetTexture(0, &d3dTexture);
-		}
-		Display::Device()->SetTextureAddress(0, Display::E_TextureAddress_Clamp);
-		Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Point);
-#else
 		Display::Device()->SetTexture(0, m_Manager.GetMainTexture());
 		Display::Device()->SetTextureAddress(0, Display::E_TextureAddress_Clamp);
 		Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Linear);
-#endif
 		Display::Device()->SetTexture(1, Render::GetGlobalDepthStencilBuffer());
 		Display::Device()->SetTextureAddress(1, Display::E_TextureAddress_Clamp);
 		Display::Device()->SetTextureFilter(1, Display::E_TextureFilter_Point);
@@ -240,10 +176,6 @@ void C_DoFReduced::Display() const
 
 		pRenderTexture->Resolve();
 
-#if defined(PLATFORM_XENON)
-		Display::Device()->SetTexture(0, 0);
-		Display::Device()->GetD3DDevice()->SetTexture(0, 0);
-#endif
 	}
 
 	// blur the downsampled buffer
@@ -287,25 +219,7 @@ void C_DoFReduced::Display() const
 
 		Display::Device()->SetPixelShader(&m_BlurShader);
 
-#if defined(PLATFORM_XENON)
-		{
-			Display::C_Texture2D* pTexture = const_cast<Display::C_Texture2D*>(&pRenderTexture->GetTexture());
-			IDirect3DTexture9* pD3DTexture = (IDirect3DTexture9*)pTexture->Get();
-
-			XGTEXTURE_DESC xgTextureDesc;
-			XGGetTextureDesc(pD3DTexture, 0, &xgTextureDesc);
-			if(xgTextureDesc.Format == D3DFMT_A16B16G16R16F_EXPAND)
-				xgTextureDesc.Format = D3DFMT_A16B16G16R16F;
-
-			static IDirect3DTexture9 d3dTexture;
-			U32 size =  XGSetTextureHeader(xgTextureDesc.Width, xgTextureDesc.Height, 1, 0, xgTextureDesc.Format, 0, 0, 0, xgTextureDesc.Width * 8, &d3dTexture, 0, 0);
-
-			XGOffsetResourceAddress(&d3dTexture, pTexture->GetAddress());
-			Display::Device()->GetD3DDevice()->SetTexture(0, &d3dTexture);
-		}
-#else
 		Display::Device()->SetTexture(0, &pRenderTexture->GetTexture());
-#endif
 		Display::Device()->SetTextureAddress(0, Display::E_TextureAddress_Clamp);
 		Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Point);
 

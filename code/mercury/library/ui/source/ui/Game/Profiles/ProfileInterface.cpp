@@ -4,9 +4,7 @@
 #include <ui/Game/Gadgets/ButtonMessages.h>
 #include "ui/Game/Profiles/ProfileInterfaceMessages.h"
 
-#if defined PLATFORM_XENON 
-#include "ui/Game/Profiles/GamerPictureManager_Xenon.h"
-#elif defined PLATFORM_PC
+#if defined PLATFORM_PC
 #include "ui/Game/Profiles/GamerPictureManager_Pc.h"
 #else
 #include "ui/Game/Profiles/GamerPictureManager_Ps3.h"
@@ -42,13 +40,7 @@ C_ProfileInterface::C_ProfileInterface()
 	m_bHasLostConnectionLobby( false ),
 	m_bNetworkCableRemoved( false )
 {
-#if defined PLATFORM_XENON
-	// reset devices id's
-	for ( S32 i = 0; i < m_xDeviceIds.Size(); i++ )
-		m_xDeviceIds[ i ] = XCONTENTDEVICE_ANY;
-
-	m_pGamerPictureManager = new C_GamerPictureManager_Xenon();
-#elif defined PLATFORM_PC
+#if defined PLATFORM_PC
 	m_pGamerPictureManager = new C_GamerPictureManager_Pc();
 #else
 	m_pGamerPictureManager = new C_GamerPictureManager_Ps3();

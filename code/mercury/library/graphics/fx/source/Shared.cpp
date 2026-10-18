@@ -99,7 +99,7 @@ void SharedEffect::InitialiseSharedParameter(Parameter *pParam, Parameter *pOrig
 	int c = pParam->Size;
 	if (pOriginalParameter->Type == NGLFX_PARAM_SAMPLER)
 	{
-		pOriginalParameter ->Sampler->Texture = (U32)g_System.GetDefaultTexture();
+		pOriginalParameter ->Sampler->Texture = Core::PointerToSlot32(g_System.GetDefaultTexture());	// [Blur2PC][x64]
 		c = 2;
 	}
 
@@ -159,7 +159,7 @@ Parameter *SharedEffect::BindSharedParameter(FunctionBinding* binding, Parameter
 #endif
 
 	binding->Source = NGLFX_BIND_SHARED;
-	binding->Offset = (U32)((float*)((size_t)pBindP->Data - (size_t)&ParameterData[0]) + binding->Offset);
+	binding->Offset = (U32)(INTPTR)((float*)((size_t)pBindP->Data - (size_t)&ParameterData[0]) + binding->Offset);	// [Blur2PC][x64] a byte offset, not an address
 	binding->ParameterIdx = GetSharedParameterIdxByName(param->Name);
 	binding->Shared = 1;
 
@@ -241,7 +241,7 @@ void SharedEffect::RegisterShader(Effect *pEffect, Btl::Vector<FunctionBinding> 
 		item.Handle = p->Handle;
 		item.Size = p->Count;
 		item.Type = resourceType;
-		item.Offset = (U32)((float*)((size_t)pBindP->Data - (size_t)&ParameterData[0]));
+		item.Offset = (U32)(INTPTR)((float*)((size_t)pBindP->Data - (size_t)&ParameterData[0]));	// [Blur2PC][x64] a byte offset, not an address
 		int x = FindSharedParameterBinding(item);
 		if (x == -1)
 		{

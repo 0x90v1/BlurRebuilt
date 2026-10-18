@@ -276,7 +276,7 @@ void C_DropShadows::Render() const
 	//Maths::Store(Display::Device()->GetViewSettings3D().GetCameraToWorld().AY()||Maths::HVecW(1.f), &vViewUpVector);
 	vViewUpVector = Display::C_Float4(Display::Device()->GetViewSettings3D().GetCameraToWorld().AX().Y(), Display::Device()->GetViewSettings3D().GetCameraToWorld().AY().Y(), Display::Device()->GetViewSettings3D().GetCameraToWorld().AZ().Y(), 1.f);
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	const Display::C_RenderTarget& renderTarget = Display::Device()->GetRenderTarget();
 	const F32 fOffsetX = -1.0f / (F32) renderTarget.GetColourSurface()->GetWidth();
 	const F32 fOffsetY = +1.0f / (F32) renderTarget.GetColourSurface()->GetHeight();
@@ -285,9 +285,6 @@ void C_DropShadows::Render() const
 	const F32 fOffsetY = 0.0f;
 #endif
 
-	#if defined(PLATFORM_XENON)
-		Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HALFPIXELOFFSET, TRUE);
-	#endif
 
 	for (U32 y = 0; y < m_VerticalTiles; ++y)
 	{
@@ -357,9 +354,6 @@ void C_DropShadows::Render() const
 	Display::Device()->SetCullMode(Display::E_CullMode_Default);
 	Display::Device()->SetDepthEnable(Display::E_Bool_Default);
 
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HALFPIXELOFFSET, FALSE);
-#endif
 
 	m_DropShadows.Clear();
 }

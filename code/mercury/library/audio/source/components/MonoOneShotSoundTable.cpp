@@ -107,12 +107,6 @@ U32 Audio::MonoOneShotSoundTable::CoreMemory(U32 uOffset)
             }
             break;
 
-#ifdef _XBOX360
-        case Core::uXMA16Bit:
-		case Core::uXMA216Bit:
-			uOffset += pInitData->uInstances * AUDIO_CORE_ALIGN_16(sizeof(Core::XMADecoder));
-            break;
-#endif // _XBOX360
         }
     }
 
@@ -322,80 +316,6 @@ void Audio::MonoOneShotSoundTable::InitContext(Instance* pInstance)
 			}
 			break;
 
-#ifdef _XBOX360
-		case Core::uXMA16Bit:
-		case Core::uXMA216Bit:
-			{
-				aDecoderTable[uWave].uDecoder = uDecoder;
-				aDecoderTable[uWave].uDecoderSize = AUDIO_CORE_ALIGN_16(sizeof(Core::XMADecoder));
-
-				//  XMA wave data
-				Core::XMADecoder::WaveData waveData;
-
-				//  get wave
-//				if (Success != m_pObject->GetWaveManager()->GetWave(phWave[uWave], &waveData))
-				if (Success != m_pObject->GetWaveManager()->GetWave(phWave[uWave], &waveData, pInstance->GetNumStreamsCreatedPointer(), pInstance->GetNextStreamInfoSlot()))
-				{
-					COMPONENT_ERROR("cannot get wave '%s' from bank '%s'", m_pObject->GetString(aWaves[uWave].strWave), m_pObject->GetString(pInitData->strBank));
-					aDecoderTable[uWave].uDecoder = ixDecoderNone;
-					break;
-				}
-
-				#ifndef CFG_GOLD
-				//  check data
-				if (waveData.uChannels != 1)
-				{
-					COMPONENT_ERROR("wave '%s' in bank '%s' is not mono", m_pObject->GetString(aWaves[uWave].strWave), m_pObject->GetString(pInitData->strBank));
-					aDecoderTable[uWave].uDecoder = ixDecoderNone;
-					break;
-				}
-				
-				if (waveData.bLoop)
-				{
-					COMPONENT_ERROR("wave '%s' from bank '%s' is a loop", m_pObject->GetString(aWaves[uWave].strWave), m_pObject->GetString(pInitData->strBank));
-					aDecoderTable[uWave].uDecoder = ixDecoderNone;
-					break;
-				}
-				#endif
-
-				for (U32 uInst = 0; uInst < pInitData->uInstances; uInst++)
-				{
-					//if (bThis)
-					//	AUDIO_SYS_DEBUG("RFS(XMA): aDecoderTable[%d].uDecoder = %d", uWave, uDecoder);
-
-					U8* pDecoder = &pCoreData[uDecoder];
-
-					//  XMA decoder
-					Core::XMADecoder* pXMADecoder = NULL;
-					if ((waveData.uSampleRate == Core::uSampleRate) &&
-						(pInitData->optFrequency.ctrl.sCom == -1) &&
-						(pInitData->optFrequency.fVal == 1.f) &&
-						(pInitData->optPitch.ctrl.sCom == -1) &&
-						(pInitData->optPitch.fVal == 0.f))
-					{
-						//	assume no SRC
-						pXMADecoder = new(pDecoder) Core::XMADecoder(sFormat, false, waveData);
-					}
-					else
-						pXMADecoder = new(pDecoder) Core::XMADecoder(sFormat, true, waveData);
-
-					//pXMADecoder->SetWaveData(waveData);
-
-					//  reset decoder
-					pXMADecoder->Reset(pInstance->GetDecoderDataInfo());
-
-					//  set decoder callback
-//						pXMADecoder->SetCallbackId(m_uStateOffset, Component::eMonoOneShotSoundTable);
-					pXMADecoder->SetHasCallback();
-
-					uDecoder += aDecoderTable[uWave].uDecoderSize;
-
-					pXMADecoder->SetWaveName(m_pObject->GetString(aWaves[uWave].strWave),m_pObject->GetString(pInitData->strBank));
-
-				}
-			}
-			break;
-#endif // _XBOX360
 		}
 	}
 
@@ -440,7 +360,7 @@ void Audio::MonoOneShotSoundTable::InitContext(Instance* pInstance)
 	}
 
 	//  for callback
-    pState->u32ComponentOffset = (U32)((void*)this) - (U32)((void*)(m_pObject->GetComponents()));
+    pState->u32ComponentOffset = (U32)((U8*)this - (U8*)(m_pObject->GetComponents()));	// [Blur2PC][x64] byte offset
 
     pState->uInstance = 0;
     pState->fIndex = -1.f;

@@ -5,9 +5,7 @@
 #pragma once
 #endif
 
-#if defined(PLATFORM_XENON)
-#include "Movie/XB2/XB2Movie.h"
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 #include "Movie/PS3/PS3Movie.h"
 #elif defined(PLATFORM_PC)
 #include "Movie/W32/W32Movie.h"
@@ -20,9 +18,7 @@ namespace Movie
 
 //! C_Movie
 
-#if defined(PLATFORM_XENON)
-class C_Movie : public Display::I_Renderer, public C_XB2Movie
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 class C_Movie : public Display::I_Renderer, public C_PS3Movie
 #elif defined(PLATFORM_PC)
 class C_Movie : public Display::I_Renderer, public C_W32Movie

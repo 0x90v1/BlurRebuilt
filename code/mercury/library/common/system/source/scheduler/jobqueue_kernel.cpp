@@ -34,7 +34,7 @@ FORCE_INLINE bool jqCheckDependenciesFinished(Task *pTask)
 	if (GroupID == JQ_GROUP_NONE)
 		return true;
 
-	TaskGroup* GroupPool = (TaskGroup*)Spu::Get((U32*)&jqPool.ThisPtr->BatchGroupPool);
+	TaskGroup* GroupPool = (TaskGroup*)Spu::Get((INTPTR*)&jqPool.ThisPtr->BatchGroupPool);	// [Blur2PC][x64] pointer-wide
 	TaskGroup* Group = &GroupPool[GroupID];
 	int NDep = Spu::Get(&Group->NDependencies);
 	for (int i = 0; i < NDep; i++)
@@ -55,7 +55,7 @@ FORCE_INLINE bool jqCheckDependenciesFinished(Task *pTask)
 		case JQ_GROUP_SPURWLOCK:
 			// depends on an MT::SpuRwLock - acquire a read-lock on it
 			{
-				MT::SpuRwLock *pLock = (MT::SpuRwLock*)Spu::Get((U32*)&Group->DependencyObject[i]);
+				MT::SpuRwLock *pLock = (MT::SpuRwLock*)Spu::Get((INTPTR*)&Group->DependencyObject[i]);	// [Blur2PC][x64] pointer-wide
 #if PLATFORM_SPU
 				U8 dummy[sizeof(MT::SpuRwLock)];
 				Spu::Fetch(&dummy, pLock, sizeof(MT::SpuRwLock));
@@ -68,8 +68,8 @@ FORCE_INLINE bool jqCheckDependenciesFinished(Task *pTask)
 		case JQ_GROUP_LABEL:
 			// depends on a 'Label' structure
 			{
-				U32 *pLabel = (U32*)Spu::Get((U32*)&Group->DependencyObject[i]);
-				U32 iCmpValue = (U32)pTask->Output;
+				U32 *pLabel = (U32*)Spu::Get((INTPTR*)&Group->DependencyObject[i]);	// [Blur2PC][x64] a pointer
+				U32 iCmpValue = (U32)(INTPTR)pTask->Output;	// [Blur2PC][x64] label fence value carried in Output
 				U32 fenceValue = MT::AtomicGet(pLabel);
 				if ((fenceValue - iCmpValue) >> 31)
 					return false;
@@ -86,7 +86,7 @@ void jqPostExecBatch(int GroupID)
 	if (GroupID == JQ_GROUP_NONE)
 		return;
 
-	TaskGroup* GroupPool = (TaskGroup*)Spu::Get((U32*)&jqPool.ThisPtr->BatchGroupPool);
+	TaskGroup* GroupPool = (TaskGroup*)Spu::Get((INTPTR*)&jqPool.ThisPtr->BatchGroupPool);	// [Blur2PC][x64] pointer-wide
 	TaskGroup* Group = &GroupPool[GroupID];
 	int NDep = Spu::Get(&Group->NDependencies);
 	for (int i = 0; i < NDep; i++)
@@ -99,7 +99,7 @@ void jqPostExecBatch(int GroupID)
 		case JQ_GROUP_SPURWLOCK:
 			// depends on an MT::SpuRwLock - release read-lock on it
 			{
-				MT::SpuRwLock *pLock = (MT::SpuRwLock*)Spu::Get((U32*)&Group->DependencyObject[i]);
+				MT::SpuRwLock *pLock = (MT::SpuRwLock*)Spu::Get((INTPTR*)&Group->DependencyObject[i]);	// [Blur2PC][x64] pointer-wide
 #if PLATFORM_SPU
 				U8 dummy[sizeof(MT::SpuRwLock)];
 				Spu::Fetch(&dummy, pLock, sizeof(MT::SpuRwLock));
@@ -152,7 +152,7 @@ static bool jqPopNextBatchFromQueue(jqWorker* Worker, TaskQueue* Queue, int Prio
 					// The batch can be taken.  Update the various counters and return success.
 					if (PoppedBatch->GroupID != JQ_GROUP_NONE)
 					{
-						TaskGroup* GroupPool = (TaskGroup*)Spu::Get((U32*)&jqPool.ThisPtr->BatchGroupPool);
+						TaskGroup* GroupPool = (TaskGroup*)Spu::Get((INTPTR*)&jqPool.ThisPtr->BatchGroupPool);	// [Blur2PC][x64] pointer-wide
 
 						MT::AtomicIncrement(&GroupPool[PoppedBatch->GroupID].ExecutingBatchCount);
 						MT::AtomicDecrement(&GroupPool[PoppedBatch->GroupID].QueuedBatchCount);
@@ -237,9 +237,6 @@ bool jqPopNextBatch(jqWorker* Worker, int GroupID, Task* PoppedBatch)
 		}
 	}
 
-#if TL_PLAT_XENON
-	MT::YieldThread();
-#endif
 
 	return false;
 }
@@ -313,7 +310,7 @@ void jqWorkerLoop(jqWorker* Worker, int GroupID, int iWorkerID)
 			// Signal that the batch has finished executing.
 			U32 iQBC = 0;
 			MT::AtomicDecrement(&jqPool.ThisPtr->ExecutingBatchCount);
-			TaskGroup* GroupPool = (TaskGroup*)Spu::Get((U32*)&jqPool.ThisPtr->BatchGroupPool);
+			TaskGroup* GroupPool = (TaskGroup*)Spu::Get((INTPTR*)&jqPool.ThisPtr->BatchGroupPool);	// [Blur2PC][x64] pointer-wide
 			if (CurBatch.GroupID != JQ_GROUP_NONE)
 			{
 				MT::AtomicDecrement(&GroupPool[CurBatch.GroupID].ExecutingBatchCount);
@@ -415,6 +412,6 @@ void jqTempWorkerLoop(jqWorker* worker, DoneAssistingWithJobsFn callback, void* 
 #if TL_PLAT_PS3 || TL_PLAT_PS3_SPU
 #include "jobqueue_kernel_ps3.cpp"
 #endif
-#if TL_PLAT_XENON || TL_PLAT_PC
+#if TL_PLAT_PC
 #include "jobqueue_kernel_xenon.cpp"
 #endif

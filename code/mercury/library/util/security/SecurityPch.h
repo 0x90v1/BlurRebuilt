@@ -10,11 +10,6 @@
 #include <core/containers/bitvector.h>
 #include <core/utility/singleton.h>
 
-#ifdef PLATFORM_XENON
-#include <xtl.h>
-#include <xboxmath.h>
-#include <string.h>
-#endif
 
 #ifdef PLATFORM_PC
 #define WIN32_LEAN_AND_MEAN

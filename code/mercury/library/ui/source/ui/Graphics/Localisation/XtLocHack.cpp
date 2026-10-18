@@ -175,9 +175,6 @@ XtU32 XtLocHack::FindId(const char* name)
 	char pName[ 512 ];	// should be plentiful
 	pName[ 0 ] = '\0';
 
-	#ifdef PLATFORM_XENON
-	sprintf_s( pName, 512, "%s%s", name, "_360" );
-	#endif
 	#ifdef PLATFORM_PS3
 	sprintf_s( pName, 512, "%s%s", name, "_PS3" );
 	#endif

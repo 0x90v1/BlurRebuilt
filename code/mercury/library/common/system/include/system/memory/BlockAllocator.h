@@ -67,8 +67,9 @@ public:
 	void			ResetBit(void *pAddr);
 
 private:
-#if WIN64
-	U8				m_PageMemoryUsage[0x20000/8]; // 8 Gb
+#if defined(WIN64) // [Blur2PC][x64] One 8 KB bitmap per 4 GB of the 47-bit user address space, made on first use.
+	enum { enum_PageUsageLeaves = 1 << 15 };
+	U8*				m_PageMemoryUsage[enum_PageUsageLeaves];
 #else
 	U8				m_PageMemoryUsage[0x10000/8]; // 4 Gb
 #endif

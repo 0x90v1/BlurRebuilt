@@ -106,69 +106,6 @@ void C_ViewFrustum::SetupClipPlaneAbs()
 
 void C_ViewFrustum::SetupTilingPlanes(const Maths::HMat44& worldToDevice, const C_TileSetup& tileSetup)
 {
-#ifdef PLATFORM_XENON
-	// get a transposed view proj matrix so the rows can be extracted
-	const Maths::HMat44& worldToDeviceTransposed = worldToDevice.Transposed();
-
-	F32 const* divisions = tileSetup.m_TileDivisions;
-	U32 numDivisions = tileSetup.m_TileCount - 1;
-
-	Maths::HVec4 tilePlanes[4];
-
-	if(tileSetup.m_TileDirection == E_TileDirection_Vertical )
-	{
-		// Calcualte the tiling planes based on the screen divisions (0.0 = left side
-		//     of screen, 1.0 = right side of screen).
-
-		for(U32 tileIndex = 0; tileIndex < numDivisions; ++tileIndex )
-		{
-			// Translate division from [0.0, 1.0] to [1.0, -1.0]
-
-			Maths::HF32 division = divisions[tileIndex];
-			Maths::HF32 interp = (division - Maths::Constants<Maths::HF32>::Half()) * -Maths::Constants<Maths::HF32>::Two();
-
-			tilePlanes[tileIndex] = worldToDeviceTransposed.AX() + worldToDeviceTransposed.AW() * interp;
-		}
-	}
-	else
-	{
-		// Calcualte the tiling planes based on the screen divisions (0.0 = top
-		//     of screen, 1.0 = bottom of screen).
-
-		for(U32 tileIndex = 0; tileIndex < numDivisions; ++tileIndex )
-		{
-			// Translate division from [0.0, 1.0] to [1.0, -1.0]
-
-			Maths::HF32 division = divisions[tileIndex];
-			Maths::HF32 interp = (division - Maths::Constants<Maths::HF32>::Half()) * -Maths::Constants<Maths::HF32>::Two();
-
-			tilePlanes[tileIndex] = -worldToDeviceTransposed.AY() + worldToDeviceTransposed.AW() * interp;
-		}
-	}
-
-	for(U32 i = 0; i < 3; i++)
-	{
-		Maths::HF32 lengthSq = Maths::LengthSquared(Maths::HVec3(tilePlanes[i]));
-		tilePlanes[i] = tilePlanes[i] * lengthSq.RcpSqrt();
-	}
-
-	// Force the rest of the planes to become irrelevant
-
-	for(U32 tileIndex = numDivisions; tileIndex < 3; ++tileIndex)
-	{
-		tilePlanes[tileIndex] = Maths::HVec4(0.f, 0.0f, 0.0f, -1.0f);
-	}
-
-	// store planes
-	for(U32 i = 0; i < 3; ++i)
-	{
-		Maths::Store(tilePlanes[i], &m_TilePlanes[i]);
-		
-		Maths::HVec4 tilePlane(tilePlanes[i]);
-		Maths::HVec4 tilePlaneAbs(-Maths::Abs(tilePlane.X()), -Maths::Abs(tilePlane.Y()), -Maths::Abs(tilePlane.Z()), Maths::Constants<Maths::HF32>::Zero());
-		Maths::Store(tilePlaneAbs, &m_TilePlanesAbs[i]);
-	}
-#endif
 }
 
 }; // namespace Display

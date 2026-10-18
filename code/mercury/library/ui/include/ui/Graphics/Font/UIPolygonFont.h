@@ -312,7 +312,7 @@ public:
 
 	/// returns address to the C_UITriListRenderInfo for the given character
 	/// @remarks returns 0 if character doesn't exist in this font
-	U32						GetUserData( const WCHAR c );
+	INTPTR					GetUserData( const WCHAR c );	// [Blur2PC][x64] a pointer
 
 protected:
 	void					GenerateHashMap();			///< generate the glyph hash map
@@ -408,7 +408,7 @@ public:
 	U32				NumFonts()											{ return m_uNumFonts; }
 	const char*		GetFontName( const U32 uSlot );
 
-	U32				GetUserData( const U32 uFont, const WCHAR c );
+	INTPTR			GetUserData( const U32 uFont, const WCHAR c );
 
 #ifndef CFG_GOLD
 	void			DebugRender( const S32 sSlot = -1 );

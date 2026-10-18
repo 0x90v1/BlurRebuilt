@@ -44,7 +44,7 @@ public:
 	U32			references;
 	IoFile		self;
 	State		state;
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	HANDLE		handle;
 	U32			diskOffset;
 #elif defined(PLATFORM_PS3)
@@ -114,7 +114,7 @@ public:
 	bool Initialise();
 	void Shutdown();
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 public:
 	void Queue(IoRequestImpl* req);
 
@@ -172,10 +172,6 @@ private:
 	IoDevice* _dvd;
 	IoDevice* _hdd;
 
-#ifdef PLATFORM_XENON
-	const char**	_cachePriorityList;
-	int				_cachePriorityListCount;
-#endif
 
 #ifdef PLATFORM_PS3
 private:

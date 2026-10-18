@@ -274,11 +274,6 @@ static S32 StoreDeviceId( lua_State* pState )
 		return 0;
 	}
 
-#ifdef PLATFORM_XENON
-	// store away the device id from the save system
-	// - used when when changing devices from options screen or when re-saving after a first failed attempt when there is no device
-	C_ProfileInterface::Instance().DeviceId( (S32)lua_tonumber( pState, 1 ), gGameSaveSystem.mDeviceID );
-#endif
 
 	return 0;
 }

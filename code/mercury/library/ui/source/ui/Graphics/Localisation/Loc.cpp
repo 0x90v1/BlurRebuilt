@@ -150,16 +150,6 @@ void C_TextStringID::C_Loc::CreateLuaEnums( lua_State *pState )
 
 			if ( !strcmp( name + sLen - 4, "_360" ) || !strcmp( name + sLen - 4, "_PS3" ) || !strcmp( name + sLen - 3, "_PC" ) )
 			{
-			#ifdef PLATFORM_XENON
-				if ( !strcmp( name + sLen - 4, "_360" ) )
-				{
-					STRCPY( buff, uBuffLength, name );
-					buff[ sLen - 4 ] = '\0';
-					lua_pushstring( pState, buff );
-					lua_pushinteger( pState, lh.FindId( name ) ); 
-					lua_rawset( pState, -3 );
-				}
-			#endif
 			#ifdef PLATFORM_PS3
 				if ( !strcmp( name + sLen - 4, "_PS3" ) )
 				{
@@ -460,26 +450,6 @@ void Loc::Load(lua_State *pState, const Util::C_String& directoryPrefix )
 	Sys::I_FileSystem *fs = Sys::GetDefaultFileSystem();
 	Sys::I_File* fp;
 
-#ifdef _XBOX
-	if(XGetLanguage() == XC_LANGUAGE_ENGLISH)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\english.ini" );
-	else if(XGetLanguage() == XC_LANGUAGE_FRENCH)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\french.ini" );
-	else if(XGetLanguage() == XC_LANGUAGE_GERMAN)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\german.ini" );
-	else if(XGetLanguage() == XC_LANGUAGE_ITALIAN)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\italian.ini" );
-	else if(XGetLanguage() == XC_LANGUAGE_JAPANESE)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\japanese.ini" );
-	else if(XGetLanguage() == XC_LANGUAGE_KOREAN)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\korean.ini" );
-	else if(XGetLanguage() == XC_LANGUAGE_SPANISH)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\spanish.ini" );
-	else if(XGetLanguage() == XC_LANGUAGE_TCHINESE)
-		fp = fs->Open( directoryPrefix + "Ui\\text\\chinese.ini" );
-	else
-		fp = fs->Open( directoryPrefix + "Ui\\text\\english.ini" );		//English is default
-#else
 
 #ifdef PLATFORM_PS3
 	fp = fs->Open( directoryPrefix + "Ui\\text\\english.ini" );		//English is default
@@ -487,7 +457,6 @@ void Loc::Load(lua_State *pState, const Util::C_String& directoryPrefix )
 	fp = fs->Open("Ui\\text\\english.ini");		//English is default
 #endif
 
-#endif
 	if(!fp)
 	{
 		LOGFATAL( g_Log,  "Open failed");

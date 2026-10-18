@@ -94,11 +94,11 @@ void C_CameraSpecialFXInstance::SetParameter( U32 paramID, void* pData )
 {
 	if (paramID == SpecialFX::E_ParamID_SetCameraViewport)
 	{
-		m_ViewportID = (S32) pData;
+		m_ViewportID = (S32)(INTPTR) pData;	// [Blur2PC][x64] viewport id carried in the pointer
 	}
 	else if( paramID == SpecialFX::E_ParamID_EnableTransformUpdate )
 	{
-		m_EnableTransform =  ((int)pData) == 1?true:false;
+		m_EnableTransform =  ((int)(INTPTR)pData) == 1?true:false;	// [Blur2PC][x64]
 	}
 }
 

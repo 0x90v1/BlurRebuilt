@@ -26,22 +26,6 @@
 				FatalAppExit(0, buffer);
 			}
 
-		#elif defined PLATFORM_XENON
-			#include <xtl.h>
-			#include <xbdm.h>
-			void DoErrorString(const char* string, const char* file, const U32 line)
-			{
-				char buffer[512];
-				_snprintf(buffer, 512, "Fatal Error at File: %s \nLine: %d \nMessage: %s", file, line, string);
-				buffer[511] = 0;
-				OutputDebugString(buffer);
-				if (DmIsDebuggerPresent())
-				{
-					DebugBreak();
-				}
-				XLaunchNewImage("",0);
-			}
-
 		#endif
 		void CORE_PRINT(const char* format, ...)
 		{
@@ -80,7 +64,7 @@ CheckMemoryIntegrityFunc *gpMemoryIntegrityFunction = CheckMemoryIntegrity;
 
 bool CheckMemoryIntegrity(void)
 {
-#if defined(CFG_DEBUG) && (defined(PLATFORM_PC) || defined(PLATFORM_XENON))
+#if defined(CFG_DEBUG) && defined(PLATFORM_PC)
 	if (!_CrtCheckMemory())
 		return false;
 

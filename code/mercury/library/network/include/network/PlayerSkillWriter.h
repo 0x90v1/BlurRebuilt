@@ -89,18 +89,8 @@ namespace NetPlay
 		U32		m_GameModeId;
 		U32		m_CurrentIndex;
 
-#if defined (PLATFORM_XENON)
-		C_AsyncTask* m_pAsyncTask;
-		PlayerSkillSubmission* m_pWriteCache;
-		XSESSION_VIEW_PROPERTIES m_View;
-		Btl::Vector<XUSER_PROPERTY, Btl::VectorParameters_Static<5> > m_Columns;
-		U32	m_TotalWriteCount;
-		bool m_StartNewWrite;
-		HANDLE m_SessionHandle;
-#else
 		bdRemoteTaskRef m_AsyncTask;
 		bdPerformanceValue* m_pWriteCache;
-#endif
 	};
 }
 

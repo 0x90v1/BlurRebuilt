@@ -87,16 +87,6 @@ void C_Ocean::Render()
 	Display::C_Texture2D * pHeightTexture = const_cast<Display::C_Texture2D *>(m_WavesPolicy.GetHeightMap());
 	Display::C_Texture2D * pGradientTexture = const_cast<Display::C_Texture2D *>(m_WavesPolicy.GetGradientMap());
 
-	#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER0, pHeightTexture->Get());
-	Display::Device()->GetD3DDevice()->SetSamplerState(D3DVERTEXTEXTURESAMPLER0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-	Display::Device()->GetD3DDevice()->SetSamplerState(D3DVERTEXTEXTURESAMPLER0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-	Display::Device()->GetD3DDevice()->SetSamplerState(D3DVERTEXTEXTURESAMPLER0, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER1, pGradientTexture->Get());
-	Display::Device()->GetD3DDevice()->SetSamplerState(D3DVERTEXTEXTURESAMPLER1, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-	Display::Device()->GetD3DDevice()->SetSamplerState(D3DVERTEXTEXTURESAMPLER1, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-	Display::Device()->GetD3DDevice()->SetSamplerState(D3DVERTEXTEXTURESAMPLER1, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
-	#endif
 
 	Display::Device()->SetTexture(0, m_WavesPolicy.GetNormalMap());
 	Display::Device()->SetTextureFilter(0, Display::E_TextureFilter_Linear);

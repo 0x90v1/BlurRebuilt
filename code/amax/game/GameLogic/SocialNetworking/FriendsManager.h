@@ -57,9 +57,6 @@ private:
 	Btl::Vector<FriendManager_Friend>			mFriends;
 	int											mCurrentID;
 
-#if defined ( PLATFORM_XENON )
-	HANDLE	mListenerHandle;
-#endif
 };
 
 }; // namespace Game

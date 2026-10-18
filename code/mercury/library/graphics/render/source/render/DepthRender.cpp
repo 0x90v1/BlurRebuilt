@@ -5,13 +5,7 @@ EXTERN_SHADER(vsDepthRender);
 EXTERN_SHADER(psDepthRender);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Render/PCD3D9/vsDepthRender.shader"
-#include "Render/Shaders/Render/PCD3D9/psDepthRender.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Render/XB2/vsDepthRender.shader"
-#include "Render/Shaders/Render/XB2/psDepthRender.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Render/PS3/vsDepthRender.shader"
 #include "Render/Shaders/Render/PS3/psDepthRender.shader"
 #endif
@@ -70,9 +64,6 @@ bool C_DepthRender::OnCreateVolatile()
 	#endif
 
 	Display::C_SurfaceParams surfaceParams;
-	#ifdef PLATFORM_XENON
-	surfaceParams.AfterSurface(&m_RenderTexture.GetSurface());
-	#endif
 
 	if (!Display::Device()->CreateDepthStencilSurface(m_Width, m_Height, Display::E_Usage_DepthStencil, backBuffer.GetDepthStencilFormat(), Display::E_Multisample_None, &surfaceParams, &m_DepthStencilSurface))
 		return false;

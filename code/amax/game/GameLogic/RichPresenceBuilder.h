@@ -17,9 +17,7 @@ public:
 
 	bool										BuildRichPresence(const U32 userIndex, RacerNet::eRichPresence& richPresence);
 
-#ifndef PLATFORM_XENON
 	void										SetJoinSessionInfo(NetPlay::RichPresence& out, const RacerNet::eRichPresence state, bool allowJoinInProgress);
-#endif
 
 private:
 	C_RichPresenceBuilder() {} ;
@@ -28,10 +26,6 @@ private:
 	static C_RichPresenceBuilder				s_Instance;
 
 	void										GetRankAndLegend(S32& rank, S32& legendLevel);
-#ifdef PLATFORM_XENON
-	//	Sets the top line of RP to say "Xbox LIVE:" with "Rank <1-50>" or "Legend <I-X>"
-	void										SetOnlinePresenceTop(const U32 userIndex);
-#endif // PLATFORM_XENON
 
 };
 

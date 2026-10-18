@@ -58,7 +58,7 @@ struct jqWorker;
 
 }
 
-#if TL_PLAT_PC || TL_PLAT_XENON
+#if TL_PLAT_PC
 #include "jobqueue_xenon.h"
 #elif TL_PLAT_PS3 || TL_PLAT_PS3_SPU
 #include "jobqueue_ps3.h"
@@ -94,7 +94,13 @@ struct Task
 	int GroupID;
 
 	//! Arbitrary parameter storage for the batch.
+#if defined(_WIN64)
+	// [Blur2PC][x64] Jobs copy structs of pointers in here (AddTask's ParamData); those
+	// structs double in size and read pointers at their natural 8-byte alignment.
+	__declspec(align(8)) U32 ParamData[24];
+#else
 	U32 ParamData[12];
+#endif
 
 	mutable U32 iCPUBits; // a bit for each CPU, on if that CPU can run this task or 0 if it can't
 

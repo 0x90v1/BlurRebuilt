@@ -101,9 +101,6 @@ namespace NetPlay
 			/*m_PresenceDisplayId = 0;*/
 			m_JoinInProgressPossible = false;
 
-#if defined (PLATFORM_XENON)
-			m_DisplayString[0] = 0;
-#endif
 		}
 
 		//U32 m_ContextId;								/**< defines the current context for the presence as defined by XLAST when using Xbox360. */
@@ -112,9 +109,6 @@ namespace NetPlay
 		bool m_JoinInProgressPossible;					/**< can we join the friends session ?*/
 		bdSecurityID m_OnlineSessionId;					/**< Session ID to search for via matchmaking if joinable. */
 
-#if defined (PLATFORM_XENON)
-		WCHAR m_DisplayString[MAX_RICHPRESENCE_SIZE];	/**< Prsence string to display on xbox360 from xlast schema, only valid when reading presence not applicable when setting your own presence.*/
-#endif
 	};
 }
 

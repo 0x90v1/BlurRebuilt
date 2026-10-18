@@ -125,7 +125,7 @@ void StreamerRequestWorker::Process() const
 
 void StreamerRequestTask(Scheduler::Task* pTask)
 {
-	const RenderingData::Target::StreamerRequestWorker* p = (const RenderingData::Target::StreamerRequestWorker*) Spu::FetchAllocAsync((void*)*pTask->ParamData, sizeof(RenderingData::Target::StreamerRequestWorker), 0);
+	const RenderingData::Target::StreamerRequestWorker* p = (const RenderingData::Target::StreamerRequestWorker*) Spu::FetchAllocAsync(*(void**)pTask->ParamData, sizeof(RenderingData::Target::StreamerRequestWorker), 0);	// [Blur2PC][x64] a pointer-sized parameter
 	Spu::Wait(0);
 	p->Process();
 }

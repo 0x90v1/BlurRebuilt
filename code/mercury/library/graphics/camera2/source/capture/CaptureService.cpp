@@ -13,9 +13,6 @@
 #include <camera2/capture/CaptureService.h>
 #include <camera2/capture/LockScreen.h>
 #include <camera2/capture/MovieEncoder.h>
-#ifdef PLATFORM_XENON
-#include <xgraphics.h>
-#endif
 #ifdef PLATFORM_PC
 #include <d3d9.h>
 #endif
@@ -374,11 +371,7 @@ static S32 TrueCompress(U8 *src, U8 *dest, S32 srcLen)
 
 static inline S32 CalcAddr(S32 x, S32 y, S32 pitch)
 {
-#ifdef PLATFORM_XENON
-	return XGAddress2DTiledOffset(x,y,pitch >> 2,4) << 2;
-#else
 	return y * pitch + (x << 2);
-#endif
 }
 
 void C_CaptureService::SendLockedScreen(const C_LockScreenInfo& si)
@@ -443,32 +436,6 @@ void C_CaptureService::SendLockedScreen(const C_LockScreenInfo& si)
 				}
 			break;
 
-#ifdef PLATFORM_XENON
-			case D3DFMT_LE_A8R8G8B8:
-			case D3DFMT_LE_X8R8G8B8:
-				// Little Endian 8,8,8
-				for (x = 0; x < si.width;  x++, pd+=3)
-				{
-					ps = source + CalcAddr(x, y, si.pitch);
-					pd[2] = ps[2]; // Red
-					pd[1] = ps[1]; // Green
-					pd[0] = ps[0]; // Blue
-				}
-			break;
-
-			case D3DFMT_LE_X2R10G10B10:
-				// Xenon's Little Endian 2,10,10,10
-				for (x = 0; x < si.width; x++, pd+=3)
-				{
-					// Get the tiled offset to this pixel:
-					ps = source + CalcAddr(x, y, si.pitch);
-					U32 pix = ps[0] | (ps[1]<<8) | (ps[2]<<16) | (ps[3]<<24);
-					pd[2]=(U8)(pix>>22); // Red
-					pd[1]=(U8)(pix>>12); // Green
-					pd[0]=(U8)(pix>> 2); // Blue
-				}
-			break;
-#endif
 #ifdef PLATFORM_PC
 			case D3DFMT_A8R8G8B8:
 			case D3DFMT_X8R8G8B8:

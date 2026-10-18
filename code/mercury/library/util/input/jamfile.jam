@@ -22,10 +22,6 @@ SRC =
 ./source/input/PadVirtual.cpp
 ;
 
-XENONSRC = 
-./source/input/DeviceManager360.cpp
-./source/input/Pad360.cpp
-;
 
 PS3SRC = 
 ./source/input/DeviceManagerPS3.cpp

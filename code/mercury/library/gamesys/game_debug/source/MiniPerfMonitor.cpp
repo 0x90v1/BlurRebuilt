@@ -87,11 +87,7 @@ float GetTime(const Display::C_GPUTimingStats* p)
 	if (!p)
 		return 0;
 
-	#ifdef PLATFORM_XENON
-	return (F32)p->GetTotalTime(Perf::E_TimingFrame_Prev) / 1000.0f;
-	#else
 	return (F32)p->GetTotalTime(Perf::E_TimingFrame_Prev) / 1000000.0f;
-	#endif
 }
 
 /// set limits for each subsystem

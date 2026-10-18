@@ -6,11 +6,7 @@
 EXTERN_SHADER(psGreyscale);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/PostProcess/Colour/PCD3D9/psGreyscale.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/PostProcess/Colour/XB2/psGreyscale.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/PostProcess/Colour/PS3/psGreyscale.shader"
 #endif 
 #endif

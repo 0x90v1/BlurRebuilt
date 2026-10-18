@@ -49,14 +49,22 @@ namespace
 		CONTEXT ctx = *ep->ContextRecord;
 		STACKFRAME64 sf;
 		memset(&sf, 0, sizeof(sf));
+#if defined(_WIN64) // [Blur2PC][x64]
+		const DWORD machine = IMAGE_FILE_MACHINE_AMD64;
+		sf.AddrPC.Offset = ctx.Rip;    sf.AddrPC.Mode = AddrModeFlat;
+		sf.AddrFrame.Offset = ctx.Rbp; sf.AddrFrame.Mode = AddrModeFlat;
+		sf.AddrStack.Offset = ctx.Rsp; sf.AddrStack.Mode = AddrModeFlat;
+#else
+		const DWORD machine = IMAGE_FILE_MACHINE_I386;
 		sf.AddrPC.Offset = ctx.Eip;    sf.AddrPC.Mode = AddrModeFlat;
 		sf.AddrFrame.Offset = ctx.Ebp; sf.AddrFrame.Mode = AddrModeFlat;
 		sf.AddrStack.Offset = ctx.Esp; sf.AddrStack.Mode = AddrModeFlat;
+#endif
 
 		fprintf(f, "stack:\n");
 		for (int i = 0; i < 64; ++i)
 		{
-			if (!StackWalk64(IMAGE_FILE_MACHINE_I386, proc, GetCurrentThread(), &sf, &ctx, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL))
+			if (!StackWalk64(machine, proc, GetCurrentThread(), &sf, &ctx, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL))
 				break;
 			if (sf.AddrPC.Offset == 0)
 				break;

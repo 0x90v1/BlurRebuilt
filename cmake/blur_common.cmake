@@ -12,8 +12,18 @@
 if(NOT MSVC)
     message(FATAL_ERROR "MSVC only (the source is Win32/D3D9 MSVC code)")
 endif()
-if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
-    message(FATAL_ERROR "Configure for 32-bit: -A Win32 (the engine and its vendor libs are x86)")
+# [Blur2PC][x64] The x64 child branch configures with -A x64; -A Win32 still
+# builds the original x86 game. BLUR_X64 selects the matching vendor libraries.
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(BLUR_X64 ON)
+    set(_blur_arch_x86_x64 x64)
+    set(_blur_arch_openal Win64)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(BLUR_X64 OFF)
+    set(_blur_arch_x86_x64 x86)
+    set(_blur_arch_openal Win32)
+else()
+    message(FATAL_ERROR "Configure with -A x64 or -A Win32")
 endif()
 
 # The third-party SDKs live in Blur1PC/_work/vendor (untracked, so the other
@@ -26,10 +36,10 @@ endif()
 set(BLUR_VENDOR ${_blur_vendor_default} CACHE PATH "Downloaded third-party SDKs (shared by every phase)")
 
 set(BLUR_DXSDK_INCLUDE ${BLUR_VENDOR}/d3dx/build/native/include CACHE PATH "d3dx9.h location")
-set(BLUR_D3DX9_LIB ${BLUR_VENDOR}/d3dx/build/native/release/lib/x86/d3dx9.lib CACHE FILEPATH "d3dx9.lib")
+set(BLUR_D3DX9_LIB ${BLUR_VENDOR}/d3dx/build/native/release/lib/${_blur_arch_x86_x64}/d3dx9.lib CACHE FILEPATH "d3dx9.lib")
 set(BLUR_OPENAL_ROOT ${BLUR_VENDOR}/openal-soft-1.24.3-bin CACHE PATH "OpenAL Soft binary distribution")
 set(BLUR_OPENAL_INCLUDE ${BLUR_OPENAL_ROOT}/include ${BLUR_OPENAL_ROOT}/include/AL ${BLUR_TOP}/code/vendor/efx-util)
-set(BLUR_OPENAL_LIB ${BLUR_OPENAL_ROOT}/libs/Win32/OpenAL32.lib CACHE FILEPATH "OpenAL32.lib")
+set(BLUR_OPENAL_LIB ${BLUR_OPENAL_ROOT}/libs/${_blur_arch_openal}/OpenAL32.lib CACHE FILEPATH "OpenAL32.lib")
 set(BLUR_JPEG_DIR ${BLUR_VENDOR}/jpeg-6b CACHE PATH "IJG libjpeg 6b sources")
 
 # ---- global compiler settings -------------------------------------------------
@@ -43,6 +53,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_link_options(/DEBUG)
 add_compile_options(/MP /W3 /permissive /Zc:wchar_t /EHsc /GR /bigobj /Zi
     /wd4996 /wd4244 /wd4267 /wd4305 /wd4800 /wd4018 /wd4310 /wd4838)
+# [Blur2PC][x64] A pointer cast to a 32-bit integer loses the upper half on x64
+# (C4311 and C4302 each catch casts the other misses).
+if(BLUR_X64)
+    add_compile_options(/we4311 /we4302)
+endif()
 # No global WIN32_LEAN_AND_MEAN / _WINSOCKAPI_: the original build relied on
 # <windows.h> bringing winsock.h (IN_ADDR etc. in WsSocket.h), and _WINSOCKAPI_
 # makes curl.h skip winsock2.h. Winsock ordering conflicts are fixed per file.
@@ -95,15 +110,30 @@ set_target_properties(blur_shims PROPERTIES FOLDER "vendor")
 # ---- system / vendor link inputs for the executable ------------------------------
 set(BLUR_SYSTEM_LIBS
     secur32 crypt32 ws2_32 dbghelp psapi winmm
-    d3d9 dxguid dinput8 xinput
+    dxguid dinput8 xinput    # [Blur2PC][x64] no d3d9/d3dx9: D3D11 is the only renderer
     dsound    # [Blur2PC] T144: retail PC's audio output engine (engine_pc.cpp) is DirectSound
-    ${BLUR_D3DX9_LIB}
     ${BLUR_OPENAL_LIB}
     blur_shims
     legacy_stdio_definitions
 )
+if(BLUR_X64)
+    # [Blur2PC][x64] DemonWare ships x86 libraries only; build the same libraries
+    # from the bundled sources (cmake/demonware.cmake, generated from the
+    # Release-mt|Win32 projects) against an x64 OpenSSL 0.9.8i built by
+    # code/tools/demonware_cmake/build_openssl_x64.cmd.
+    set(BLUR_OPENSSL_X64 ${BLUR_PROJECT}/_work/vendor_x64/openssl-x64 CACHE PATH "x64 OpenSSL 0.9.8i install (build_openssl_x64.cmd)")
+    if(NOT EXISTS ${BLUR_OPENSSL_X64}/lib/libeay32.lib)
+        message(FATAL_ERROR "x64 OpenSSL 0.9.8i missing at ${BLUR_OPENSSL_X64}; run code/tools/demonware_cmake/build_openssl_x64.cmd")
+    endif()
+    include(${BLUR_TOP}/cmake/demonware.cmake)
+    foreach(lib bdConnection bdCore bdLobby bdSocket bdPlatform bdNet bdExampleCommonLobby)
+        list(APPEND BLUR_SYSTEM_LIBS dw_${lib})
+    endforeach()
+    list(APPEND BLUR_SYSTEM_LIBS ${BLUR_OPENSSL_X64}/lib/ssleay32.lib ${BLUR_OPENSSL_X64}/lib/libeay32.lib dw_libcurl)
+else()
 set(BLUR_DEMONWARE_LIBDIR ${BLUR_TOP}/code/vendor/demonware/2.0/lib/win32-vs8)
 foreach(lib bdConnection bdCore bdLobby bdSocket bdPlatform bdNet bdExampleCommonLobby ssleay32 libeay32 libcurl)
     list(APPEND BLUR_SYSTEM_LIBS
         $<IF:$<CONFIG:Debug>,${BLUR_DEMONWARE_LIBDIR}/debug-mt/${lib}.lib,${BLUR_DEMONWARE_LIBDIR}/release-mt/${lib}.lib>)
 endforeach()
+endif()

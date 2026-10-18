@@ -173,11 +173,9 @@ bool C_Manager::CreateRenderTextures()
 	RESOURCE_MEMORY_ID("PostProcess");
 
 	Display::E_Format eSecondaryFormat = Display::E_Format_A8R8G8B8;
-#if defined(BLUR_USE_DX11)
 	// [Blur2PC][HDR] Bloom/downsample filtering must retain extended scene radiance.
 	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
 		eSecondaryFormat = Display::E_Format_A16B16G16R16F;
-#endif
 
 	assert(m_RenderTargets.Size() == 0);
 	assert(m_RenderTargetMapping.Size() == 0);
@@ -221,9 +219,7 @@ bool C_Manager::CreateRenderTextures()
 
 			U32 iPrimaryUsageFlags = Display::E_Usage_Colour;
 			U32 iSecondaryUsageFlags = Display::E_Usage_Colour;
-#ifndef PLATFORM_XENON
 			iSecondaryUsageFlags |= Display::E_Usage_ReadWrite;
-#endif
 			
 			if(m_pPrimaryTextureBuffer)
 			{
@@ -262,14 +258,6 @@ bool C_Manager::CreateRenderTextures()
 				Display::C_SurfaceParams	surfaceParams;
 
 				// get surface parameters which will set this rendertarget after the main rendertarget in EDRAM (if more than 1 viewport)
-#ifdef PLATFORM_XENON
-				const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
-				// if more than 1 viewport, offset surface after backbuffer in EDRAM, else overlap
-				if(m_Views.Size() > 1)
-					surfaceParams.Base = XGSurfaceSize(backBuffer.GetWidth(), backBuffer.GetHeight(), D3D9Format(backBuffer.GetColourFormat()), D3D9Multisample(backBuffer.GetMultisample()));
-				else
-					surfaceParams.Base = 0;
-#endif
 
 #if USE_POSTPROCESS_RENDERBUFFERS
 				Display2::C_RenderBufferSetup renderBufferSetup;
@@ -315,10 +303,6 @@ bool C_Manager::CreateRenderTextures()
 #endif
 				postViewport.m_RenderTextures.PushBack(pRenderTexture);
 
-#ifdef PLATFORM_XENON
-				// offset the depth stencil after the colour buffer
-				surfaceParams.Base += XGSurfaceSize(m_Views[iView].iWidth, m_Views[iView].iHeight, D3D9Format(eSurfaceFormat), D3D9Multisample(m_Views[iView].eMultisample));
-#endif
 				Display::E_Format eDepthStencilFormat = Display::Device()->GetBackBuffer().GetDepthStencilFormat();
 				postViewport.m_pDepthStencilSurface = new Display::C_Surface;
 #if USE_POSTPROCESS_RENDERBUFFERS
@@ -473,23 +457,14 @@ void C_Manager::End() const
 	if(m_bEnabled && m_bActive)
 	{
 		PERF_EVENT("PostProcess::FinalQuad");
-	#ifdef PLATFORM_XENON
-		Display::Device()->Resolve(Display::E_Resolve_Colour, &m_pRenderTexture->GetTexture());
-	#endif
 		RestoreColourSurface();
 		RestoreViewport();
 		SetFinalQuadSettings();
 
-	#ifdef PLATFORM_XENON
-		Device()->SetBlendHighPrecisionEnable(E_Bool_False);
-	#endif
 
 		assert(m_pRenderTexture);
 		Display::Quad::DrawFullScreen(&m_pRenderTexture->GetTexture());
 
-	#ifdef PLATFORM_XENON
-		Device()->SetBlendHighPrecisionEnable(E_Bool_True);
-	#endif
 	}
 
 	m_bActive = false;

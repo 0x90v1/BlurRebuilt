@@ -41,7 +41,7 @@ namespace NetPlay
 	/** When using demonware 2.0 we can no longer specify what server parameters to return in the query, we must request that all server attributes are
 	 * returned in the same order as they are specified in the web imp matchmaking attributes congig.
 	 */
-#if defined(PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 	class C_SessionEnumerator
 #else
 	class C_SessionEnumerator : public bdQoSProbeListener
@@ -177,7 +177,7 @@ namespace NetPlay
 		 */
 		void StopSearch(void);
 
-#if !defined(PLATFORM_XENON) && !defined (LIVE_ON_WINDOWS)
+#if !defined(LIVE_ON_WINDOWS)
 		// demonware Qos listener overrides.
 		virtual void onQoSProbeSuccess(const bdQoSProbeInfo &info);
 		virtual void onQoSProbeFail(bdCommonAddrRef addr);
@@ -201,7 +201,7 @@ namespace NetPlay
 		Btl::List<C_SessionEnumeratorListener*> m_listeners; // listens to enumeration events (enumeration stopped / started, session found).
 
 		// qualiy of service..
-#if defined(PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		void*			m_pAsyncTask;					// used for asynchronous searching.
 		void*			m_pSearchProperties;			// pointer to a list of properties used during the search	
 		void*			m_pSearchContexts;				// pointer to a list of contexts used during the search

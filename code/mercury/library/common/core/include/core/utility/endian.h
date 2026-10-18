@@ -71,7 +71,7 @@ struct NoEndianSwap
 ////////////////////////////////////////////////
 
 
-#if defined (PLATFORM_XENON) || (PLATFORM_PS3) // Endian swapping for XENON
+#if PLATFORM_PS3 // Endian swapping for XENON
 
 typedef DoEndianSwap LittleEndianToNative;
 typedef DoEndianSwap NativeToLittleEndian;

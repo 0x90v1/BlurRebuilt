@@ -12,8 +12,6 @@
 #include "Display/Texture/D3D11/D3D11TextureLoad.h"
 #elif defined(DEVICE_PS3GCM)
 #include "Display/Texture/GCM/GCMTextureLoad.h"
-#elif defined(DEVICE_PCD3D9) || defined(DEVICE_XB2D3D9)
-#include "Display/Texture/D3D9/D3D9TextureLoad.h"
 #else
 #pragma message("Unsupported device define when compiling Texture2DUtils.h")
 #endif

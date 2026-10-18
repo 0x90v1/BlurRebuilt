@@ -25,57 +25,7 @@ bool IoDebugShouldReadFail()
 	return false;
 }
 
-#if defined(PLATFORM_XENON)
-
-#include <xfilecache.h>
-#include <System/Debug/BuildStamp.h>
-#include <Btl/Utility/Hash.h>
-
-bool gIoFileCachingSuspended = false;
-
-DWORD IoFileCacheCallback(void* context, const char* path, LARGE_INTEGER* pFileOffset, DWORD nNumberOfBytesToRead)
-{
-	if (gIoFileCachingSuspended)
-		return XFILECACHE_READFILEADVISORY_HOLDOFF(500);
-
-	return XFILECACHE_READFILEADVISORY_ALLOW(500);
-}
-
-void IoSuspendFileCaching()
-{
-	gIoFileCachingSuspended = true;
-}
-
-void IoResumeFileCaching()
-{
-	gIoFileCachingSuspended = false;
-}
-
-void IoGetCacheStats(IoCacheStats* pStats)
-{
-#ifndef CFG_GOLD
-	XFILECACHESTATS stats;
-	if (XFileCacheGetStats(&stats) == ERROR_SUCCESS)
-	{
-		pStats->cachedTotal = stats.CachedTotal;
-		pStats->fileCount = stats.FileCount;
-		pStats->cacheHitOpens = stats.CacheHitOpens;
-		pStats->cacheMissOpens = stats.CacheMissOpens;
-		pStats->cacheHitReads = stats.CacheHitReads;
-		pStats->cacheMissReads = stats.CacheMissReads;
-		pStats->cacheHitBytesRequested = (S64)stats.CacheHitBytesRequested.QuadPart;
-		pStats->cacheMissBytesRequested = (S64)stats.CacheMissBytesRequested.QuadPart;
-		pStats->cacheCopyBytes = (S64)stats.CacheCopyBytes.QuadPart;
-		pStats->cacheEvictBytes = (S64)stats.CacheEvictBytes.QuadPart;
-	}
-	else
-#endif
-	{
-		memset(pStats, 0, sizeof(IoCacheStats));
-	}
-}
-
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 
 #include <sysutil/sysutil_syscache.h>
 #include <sys/return_code.h>
@@ -121,10 +71,6 @@ IoService::IoService() :
 	_initialised(false),
 	_dvd(0),
 	_hdd(0)
-#ifdef PLATFORM_XENON
-	,_cachePriorityList(NULL)
-	,_cachePriorityListCount(0)
-#endif
 #ifdef PLATFORM_PS3
 	,_appHomeMedia(0)
 	,_dvdMedia(0)
@@ -146,121 +92,7 @@ bool IoService::Initialise()
 
 	_initialised = true;
 
-#if defined(PLATFORM_XENON)
-
-	U64 cacheSize = (1024LL + 512LL) * 1024LL * 1024LL;
-
-#ifdef BUILD_CONFIG_MASTER
-	bool shouldCache = true;
-#else
-	bool shouldCache = false; // TODO: File caching is knocked out file by default in development
-
-	char fileSystemName[32];
-
-	if (GetVolumeInformation("GAME:\\", 0, 0, 0, 0, 0, fileSystemName, lengthof(fileSystemName)))
-	{
-		if (!stricmp(fileSystemName, "GDFX"))
-		{
-			shouldCache = true;
-		}
-	}
-
-#endif
-
-	//HDD Install detection
-
-	//Method 1:
-	//Although the code below seems to work, the "Symbolic link root name "game" is not an expected content package device!"
-	//Error scares me. That and the fact that I'm having to do an async call and wait, as the syncronous version of 
-	//XContentQueryVolumeDeviceType doesn't actually work in this case, as confirmed as a bug by the chaps at dev-support.
-/*
-	XCONTENTDEVICETYPE deviceType = XCONTENTDEVICETYPE_ODD;
-	HANDLE xContentQueryHandle = CreateEvent( NULL, FALSE, FALSE, NULL );
-	if (xContentQueryHandle)
-	{
-		XOVERLAPPED overlapped;
-		ZeroMemory(&overlapped, sizeof(XOVERLAPPED));
-		overlapped.hEvent = xContentQueryHandle;
-		
-		deviceType = XCONTENTDEVICETYPE_ODD;
-		DWORD returnValue = XContentQueryVolumeDeviceType("game", &deviceType, &overlapped);
-		returnValue = XGetOverlappedResult(&overlapped, NULL, TRUE);
-
-		CloseHandle(xContentQueryHandle);
-		if (deviceType == XCONTENTDEVICETYPE_HDD)
-			shouldCache = false;
-	}
-*/
-	//Method 2: Attempt to acquire a content license. This was a method advocated by the gameds@microsoft.com chaps.
-	DWORD licenseMask;
-	DWORD result = XContentGetLicenseMask(
-         &licenseMask,
-         NULL);
-	if (result == ERROR_SUCCESS)
-	{
-#ifndef CFG_GOLD
-		printf("Detected hard drive install!\n");
-#endif
-		shouldCache = false;
-	}
-	else
-	{
-#ifndef CFG_GOLD
-		printf("Not running off hard drive install.\n");
-#endif
-	}
-
-#ifndef CFG_GOLD
-	// Check the command line to see if we should disable the caching
-	const char* commandLine = GetCommandLine();
-
-	if (strstr(commandLine, "-nocache"))
-	{
-		shouldCache = false;
-	}
-	else if (strstr(commandLine, "-cache"))
-	{
-		shouldCache = true;
-	}
-
-	if (shouldCache)
-		printf("Transparent caching enabled.\n");
-	else
-		printf("Transparent caching disabled.\n");
-#endif
-
-	if (shouldCache)
-	{
-		DWORD flags = XFILECACHE_OPPORTUNISTIC_ON | XFILECACHE_PRESERVE;
-
-		for(int i = 0; i < 4; i++)
-		{
-			XINPUT_STATE is;
-
-			if (XInputGetState(i, &is) == ERROR_SUCCESS)
-			{
-				if ((is.Gamepad.bLeftTrigger > 127) && (is.Gamepad.bRightTrigger > 127))
-					flags |= XFILECACHE_CLEAR_ALL;
-			}
-		}
-
-		XFileCacheInit(flags, cacheSize, XFILECACHE_DEFAULT_THREAD, 0, Btl::Hash(Debug::GetBuildTime()));
-
-		if (_cachePriorityList)
-		{
-			XFileCachePreloadFiles(XFILECACHE_STARTUP_FILES, _cachePriorityList, _cachePriorityListCount);
-		}
-		
-		const char* dontCacheList[] = { "GAME:\\Cache\\root_streaming.pak", "GAME:\\Ui\\", "GAME:\\layer1\\Cache\\root_streaming.pak" };
-		U32 nDontCacheFiles = lengthof(dontCacheList);
-		XFileCachePreload(XFILECACHE_STARTUP_FILES, "GAME:\\Cache\\*");
-		XFileCachePreload(XFILECACHE_STARTUP_FILES, "GAME:\\Layer1\\Cache\\*");
-		XFileCacheControlFiles(XFILECACHE_DONTCACHE, dontCacheList, nDontCacheFiles);
-		XFileCacheSetFileIoCallbacks(IoFileCacheCallback, this);
-		XFileCacheControl(XFILECACHE_BACKGROUND_ON);
-	}
-
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	cell::fios::allocator* allocator = new IoServiceFiosAllocator;
 
 	cell::fios::fios_parameters fp = FIOS_PARAMETERS_INITIALIZER;
@@ -305,10 +137,6 @@ bool IoService::Initialise()
 
 void IoService::CachePrioritise(const char** fileList, int numFiles)
 {
-#ifdef PLATFORM_XENON
-	_cachePriorityList = fileList;
-	_cachePriorityListCount = numFiles;
-#endif
 }
 
 #if defined(PLATFORM_PS3)
@@ -392,7 +220,7 @@ IoRequest IoService::Open(IoFile& file, const char* filename, IoCallback* callba
 
 					file = impl->self;
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 					device->Queue(request);
 #elif defined(PLATFORM_PS3)
 					cell::fios::opattr_t attr = FIOS_OPATTR_INITIALIZER;
@@ -441,7 +269,7 @@ IoRequest IoService::Read(const IoFile& file, void* buffer, U64 offset, U32 size
 				request->requestSize	= size;
 				request->priority		= pri;
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 				fi->device->Queue(request);
 #elif defined(PLATFORM_PS3)
 				cell::fios::opattr_t attr = FIOS_OPATTR_INITIALIZER;
@@ -503,7 +331,7 @@ IoRequest IoService::Close(const IoFile& file, IoCallback* callback)
 
 				fi->state = IoFileImpl::kState_Closing;
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 				fi->device->Queue(request);
 #elif defined(PLATFORM_PS3)
 				cell::fios::opattr_t attr = FIOS_OPATTR_INITIALIZER;
@@ -538,10 +366,7 @@ IoDevice* IoService::GetDeviceByPath(const char* path)
 {
 	// TODO: Need to check to see if cached here and use hdd device if so...  Also, memory card device?
 
-#if defined(PLATFORM_XENON)
-	if (strnicmp(path, "GAME:", 5) == 0)
-		return _dvd;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	if (strnicmp(path, "/dev_bdvd/", 10) == 0)
 		return _dvd;
 #endif

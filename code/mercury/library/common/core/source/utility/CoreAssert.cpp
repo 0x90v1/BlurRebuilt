@@ -10,11 +10,6 @@
 #ifdef PLATFORM_PS3
 #include <libsn.h>
 #endif
-#ifdef PLATFORM_XENON
-#include <xbdm.h>
-
-extern "C" void __cdecl _assert (const char *, const char *,unsigned);
-#endif
 
 // core's default assert function
 bool CoreAssert(const char *pszFunction, const char *pszExpression, const char *pszFilename, int iLineNumber)
@@ -39,10 +34,6 @@ bool CoreAssert(const char *pszFunction, const char *pszExpression, const char *
 #endif
 #endif
 
-#ifdef PLATFORM_XENON
-	if (DmIsDebuggerPresent())
- 		DebugBreak();
-#endif
 #if (defined(PLATFORM_PS3))
 	if (snIsDebuggerPresent())
 		snPause();
@@ -75,9 +66,6 @@ bool IsDebuggerAttached()
 	return (IsDebuggerPresent() == TRUE);
 #endif
 
-#ifdef PLATFORM_XENON
-	return (DmIsDebuggerPresent() == TRUE);
-#endif
 
 #ifdef PLATFORM_PS3
 	return (snIsDebuggerPresent() == TRUE);

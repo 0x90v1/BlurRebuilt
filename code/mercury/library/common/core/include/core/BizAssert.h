@@ -168,7 +168,7 @@
 
 	#if defined(BIZ_ASSERT_ENABLED) || !defined(CFG_GOLD)
 
-		#if defined(PLATFORM_PC) || defined(PLATFORM_XBOX) || defined(PLATFORM_XENON)
+		#if defined(PLATFORM_PC)
 			#define BIZ_IMPL_HALT() do { __debugbreak(); } while(0)
 		#elif defined(PLATFORM_SPU)
 			extern bool spuAssert();

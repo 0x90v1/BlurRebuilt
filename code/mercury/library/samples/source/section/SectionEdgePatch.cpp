@@ -6,15 +6,9 @@
 #include "Render/Shaders/vsConstants.h"
 #include "Render/Shaders/psConstants.h"
 
-#if defined(DEVICE_XB2D3D9)
-#include "Shaders/XB2/vsFragmentPatch.shader"
-#include "Shaders/XB2/psFragmentPatch.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Shaders/PS3/vsFragmentPatch.shader"
 #include "Shaders/PS3/psFragmentPatch.shader"
-#elif defined(DEVICE_PCD3D9)
-#include "Shaders/PCD3D9/vsFragmentPatch.shader"
-#include "Shaders/PCD3D9/psFragmentPatch.shader"
 #endif
 
 

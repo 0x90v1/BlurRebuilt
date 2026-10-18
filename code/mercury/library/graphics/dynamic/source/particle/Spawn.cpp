@@ -77,7 +77,7 @@ ParticleBlock* BeginCreateNew(U32& nNumEmit, U32& nTotalEmit, C_Emitter* pEmitte
 	if(queuePosition == 0)
 	{
 		S32 activedPosition = MT::AtomicIncrement(pUpdateConstants->pActivedEffectsCount);
-		Spu::Set((U32*)&pUpdateConstants->ppActivedEffects[activedPosition], (U32)(I_ParticleEffect*)pSpawnSettings->pEffect);
+		Spu::Set((INTPTR*)&pUpdateConstants->ppActivedEffects[activedPosition], (INTPTR)(I_ParticleEffect*)pSpawnSettings->pEffect);	// [Blur2PC][x64] pointer-wide
 	}
 
 	if(queuePosition < pSpawnSettings->blocks.Capacity())
@@ -105,7 +105,7 @@ ParticleBlock* BeginCreateNew(U32& nNumEmit, U32& nTotalEmit, C_Emitter* pEmitte
 			pBlockLS->m_VectorPosition = queuePosition;
 			pBlockLS->SetVisibilityFlags(pEmitter->GetVisibilityFlags());
 
-			Spu::Set((U32*)&pSpawnSettings->blocks[queuePosition], (U32)pBlockEA);
+			Spu::Set((INTPTR*)&pSpawnSettings->blocks[queuePosition], (INTPTR)pBlockEA);	// [Blur2PC][x64] pointer-wide
 
 			if(pEmitter->GetDefinition()->eSpace == E_EmitterSpace_Local)
 			{
@@ -132,7 +132,7 @@ ParticleBlock* BeginCreateNew(U32& nNumEmit, U32& nTotalEmit, C_Emitter* pEmitte
 		}
 		else
 		{
-			Spu::Set((U32*)&pSpawnSettings->blocks[queuePosition], 0);
+			Spu::Set((INTPTR*)&pSpawnSettings->blocks[queuePosition], (INTPTR)0);	// [Blur2PC][x64] pointer-wide
 		}
 	}
 

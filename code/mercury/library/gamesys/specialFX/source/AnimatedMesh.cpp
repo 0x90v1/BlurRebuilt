@@ -187,7 +187,7 @@ void C_AnimatedMeshInstance::Start()
 	BIZ_ASSERT(!m_AddedInScenegraph);
 
 	//Remap PostResolve pass if needed
-	S32 renderPass = (S32)C_SpecialFXManager::GetInitParam(E_InitParamID_PostResolveRenderPass);
+	S32 renderPass = (S32)(INTPTR)C_SpecialFXManager::GetInitParam(E_InitParamID_PostResolveRenderPass);	// [Blur2PC][x64] integer init param
 	if (renderPass != -1)
 	{
 		for (U32 i = 0; i < m_AnimatedModelInstance.GetNumParts(); i++)
@@ -413,9 +413,9 @@ I_SpecialFXComponentInstance* C_AnimatedMeshSpecialFX::CreateInstance(const Sys:
 	if (pContext != NULL)
 	{
 		U32 viewFlags = 0xFFFFFFFF;
-		if (m_ExcludeFromCubemap) viewFlags &= ~U32(C_SpecialFXManager::GetInitParam(E_InitParamID_CubemapViewFlag));
-		if (m_ExcludeFromReflection) viewFlags &= ~U32(C_SpecialFXManager::GetInitParam(E_InitParamID_ReflectionViewFlag));
-		if (m_ExcludeFromMirror) viewFlags &= ~U32(C_SpecialFXManager::GetInitParam(E_InitParamID_MirrorViewFlag));
+		if (m_ExcludeFromCubemap) viewFlags &= ~U32(INTPTR(C_SpecialFXManager::GetInitParam(E_InitParamID_CubemapViewFlag)));	// [Blur2PC][x64] integer init param
+		if (m_ExcludeFromReflection) viewFlags &= ~U32(INTPTR(C_SpecialFXManager::GetInitParam(E_InitParamID_ReflectionViewFlag)));	// [Blur2PC][x64] integer init param
+		if (m_ExcludeFromMirror) viewFlags &= ~U32(INTPTR(C_SpecialFXManager::GetInitParam(E_InitParamID_MirrorViewFlag)));	// [Blur2PC][x64] integer init param
 		//Create an instance
 		C_AnimatedMeshInstance *pAnimatedMeshInstance = new C_AnimatedMeshInstance(pModelResource, pCycleResource, pSkeletonResource, pContext->GetSceneGraph(), m_FarDistance, viewFlags);
 		

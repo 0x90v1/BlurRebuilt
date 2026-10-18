@@ -1,11 +1,7 @@
 #ifndef __DISPLAY_CONTEXT_PC_H__
 #define __DISPLAY_CONTEXT_PC_H__
 
-#if defined(BLUR_USE_DX11) // [Blur1PCDX11] Native PC context.
 #include "Display/Context/Context_D3D11.h"
-#else
-#include "Display/Context/Context_D3D9.h"
-#endif
 
 namespace Display
 {
@@ -13,11 +9,7 @@ namespace Display
 DECLARE_CONTEXT(Context, C_Context);
 class C_CommandBuffer; // [Blur1PCDX11] PC command buffers are not allocated.
 
-#if defined(BLUR_USE_DX11)
 class C_Context : public C_ContextD3D11
-#else
-class C_Context : public C_ContextD3D9
-#endif
 {
 public:
 	

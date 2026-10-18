@@ -55,9 +55,6 @@ void C_Context::SetAlphaTestFunc(const E_CmpFunc alphaTestFunc)
 /// set blend high precision enable
 void C_Context::SetBlendHighPrecisionEnable(const E_Bool blendHighPrecisionEnable)
 {
-#if PLATFORM_XENON
-	m_pDevice->SetBlendHighPrecisionEnable(blendHighPrecisionEnable);
-#endif
 }
 
 // set wireframe / solid
@@ -164,9 +161,7 @@ void C_Context::SetVertexShaderConstantF(const U32 startRegister, const F32* pDa
 /// set a texture. this function takes a pointer to a GcmTexture or a D3DTexture
 void C_Context::SetTexture(const U32 sampler, const void* pTexture)
 {
-#if PLATFORM_XENON
-	m_pDevice->m_pd3dDevice->SetTexture(sampler, (D3DBaseTexture*)pTexture);
-#elif PLATFORM_PC
+#if PLATFORM_PC
 	m_pDevice->m_pd3dDevice->SetTexture(sampler, (IDirect3DBaseTexture9*)pTexture);
 #elif PLATFORM_PS3
 	CellGcmTexture* p = (CellGcmTexture*)pTexture;
@@ -186,9 +181,7 @@ void C_Context::SetTexture(const U32 sampler, const void* pTexture)
 /// set a vertex texture. this function takes a pointer to a GcmTexture or a D3DTexture
 void C_Context::SetVertexTexture(const U32 sampler, const void* pTexture)
 {
-#if PLATFORM_XENON
-	m_pDevice->m_pd3dDevice->SetTexture(sampler + D3DVERTEXTEXTURESAMPLER0, (D3DBaseTexture*)pTexture);
-#elif PLATFORM_PC
+#if PLATFORM_PC
 	m_pDevice->m_pd3dDevice->SetTexture(sampler + D3DVERTEXTEXTURESAMPLER0, (IDirect3DBaseTexture9*)pTexture);
 #elif PLATFORM_PS3
 	CellGcmTexture* p = (CellGcmTexture*)pTexture;
@@ -220,7 +213,7 @@ void C_Context::SetSamplerState(const U32 sampler,
 	m_pDevice->SetTextureGamma(sampler, gamma);
 	m_pDevice->SetTextureLodBias(sampler, MipMapLodBias);
 
-#if PLATFORM_XENON | PLATFORM_PC
+#if 0 | PLATFORM_PC
 	m_pDevice->m_pd3dDevice->SetSamplerState(sampler, D3DSAMP_MAXANISOTROPY, iMaxAniso);
 #elif PLATFORM_PS3
 	int iAniso = g_iAniso[iMaxAniso];

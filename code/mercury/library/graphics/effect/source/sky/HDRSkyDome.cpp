@@ -145,7 +145,7 @@ void C_HDRSkyDome::Unbind(Display::C_Context *pContext) const
 
 void C_HDRSkyDome::ReloadTextures()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 

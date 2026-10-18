@@ -1553,7 +1553,7 @@ void Audio::C_XtAudioDb::CreateEntityDefClasses()
 		
 		if (hXtDef.Object())
 		{
-			AUDIO_ENTITY_DEBUG("%d setting up EntityDefinition '%s', id = 0x%x..., addr 0x%x", i, hXtDef->name.string, hXtDef.Id(), (U32)hXtDef.Object());
+			AUDIO_ENTITY_DEBUG("%d setting up EntityDefinition '%s', id = 0x%x..., addr 0x%x", i, hXtDef->name.string, hXtDef.Id(), (U32)(INTPTR)hXtDef.Object());	// [Blur2PC][x64] debug print
 			
 			Audio::XtEntityProxy* pProxy=0;
 

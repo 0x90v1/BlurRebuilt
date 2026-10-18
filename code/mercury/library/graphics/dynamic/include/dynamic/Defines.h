@@ -5,10 +5,6 @@
 #pragma once
 #endif
 
-#if defined( PLATFORM_XENON ) && defined( _VMX128_ )
-#define RENDER_DYNAMICEFFECT_USE_XMVECTOR
-#else
 #define RENDER_DYNAMICEFFECT_USE_HVEC
-#endif
 
 #endif // RENDER_DYNAMICEFFECT_DEFINES_H

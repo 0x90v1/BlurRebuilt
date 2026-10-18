@@ -93,10 +93,6 @@ public:
 
 	virtual void ThreadMain()
 	{
-#ifdef PLATFORM_XENON
-		//Avoid interfering with main thread.
-		XSetThreadProcessor(GetCurrentThread(), 1);
-#endif
 		C_GameApp::GetInstance()->GetGameAudioLayer()->GetAsyncLoadLock().Enter();
 		m_pUISubSystem->StartLoadUIEntity(m_entityName);
 		m_pUISubSystem->SetUiAudioAsyncPostLoadPending();

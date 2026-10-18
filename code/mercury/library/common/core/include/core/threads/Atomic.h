@@ -27,9 +27,6 @@ typedef __int64 LONG64;
 #include <cell/atomic.h>
 #endif
 
-#ifdef PLATFORM_XENON
-#include <xtl.h>
-#endif
 
 #ifdef PLATFORM_PC
 #undef PLATFORM_PC
@@ -67,9 +64,6 @@ inline void MemoryFence()
 	long a=0;
 	InterlockedExchange(&a, 0);
 #endif
-#if PLATFORM_XENON
-	__lwsync();
-#endif
 #if PLATFORM_PS3 && !TL_COMPILER_SNC
 	__lwsync();
 #endif
@@ -96,7 +90,7 @@ inline void MemoryFence()
 */
 inline bool AtomicCompareAndSwap(register volatile U32* var, register U32 newvalue, register U32 compare)
 {
-#if PLATFORM_PC || PLATFORM_XENON
+#if PLATFORM_PC
 	return InterlockedCompareExchange((long*)var, newvalue, compare) == (long)compare;
 #endif
 #if PLATFORM_PS3
@@ -143,9 +137,6 @@ inline bool AtomicCompareAndSwap(register volatile U32* var, register U32 newval
 */
 inline U32 AtomicAdd(register volatile U32* var, register U32 value)
 {
-#if PLATFORM_XENON
-	return InterlockedExchangeAdd((LONG*)var, value);
-#endif // PLATFORM_XENON
 
 #if PLATFORM_PS3
 	return cellAtomicAdd32((uint32_t*)var, value);
@@ -194,9 +185,6 @@ inline U32 AtomicAdd(register volatile U32* var, register U32 value)
 */
 inline U64 AtomicAdd(register volatile U64* var, register U64 value)
 {
-#if PLATFORM_XENON
-	return InterlockedExchangeAdd64((volatile LONG64*)var, value);
-#endif // PLATFORM_XENON
 
 #if PLATFORM_PS3
 	return cellAtomicAdd64((uint64_t*)var, value);
@@ -245,7 +233,7 @@ inline U64 AtomicAdd(register volatile U64* var, register U64 value)
 */
 inline int AtomicIncrement(volatile int* var)
 {
-#if PLATFORM_PC || PLATFORM_XENON
+#if PLATFORM_PC
 	return InterlockedIncrement((long*)var) - 1;
 #endif
 #if PLATFORM_PS3
@@ -266,7 +254,7 @@ inline int AtomicIncrement(volatile int* var)
 */
 inline int AtomicDecrement(volatile int* var)
 {
-#if PLATFORM_PC || PLATFORM_XENON
+#if PLATFORM_PC
 	return InterlockedDecrement((long*)var) + 1;
 #endif
 #if PLATFORM_PS3
@@ -290,9 +278,6 @@ inline U32 AtomicAnd(register volatile U32* var, register U32 value)
 {
 #if PLATFORM_PC
 	return _InterlockedAnd((long*)var, value);
-#endif
-#if PLATFORM_XENON
-	return InterlockedAnd((long*)var, value);
 #endif
 #if PLATFORM_PS3
 	return cellAtomicAnd32((uint32_t*)var, value);
@@ -336,9 +321,6 @@ inline U32 AtomicOr(register volatile U32* var, register U32 value)
 {
 #if PLATFORM_PC
 	return _InterlockedOr((long*)var, value);
-#endif
-#if PLATFORM_XENON
-	return InterlockedOr((long*)var, value);
 #endif
 #if PLATFORM_PS3
 	return cellAtomicOr32((uint32_t*)var, value);
@@ -441,7 +423,7 @@ inline U64 _InterlockedCompareExchange64(volatile LONG64* dest, U64 newvalue, U6
 /// Atomically assigns a new value to a 64bit variable, if it previously was equal to a given comparison value.
 inline bool AtomicCompareAndSwap(volatile U64* var, U64 newvalue, U64 compare)
 {
-#if PLATFORM_PC || PLATFORM_XENON
+#if PLATFORM_PC
 	return InterlockedCompareExchange64((LONG64*)var, newvalue, compare) == (LONG64)compare;
 #endif
 #if PLATFORM_PS3
@@ -462,7 +444,7 @@ inline bool AtomicCompareAndSwap(volatile U64* var, U64 newvalue, U64 compare)
 /// Atomically increments a 64bit variable.
 inline S64 AtomicIncrement(volatile S64* var)
 {
-#if PLATFORM_PC || PLATFORM_XENON
+#if PLATFORM_PC
 	return InterlockedIncrement64((LONG64*)var) - 1;
 #endif
 #if PLATFORM_PS3
@@ -481,7 +463,7 @@ inline S64 AtomicIncrement(volatile S64* var)
 /// Atomically decrements a 64bit variable.
 inline S64 AtomicDecrement(volatile S64* var)
 {
-#if PLATFORM_PC || PLATFORM_XENON
+#if PLATFORM_PC
 	return InterlockedDecrement64((LONG64*)var) + 1;
 #endif
 #if PLATFORM_PS3
@@ -501,9 +483,6 @@ inline S64 AtomicDecrement(volatile S64* var)
 /// Atomically ANDs a 64bit variable with a value.
 inline U64 AtomicAnd(volatile U64* var, U64 value)
 {
-#if PLATFORM_XENON
-	return InterlockedAnd64((LONG64*)var, value);
-#endif
 #if PLATFORM_PS3
 	return cellAtomicAnd64((uint64_t*)var, value) & value;
 #endif
@@ -520,9 +499,6 @@ inline U64 AtomicAnd(volatile U64* var, U64 value)
 /// Atomically ORs a 64bit variable with a value.
 inline U64 AtomicOr(volatile U64* var, U64 value)
 {
-#if PLATFORM_XENON
-	return InterlockedOr64((LONG64*)var, value);
-#endif
 #if PLATFORM_PS3
 	return cellAtomicOr64((uint64_t*)var, value) | value;
 #endif
@@ -538,6 +514,14 @@ inline U64 AtomicOr(volatile U64* var, U64 value)
 #endif
 
 #endif // !PLATFORM_PC
+
+#if PLATFORM_PC && defined(_WIN64)
+// [Blur2PC][x64] Pointer-wide atomic add (e.g. the contact stream write pointer).
+inline U64 AtomicAdd(volatile U64* var, U64 value)
+{
+	return InterlockedExchangeAdd64((volatile LONG64*)var, value);
+}
+#endif
 
 /** Atomically returns a 64bit value from memory.
 	\param var      Pointer to variable.

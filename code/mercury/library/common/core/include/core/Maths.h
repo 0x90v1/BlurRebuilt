@@ -161,11 +161,6 @@
 // Xenon
 /*****************************************************************************/
 
-#if defined( PLATFORM_XENON )
-#define _SIMD_
-#define _VMX_
-#define _VMX128_
-#endif
 
 #if defined( COMPILER_VC ) && !defined( __INTEL_COMPILER )
 
@@ -358,17 +353,6 @@ NOALIAS __forceinline void ReadWriteBarrier()
 /// MATREF - modifier for matrix (multi vector register, > 4 floats) maths function parameters: reference on PC
 #define MATREF &
 
-#elif defined( PLATFORM_XENON )
-
-/// PCREF - modifier for single vector register maths function parameters: value on 360
-#define PCREF
-
-/// VECREF - modifier for vector (single vector register, <= 4 floats) maths function parameters: value on 360
-#define VECREF
-
-/// MATREF - modifier for matrix (multi vector register, > 4 floats) maths function parameters: reference on 360
-#define MATREF &
-
 #else
 
 /// PCREF - modifier for single vector register maths function parameters: value on PS3
@@ -385,12 +369,7 @@ NOALIAS __forceinline void ReadWriteBarrier()
 #endif // #if !defined( PCREF ) || !defined( VECREF ) || !defined( MATREF )
 
 #if !defined( PASSINREG )
-#if defined( PLATFORM_XENON ) && ( _XDK_VER >= 5632 ) && !defined( CFG_ALLOW_OPTIMIZE_OFF ) && ( defined( CFG_SPEED ) || defined( CFG_GOLD ) )
-#define PASSINREG __declspec( passinreg )
-#define PASSINREG_ENABLED
-#else
 #define PASSINREG
-#endif
 #endif // #if !defined( PASSINREG )
 
 #if !defined( DARWIN64_ABI )

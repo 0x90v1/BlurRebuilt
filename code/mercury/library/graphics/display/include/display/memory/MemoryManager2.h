@@ -20,8 +20,6 @@
 #include "Display/Memory/GCM/GCMMemoryManager.h"
 #elif defined(DEVICE_PS3GL)
 #include "Display/Memory/GL/GLMemoryManager.h"
-#elif defined(DEVICE_XB2D3D9)
-#include "Display/Memory/D3D9/D3D9MemoryManager.h"
 #else
 //#pragma message("Unsupported device define when compiling MemoryManager2.h")
 #endif
@@ -33,8 +31,6 @@ namespace Display
 class MemoryBuffer : public GCM::C_GCMMemoryBuffer
 #elif defined(DEVICE_PS3GL)
 class MemoryBuffer : public GL::C_GLMemoryBuffer
-#elif defined(DEVICE_XB2D3D9)
-class MemoryBuffer : public D3D9::C_D3D9MemoryBuffer
 #else
 class MemoryBuffer
 #endif

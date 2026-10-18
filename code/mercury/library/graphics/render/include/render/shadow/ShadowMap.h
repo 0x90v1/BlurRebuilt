@@ -41,10 +41,6 @@ public:
 	Maths::C_Rect					m_ViewExtents;
 	F32								m_PerspDist;
 	E_ShadowMapMatrixType			m_MatrixType;
-#ifdef PLATFORM_XENON
-	F32								m_DepthBias;
-	F32								m_SlopeScaledBias;
-#endif
 #ifdef PLATFORM_PS3
 	F32								m_PolygonOffsetFactor;
 	F32								m_PolygonOffsetUnits;

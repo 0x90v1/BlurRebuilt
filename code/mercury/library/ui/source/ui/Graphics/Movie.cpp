@@ -7,9 +7,6 @@
 #include "ui/Game/Gadgets/ButtonMessages.h"
 #include <system\misc\StringUtil.h>
 
-#ifdef PLATFORM_XENON
-#include <xmp.h>
-#endif
 #ifdef PLATFORM_PS3
 #include <cell/cell_fs.h>
 #include <sysutil/sysutil_bgmplayback.h>
@@ -197,10 +194,6 @@ void Movie::Create
 
 #else
 
-#ifdef PLATFORM_XENON
-	Display::Device()->AcquireThreadOwnership(); // prevent TCR # 022 as following code can stall for a while
-	Display::Device()->GetD3DDevice()->Suspend();
-#endif
 
 	Sys::C_FilePath discName = Sys::C_FileSystem::Instance().GetWorkingDirectory() + "\\" + pFileName;
 	if(!m_pMovie->Open(discName.Chars(), m_MovieParams))
@@ -208,10 +201,6 @@ void Movie::Create
 		LOGWARN(g_Log, "Movie player failed to open %s\n", pFileName);
 	}
 	
-#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->Resume();
-	Display::Device()->ReleaseThreadOwnership();
-#endif
 
 #endif
 
@@ -231,9 +220,6 @@ void Movie::Create
 
 	if (!m_bIsBackgroundMovie)
 	{
-#ifdef PLATFORM_XENON
-		XMPOverrideBackgroundMusic();
-#endif
 #ifdef PLATFORM_PS3
 		cellSysutilDisableBgmPlayback();
 #endif
@@ -259,9 +245,6 @@ void Movie::Destroy()
 
 	if (m_bNeedToRestoreBackgroundMusic)
 	{
-#ifdef PLATFORM_XENON
-		XMPRestoreBackgroundMusic();
-#endif
 #ifdef PLATFORM_PS3
 		cellSysutilEnableBgmPlayback();
 #endif

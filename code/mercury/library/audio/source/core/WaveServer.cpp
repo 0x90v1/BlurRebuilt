@@ -1,10 +1,6 @@
 #include "AudioPch.h"
 
 // on 360 include a couple of files that allow us to check the DVD layer
-#ifdef PLATFORM_XENON
-#include <../../../util\logicalFs\include\OverlayFs/OverlayFs.h>
-#include <../../../util\logicalFs\include\GameFs/GameHelpers.h>
-#endif
 
 #include "coreheaders.h"
 
@@ -121,16 +117,6 @@ void Audio::Core::WaveStreamLoadingThread::Execute(void* pVoid)
 					{
 						// if on 360, check if the current DVD layer is the same as the one last used for this file.
 						// if not, close the file. (will then get re-opened and hence be looking at the correct layer)
-#ifdef PLATFORM_XENON
-						if (currentRequest.m_pFileWrapper->IsOpen())
-						{
-							LogicalFs::C_OverlayFs* pOverlayFs = LogicalFs::GameHelpers::GetGameFs();
-							LogicalFs::E_MediaLayer mediaLayerId = (LogicalFs::E_MediaLayer)(pOverlayFs->GetPreferredMediaLayer());
-
-							if (currentRequest.m_pFileWrapper->GetCurrentLayer() != mediaLayerId)
-								currentRequest.m_pFileWrapper->Close();
-						}
-#endif
 
 
 						if (! currentRequest.m_pFileWrapper->IsOpen())
@@ -139,12 +125,6 @@ void Audio::Core::WaveStreamLoadingThread::Execute(void* pVoid)
 							BIZ_ASSERT(bSuccess);
 
 							// if on 360, set the current layer in the file stream wrapper
-#ifdef PLATFORM_XENON
-							LogicalFs::C_OverlayFs* pOverlayFs = LogicalFs::GameHelpers::GetGameFs();
-							LogicalFs::E_MediaLayer mediaLayerId = pOverlayFs->GetPreferredMediaLayer();
-
-							currentRequest.m_pFileWrapper->SetCurrentLayer((U32)mediaLayerId);
-#endif
 						}
 
 						Sys::I_File* pFile = currentRequest.m_pFileWrapper->GetFilePointer();
@@ -378,11 +358,6 @@ bool Audio::Core::AudioGraph::CreateOutputBuffer()
 		return false;
 
 	// create output buffer
-#ifdef PLATFORM_XENON
-	if (m_bPhysicalMemoryBuffer)
-		m_pData = (U8*)(BizPhysicalAlloc(m_u32BufferSize, MAXULONG_PTR, m_u32BufferAlignment, PAGE_READWRITE));
-	else
-#endif
 		m_pData = (U8*)(BizAlignedMalloc(m_u32BufferSize, m_u32BufferAlignment));
 
 	return true;
@@ -393,11 +368,6 @@ bool Audio::Core::AudioGraph::DestroyOutputBuffer()
 {
 	if (m_pData)
 	{
-#ifdef PLATFORM_XENON
-		if (m_bPhysicalMemoryBuffer)
-			BizPhysicalFree((void*)m_pData);
-		else
-#endif
 			BizAlignedFree((void*)m_pData);
 
 		m_pData = 0;

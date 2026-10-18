@@ -12,11 +12,7 @@
 
 #define PROFILE_MAX_NAME_LENGTH		SYSTEM_PROFILE_NAME_LENGTH
 
-#ifdef PLATFORM_XENON
-#define	MAX_USERS					XUSER_MAX_COUNT		// 4
-#else
 #define	MAX_USERS					4
-#endif
 
 namespace UI
 {
@@ -91,10 +87,6 @@ public:
 	I_GamerPictureManager*			GamerPictureManager()										{ return m_pGamerPictureManager; }
 
 	// saving/loading
-#ifdef PLATFORM_XENON
-	void							DeviceId( const S32 sPadNo, const XCONTENTDEVICEID xDeviceId )		{ m_xDeviceIds[ sPadNo ] = xDeviceId; }
-	XCONTENTDEVICEID				DeviceId( const S32 sPadNo )										{ return m_xDeviceIds[ sPadNo ]; }
-#endif
 
 private:
 	static C_ProfileInterface		m_sInstance;
@@ -125,9 +117,6 @@ private:
 	Btl::Vector< SysProfile::FullProfile, Btl::VectorParameters_Array< MAX_USERS > >	m_PadProfiles;
 
 	// saving/loading
-#ifdef PLATFORM_XENON
-	Btl::Vector< XCONTENTDEVICEID, Btl::VectorParameters_Array< MAX_USERS > >			m_xDeviceIds;
-#endif
 
 	I_GamerPictureManager*			m_pGamerPictureManager;
 };

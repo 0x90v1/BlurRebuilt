@@ -127,7 +127,7 @@ C_DamageLayer::C_DamageLayer(C_VehicleModel* pParent) :
 
 	m_pVehiclePhysics		= NULL;
 	m_BufferValue			= 0;					// set the value of the double buffer to the first lattice.
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)	// [Blur2PC] PC left m_pDamageVolume uninitialised
+#if defined(PLATFORM_PC) // [Blur2PC] PC left m_pDamageVolume uninitialised
 	m_pDamageVolume			= &m_DamageVolume;
 #endif // #if defined(PLATFORM_XENON)
 
@@ -648,13 +648,6 @@ void C_DamageLayer::Update()
 		m_SlowMotionDamage	= false;
 	}
 
-#if defined(PLATFORM_XENON)
-	if (g_debugDamageSaveTexture)
-	{
-		HRESULT hr = D3DXSaveTextureToFile("DEVKIT:/amax/dontship/damagetexture.bmp", D3DXIFF_BMP, (IDirect3DTexture9*)GetDamageVolumeTexture()->GetGPUTexture(), NULL);
-		g_debugDamageSaveTexture = false;
-	}
-#endif
 
 }
 

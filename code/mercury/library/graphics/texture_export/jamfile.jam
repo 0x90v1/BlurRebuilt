@@ -26,9 +26,6 @@ source/ngl/ngl_gpu.cpp
 source/ngl/ngl_fx.cpp
 ;
 
-XENONSRC =
-source/ngl/xenon/ngl_xe_fx.cpp
-;
 
 Library texture_export : $(SRC) $($(PLATFORM)SRC) : stdafx.cpp ;
 

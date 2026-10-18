@@ -1590,16 +1590,6 @@ const WCHAR* C_GameDataFinder::GetVariableText( const char* pVariableName )
 	if ( !strncmp( pVariableName, "SCOREBOARD", 10 ) )
 	{
 
-	#if defined ( PLATFORM_XENON )
-	if(0)	//call all this to reset the leaderboards on Xbox Live
-	{
-		XUserResetStatsViewAllUsers(1,NULL);
-		XUserResetStatsViewAllUsers(2,NULL);
-		XUserResetStatsViewAllUsers(3,NULL);
-		XUserResetStatsViewAllUsers(4,NULL);
-		XUserResetStatsViewAllUsers(10,NULL);	
-	}
-	#endif
 
 		const int GAMERANK = 0;
 		const int TOTALFANS = 1;
@@ -2567,14 +2557,7 @@ const WCHAR* C_GameDataFinder::GetVariableText( const char* pVariableName )
 
 		bool online_possible = false;
 
-#if defined ( PLATFORM_XENON )
-		
-		if (fp.Active() && SysProfile::eProfileStateOnline == fp.m_State && !fp.m_IsGuest)
-		{
-			online_possible = true;
-		}
-
-#elif defined ( PLATFORM_PS3 ) 
+#if defined ( PLATFORM_PS3 )
 		
 		online_possible = SysProfile::C_Manager::Instance().NetworkPlatformAccountAvailable() & NetPlay::C_Core::Instance().ValidLocalAddress();
 
@@ -3441,24 +3424,10 @@ const WCHAR* C_GameDataFinder::GetVariableText( const char* pVariableName )
 		}
 		else if( !strncmp( pVariableName, "DESCRIPTION", 11 ) )
 		{
-#if defined ( PLATFORM_XENON )
-			if(Game::C_FriendChallenges::Instance().CheckingDesc())
-				m_VariableText.Format( UI::C_TextStringID( "RBC_CHECKING" ).String() );
-			else if(Game::C_FriendChallenges::Instance().InvalidDesc())
-				m_VariableText.Format( UI::C_TextStringID( "RBC_INVALID_DESC" ).String() );
-			else
-#endif
 				m_VariableText.Format( Game::C_FriendChallenges::Instance().GetFriendDemandDescription() );
 		}
 		else if( !strncmp( pVariableName, "NAME", 4 ) )
 		{
-#if defined ( PLATFORM_XENON )
-			if(Game::C_FriendChallenges::Instance().CheckingName())
-				m_VariableText.Format( UI::C_TextStringID( "RBC_CHECKING" ).String() );
-			else if(Game::C_FriendChallenges::Instance().InvalidName())
-				m_VariableText.Format( UI::C_TextStringID( "RBC_INVALID_NAME" ).String() );
-			else
-#endif
 				m_VariableText.Format( Game::C_FriendChallenges::Instance().GetFriendDemandName() );
 		}
 		else if ( !strncmp( pVariableName, "FRIEND_", 7 ) )

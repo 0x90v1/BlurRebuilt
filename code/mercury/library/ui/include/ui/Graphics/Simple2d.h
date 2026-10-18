@@ -468,7 +468,7 @@ public:
 	U16						m_Type		: 4;
 
 	U16						m_Count;							// 2
-	U32						m_UserData;							// 4
+	INTPTR					m_UserData;							// 4 [Blur2PC][x64] carries pointers; 8 on x64
 
 	void					(*m_Callback)(const C_Sprite*);
 };
@@ -699,11 +699,11 @@ public:
 	void				ResetClipWindow( const LayerIndex layer, const PanelIndex panel = 0 );
 
 	/// Add a sprite to be rendered, Use Addxxxx or CurrentSprite() functions to alter it's defaults
-	void				AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const MathsStorage::Float3& size, const C_UISpriteColours& colours, PanelIndex sPanel = 0, const E_SpriteType type = E_SpriteType_Sprite, const C_RenderState& renderState = C_RenderState::Instance(), const U32 uUserData = 0 );
+	void				AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const MathsStorage::Float3& size, const C_UISpriteColours& colours, PanelIndex sPanel = 0, const E_SpriteType type = E_SpriteType_Sprite, const C_RenderState& renderState = C_RenderState::Instance(), const INTPTR uUserData = 0 );
 	/// Add a sprite to be rendered, Use Addxxxx or CurrentSprite() functions to alter it's defaults
-	void				AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const F32 fSizeX, const F32 fSizeY, const C_UISpriteColours& colours, PanelIndex sPanel = 0, const E_SpriteType type = E_SpriteType_Sprite, const C_RenderState& renderState = C_RenderState::Instance(), const U32 uUserData = 0 );
+	void				AddSprite( LayerIndex uLayer, const Maths::HVec3& pos, const F32 fSizeX, const F32 fSizeY, const C_UISpriteColours& colours, PanelIndex sPanel = 0, const E_SpriteType type = E_SpriteType_Sprite, const C_RenderState& renderState = C_RenderState::Instance(), const INTPTR uUserData = 0 );
 	/// Add a state control sprite
-	void				AddSprite( LayerIndex uLayer, PanelIndex sPanel, const E_SpriteType type, const U32 userData = 0 );
+	void				AddSprite( LayerIndex uLayer, PanelIndex sPanel, const E_SpriteType type, const INTPTR userData = 0 );
 	/// Add a stencil control sprite
 	void				AddSprite( LayerIndex uLayer, PanelIndex sPanel, const Display::C_StencilState& state );
 	/// Get the current sprite in the stack (valid only after AddSprite is called)

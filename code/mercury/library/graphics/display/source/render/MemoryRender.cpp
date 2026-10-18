@@ -76,11 +76,7 @@ void C_MemoryRender::Draw(const F32 offset)
 		F32 y = 50.0f;
 		F32 s = 16.0f;
 
-	#if PLATFORM_XENON
-		DrawManager(Display2::Device()->GetLargeHeap(), x, y, s, "LargeHeap");
-		DrawManager(Display2::Device()->GetSmallHeap(), x, y, s, "SmallHeap");
-		DrawManager(Display2::Device()->GetDynamicHeap(), x, y, s, "DynamicHeap");
-	#elif PLATFORM_PS3
+	#if PLATFORM_PS3
 		DrawManager(Display2::Device()->GetLocalHeap(), x, y, s, "LocalHeap");
 		DrawManager(Display2::Device()->GetMainHeap(), x, y, s, "MainHeap");
 		DrawManager(Display2::Device()->GetCmdBufHeap(), x, y, s, "CmdBufHeap");

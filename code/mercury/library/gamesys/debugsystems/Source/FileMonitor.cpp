@@ -34,10 +34,6 @@ public:
 	virtual void ThreadMain()
 	{
 		g_stopBenchmark = false;
-#ifdef PLATFORM_XENON
-		//Avoid interfering with main thread.
-		XSetThreadProcessor(GetCurrentThread(), g_debugFileMonitorBenchmarkHWThread);
-#endif
 		const char* filename = (const char*)g_debugFileMonitorBenchmarkFile;
 
 		Sys::I_File* pFile = Sys::GetDefaultFileSystem()->Open(
@@ -159,12 +155,7 @@ Debug::Int	g_debugFileMonitorAlpha("GameSys.FileMonitor.Alpha",		200, Debug::Ran
 
 C_FileMonitor::C_FileMonitor()
 {
-#ifdef PLATFORM_XENON
-	m_pCacheStats = new IoCacheStats;
-	memset(m_pCacheStats, 0, sizeof(IoCacheStats));
-#else
 	m_pCacheStats = NULL;
-#endif
 }
 
 C_FileMonitor::~C_FileMonitor()
@@ -195,10 +186,6 @@ void C_FileMonitor::Render()
 	F32 y = posy;
 
 	U32 nRows = 4;
-#ifdef PLATFORM_XENON
-	if (g_debugFileMonitorCacheStats)
-		nRows += 11;
-#endif
 
 	F32 totalHeight = 0;
 	for (S32 i = 0; i < m_reports.Size(); ++i)
@@ -225,94 +212,6 @@ void C_FileMonitor::Render()
 	const F64 k1Mb = 1024.f*1024.f;
 
 	//Cache stats
-#ifdef PLATFORM_XENON
-	if (g_debugFileMonitorCacheStats)
-	{
-		IoCacheStats cacheStats;
-		IoGetCacheStats(&cacheStats);
-		m_pCacheStats->cachedTotal = cacheStats.cachedTotal;
-		m_pCacheStats->fileCount = cacheStats.fileCount;
-		m_pCacheStats->cacheHitOpens += cacheStats.cacheHitOpens;
-		m_pCacheStats->cacheMissOpens += cacheStats.cacheMissOpens;
-		m_pCacheStats->cacheHitReads += cacheStats.cacheHitReads;
-		m_pCacheStats->cacheMissReads += cacheStats.cacheMissReads;
-		m_pCacheStats->cacheHitBytesRequested += cacheStats.cacheHitBytesRequested;
-		m_pCacheStats->cacheMissBytesRequested += cacheStats.cacheMissBytesRequested;
-		m_pCacheStats->cacheCopyBytes += cacheStats.cacheCopyBytes;
-		m_pCacheStats->cacheEvictBytes += cacheStats.cacheEvictBytes;
-
-		{
-			Btl::String str;
-			str.Printf("CachedTotal %.2fMb",  F32((F64)m_pCacheStats->cachedTotal / k1Mb));
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache file count %u", m_pCacheStats->fileCount);
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache hit opens %u", m_pCacheStats->cacheHitOpens);
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache miss opens %u", m_pCacheStats->cacheMissOpens);
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache hit reads %u", m_pCacheStats->cacheHitReads);
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache miss reads %u", m_pCacheStats->cacheMissReads);
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache hit requested %.2fMb", F32((F64)m_pCacheStats->cacheHitBytesRequested / k1Mb));
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache miss requested %.2fMb", F32((F64)m_pCacheStats->cacheMissBytesRequested / k1Mb));
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache copy %.2fMb", F32((F64)m_pCacheStats->cacheCopyBytes / k1Mb));
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-		{
-			Btl::String str;
-			str.Printf("Cache evict %.2fMb", F32((F64)m_pCacheStats->cacheEvictBytes / k1Mb));
-			Display::FontRender()->Draw(str.Chars(), x, y, s, s, 
-				Maths::RGBA(200, 220, 220), Display::E_FontRenderAlign_Lt);
-			y += s+5.0f;
-		}
-	}
-#endif
 	
 	{
 		Btl::String str;

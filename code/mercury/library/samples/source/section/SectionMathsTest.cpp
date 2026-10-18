@@ -1,10 +1,5 @@
 #include "StdAfx.h"
 
-#if defined( PLATFORM_XENON )
-#include <pmcpb.h>
-#include <pmcpbsetup.h>
-#pragma comment(lib, "libpmcpb.lib") // Link in the PMC library.
-#endif // #if defined( PLATFORM_XENON )
 
 #include <Core/Maths.h>
 #include "Samples/Section/SectionMathsTest.h"
@@ -20,35 +15,6 @@ namespace Samples
 void StartProfiling( const _ePMCSetup setup );
 const S64 EndProfiling( PMCState* const __restrict pState, const bool dump = false );
 
-#if defined( PLATFORM_XENON )
-
-void StartProfiling( const _ePMCSetup setup )
-{
-    // Select a set of sixteen counters.
-    PMCInstallSetup( &PMCDefaultSetups[setup] );
-    // Reset the Performance Monitor counters in preparation for a new sampling run.
-    PMCResetCounters();
-    // Select the current processor as the trigger source.
-    PMCSetTriggerProcessor( GetCurrentProcessorNumber() / 2 );
-    // Start up the Performance Monitor counters.
-    PMCStart(); // Start up counters
-}
-
-const S64 EndProfiling( PMCState* const __restrict pState, const bool dump )
-{
-    // Stop the Performance Monitor counters, then record information about them.
-    PMCStop();
-    // Get the counters.
-    PMCGetCounters( pState );
-    if ( dump )
-    {
-        // Print out detailed information about all 16 counters.
-        PMCDumpCountersVerbose( pState, /*PMC_VERBOSE_NOL2ECC*/ PMC_VERBOSE_MAX );
-    }
-    return (S64)pState->interval;
-}
-
-#endif
 
 
 class Interval
@@ -95,15 +61,9 @@ void Analyse(
     
     StartProfiling( PMC_SETUP_FPU_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        #endif
         
         for ( S32 i = 0; i <= samples; i++ )
         {
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pX[i] );
-            #endif
             
             pA[i] = (F32)(*reference)( pX[i] );
         }
@@ -112,15 +72,9 @@ void Analyse(
     
     StartProfiling( PMC_SETUP_VMXMIX_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        #endif
         
         for ( S32 i = 0; i <= samples; i++ )
         {
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pX[i] );
-            #endif
             
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pB[i] );
         }
@@ -220,10 +174,6 @@ void Analyse(
     
     StartProfiling( PMC_SETUP_FPU_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        __dcbt( 0x0, pY );
-        #endif
         
         S32 index = 0;
         for ( S32 i = 0; i <= samples_x; i++ )
@@ -231,27 +181,17 @@ void Analyse(
             const F64 x = pX[i];
             for ( S32 j = 0; j <= samples_y; j++ )
             {
-                #if defined( PLATFORM_XENON )
-                __dcbt( 0x80, &pY[j] );
-                #endif
                 
                 const F64 y = pY[j];
                 pA[index++] = (F32)(*reference)( x, y );
             }
             
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pX[i] );
-            #endif
         }
     }
     S64 t_reference = EndProfiling( &pmcstate );
     
     StartProfiling( PMC_SETUP_VMXMIX_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        __dcbt( 0x0, pY );
-        #endif
         
         S32 index = 0;
         for ( S32 i = 0; i <= samples_x; i++ )
@@ -259,17 +199,11 @@ void Analyse(
             const VF32 x = Load< VF32 >( &pX[i] );
             for ( S32 j = 0; j <= samples_y; j++ )
             {
-                #if defined( PLATFORM_XENON )
-                __dcbt( 0x80, &pY[j] );
-                #endif
                 
                 const VF32 y = Load< VF32 >( &pY[j] );
                 Store( (*function)( x, y ), &pB[index++] );
             }
             
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pX[i] );
-            #endif
         }
     }
     S64 t_function = EndProfiling( &pmcstate );
@@ -369,15 +303,9 @@ void Analyse(
     
     StartProfiling( PMC_SETUP_FPU_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        #endif
         
         for ( S32 i = 0; i <= samples; i++ )
         {
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pX[i] );
-            #endif
             
             F64 result1;
             F64 result2;
@@ -390,15 +318,9 @@ void Analyse(
     
     StartProfiling( PMC_SETUP_VMXMIX_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        #endif
         
         for ( S32 i = 0; i <= samples; i++ )
         {
-            #if defined( PLATFORM_XENON )
-            __dcbt( 0x80, &pX[i] );
-            #endif
             
             VF32 result1;
             VF32 result2;
@@ -528,24 +450,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_OVERVIEW_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile1 = EndProfiling( &pmcstate /*, true */ );
     
@@ -570,24 +478,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_OVERVIEW_PB0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile2 = EndProfiling( &pmcstate );
     
@@ -604,24 +498,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_INSTRUCTIONMIX_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile3 = EndProfiling( &pmcstate );
     
@@ -636,24 +516,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_VMXMIX_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile4 = EndProfiling( &pmcstate );
     
@@ -669,24 +535,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_VMXFPU_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile5 = EndProfiling( &pmcstate );
     
@@ -702,24 +554,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_FPU_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile6 = EndProfiling( &pmcstate );
     
@@ -729,24 +567,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_FLUSHREASONS_PB0T0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile7 = EndProfiling( &pmcstate );
     
@@ -759,24 +583,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_PREFETCH );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile8 = EndProfiling( &pmcstate );
     
@@ -800,24 +610,10 @@ void Profile(
     
     StartProfiling( PMC_SETUP_MEMORY_LATENCY_PB0 );
     {
-        #if defined( PLATFORM_XENON )
-        __dcbt( 0x0, pX );
-        for ( S32 i = 0; i < samples; i+=32 )
-        {
-            __dcbt( sizeof( F32 ) * i + 128, pX );
-            __dcbz( sizeof( F32 ) * i, pA );
-            for ( S32 j = 0; j < 32; j++ )
-            {
-                Store( (*function)( Load< VF32 >( &pX[i+j] ) ), &pA[i+j] );
-            }
-            __dcbst( sizeof( F32 ) * i, pA );
-        }
-        #else
         for ( S32 i = 0; i < samples; i++ )
         {
             Store( (*function)( Load< VF32 >( &pX[i] ) ), &pA[i] );
         }
-        #endif
     }
     const S64 t_profile9 = EndProfiling( &pmcstate );
     
@@ -984,101 +780,12 @@ public:
     
     virtual void ThreadMain()
     {
-        #if defined( PLATFORM_XENON )
-        XSetThreadProcessor( GetHandle(), m_Cpu );
-        //SetThreadPriority( GetHandle(), THREAD_PRIORITY_IDLE );
-        //SetThreadPriority( GetHandle(), THREAD_PRIORITY_IDLE + 1 );
-        //SetThreadPriority( GetHandle(), THREAD_PRIORITY_HIGHEST );
-        SetThreadPriority( GetHandle(), THREAD_PRIORITY_TIME_CRITICAL );
-        #endif
         
         IdleThread* pThis = this;
         
         const S32 zero = 0;
         while ( !m_Terminate )
         {
-            #if defined( PLATFORM_XENON )
-            #if 0
-            YieldProcessor();
-            #elif 0
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            #elif 0
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            YieldProcessor(); YieldProcessor(); YieldProcessor(); YieldProcessor();
-            #elif 0
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r0,r0,r0 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r0,r0,r0 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r0,r0,r0 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r0,r0,r0 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r0,r0,r0 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r0,r0,r0 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r0,r0,r0 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); //__asm { or r0,r0,r0 }
-            #elif 1 // BEST!
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); //__asm { or r1,r1,r1 }
-            #elif 0
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r2,r2,r2 } YieldProcessor(); __asm { or r3,r3,r3 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r2,r2,r2 } YieldProcessor(); __asm { or r3,r3,r3 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r2,r2,r2 } YieldProcessor(); __asm { or r3,r3,r3 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r2,r2,r2 } YieldProcessor(); //__asm { or r3,r3,r3 }
-            #elif 0
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); __asm { or r3,r3,r3 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); __asm { or r3,r3,r3 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); __asm { or r3,r3,r3 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); //__asm { or r3,r3,r3 }
-            #elif 0
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); __asm { or r5,r5,r5 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); __asm { or r5,r5,r5 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); __asm { or r5,r5,r5 }
-            YieldProcessor(); __asm { or r0,r0,r0 } YieldProcessor(); __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r4,r4,r4 } YieldProcessor(); //__asm { or r5,r5,r5 }
-            #elif 0
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } //__asm { or r1,r1,r1 }
-            #else
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr1,vr1,vr1 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr1,vr1,vr1 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr1,vr1,vr1 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr0,vr0,vr0 } __asm { or r1,r1,r1 }
-            YieldProcessor(); __asm { or r0,r0,r0 } __asm { vor vr1,vr1,vr1 } //__asm { or r1,r1,r1 }
-            #endif
-            #endif
         }
     }
     

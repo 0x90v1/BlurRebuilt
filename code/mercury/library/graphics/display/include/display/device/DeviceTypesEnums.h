@@ -156,12 +156,7 @@ enum E_Format
 	E_Format_R16F							= Display2::E_TextureFormat_R16F,
 #endif
 
-#if PLATFORM_XENON
-	E_Format_DXN							= Display2::E_TextureFormat_DXN,
-	E_Format_A2B10G10R10F					= Display2::E_SurfaceFormat_A2B10G10R10F_EDRAM,
-#else
 	E_Format_A2B10G10R10F					= Display2::E_SurfaceFormat_Unknown-1,
-#endif
 
 	E_Format_Index16						= Display2::E_IndexFormat_16,
 	E_Format_Index32						= Display2::E_IndexFormat_32,
@@ -179,9 +174,6 @@ INLINE E_Format GetFormatFromSurfaceFormat(const Display2::E_SurfaceFormat surfa
 	case Display2::E_SurfaceFormat_R32F:					return E_Format_R32F;
 	case Display2::E_SurfaceFormat_L8:						return E_Format_L8;
 	case Display2::E_SurfaceFormat_Unknown:					return E_Format_Unknown;
-#if PLATFORM_XENON
-	case Display2::E_SurfaceFormat_A2B10G10R10F_EDRAM:		return E_Format_A2B10G10R10F;
-#endif
 	default:
 		#ifndef CFG_GOLD
 		CORE_PRINT("Unsupported surface format %s\n", Display2::GetSurfaceFormatAsString(surfaceFormat).Chars());
@@ -208,10 +200,6 @@ INLINE E_Format GetFormatFromTextureFormat(const Display2::E_TextureFormat textu
 	case Display2::E_TextureFormat_G16R16:					return E_Format_G16R16;
 	case Display2::E_TextureFormat_G16R16F:					return E_Format_G16R16F;
 	case Display2::E_TextureFormat_Unknown:					return E_Format_Unknown;
-#if PLATFORM_XENON
-	case Display2::E_TextureFormat_A16B16G16R16F_EXPAND:	return E_Format_A16B16G16R16F;
-	case Display2::E_TextureFormat_A16B16G16R16_UINT:		return E_Format_A16B16G16R16F;
-#endif
 #if !PLATFORM_PPU_SPU
 	case Display2::E_TextureFormat_X8R8G8B8:				return E_Format_X8R8G8B8;
 #endif
@@ -236,9 +224,6 @@ INLINE Display2::E_SurfaceFormat GetSurfaceFormatFromFormat(const E_Format forma
 	case E_Format_R32F:										return Display2::E_SurfaceFormat_R32F;
 	case E_Format_L8:										return Display2::E_SurfaceFormat_L8;
 	case E_Format_Unknown:									return Display2::E_SurfaceFormat_Unknown;
-#if PLATFORM_XENON
-	case E_Format_A2B10G10R10F:								return Display2::E_SurfaceFormat_A2B10G10R10F_EDRAM;
-#endif
 	default:
 		#ifndef CFG_GOLD
 		CORE_PRINT("Unsupported format %s when getting surface format\n", Display2::GetTextureFormatAsString((Display2::E_TextureFormat)format).Chars());
@@ -372,16 +357,12 @@ enum E_PrimitiveType
 	E_PrimitiveType_TriangleList			= Display2::E_PrimitiveType_TriangleList,
 	E_PrimitiveType_TriangleStrip			= Display2::E_PrimitiveType_TriangleStrip,
 	E_PrimitiveType_TriangleFan				= Display2::E_PrimitiveType_TriangleFan,
-	#if DEVICE_XB2 || PLATFORM_PPU_SPU
+	#if PLATFORM_PPU_SPU
 	E_PrimitiveType_QuadList 				= Display2::E_PrimitiveType_QuadList,
 	#else
 	E_PrimitiveType_QuadList				= Display2::E_PrimitiveType_Unknown-2,
 	#endif
-	#if DEVICE_XB2
-	E_PrimitiveType_RectList 				= Display2::E_PrimitiveType_RectList,
-	#else
 	E_PrimitiveType_RectList				= Display2::E_PrimitiveType_Unknown-1,
-	#endif
 	E_PrimitiveType_Unknown					= Display2::E_PrimitiveType_Unknown,
 };
 
@@ -555,15 +536,6 @@ enum E_VertexElementType
 	E_VertexElementType_U32_1				= Display2::E_VertexElementType_Unknown+6,
 	E_VertexElementType_SHHD_3				= Display2::E_VertexElementType_SHHD_3,
 	E_VertexElementType_SHHD_3N				= Display2::E_VertexElementType_SHHD_3N,
-#elif PLATFORM_XENON
-	E_VertexElementType_S16_2N 				= Display2::E_VertexElementType_S16_2N,
-	E_VertexElementType_U16_2				= Display2::E_VertexElementType_U16_2,
-	E_VertexElementType_U16_4				= Display2::E_VertexElementType_U16_4,
-	E_VertexElementType_U10_3N 				= Display2::E_VertexElementType_U10_3N,
-	E_VertexElementType_U10_4N 				= Display2::E_VertexElementType_U10_4N,
-	E_VertexElementType_U32_1				= Display2::E_VertexElementType_U32_1,
-	E_VertexElementType_SHHD_3				= Display2::E_VertexElementType_SHHD_3,
-	E_VertexElementType_SHHD_3N				= Display2::E_VertexElementType_SHHD_3N,
 #endif
 };
 
@@ -590,11 +562,6 @@ enum E_VertexElementUsage
 	E_VertexElementUsage_Depth				= Display2::E_VertexElementUsage_Unknown+2,
 	E_VertexElementUsage_Sample				= Display2::E_VertexElementUsage_Unknown+3,
 	E_VertexElementUsage_PositionT			= Display2::E_VertexElementUsage_Unknown+4,
-#elif PLATFORM_XENON
-	E_VertexElementUsage_TessFactor			= Display2::E_VertexElementUsage_TessFactor,
-	E_VertexElementUsage_Depth				= Display2::E_VertexElementUsage_Depth,
-	E_VertexElementUsage_Sample				= Display2::E_VertexElementUsage_Sample,
-	E_VertexElementUsage_PositionT			= Display2::E_VertexElementUsage_Unknown+1,
 #endif
 };
 

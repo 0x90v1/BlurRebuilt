@@ -75,14 +75,6 @@ void C_TextureUtils::CopyTexture(Display::C_RenderTexture2D* pDstTexture, Displa
 
 	Display::Quad::DrawFullScreen();
 
-	#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = viewport.m_W;
-	rect.y2 = viewport.m_H;
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, pDstTexture->GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	#endif
 
 	Display::Device()->SetColourDepthStencilSurface();
 }
@@ -110,14 +102,6 @@ void C_TextureUtils::GenerateNormalFromGradient(Display::C_RenderTexture2D* pRen
 
 	Display::Quad::DrawFullScreen();
 
-	#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = viewport.m_W;
-	rect.y2 = viewport.m_H;
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, pRenderTarget->GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	#endif
 }
 
 void C_TextureUtils::GenerateNormalMap(Display::C_RenderTexture2D* pRenderTarget, Display::C_Texture2D* pTexture, const F32 fSlopeScale)
@@ -145,71 +129,13 @@ void C_TextureUtils::GenerateNormalMap(Display::C_RenderTexture2D* pRenderTarget
 
 	Display::Quad::DrawFullScreen();
 
-	#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = viewport.m_W;
-	rect.y2 = viewport.m_H;
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, pRenderTarget->GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	#endif
 }
 
 // this currently only works on 360
 void C_TextureUtils::BuildMipMaps(const Display::C_Texture2D* pTexture, const bool blurMips)
 {
-#ifndef PLATFORM_XENON
 	LOGWARN(Render::g_Log, "C_TextureUtils::BuildMipMaps is not implemented on this platform");
 	return;
-#else
-
-	PERF_EVENT("BuildMipMaps");
-	
-	if(!pTexture || !pTexture->IsCreated())
-		return;
-
-	Display::Device()->SetVertexShader(&Display::VertexShader_XY::m_VertexShader);
-
-	if(blurMips)
-		Display::Device()->SetPixelShader(&Display::PixelShader::m_PixelShaderTexture2x2);
-	else
-		Display::Device()->SetPixelShader(&Display::PixelShader::m_PixelShaderTexture);
-
-	Display::Device()->SetTexture(0, pTexture);
-	Display::Device()->SetTextureFilterMagMinMip(0, Display::E_TextureFilter_Linear, Display::E_TextureFilter_Linear, Display::E_TextureFilter_Point);
-	Display::Device()->SetTextureAddress(0, Display::E_TextureAddress_Wrap);
-	
-	U32 width = pTexture->GetWidth() / 2;
-	U32 height = pTexture->GetHeight() / 2;
-
-	for(U32 i=1; i<pTexture->GetLevels(); i++)
-	{
-		Display::C_Viewport viewport;
-		viewport.m_W = width;
-		viewport.m_H = height;
-		Display::Device()->SetViewport(viewport);
-
-		#ifdef PLATFORM_XENON
-		Display::Device()->GetD3DDevice()->SetSamplerState(0, D3DSAMP_MAXMIPLEVEL, i-1);
-		Display::Device()->GetD3DDevice()->SetSamplerState(0, D3DSAMP_MINMIPLEVEL, i-1);
-		#endif
-
-		Display::Quad::DrawFullScreen();
-
-		#ifdef PLATFORM_XENON
-		Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0, NULL, (D3DTexture*)pTexture->GetGPUTexture(), NULL, i, 0, NULL, 1.0f, 0L, NULL );
-		#endif
-
-		width /= 2;
-		height /= 2;
-	}
-
-	#ifdef PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetSamplerState(0, D3DSAMP_MAXMIPLEVEL, 0);
-	Display::Device()->GetD3DDevice()->SetSamplerState(0, D3DSAMP_MINMIPLEVEL, 13);
-	#endif
-
-#endif
 }
 
 } // namespace Texture

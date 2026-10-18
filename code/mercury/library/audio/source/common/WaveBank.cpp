@@ -88,15 +88,6 @@ WaveBank::~WaveBank()
 
 			if (m_vpWaves[i]->m_pvWaveData)
 			{
-#ifdef _XBOX360
-				if (m_vpWaves[i]->m_baseHeader.uFormat == Core::uXMA16Bit || m_vpWaves[i]->m_baseHeader.uFormat == Core::uXMA216Bit)
-				{
-					//printf("phys. free wav %d, %x\n", i, m_vpWaves[i]->m_pvWaveData);
-					if (!m_pXMAWaveBankBuffer)
-						Free(m_vpWaves[i]->m_pvWaveData, ePhysical);
-				}
-				else
-#endif
 				{
 					//printf("free wav %d, %x\n", i, m_vpWaves[i]->m_pvWaveData);
 					Free(m_vpWaves[i]->m_pvWaveData);
@@ -109,13 +100,6 @@ WaveBank::~WaveBank()
 		}
 	}
 
-#ifdef _XBOX360
-	if (m_pXMAWaveBankBuffer)
-	{
-		Free(m_pXMAWaveBankBuffer, ePhysical);
-		m_pXMAWaveBankBuffer = NULL;
-	}
-#endif
 
 	if (m_pchFilename)
 		Free(m_pchFilename);
@@ -127,10 +111,6 @@ WaveBank::~WaveBank()
 //-----------------------------------------------------------------------------
 void WaveBank::Init() 
 {
-	#ifdef _XBOX360
-	m_pXMAWaveBankBuffer = NULL;
-	m_xmaWaveBankBufferSize	= 0;
-	#endif
 
 	m_pchFilename=NULL; 
 	m_MemoryFootprint = 0;

@@ -52,7 +52,7 @@ bool LoadTextureFromFile(const Util::C_String& fileName, C_TextureParams* pParam
 	C_BitmapInfoHeader* pInfoHeader = (C_BitmapInfoHeader*)&pData[i];
 	i += sizeof(C_BitmapInfoHeader);
 
-#if PLATFORM_XENON || PLATFORM_PS3
+#if PLATFORM_PS3
 	{
 		U32* pPtr = (U32*)pFileHeader;
 		for(U32 i=0; i<(sizeof(C_BitmapFileHeader)-4)/4; i++)

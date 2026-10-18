@@ -254,12 +254,6 @@ void C_DoFClassify::RenderTilesFull() const
 	Display::Device()->SetVertexShader(&m_TilesVertexShader);
 	Display::Device()->SetPixelShader(&m_TilesFullShader);
 
-#if PLATFORM_XENON
-	const F32 fPointSize = 8.0f; 
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER0, (IDirect3DBaseTexture9*)m_DepthWeightsRenderTexture.GetTexture().GetGPUTexture());
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSPRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&fPointSize));
-#endif
 
 	Display::Device()->SetTexture(0, Render::GetGlobalColourBuffer());
 	Display::Device()->SetTexture(1, &m_DownsampledBlurredRenderTexture.GetTexture());
@@ -277,10 +271,6 @@ void C_DoFClassify::RenderTilesFull() const
 
 	Display::Device()->SetDepthEnable(Display::E_Bool_Default); 
 
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER0, 0);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSPRITEENABLE, FALSE);
-#endif
 }
 
 void C_DoFClassify::RenderTilesIntermediate() const
@@ -297,12 +287,6 @@ void C_DoFClassify::RenderTilesIntermediate() const
 	Display::Device()->SetPixelShaderParameterArrayF(m_TilesDistancesParameter, m_vTapDistances);
 	Display::Device()->SetPixelShader(&m_TilesIntermediateShader);
 
-#if PLATFORM_XENON
-	const F32 fPointSize = 8.0f; 
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER0, (IDirect3DBaseTexture9*)m_DepthWeightsRenderTexture.GetTexture().GetGPUTexture());
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSPRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&fPointSize));
-#endif
 
 	Display::Device()->SetTexture(0, Render::GetGlobalColourBuffer());
 	Display::Device()->SetTexture(1, &m_DownsampledColourRenderTexture.GetTexture());
@@ -320,10 +304,6 @@ void C_DoFClassify::RenderTilesIntermediate() const
 
 	Display::Device()->SetDepthEnable(Display::E_Bool_Default);
 
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER0, 0);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSPRITEENABLE, FALSE);
-#endif
 }
 
 void C_DoFClassify::RenderTilesNone() const
@@ -336,12 +316,6 @@ void C_DoFClassify::RenderTilesNone() const
 	Display::Device()->SetVertexShader(&m_TilesVertexShader);
 	Display::Device()->SetPixelShader(&m_TilesNoneShader);
 
-#if PLATFORM_XENON
-	const F32 fPointSize = 8.0f; 
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER0, (IDirect3DBaseTexture9*)m_DepthWeightsRenderTexture.GetTexture().GetGPUTexture());
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSPRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&fPointSize));
-#endif
 
 	Display::Device()->SetTexture(0, Render::GetGlobalColourBuffer());
 	Display::Device()->SetTexture(1, &m_DownsampledColourRenderTexture.GetTexture());
@@ -359,10 +333,6 @@ void C_DoFClassify::RenderTilesNone() const
 
 	Display::Device()->SetDepthEnable(Display::E_Bool_Default);
 
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetTexture(D3DVERTEXTEXTURESAMPLER0, 0);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_POINTSPRITEENABLE, FALSE);
-#endif
 }
 
 void C_DoFClassify::RenderFocalDistances() const

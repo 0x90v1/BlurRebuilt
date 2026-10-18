@@ -50,14 +50,12 @@ bool C_DepthOfField::OnCreateVolatile()
 	Display2::Device()->SetRenderTexture2DName(&m_BlurRenderTexture, "_DepthOfFieldBlurRT");
 	#endif
 
-#ifndef PLATFORM_XENON
 	if (!Display::Device()->CreateRenderTexture2D(m_Width, m_Height, 1, 0, m_Format, Display::E_Multisample_None, 0, &m_TempRenderTexture))
 		return false;
 
 	#if TRACK_DISPLAY2_RESOURCES
 	Display2::Device()->SetRenderTexture2DName(&m_TempRenderTexture, "_DepthOfFieldTempRT");
 	#endif
-#endif
 
 	return true;
 }
@@ -85,9 +83,7 @@ void C_DepthOfField::OnDestroy()
 
 void C_DepthOfField::OnDestroyVolatile()
 {
-#ifndef PLATFORM_XENON
 	Display::Device()->Destroy(&m_TempRenderTexture);
-#endif
 	Display::Device()->Destroy(&m_BlurRenderTexture);
 }
 
@@ -111,13 +107,8 @@ void C_DepthOfField::Render()
 	m_BlurRenderTexture.Resolve();
 #endif
 
-#ifdef PLATFORM_XENON
-	m_GaussianBlurUtil.GaussBlurX(&m_BlurRenderTexture, &m_BlurRenderTexture, Render::Texture::E_GaussianBlurShader_7);
-	m_GaussianBlurUtil.GaussBlurY(&m_BlurRenderTexture, &m_BlurRenderTexture, Render::Texture::E_GaussianBlurShader_7);
-#else
 	m_GaussianBlurUtil.GaussBlurX(&m_TempRenderTexture, &m_BlurRenderTexture, Render::Texture::E_GaussianBlurShader_7);
 	m_GaussianBlurUtil.GaussBlurY(&m_BlurRenderTexture, &m_TempRenderTexture, Render::Texture::E_GaussianBlurShader_7);
-#endif
 
  	Display::Device()->SetColourDepthStencilSurface( pColourSurface, pDepthStencilSurface );
 	Display::Device()->Clear(Display::E_Clear_Colour | Display::E_Clear_Stencil, Maths::RGBA(0, 0, 0, 0));

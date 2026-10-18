@@ -34,11 +34,7 @@ bool C_TextureRender::OnCreateVolatile()
 
 	const Display::C_BackBuffer& backBuffer = Display::Device()->GetBackBuffer();
 
-	#ifdef PLATFORM_XENON
-		const Display::E_Format format = Display::E_Format_A8R8G8B8;
-	#else
 		const Display::E_Format format = backBuffer.GetColourFormat();
-	#endif
 	
 	if (!Display::Device()->CreateRenderTexture2D(m_Width, m_Height, m_NumMips, Display::E_Usage_Colour, format, m_MultiSample, NULL, &m_RenderTexture))
 	{
@@ -61,9 +57,6 @@ bool C_TextureRender::OnCreateVolatile()
 #endif*/
 
 	Display::C_SurfaceParams surfaceParams;
-	#ifdef PLATFORM_XENON
-	surfaceParams.AfterSurface(&m_RenderTexture.GetSurface());
-	#endif
 
 	if (!Display::Device()->CreateDepthStencilSurface(m_Width, m_Height, Display::E_Usage_DepthStencil, backBuffer.GetDepthStencilFormat(), m_MultiSample, &surfaceParams, &m_DepthStencilSurface))
 	{
@@ -108,14 +101,7 @@ void C_TextureRender::Bind() const
 
 void C_TextureRender::Unbind() const
 {
-	#ifdef PLATFORM_XENON
-	D3DRECT rect;
-	rect.x1 = 0;
-	rect.y1 = 0;
-	rect.x2 = m_Width;
-	rect.y2 = m_Height;
-	Display::Device()->GetD3DDevice()->Resolve(D3DRESOLVE_RENDERTARGET0 | D3DRESOLVE_ALLFRAGMENTS, &rect, (D3DTexture*)m_RenderTexture.GetTexture().GetGPUTexture(), NULL, 0, 0, NULL, 1.f, 0, NULL);
-	#elif PLATFORM_PS3
+	#if PLATFORM_PS3
 	Display::Device()->SetZcullEnable(true, true);
 	#elif PLATFORM_PC
 	// [Blur2PC] retail Blur PC's unbind (Blur.exe 1.2 0x0068ca20) is only this: copies a multisampled render

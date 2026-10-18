@@ -33,42 +33,6 @@ bool C_UiPostProcessBuffer::OnCreateVolatile()
 
 	Display::C_SurfaceParams surfaceParams;
 
-#if PLATFORM_XENON
-	if( !Display::Device()->CreateColourSurface(
-		m_Width,
-		m_Height,
-		0,
-		m_ColourFormat,
-		m_Multisample,
-		&surfaceParams,
-		&m_ColourSurface ) )
-	{
-		LOGFATAL(Display::g_Log, "Failed to create ui colour surface\n");
-		return false;
-	}
-
-	#if TRACK_DISPLAY2_RESOURCES
-	Display2::Device()->SetSurfaceName(&m_ColourSurface, "_UiPostProcessBufferC");
-	#endif
-	
-	surfaceParams.AfterSurface(&m_ColourSurface);
-	
-	if(!Display::Device()->CreateTexture2D(
-		m_Width,
-		m_Height,
-		1,
-		0,
-		m_ColourFormat,
-		&m_ColourTexture ) )
-	{
-		LOGFATAL(Display::g_Log, "Failed to create ui texture\n");
-		return false;
-	}
-
-	#if TRACK_DISPLAY2_RESOURCES
-	Display2::Device()->SetTextureName(&m_ColourTexture, "_UiPostProcessBufferColour");
-	#endif
-#else
 	if(!Display::Device()->CreateRenderTexture2D(
 		m_Width,
 		m_Height,
@@ -86,7 +50,6 @@ bool C_UiPostProcessBuffer::OnCreateVolatile()
 	#if TRACK_DISPLAY2_RESOURCES
 	Display2::Device()->SetRenderTexture2DName(&m_ColourRenderTexture, "_UiPostProcessBufferRT");
 	#endif
-#endif // PLATFORM_XENON
 	if( m_UseDepth )
 	{
 		if( !Display::Device()->CreateDepthStencilSurface( 
@@ -158,25 +121,6 @@ bool C_UiPostProcessBuffer::OnCreateVolatile()
 		Display2::Device()->SetTextureName(&m_DepthStencilTexture, "_UiPostProcessBufferDepthStencil");
 		#endif
 	}
-#elif PLATFORM_XENON
-	if( m_UseDepth )
-	{
-		if ( !Display::Device()->CreateTexture2D(
-			m_Width, 
-			m_Height, 
-			1, 
-			0, 
-			m_DepthStencilFormat, 
-			&m_DepthStencilTexture ) )
-		{
-			LOGFATAL( Display::g_Log, "Failed to create ui depth stencil texture\n" );
-			return false;
-		}
-
-		#if TRACK_DISPLAY2_RESOURCES
-		Display2::Device()->SetTextureName(&m_DepthStencilTexture, "_UiPostProcessBufferDepthStencil");
-		#endif
-	}
 #endif // PLATFORM_PS3
 
 	return true;
@@ -184,16 +128,11 @@ bool C_UiPostProcessBuffer::OnCreateVolatile()
 
 void C_UiPostProcessBuffer::OnDestroyVolatile()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	Display::Device()->BlockUntilIdle();
 #endif
 
-#if PLATFORM_XENON
-	Display::Device()->Destroy( &m_ColourSurface );
-	Display::Device()->Destroy( &m_ColourTexture );
-#else
 	Display::Device()->Destroy( &m_ColourRenderTexture );
-#endif // PLATFORM_XENON
 
 	if( m_UseDepth )
 	{
@@ -207,11 +146,7 @@ bool C_UiPostProcessBuffer::Bind()
 {
 	BIZ_ASSERT( !m_Bound );
 
-#if PLATFORM_XENON
-	Display::Device()->SetColourDepthStencilSurface( &m_ColourSurface, m_UseDepth ? &m_DepthStencilSurface : NULL);
-#else
 	Display::Device()->SetColourDepthStencilSurface( &m_ColourRenderTexture.GetSurface(), m_UseDepth ? &m_DepthStencilSurface : NULL);
-#endif // PLATFORM_XENON
 
 	m_Bound = true;
 	return true;
@@ -222,15 +157,6 @@ void C_UiPostProcessBuffer::Unbind( const bool bDoResolve )
 {
 	BIZ_ASSERT( m_Bound );
 
-#if PLATFORM_XENON
-	if( bDoResolve )
-	{
-		if( m_UseDepth )
-			Display::Device()->Resolve( Display::E_Resolve_DepthStencil,	&m_DepthStencilTexture );
-
-		Display::Device()->Resolve( Display::E_Resolve_Colour,			&m_ColourTexture );
-	}
-#endif // PLATFORM_XENON
 
 	m_Bound = false;
 }

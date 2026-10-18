@@ -160,9 +160,6 @@ void C_GameSystems::Update()
 #define USE_NEW_PAK_LAYOUT
 void C_GameSystems::CreateFsLayers()
 {
-#ifdef PLATFORM_XENON
-	IoSuspendFileCaching();
-#endif
 
 	Sys::I_FileSystem& nativeFs = Sys::C_FileSystem::Instance();
 
@@ -182,12 +179,8 @@ void C_GameSystems::CreateFsLayers()
 	//We have to have one buffer which should match the buffer size being used to read out of the pak.
 	//The reason for using a buffer is that otherwise cakey's io layer enforces 2k alignment of reads.
 	Sys::C_OpenParams unalignedUbPakParams(
-#ifdef PLATFORM_XENON
-		AUDIO_XMA_BUFFER_SIZE_K*1024, // buffer size
-#else
 		//PC & PS3
 		AUDIO_ADPCM_BUFFER_SIZE_K*1024,
-#endif
 		true, //iscritical
 		true, //asserteof
 		1 // num buffers
@@ -316,9 +309,6 @@ void C_GameSystems::CreateFsLayers()
 
 #endif
 
-#ifdef PLATFORM_XENON
-	IoResumeFileCaching();
-#endif
 }
 
 void C_GameSystems::UnloadGamedataRampak()

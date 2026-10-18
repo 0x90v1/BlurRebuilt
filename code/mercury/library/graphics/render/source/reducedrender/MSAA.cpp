@@ -33,44 +33,7 @@ void C_MSAA::Begin() const
 		assert(m_pDepthStencilSurface);
 
 		// set and create new surfaces
-	#if defined(PLATFORM_XENON)
-		U32 size = 0;
-		
-		XGTEXTURE_DESC xgColourSurfaceDesc;
-		XGGetSurfaceDesc((D3DSurface*)&m_pColourSurface->m_d3dSurface, &xgColourSurfaceDesc);
-
-		D3DSURFACE_PARAMETERS d3dSurfaceParams;
-		d3dSurfaceParams.Base = m_pColourSurface->m_d3dSurface.ColorInfo.ColorBase;
-		d3dSurfaceParams.ColorExpBias = m_pColourSurface->m_d3dSurface.ColorInfo.ColorExpBias;
-		d3dSurfaceParams.HierarchicalZBase = 0;
-		d3dSurfaceParams.HiZFunc = D3DHIZFUNC_DEFAULT;
-
-		size =  XGSetSurfaceHeader(xgColourSurfaceDesc.Width / 2,
-									xgColourSurfaceDesc.Height / 2,
-									xgColourSurfaceDesc.Format,
-									D3DMULTISAMPLE_4_SAMPLES,
-									&d3dSurfaceParams,
-									&m_d3dColourSurface,
-									0);
-		XGOffsetSurfaceAddress(&m_d3dColourSurface, 0, 0);
-
-		XGTEXTURE_DESC xgDepthStencilSurfaceDesc;
-		XGGetSurfaceDesc((D3DSurface*)&m_pDepthStencilSurface->m_d3dSurface, &xgDepthStencilSurfaceDesc);
-
-		d3dSurfaceParams.Base = m_pDepthStencilSurface->m_d3dSurface.DepthInfo.DepthBase;
-		d3dSurfaceParams.HierarchicalZBase = 0;
-		d3dSurfaceParams.ColorExpBias = 0;
-		d3dSurfaceParams.HiZFunc = D3DHIZFUNC_DEFAULT;
-
-		size =  XGSetSurfaceHeader(xgDepthStencilSurfaceDesc.Width / 2,
-									xgDepthStencilSurfaceDesc.Height / 2,
-									xgDepthStencilSurfaceDesc.Format,
-									D3DMULTISAMPLE_4_SAMPLES,
-									&d3dSurfaceParams,
-									&m_d3dDepthStencilSurface,
-									0);
-		XGOffsetSurfaceAddress(&m_d3dDepthStencilSurface, 0, 0);
-	#elif defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
 		m_gcmSurface.type				= CELL_GCM_SURFACE_PITCH;
 		m_gcmSurface.antialias			= CELL_GCM_SURFACE_SQUARE_CENTERED_4;
 		m_gcmSurface.x 					= 0;
@@ -111,10 +74,7 @@ void C_MSAA::Begin() const
 	}
 
 	// set reduced surfaces
-#if defined(PLATFORM_XENON)
-	Display::Device()->GetD3DDevice()->SetRenderTarget(0, &m_d3dColourSurface);
-	Display::Device()->GetD3DDevice()->SetDepthStencilSurface(&m_d3dDepthStencilSurface);
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	cellGcmSetSurface(&m_gcmSurface);
 #endif
 }

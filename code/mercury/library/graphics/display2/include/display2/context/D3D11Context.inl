@@ -11,9 +11,6 @@ namespace Display2
 	
 INLINE D3DPOOL D3DPool(const U32 flags)
 {
-#if DEVICE_XB2
-	return 0;
-#else
 	if(flags & E_Flags_Video)
 		return D3DPOOL_DEFAULT;
 	else
@@ -21,31 +18,22 @@ INLINE D3DPOOL D3DPool(const U32 flags)
 		return D3DPOOL_SYSTEMMEM;
 	else
 		return D3DPOOL_MANAGED;
-#endif
 }
 
 INLINE DWORD D3DTextureUsage(const U32 flags)
 {
-#if DEVICE_XB2
-	return 0;
-#else
 	if(flags & E_Flags_Colour || flags & E_Flags_DepthStencil)
 		return D3DUSAGE_RENDERTARGET;
 	else
 		return 0;
-#endif
 }
 
 INLINE DWORD D3DUsage(const U32 flags)
 {
-#if DEVICE_XB2
-	return 0;
-#else
 	if(flags & E_Flags_Dynamic)
 		return D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY;
 	else
 		return D3DUSAGE_WRITEONLY;
-#endif
 }
 
 INLINE U32 D3DPrimitiveCount(const U32 primitiveType, const U32 indexCount)
@@ -175,15 +163,6 @@ INLINE U32 C_VertexElement::GetSize() const
 	case E_VertexElementType_F16_4:		return sizeof(U16) * 4;
 	case E_VertexElementType_S16_2N:	return sizeof(S16) * 2;
 	case E_VertexElementType_S16_4N:	return sizeof(S16) * 4;
-#if DEVICE_D3D9_XB2
-	case E_VertexElementType_U16_2:		return sizeof(U16) * 2;
-	case E_VertexElementType_U16_4:		return sizeof(U16) * 4;
-	case E_VertexElementType_U10_3N:	return sizeof(U32);
-	case E_VertexElementType_U10_4N:	return sizeof(U32);
-	case E_VertexElementType_SHHD_3:	return sizeof(U32);
-	case E_VertexElementType_SHHD_3N:	return sizeof(U32);
-	case E_VertexElementType_U32_1:		return sizeof(U32);
-#endif
 	default:
 		BIZ_ASSERT(0 && "Unsupported vertex element type");
 		return 0;
@@ -207,15 +186,6 @@ INLINE U32 C_VertexElement::GetCount() const
 	case E_VertexElementType_F16_4:		return 4;
 	case E_VertexElementType_S16_2N:	return 2;
 	case E_VertexElementType_S16_4N:	return 4;
-#if DEVICE_D3D9_XB2
-	case E_VertexElementType_U16_2:		return 2;
-	case E_VertexElementType_U16_4:		return 4;
-	case E_VertexElementType_U10_3N:	return 4;
-	case E_VertexElementType_U10_4N:	return 4;
-	case E_VertexElementType_SHHD_3:	return 3;
-	case E_VertexElementType_SHHD_3N:	return 3;
-	case E_VertexElementType_U32_1:		return 1;
-#endif
 	default:
 		BIZ_ASSERT(0 && "Unsupported vertex element type");
 		return 0;
@@ -278,18 +248,11 @@ INLINE const GPUVertexDeclaration* C_VertexDeclaration::GetGPUVertexDeclaration(
 
 INLINE bool C_VertexBuffer::IsCreated() const
 {
-#if DEVICE_XB2
-	return m_d3dVertexBuffer.Format.BaseAddress != 0 ? true : false;
-#else
 	return m_pd3dVertexBuffer ? true : false;
-#endif
 }
 
 INLINE U32 C_VertexBuffer::GetSize() const
 {
-#if DEVICE_XB2
-	return (m_d3dVertexBuffer.Format.Size << GPU_VERTEXBUFFER_SIZE_SHIFT);
-#else
 	if(m_pd3dVertexBuffer)
 	{
 		D3D11_BUFFER_DESC desc;
@@ -300,7 +263,6 @@ INLINE U32 C_VertexBuffer::GetSize() const
 	{
 		return 0;
 	}
-#endif
 }
 
 INLINE U32 C_VertexBuffer::GetFlags() const
@@ -310,47 +272,28 @@ INLINE U32 C_VertexBuffer::GetFlags() const
 
 INLINE void* C_VertexBuffer::GetAddress() const
 {
-#if DEVICE_XB2
-	return (void*)(m_d3dVertexBuffer.Format.BaseAddress << GPU_VERTEXBUFFER_ADDRESS_SHIFT);
-#else
 	return NULL;
-#endif
 }
 
 INLINE GPUVertexBuffer* C_VertexBuffer::GetGPUVertexBuffer()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dVertexBuffer : NULL;
-#else
 	return m_pd3dVertexBuffer;
-#endif
 }
 
 INLINE const GPUVertexBuffer* C_VertexBuffer::GetGPUVertexBuffer() const
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dVertexBuffer : NULL;
-#else
 	return m_pd3dVertexBuffer;
-#endif
 }
 
 // C_IndexBuffer
 
 INLINE bool C_IndexBuffer::IsCreated() const
 {
-#if DEVICE_XB2
-	return m_d3dIndexBuffer.Address != 0 ? true : false;
-#else
 	return m_pd3dIndexBuffer ? true : false;
-#endif
 }
 
 INLINE U32 C_IndexBuffer::GetSize() const
 {
-#if DEVICE_XB2
-	return m_d3dIndexBuffer.Size;
-#else
 	if(m_pd3dIndexBuffer)
 	{
 		D3D11_BUFFER_DESC desc;
@@ -361,7 +304,6 @@ INLINE U32 C_IndexBuffer::GetSize() const
 	{
 		return 0;
 	}
-#endif
 }
 
 INLINE U32 C_IndexBuffer::GetFlags() const
@@ -371,11 +313,7 @@ INLINE U32 C_IndexBuffer::GetFlags() const
 
 INLINE void* C_IndexBuffer::GetAddress() const
 {
-#if DEVICE_XB2
-	return (void*)m_d3dIndexBuffer.Address;
-#else
 	return NULL;
-#endif
 }
 
 INLINE E_IndexFormat C_IndexBuffer::GetFormat() const
@@ -385,20 +323,12 @@ INLINE E_IndexFormat C_IndexBuffer::GetFormat() const
 
 INLINE GPUIndexBuffer* C_IndexBuffer::GetGPUIndexBuffer()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dIndexBuffer : NULL;
-#else
 	return m_pd3dIndexBuffer;
-#endif
 }
 
 INLINE const GPUIndexBuffer* C_IndexBuffer::GetGPUIndexBuffer() const
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dIndexBuffer : NULL;
-#else
 	return m_pd3dIndexBuffer;
-#endif
 }
 
 // C_VertexShader
@@ -417,11 +347,7 @@ INLINE U32 C_VertexShader::GetFlags() const
 
 INLINE void* C_VertexShader::GetAddress() const
 {
-#if DEVICE_XB2
-	return ((void**)m_pd3dVertexShader)[8];   // Extract location of shader physical memory from D3D
-#else
 	return NULL;
-#endif
 }
 
 INLINE U8 C_VertexShader::GetRegisterCount() const
@@ -459,11 +385,7 @@ INLINE U32 C_PixelShader::GetFlags() const
 
 INLINE void* C_PixelShader::GetAddress() const
 {
-#if DEVICE_XB2
-	return m_pAddress;
-#else
 	return NULL;
-#endif
 }
 
 INLINE U8 C_PixelShader::GetRegisterCount() const
@@ -570,11 +492,7 @@ inline E_TextureFormat D3D11PCFormat(DXGI_FORMAT format)
 
 INLINE bool C_Surface::IsCreated() const
 {
-#if DEVICE_XB2
-	return m_d3dSurface.Size != 0 ? true : false;
-#else
 	return m_pd3dSurface != NULL ? true : false;
-#endif
 }
 
 INLINE U32 C_Surface::GetSize() const
@@ -582,11 +500,7 @@ INLINE U32 C_Surface::GetSize() const
 	if(!IsCreated())
 		return 0;
 
-#if DEVICE_XB2
-	return m_d3dSurface.Size;
-#else
 	return 0;
-#endif
 }
 
 INLINE U32 C_Surface::GetFlags() const
@@ -645,31 +559,19 @@ INLINE E_Multisample C_Surface::GetMultisample() const
 
 INLINE GPUSurface* C_Surface::GetGPUSurface()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dSurface : NULL;
-#else
 	return m_pd3dSurface;
-#endif
 }
 
 INLINE const GPUSurface* C_Surface::GetGPUSurface() const
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dSurface : NULL;
-#else
 	return m_pd3dSurface;
-#endif
 }
 
 // C_Texture
 
 INLINE bool C_Texture::IsCreated() const
 {
-#if DEVICE_XB2
-	return GetAddress() ? true : false;
-#else
 	return m_pd3dTexture != NULL ? true : false;
-#endif
 }
 
 INLINE E_TextureType C_Texture::GetType() const
@@ -694,11 +596,7 @@ INLINE U32 C_Texture::GetSize() const
 
 INLINE U8* C_Texture::GetAddress() const
 {
-#if DEVICE_XB2
-	return (U8*)(m_d3dTexture.Format.BaseAddress << GPU_TEXTURE_ADDRESS_SHIFT);
-#else
 	return NULL;
-#endif
 }
 
 INLINE U32 C_Texture::GetFlags() const
@@ -706,24 +604,6 @@ INLINE U32 C_Texture::GetFlags() const
 	return m_Flags;
 }
 
-#if DEVICE_XB2
-
-inline U32 GetWidth2D(const C_Texture& texture)
-{
-	return texture.m_d3dTexture.Format.Size.TwoD.Width + 1;
-}
-
-inline U32 GetHeight2D(const C_Texture& texture)
-{
-	return texture.m_d3dTexture.Format.Size.TwoD.Height + 1;
-}
-
-inline U32 GetLevels(const C_Texture& texture)
-{
-	return texture.m_d3dTexture.Format.MaxMipLevel - texture.m_d3dTexture.Format.MinMipLevel + 1;
-}
-
-#else
 
 inline U32 GetWidth2D(const C_Texture& texture)
 {
@@ -740,7 +620,6 @@ inline U32 GetLevels(const C_Texture& texture)
 	return texture.GetLevels();
 }
 
-#endif
 
 INLINE U32 C_Texture::GetWidth(const U32 level) const
 {
@@ -810,81 +689,49 @@ INLINE U32 C_Texture::GetLevels() const
 
 INLINE GPUTexture* C_Texture::GetGPUTexture()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTexture : NULL;
-#else
 	return m_pd3dTexture;
-#endif
 }
 
 INLINE const GPUTexture* C_Texture::GetGPUTexture() const
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTexture : NULL;
-#else
 	return m_pd3dTexture;
-#endif
 }
 
 INLINE GPUTexture2D* C_Texture::GetGPUTexture2D()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTexture2D : NULL;
-#else
 	return (GPUTexture2D*)m_pd3dTexture;
-#endif
 }
 
 INLINE const GPUTexture2D* C_Texture::GetGPUTexture2D() const
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTexture2D : NULL;
-#else
 	return (GPUTexture2D*)m_pd3dTexture;
-#endif
 }
 
 INLINE GPUTexture3D* C_Texture::GetGPUTexture3D()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTexture3D : NULL;
-#else
 	return (GPUTexture3D*)m_pd3dTexture;
-#endif
 }
 
 INLINE const GPUTexture3D* C_Texture::GetGPUTexture3D() const
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTexture3D : NULL;
-#else
 	return (GPUTexture3D*)m_pd3dTexture;
-#endif
 }
 
 INLINE GPUTextureCube* C_Texture::GetGPUTextureCube()
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTextureCube : NULL;
-#else
 	return (GPUTextureCube*)m_pd3dTexture;
-#endif
 }
 
 INLINE const GPUTextureCube* C_Texture::GetGPUTextureCube() const
 {
-#if DEVICE_XB2
-	return IsCreated() ? &m_d3dTextureCube : NULL;
-#else
 	return (GPUTextureCube*)m_pd3dTexture;
-#endif
 }
 
 // C_RenderTexture2D
 
 INLINE bool C_RenderTexture2D::IsCreated() const
 {
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	return m_Texture[0].IsCreated() && m_Surfaces[0].Size() > 0 && m_Surfaces[0][0].IsCreated();
 #else
 	return m_Texture.IsCreated() && m_Surfaces.Size() > 0 && m_Surfaces[0].IsCreated();
@@ -898,7 +745,7 @@ INLINE U32 C_RenderTexture2D::GetFlags() const
 
 INLINE C_Texture& C_RenderTexture2D::GetTexture()
 {
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	BIZ_ASSERT(m_TextureIndex < 2);
 	return m_Texture[m_TextureIndex];
 #else
@@ -908,7 +755,7 @@ INLINE C_Texture& C_RenderTexture2D::GetTexture()
 
 INLINE const C_Texture& C_RenderTexture2D::GetTexture() const
 {
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	BIZ_ASSERT(m_TextureIndex < 2);
 	return m_Texture[m_TextureIndex];
 #else
@@ -918,7 +765,7 @@ INLINE const C_Texture& C_RenderTexture2D::GetTexture() const
 
 INLINE C_Surface& C_RenderTexture2D::GetSurface(const U32 level)
 {
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	BIZ_ASSERT(m_SurfaceIndex < 2);
 	BIZ_ASSERT(level < (U32)m_Surfaces[m_SurfaceIndex].Size());
 	return m_Surfaces[m_SurfaceIndex][level];
@@ -930,7 +777,7 @@ INLINE C_Surface& C_RenderTexture2D::GetSurface(const U32 level)
 
 INLINE const C_Surface& C_RenderTexture2D::GetSurface(const U32 level) const
 {
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 	BIZ_ASSERT(m_SurfaceIndex < 2);
 	BIZ_ASSERT(level < (U32)m_Surfaces[m_SurfaceIndex].Size());
 	return m_Surfaces[m_SurfaceIndex][level];
@@ -1155,7 +1002,7 @@ INLINE void C_SamplerState::SetDefaultStates()
 	m_TextureFilterMag		= E_TextureFilter_Point;
 	m_TextureFilterMin		= E_TextureFilter_Point;
 	m_TextureFilterMip		= E_TextureFilter_None;
-	#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+	#if DEVICE_D3D11_PC
 	m_TextureGamma			= E_Bool_False;
 	#endif
 	m_TextureBorderColour	= 0x00000000;
@@ -1241,7 +1088,7 @@ INLINE void C_SamplerState::SetTextureLodBias(const S8 textureLodBias)
 	m_TextureLodBias = textureLodBias;
 }
 
-#if DEVICE_D3D9_PC || DEVICE_D3D11_PC
+#if DEVICE_D3D11_PC
 INLINE void C_SamplerState::SetTextureGamma(const E_Bool textureGamma)
 {
 	GPU_ASSERT_BOOL(textureGamma);

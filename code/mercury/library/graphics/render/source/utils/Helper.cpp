@@ -11,7 +11,7 @@ namespace Render
 
 void EnablePostEffectStates(const bool disableMotionBlur)
 {
-	#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+	#if defined(PLATFORM_PC)
 	/*if(disableMotionBlur)
 	{
 		Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_All);
@@ -72,7 +72,7 @@ void EnablePostEffectStates(const bool disableMotionBlur)
 
 void DisablePostEffectStates()
 {
-	#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+	#if defined(PLATFORM_PC)
 	//Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_Default);
 	#endif
 

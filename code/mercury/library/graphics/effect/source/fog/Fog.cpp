@@ -85,10 +85,6 @@ void C_Fog::Render()
 		Display::MatrixSetIdentity(&mTemp);
 		mTemp._11 = +2.0f;
 		mTemp._22 = -2.0f;
-#if defined(PLATFORM_XENON)
-		mTemp._33 = -1.0f;
-		mTemp._43 = 1.0f;
-#endif
 		mTemp._42 = +1.0f;
 		mTemp._41 = -1.0f;
 		mTexture = Maths::Load<Maths::HMat44>(&mTemp);

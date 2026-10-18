@@ -326,12 +326,12 @@ void C_System::DebugEvaluate(Btl::BitVector &rkBitfield, const Display::C_ViewSe
 #pragma warning(push)
 #pragma warning(disable: 4146)
 #endif // _MSC_VER
-		const U32 mask		= -(U32)(!pCameraRoom);
+		const INTPTR mask	= -(INTPTR)(!pCameraRoom);	// [Blur2PC][x64] pointer-wide select
 #ifdef _MSC_VER 
 #pragma warning(pop)
 #endif // _MSC_VER 
-		const U32 roomPtr	= (U32)(&m_vRooms[0]);
-		const U32 oldPtr	= (U32)pCameraRoom;
+		const INTPTR roomPtr	= (INTPTR)(&m_vRooms[0]);
+		const INTPTR oldPtr	= (INTPTR)pCameraRoom;
 		pCameraRoom			= (C_Room*)(((oldPtr^roomPtr) & mask) ^ oldPtr);
 	}
 
@@ -342,12 +342,12 @@ void C_System::DebugEvaluate(Btl::BitVector &rkBitfield, const Display::C_ViewSe
 #pragma warning(push)
 #pragma warning(disable: 4146)
 #endif // _MSC_VER
-	const U32 mask			= -(U32)(pCameraRoom != &m_vRooms[0]);
+	const INTPTR mask		= -(INTPTR)(pCameraRoom != &m_vRooms[0]);	// [Blur2PC][x64] pointer-wide select
 #ifdef _MSC_VER 
 #pragma warning(pop)
 #endif // _MSC_VER 
-	const U32 roomPtr		= (U32)(pCameraRoom);
-	m_pLastCameraRoom		= (C_Room*)(((roomPtr^(U32)m_pLastCameraRoom)&mask)^roomPtr);
+	const INTPTR roomPtr	= (INTPTR)(pCameraRoom);
+	m_pLastCameraRoom		= (C_Room*)(((roomPtr^(INTPTR)m_pLastCameraRoom)&mask)^roomPtr);
 
 	return;
 }
@@ -479,12 +479,12 @@ void C_System::Evaluate(Btl::BitVector &rkBitfield, Btl::Vector<U16>& rkRoomInde
 #pragma warning(push)
 #pragma warning(disable: 4146)
 #endif // _MSC_VER
-		const U32 mask		= -(U32)(!pCameraRoom);
+		const INTPTR mask	= -(INTPTR)(!pCameraRoom);	// [Blur2PC][x64] pointer-wide select
 #ifdef _MSC_VER 
 #pragma warning(pop)
 #endif // _MSC_VER 
-		const U32 roomPtr	= (U32)(&m_vRooms[0]);
-		const U32 oldPtr	= (U32)pCameraRoom;
+		const INTPTR roomPtr	= (INTPTR)(&m_vRooms[0]);
+		const INTPTR oldPtr	= (INTPTR)pCameraRoom;
 		pCameraRoom			= (C_Room*)(((oldPtr^roomPtr) & mask) ^ oldPtr);
 
 	}
@@ -513,12 +513,12 @@ void C_System::Evaluate(Btl::BitVector &rkBitfield, Btl::Vector<U16>& rkRoomInde
 #pragma warning(push)
 #pragma warning(disable: 4146)
 #endif // _MSC_VER
-	const U32 mask			= -(U32)(pCameraRoom != &m_vRooms[0]);
+	const INTPTR mask		= -(INTPTR)(pCameraRoom != &m_vRooms[0]);	// [Blur2PC][x64] pointer-wide select
 #ifdef _MSC_VER 
 #pragma warning(pop)
 #endif // _MSC_VER 
-	const U32 roomPtr		= (U32)(pCameraRoom);
-	m_pLastCameraRoom		= (C_Room*)(((roomPtr^(U32)m_pLastCameraRoom)&mask)^roomPtr);
+	const INTPTR roomPtr	= (INTPTR)(pCameraRoom);
+	m_pLastCameraRoom		= (C_Room*)(((roomPtr^(INTPTR)m_pLastCameraRoom)&mask)^roomPtr);
 	
 	return;
 }

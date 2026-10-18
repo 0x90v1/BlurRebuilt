@@ -224,9 +224,6 @@ SRC_2 =
 
 SRC = [ Batch $(SRC) : AudioPch.h ] $(SRC_2) ;
 
-XENONSRC =
-./source/core/decoderxma.cpp
-;
 
 PCSRC =
 ./source/core/engine_pc.cpp

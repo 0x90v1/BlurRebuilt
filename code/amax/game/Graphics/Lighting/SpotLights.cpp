@@ -341,11 +341,6 @@ void C_SpotLights::Unbind() const
 
 void C_SpotLights::BindStencilTest() const
 {
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->FlushHiZStencil(D3DFHZS_ASYNCHRONOUS);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, FALSE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, TRUE);
-#endif
 
 	Display::C_StencilState stencilState;
 	stencilState.m_StencilDepthFail	= Display::E_StencilOp_Keep;
@@ -361,10 +356,6 @@ void C_SpotLights::BindStencilTest() const
 
 void C_SpotLights::UnbindStencilTest() const
 {
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILENABLE, FALSE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, FALSE);
-#endif
 
 	Display::C_StencilState stencilState;
 	stencilState.m_StencilDepthFail	= Display::E_StencilOp_Keep;
@@ -525,11 +516,6 @@ void C_SpotLights::RenderStencilCone(const Display::C_Matrix& mLight, const F32 
 		Display::Device()->SetDepthFunc(Display::E_CmpFunc_Greater);
 	Display::Device()->SetDepthWriteEnable(Display::E_Bool_False);	
 
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILFUNC, D3DHSCMP_EQUAL);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILREF, 0x00);
-#endif
 
 	Display::C_StencilState stencilState;
 	stencilState.m_StencilDepthFail	= Display::E_StencilOp_Keep;
@@ -545,11 +531,7 @@ void C_SpotLights::RenderStencilCone(const Display::C_Matrix& mLight, const F32 
 	Display::Device()->SetVertexShaderConstantF(CV_DISPLAY_WORLD_MATRIX, (F32*)&mLight, 4);
 
 	Display::Device()->SetVertexShader(&m_StencilVertexShader);
-#if PLATFORM_XENON
-	Display::Device()->SetPixelShader(0);
-#else
 	Display::Device()->SetPixelShader(&m_StencilPixelShader);
-#endif
 
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_None);
 
@@ -571,11 +553,6 @@ void C_SpotLights::RenderStencilBox(const Display::C_Matrix& mLight, const F32 f
 		Display::Device()->SetDepthFunc(Display::E_CmpFunc_Greater);
 	Display::Device()->SetDepthWriteEnable(Display::E_Bool_False);	
 
-#if PLATFORM_XENON
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILWRITEENABLE, TRUE);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILFUNC, D3DHSCMP_EQUAL);
-	Display::Device()->GetD3DDevice()->SetRenderState(D3DRS_HISTENCILREF, 0x00);
-#endif
 
 	Display::C_StencilState stencilState;
 	stencilState.m_StencilDepthFail	= Display::E_StencilOp_Keep;
@@ -591,11 +568,7 @@ void C_SpotLights::RenderStencilBox(const Display::C_Matrix& mLight, const F32 f
 	Display::Device()->SetVertexShaderConstantF(CV_DISPLAY_WORLD_MATRIX, (F32*)&mLight, 4);
 
 	Display::Device()->SetVertexShader(&m_StencilVertexShader);
-#if PLATFORM_XENON
-	Display::Device()->SetPixelShader(0);
-#else
 	Display::Device()->SetPixelShader(&m_StencilPixelShader);
-#endif
 
 	Display::Device()->SetColourWriteEnable(Display::E_ColourWriteEnable_None);
 

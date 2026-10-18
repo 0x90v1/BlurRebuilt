@@ -222,7 +222,11 @@ inline U32 Hash(const char* p, U32 initval = 0)
 
 inline U32 Hash(const void* p, U32 initval = 0)
 {
+#if defined(_WIN64) // [Blur2PC][x64] Fold the upper half in; the x86 hash of the low half is unchanged.
+	return HashSmall(U32(INTPTR(p)) ^ U32(INTPTR(p) >> 32), initval);
+#else
 	return HashSmall(U32(p), initval);
+#endif
 }
 
 }

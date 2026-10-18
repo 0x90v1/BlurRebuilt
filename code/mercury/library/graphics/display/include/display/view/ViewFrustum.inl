@@ -529,121 +529,17 @@ FORCE_INLINE const S32 C_ViewFrustum::CullAxisBox(const Maths::HVec4& vCentre, c
 
 INLINE const U32 C_ViewFrustum::CalculateAxisBoxPredication4(const Maths::HVec4& vCentre, const Maths::HVec3& vSize) const
 {
-#ifdef PLATFORM_XENON
-	XMVECTOR centre = vCentre.GetV128();
-	XMVECTOR size = vSize.GetV128();
-
-	XMVECTOR plane0 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[0]);
-	XMVECTOR plane1 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[1]);
-	XMVECTOR plane2 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[2]);
-	XMVECTOR plane0_a = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanesAbs[0]);
-	XMVECTOR plane1_a = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanesAbs[1]);
-	XMVECTOR plane2_a = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanesAbs[2]);
-
-	XMVECTOR d1_0 = XMVector4Dot(plane0, centre);
-	XMVECTOR d1_1 = XMVector4Dot(plane1, centre);
-	XMVECTOR d1_2 = XMVector4Dot(plane2, centre);
-
-	XMVECTOR d2_0 = XMVector3Dot(plane0_a, size);
-	XMVECTOR d2_1 = XMVector3Dot(plane1_a, size);
-	XMVECTOR d2_2 = XMVector3Dot(plane2_a, size);
-
-	d1_0 = XMVectorInsert(d1_0, d1_1, 0, 0, 1, 0, 0);
-	d1_0 = XMVectorInsert(d1_0, d1_2, 0, 0, 0, 1, 0);
-
-	d2_0 = XMVectorInsert(d2_0, d2_1, 0, 0, 1, 0, 0);
-	d2_0 = XMVectorInsert(d2_0, d2_2, 0, 0, 0, 1, 0);
-
-	XMVECTOR r_0  = XMVectorLess(d1_0, d2_0);
-	XMVECTOR r_1  = XMVectorLess(d1_0, XMVectorNegate(d2_0));
-
-	U32 tile0 =  (U32&)(r_1.x);
-	U32 tile1 =  (U32&)(r_1.y) & ~(U32&)(r_0.x);
-	U32 tile2 =  (U32&)(r_1.z) & ~(U32&)(r_0.y);
-	U32 tile3 = ~(U32&)(r_0.z);
-
-	U32 predicationMask = (D3DPRED_TILE(0) & tile0)
-					    | (D3DPRED_TILE(1) & tile1)
-						| (D3DPRED_TILE(2) & tile2)
-						| (D3DPRED_TILE(3) & tile3);
-
-	// If the first tile is set we just let the automatic predication take care of everything.
-
-	return predicationMask & ~tile0;
-#else
 	return 0;
-#endif
 }
 
 INLINE const U32 C_ViewFrustum::CalculateAxisBoxPredication3(const Maths::HVec4& vCentre, const Maths::HVec3& vSize) const
 {
-#ifdef PLATFORM_XENON
-	XMVECTOR centre = vCentre.GetV128();
-	XMVECTOR size = vSize.GetV128();
-
-	XMVECTOR plane0 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[0]);
-	XMVECTOR plane1 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[1]);
-	XMVECTOR plane0_a = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanesAbs[0]);
-	XMVECTOR plane1_a = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanesAbs[1]);
-	
-	XMVECTOR d1_0 = XMVector4Dot(plane0, centre);
-	XMVECTOR d1_1 = XMVector4Dot(plane1, centre);
-
-	XMVECTOR d2_0 = XMVector3Dot(plane0_a, size);
-	XMVECTOR d2_1 = XMVector3Dot(plane1_a, size);
-
-	d1_0 = XMVectorInsert(d1_0, d1_1, 0, 0, 1, 0, 0);
-	d2_0 = XMVectorInsert(d2_0, d2_1, 0, 0, 1, 0, 0);
-
-	XMVECTOR r_0 = XMVectorLess(d1_0, d2_0);
-	XMVECTOR r_1 = XMVectorLess(d1_0, XMVectorNegate(d2_0));
-
-	U32 tile0 =  (U32&)(r_1.x);
-	U32 tile1 =  (U32&)(r_1.y) & ~(U32&)(r_0.x);
-	U32 tile2 = ~(U32&)(r_0.y);
-
-	U32 predicationMask = (D3DPRED_TILE(0) & tile0)
-					    | (D3DPRED_TILE(1) & tile1)
-						| (D3DPRED_TILE(2) & tile2);
-
-	// If the first tile is set we just let the automatic predication take care of everything.
-
-	return predicationMask & ~tile0;
-#else
 	return 0;
-#endif
 }
 
 INLINE const U32 C_ViewFrustum::CalculateAxisBoxPredication2(const Maths::HVec4& vCentre, const Maths::HVec3& vSize) const
 {
-#ifdef PLATFORM_XENON
-	XMVECTOR centre = vCentre.GetV128();
-	XMVECTOR size = vSize.GetV128();
-
-	XMVECTOR plane0 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[0]);
-	XMVECTOR plane0_a = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanesAbs[0]);
-
-	XMVECTOR d1_0 = XMVector4Dot(plane0, centre);
-	XMVECTOR d2_0 = XMVector3Dot(plane0_a, size);
-
-	XMVECTOR r_0 = XMVectorGreaterOrEqual(d1_0, d2_0);			// ~(d1_0 <  d2_0)
-	XMVECTOR r_1 = XMVectorLess(d1_0, XMVectorNegate(d2_0));	//  (d1_0 < -d2_0)
-
-	U32 tile0 = (U32&)(r_1.x);
-	U32 tile1 = (U32&)(r_0.x);
-	
-	U32 predicationMask = ((D3DPRED_TILE(0) & tile0)|(D3DPRED_TILE(1) & tile1));
-
-	//XMVECTOR tile0 = XMVectorAndInt(r_1, pred0);
-	//XMVECTOR tile1 = XMVectorAndInt(r_0, pred1);
-
-	//XMVECTOR predicationMask = XMVectorOrInt(tile0, tile1); 
-	//         predicationMask = XMVectorAndCInt(predicationMask, r_1);
-
-	return predicationMask;
-#else
 	return 0;
-#endif
 }
 
 // cull C_Sphere
@@ -731,68 +627,12 @@ INLINE const S32 C_ViewFrustum::CullSphere(const Maths::HVec4& vCentre, const Ma
 
 INLINE const U32 C_ViewFrustum::CalculateSpherePredication3(const Maths::HVec4& vCentre, const Maths::HF32& fRadius) const
 {
-#ifdef PLATFORM_XENON
-	XMVECTOR c = vCentre.GetV128();
-	F32 radius = fRadius;
-
-	XMVECTOR plane0 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[0]);
-	XMVECTOR plane1 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[1]);
-	
-	XMVECTOR d0 = XMVector4Dot(plane0, c);
-	XMVECTOR d1 = XMVector4Dot(plane1, c);
-	
-	U32 predication = 0U;
-
-	// If the predication tells us it's in the first tile then we just let the automatic
-	// predication system take care of it
-
-	if ( d0.x < radius )
-		return 0;
-
-	if ( d0.x > -radius && d1.x < radius )
-		predication |= D3DPRED_TILE(1);
-	if ( d1.x > -radius )
-		predication |= D3DPRED_TILE(2);
-	
-	return predication;
-#else
 	return 0;
-#endif
 }
 
 INLINE const U32 C_ViewFrustum::CalculateSpherePredication4(const Maths::HVec4& vCentre, const Maths::HF32& fRadius) const
 {
-#ifdef PLATFORM_XENON
-	XMVECTOR c = vCentre.GetV128();
-	F32 radius = fRadius;
-
-	XMVECTOR plane0 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[0]);
-	XMVECTOR plane1 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[1]);
-	XMVECTOR plane2 = XMLoadFloat4A16((XMFLOAT4A16*)&m_TilePlanes[2]);
-
-	XMVECTOR d0 = XMVector4Dot(plane0, c);
-	XMVECTOR d1 = XMVector4Dot(plane1, c);
-	XMVECTOR d2 = XMVector4Dot(plane2, c);
-
-	U32 predication = 0U;
-
-	// If the predication tells us it's in the first tile then we just let the automatic
-	// predication system take care of it
-
-	if ( d0.x < radius )
-		return 0;
-
-	if ( d0.x > -radius && d1.x < radius )
-		predication |= D3DPRED_TILE(1);
-	if ( d1.x > -radius && d2.x < radius )
-		predication |= D3DPRED_TILE(2);
-	if ( d2.x > -radius )
-		predication |= D3DPRED_TILE(3);
-
-	return predication;
-#else
 	return 0;
-#endif
 }
 
 }; // namespace Display

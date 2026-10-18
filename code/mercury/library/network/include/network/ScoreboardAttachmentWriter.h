@@ -66,7 +66,7 @@ namespace Scoreboard
 
 	private:
 		bool	m_Writing;						// have we started writing the data to the scoreboards.
-#if defined (PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)	
+#if defined(LIVE_ON_WINDOWS)
 		void*								m_pAsyncTask;
 		XSTORAGE_FACILITY_INFO_GAME_CLIP	m_Info;
 #else

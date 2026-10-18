@@ -7,7 +7,7 @@
 #include <render/font/Font.h>
 #include <system/debug/I_DebugRender.h>
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #include <Input/Pad360.h>
 #endif
 #ifdef PLATFORM_PS3
@@ -128,7 +128,7 @@ void C_InputView::DrawStick(F32 sx, F32 sy, F32 ax, F32 ay)
 
 S32 C_InputView::s_ButtonId[16]=
 {
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 	Input::C_Pad360::E_Button_A,
 	Input::C_Pad360::E_Button_B,
 	Input::C_Pad360::E_Button_X,
@@ -190,7 +190,7 @@ C_InputView::C_ButtonPlace C_InputView::s_ButtonPlace[16]=
 
 S32 C_InputView::s_AxisId[4]=
 {
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 		Input::C_Pad360::E_Axis_LeftStick_X,
 		Input::C_Pad360::E_Axis_LeftStick_Y,
 		Input::C_Pad360::E_Axis_RightStick_X,

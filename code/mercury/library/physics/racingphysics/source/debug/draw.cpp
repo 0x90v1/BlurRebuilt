@@ -1,9 +1,6 @@
 #include "stdafx.h"
 #include "racingphysics/debug/draw.h"
 
-#ifdef PLATFORM_XENON
-#include "display\device\d3d9\D3D9DeviceTypes.h"
-#endif
 
 namespace RacingPhysics
 {

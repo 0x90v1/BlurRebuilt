@@ -162,7 +162,7 @@ private:
 // need it (0x00734e80), and the screen pass selects psScreenBlobShadowR/G/B/A (0x00731560). The
 // snapshot's single-texture PC path never set a write mask, so the blob alpha the screen shader reads
 // stayed 0 whenever the device mask was the default RGB, and cars had no shadow.
-#if defined(PLATFORM_PS3) || defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PS3) || defined(PLATFORM_PC)
 #define BLOBSHADOW_PER_CHANNEL 1
 #endif
 
@@ -279,10 +279,6 @@ private:
 	#if defined(BLOBSHADOW_PER_CHANNEL)
 		U32							m_Used;
 
-		#ifdef PLATFORM_XENON
-			//4 texture headers to remap to Alpha
-			Display::C_Texture	m_RemapTextures[4];
-		#endif
 	#else
 		bool						m_Used;
 	#endif

@@ -210,9 +210,6 @@ namespace airacingtech
 
 	void CSplineTracker::Update()
 	{
-#ifdef _XENON
-	//	PixEvent pix(0xffffffff, "CSplineTracker::Update()");
-#endif
 
 		//CObjectId id = GetObjectId();
 
@@ -236,9 +233,6 @@ namespace airacingtech
 
 
 
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CSplineTracker::UpdateMultiRoutesOpt()");
-#endif
 
 		const CObjectId& id = GetObjectId();	
 
@@ -776,9 +770,6 @@ namespace airacingtech
 	void CSplineTracker::WorkOutOffsetToRacingSpline(RouteInfo *pRouteInfo)
 	{
 
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CSplineTracker::WorkOutOffsetToRacingSpline()");
-#endif
 
 		//CObjectId id = GetObjectId();
 
@@ -929,9 +920,6 @@ namespace airacingtech
 
 	void CSplineTracker::RecordDistanceToSplines()
 	{
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CSplineTracker::RecordDistanceToSplines()");
-#endif
 
 		//CObjectId id = GetObjectId();
 
@@ -969,9 +957,6 @@ namespace airacingtech
 	{
 
 		PERF_EVENT("AI.SplineTracker.FindNearestIndexFromRouteCached");
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CSplineTracker::FindNearestIndexFromRouteCached");
-#endif
 
 		const Maths::HF32 zero(Maths::Constants<Maths::HF32>::Zero());
 		//CObjectId id = GetObjectId();
@@ -1017,9 +1002,6 @@ namespace airacingtech
 	void CSplineTracker::FindNearestIndexFromRoute(AITrackDataRoutes *pRoute, int &index, float &paramDist)
 	{
 		PERF_EVENT("AI.SplineTracker.FindNearestIndexFromRoute");
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CSplineTracker::FindNearestIndexFromRoute");
-#endif
 
 		//CObjectId id = GetObjectId();
 

@@ -13,7 +13,7 @@ bool IoDebugShouldReadFail();
 
 IoDevice::IoDevice(const char* name) :
 	_name(name)
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	,_shutdown(false)
 #elif defined(PLATFORM_PS3)
 	,_scheduler(0)
@@ -27,7 +27,7 @@ IoDevice::~IoDevice()
 
 bool IoDevice::Initialise()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	return _wake.Create() && _thread.Create(ThreadProc, this, 0);
 #elif defined(PLATFORM_PS3)
 	return true;
@@ -36,7 +36,7 @@ bool IoDevice::Initialise()
 
 void IoDevice::Shutdown()
 {
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	_lock.Wait();
 	_shutdown = true;
 	_lock.Release();
@@ -53,7 +53,7 @@ void IoDevice::Shutdown()
 #endif
 }
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 void IoDevice::Queue(IoRequestImpl* req)
 {
 	BIZ_ASSERT(req != 0);
@@ -74,9 +74,6 @@ void IoDevice::Process()
 {
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 
-#ifdef PLATFORM_XENON
-	XSetThreadProcessor(GetCurrentThread(), 2);
-#endif
 
 	while(!_shutdown)
 	{
@@ -164,11 +161,7 @@ void IoDevice::Process()
 					{
 						fi->state		= IoFileImpl::kState_Open;
 
-#ifdef PLATFORM_XENON
-						fi->diskOffset	= XGetFilePhysicalSortKey(fi->handle);
-#else
 						fi->diskOffset	= 0;
-#endif
 
 						DWORD fileHigh	= 0;
 						DWORD fileLow	= GetFileSize(fi->handle, &fileHigh);

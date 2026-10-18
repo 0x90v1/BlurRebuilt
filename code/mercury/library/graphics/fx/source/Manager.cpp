@@ -82,11 +82,9 @@ ReloadableEffect *Manager::LoadEffectInternal(const char *pszFilename)
 	if (pFile)
 	{
 		ReloadableEffect *p = new ReloadableEffect;
-#if defined(BLUR_USE_DX11)
 		// [Blur1PCDX11] OnEffectLoad runs during ImportFXB and needs the variant
 		// filename now, not m_sFilename assigned after the import returns.
 		p->NativeFilename = SharedString::GetString(pszFilename);
-#endif
 		bool bSuccess = FX::ImportFXB(pFile, p);
 		if (m_bPreLoaded && !g_bReloadableShaders)
 			BIZ_ASSERT_FAIL("Shader not pre-loaded: %s", pszFilename);
@@ -288,7 +286,7 @@ void Manager::ReloadEffects(bool bForce)
 			Sys::I_File *pFile = m_pFileSystem->Open(p->m_sFilename);
 			if (pFile)
 			{
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 				if (!bBlocked)
 				{
 					Display::Device()->BlockUntilIdle();

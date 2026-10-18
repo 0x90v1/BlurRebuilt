@@ -455,10 +455,8 @@ public:
     /// Default Constructor
     NOALIAS __forceinline HVec3();
     
-    #if !defined( PLATFORM_XENON )
     /// Copy Constructor
     NOALIAS __forceinline HVec3( const HVec3& copy );
-    #endif
     
 	/// Zero Init Constructor
 	NOALIAS __forceinline HVec3( const _ZERO_INIT zeroinit );
@@ -982,9 +980,7 @@ public:
     NOALIAS __forceinline HVec4( const _UNDEFINED undefined );
     
     /// Copy Constructor
-    #if !defined( PLATFORM_XENON )
     NOALIAS __forceinline HVec4( const HVec4& copy );
-    #endif
     
     /// HVecX Constructor
     NOALIAS __forceinline HVec4( const HVecX PCREF x );

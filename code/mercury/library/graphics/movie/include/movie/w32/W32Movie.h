@@ -6,11 +6,7 @@
 #endif
 
 #include "Bink.h"
-#if defined(BLUR_USE_DX11) // [Blur1PCDX11] No D3D9 Bink texture objects in the native build.
 #include "Movie/W32/Bink/D3D11BinkTextures.h"
-#else
-#include "Movie/W32/Bink/BinkTextures.h"
-#endif
 #include "Movie/MovieBase.h"
 
 namespace Movie

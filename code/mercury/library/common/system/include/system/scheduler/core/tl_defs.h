@@ -6,7 +6,7 @@
 
 #include "mercury_to_tl.h"
 
-#if TL_PLAT_XBOX + defined(PLATFORM_XENON) + defined(PLATFORM_PC) + TL_PLAT_PS2 + TL_PLAT_PS2IOP + defined(PLATFORM_PS3) + defined(PLATFORM_SPU) + TL_PLAT_GC + TL_PLAT_REV != 1
+#if 0 + defined(PLATFORM_PC) + TL_PLAT_PS2 + TL_PLAT_PS2IOP + defined(PLATFORM_PS3) + defined(PLATFORM_SPU) + TL_PLAT_GC + TL_PLAT_REV != 1
  #error TL_PLAT_XXX platform specification is missing. It should be set via the compiler command line.
 #endif
 
@@ -14,10 +14,6 @@
  #pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
 #endif
 
-#if defined(PLATFORM_XENON)
- #pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
- #include <ppcintrinsics.h>
-#endif
 
 #if defined(PLATFORM_PS3)
  #include <sdk_version.h>

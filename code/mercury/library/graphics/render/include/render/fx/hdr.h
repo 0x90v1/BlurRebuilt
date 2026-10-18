@@ -40,104 +40,12 @@ float GetLuminanceScaled(float3 colour)
 	return max((dot(colour, vLuminance) + fDelta) * g_fLuminanceScale, fFrameBufferDelta);
 }
 
-#if PLATFORM_XENON
-
-// does HDR in the shader but still writes alpha as normal
-// mainly for use with 7e3 or 6e4 compressed float surfaces
-#ifdef HDR
-
-float4 GetExposure(float4 vRGBA, float fAlpha)
-{
-	float4	vColour		= 0.0f;
-	float	fLuminance	= tex2D(LuminanceSampler, float2(0.5f, 0.5f)).r;
-	
-	vColour.rgb = vRGBA.rgb * (g_fExposureLow / (fLuminance + 0.001f));
-	vColour.rgb = pow(vColour.rgb, g_fGamma);
-
-	#ifdef ALPHA_AND_ADDITIVE
-		vColour = float4(vColour.rgb * vRGBA.a, (1.0f - fAlpha) * vRGBA.a); 
-	#else
-		#ifdef ALPHA_PREMULTIPLY
-			vColour = float4(vColour.rgb * vRGBA.a, vRGBA.a);
-		#else
-			vColour.a = vRGBA.a;
-		#endif
-	#endif
-
-	return vColour;
-}
-
-#endif
-
-// uses a single U32 rendertarget for HDR tonemapping
-#ifdef HDRU32
-
-float4 GetExposure(float4 vRGBA, float fAlpha)
-{
-	float4	vColour		= 0.0f;
-	float	fLuminance	= tex2D(LuminanceSampler, float2(0.5f, 0.5f)).r;
-	
-#ifdef ALPHA
-	// exposes value but doesnt contribute to luminance
-	vColour.rgb = vRGBA.rgb * (g_fExposureLow / (fLuminance + 0.001f));
-	vColour.rgb = pow(vColour.rgb, g_fGamma);
-
-	// need to do alpha premultiply after gamma
-	#ifdef ALPHA_AND_ADDITIVE
-		vColour = float4(vColour.rgb * vRGBA.a, (1.0f - fAlpha) * vRGBA.a); 
-	#else
-		#ifdef ALPHA_PREMULTIPLY
-			vColour = float4(vColour.rgb * vRGBA.a, vRGBA.a);
-		#else
-			vColour.a = vRGBA.a;
-		#endif
-	#endif
-#else
-	// exposes value and writes luminance to alpha channel
-	vColour.a =  GetLuminanceScaled(vRGBA.rgb);
-	vColour.rgb = vRGBA.rgb * (g_fExposureLow / (fLuminance + 0.001f));
-	vColour.rgb = pow(vColour.rgb, g_fGamma);
-#endif
-
-	return vColour;
-}
-#endif
-
-#ifndef HDR
-#ifndef HDRU32
-#ifndef HDRU32X2
-
-float4 GetExposure(float4 vRGBA, float fAlpha)
-{
-	// apply gain
-	float4	vColour = vRGBA * g_fGain;
-
-	// need to do alpha premultiply after gamma
-	#ifdef ALPHA_AND_ADDITIVE
-		vColour = float4(vRGBA.rgb * vRGBA.a, (1.0f - fAlpha) * vRGBA.a);
-	#else
-		#ifdef ALPHA_PREMULTIPLY
-			vColour = float4(vRGBA.rgb * vRGBA.a, vRGBA.a);
-		#else
-			vColour.a = vRGBA.a;
-		#endif
-	#endif
-
-	return vColour;
-}
-
-#endif
-#endif
-#endif
-
-#else // PLATFORM_XENON
 
 float4 GetExposure(float4 vColour, float fAlpha)
 {
 	return float4(vColour.rgb, fAlpha);
 }
 
-#endif
 
 float4 GetExposure(float4 vColour)
 {

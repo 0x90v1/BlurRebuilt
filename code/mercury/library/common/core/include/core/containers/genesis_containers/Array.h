@@ -173,11 +173,7 @@ public:
                 T_Element const * __restrict pSrc = copy.m_pElementArray;
                 T_Element       * __restrict pDst = m_pElementArray;
                 
-                #if defined( PLATFORM_XENON )
-                XMemCpy( pDst, pSrc, sizeof( T_Element ) * elementsToCopy );
-                #else
                 memcpy( pDst, pSrc, sizeof( T_Element ) * elementsToCopy );
-                #endif
             }
             else
             {
@@ -220,11 +216,7 @@ public:
                 T_Element const * __restrict pSrc = copy.m_pElementArray;
                 T_Element       * __restrict pDst = m_pElementArray;
                 
-                #if defined( PLATFORM_XENON )
-                XMemCpy( pDst, pSrc, sizeof( T_Element ) * elementsToCopy );
-                #else
                 memcpy( pDst, pSrc, sizeof( T_Element ) * elementsToCopy );
-                #endif
             }
             else
             {
@@ -343,11 +335,7 @@ public:
                     T_Element       * __restrict pDst = pNewElementArray;
                     
                     // Memcpy original items!
-                    #if defined( PLATFORM_XENON )
-                    XMemCpy( pDst, pSrc, sizeof( T_Element ) * elementsToCopy );
-                    #else
                     memcpy( pDst, pSrc, sizeof( T_Element ) * elementsToCopy );
-                    #endif
                 }
                 else
                 {

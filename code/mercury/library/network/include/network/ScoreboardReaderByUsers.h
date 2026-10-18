@@ -117,7 +117,7 @@ namespace Scoreboard
 		void*	m_pRequriredScoreboards;		// list of all scoreboards we will bw querying.
 		
 	
-#if defined(PLATFORM_XENON) || defined (LIVE_ON_WINDOWS)
+#if defined(LIVE_ON_WINDOWS)
 		U8*		m_pResultsBuffer;				// pointer to a buffer to hold data read from the scoreboards.
 		void*	m_pAsyncTask;					// asynchronous task used when requesting data from server.	
 #else

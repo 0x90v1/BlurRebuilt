@@ -269,10 +269,7 @@ bool C_FileSystem::FileExists( const C_FilePath &_fileName )
 
 	C_FilePath fileName = GetSystemFilePath(_fileName);
 
-#if defined( PLATFORM_XENON )
-	if(_access_s(fileName.Chars(), E_FileAccessProperty_Exists) == 0)
-		return true;
-#elif defined( COMPILER_VC )
+#if defined( COMPILER_VC )
 	if(_access(fileName.Chars(), E_FileAccessProperty_Exists) == 0)
 		return true;
 #elif defined( PLATFORM_PS3 )

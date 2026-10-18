@@ -10,7 +10,7 @@
 #include <system/memory/BlockAllocator.h>
 #include <system/memory/VirtualMemory.h>
 
-#if !WIN64
+#if !defined(WIN64) // [Blur2PC][x64] Core.h defines WIN64 empty.
 #define PAGE_MASK 0xffff0000
 #define PTR_TO_INT(X) ((U32)((U64)(X)))
 #define INT U32
@@ -41,6 +41,32 @@ void PageUsage::Initialize()
 	memset(&m_PageMemoryUsage, 0, sizeof(m_PageMemoryUsage));
 }
 
+#if defined(WIN64) // [Blur2PC][x64] Two-level table; see PageUsage::m_PageMemoryUsage.
+void PageUsage::SetBit(void *pAddr)
+{
+	const U64 a = PTR_TO_INT(pAddr);
+	BIZ_ASSERT((a >> 32) < enum_PageUsageLeaves);
+	U8 *&pLeaf = m_PageMemoryUsage[a >> 32];
+	if (pLeaf == NULL)
+		pLeaf = (U8*)::VirtualAlloc(NULL, 0x10000/8, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);	// zero-filled
+	pLeaf[(a & 0xffffffff) >> 19] |= 1 << ((a >> 16) & 7);
+}
+
+void PageUsage::ResetBit(void *pAddr)
+{
+	const U64 a = PTR_TO_INT(pAddr);
+	U8 *pLeaf = (a >> 32) < enum_PageUsageLeaves ? m_PageMemoryUsage[a >> 32] : NULL;
+	if (pLeaf != NULL)
+		pLeaf[(a & 0xffffffff) >> 19] &= ~(1 << ((a >> 16) & 7));
+}
+
+bool PageUsage::GetBit(void *pAddr) const
+{
+	const U64 a = PTR_TO_INT(pAddr);
+	const U8 *pLeaf = (a >> 32) < enum_PageUsageLeaves ? m_PageMemoryUsage[a >> 32] : NULL;
+	return pLeaf != NULL && (pLeaf[(a & 0xffffffff) >> 19] & (1 << ((a >> 16) & 7))) != 0;
+}
+#else
 void PageUsage::SetBit(void *pAddr)
 {
 	INT idx = PTR_TO_INT(pAddr)>>19;
@@ -61,6 +87,7 @@ bool PageUsage::GetBit(void *pAddr) const
 	INT bit = 1 << ((PTR_TO_INT(pAddr)>>16) & 7);
 	return (m_PageMemoryUsage[idx] & bit)!=0;
 }
+#endif
 
 /*
  * 64K memory page

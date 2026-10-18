@@ -13,14 +13,8 @@
 	#define D3D_DEBUG_INFO
 	#endif
 
-	#include <d3d9.h>
-	#include <d3dx9.h>
+	#include <d3d9.h> // [Blur2PC][x64] enum values for the D3D11 backend; D3DX9 is no longer used
 	#include <dxerr.h>
-
-#elif PLATFORM_XENON
-
-	#include <xgraphics.h>
-	#include <d3dx9.h>
 
 #elif PLATFORM_SPU
 

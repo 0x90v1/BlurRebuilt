@@ -23,9 +23,6 @@ E_Platform operator ++( E_Platform& platform )
 
 E_Platform GetPlatform()
 {
-	#ifdef PLATFORM_XENON
-	return E_Platform_360;
-	#endif
 
 	#ifdef PLATFORM_PS3
 	return E_Platform_PS3;

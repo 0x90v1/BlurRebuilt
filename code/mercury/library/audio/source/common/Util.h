@@ -74,9 +74,6 @@ namespace Audio
 #endif 
 
 #ifdef AUDIO_BUILD
-#ifdef PLATFORM_XENON
-#define AUDIO_PIX_PROFILING
-#endif
 #endif
 
 #if defined (BUILD_CONFIG_DEBUG)

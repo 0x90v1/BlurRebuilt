@@ -64,9 +64,6 @@ struct ALIGN16 CachedRenderListNodeData
 			{
 				// this should now be 16 byte aligned after the 3 pts in base class and member above
 				U16					index;
-	#ifdef PLATFORM_XENON
-				U16					predication;
-	#endif
 				VolatileNodeInfo	volatileInfo;
 			};
 

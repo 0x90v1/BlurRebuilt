@@ -4,7 +4,7 @@
 #include <Input/DeviceManager.h>
 #include <Input/GameInputMapping.h>
 
-#if defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#if defined(PLATFORM_PC)
 #include <Input/Pad360.h>
 #endif
 
@@ -46,7 +46,7 @@ static const C_PadOrAxisSetup kPadOrAxisSetup [] =
       {     E_UiButton_PadOrAxis_Right,   C_PadPS3::E_Button_DPadRight,      C_PadPS3::E_Axis_LeftStick_X,      false,    },
 };
 
-#elif defined(PLATFORM_PC) || defined(PLATFORM_XENON)
+#elif defined(PLATFORM_PC)
 
 struct C_PadOrAxisSetup
 {
@@ -60,17 +60,7 @@ struct C_PadOrAxisSetup
 };
 
 
-#if defined (PLATFORM_XENON)
-
-static const C_PadOrAxisSetup kPadOrAxisSetup [] = 
-{
-      {     E_UiButton_PadOrAxis_Up,      C_Pad360::E_Button_DPadUp,         C_Pad360::E_Axis_LeftStick_Y,  	  false,    },
-      {     E_UiButton_PadOrAxis_Down,    C_Pad360::E_Button_DPadDown,       C_Pad360::E_Axis_LeftStick_Y,      true,		},
-      {     E_UiButton_PadOrAxis_Left,    C_Pad360::E_Button_DPadLeft,       C_Pad360::E_Axis_LeftStick_X,      true,		},
-      {     E_UiButton_PadOrAxis_Right,   C_Pad360::E_Button_DPadRight,      C_Pad360::E_Axis_LeftStick_X,      false,    },
-};
-
-#elif defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 
 static const C_PadOrAxisSetup kPadOrAxisSetup [] = 
 {
@@ -467,71 +457,6 @@ void SetupAmaxUserControls( C_GameInput* pGameInput, C_Device* pKeyboard, C_Devi
 	pGameInput->SetAxisInput(E_UiAxis_RightStick_UD,	new C_AxisInputFromDevice(pPad, 		C_PadPS3::E_Axis_RightStick_Y));
 	pGameInput->SetAxisInput(E_UiAxis_RightStick_LR,	new C_AxisInputFromDevice(pPad, 		C_PadPS3::E_Axis_RightStick_X));
 
-	#elif defined(PLATFORM_XENON)
-
-	// Game buttons
-	pGameInput->SetButtonInput(E_Button_Throttle,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_RightTrigger));
-	pGameInput->SetButtonInput(E_Button_Brake,							new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_LeftTrigger));
-	pGameInput->SetButtonInput(E_Button_Handbrake,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_B));
-	
-	//CA - Amax doesn't currently require gear up/down buttons
-	//pGameInput->SetButtonInput(E_Button_GearUp,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_B));
-	//pGameInput->SetButtonInput(E_Button_GearDown,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_X));
-
-	pGameInput->SetButtonInput(E_Button_ChangeView,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_RightShoulder));
-	pGameInput->SetButtonInput(E_Button_UsePickup,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_A));
-	pGameInput->SetButtonInput(E_Button_DiscardPickup,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_Y));
-	pGameInput->SetButtonInput(E_Button_SwitchPickupAlt,				new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_LeftShoulder));
-	pGameInput->SetButtonInput(E_Button_SwitchPickup,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_X));
-	pGameInput->SetButtonInput(E_Button_UseShield,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_X));
-	pGameInput->SetButtonInput(E_Button_ResetVehicle,					new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_RightShoulder));
-	pGameInput->SetButtonInput(E_Button_UseSecondTierPickup,			new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_Y));
-	pGameInput->SetButtonInput(E_Button_Auto_Shuffle_Perks,				new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_DPadUp));
-	pGameInput->SetButtonInput(E_Button_Convert_To_Health,				new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_DPadLeft));
-	pGameInput->SetButtonInput(E_Button_Clone_Selected_Perk,			new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_DPadRight));
-	pGameInput->SetButtonInput(E_Button_Fullhouse,						new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_DPadDown));
-
-	//pGameInput->SetButtonInput(E_Button_UsePickupAlt,					new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_RightThumb));
-
-	pGameInput->SetButtonInput(E_Button_PhotoRoll,						new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_LeftTrigger));
-	pGameInput->SetButtonInput(E_Button_PhotoZoom,						new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_RightTrigger));
-	pGameInput->SetButtonInput(E_Button_PhotoRollReset,					new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_LeftThumb));
-	pGameInput->SetButtonInput(E_Button_PhotoZoomReset,					new C_ButtonInputFromDevice(pPad,    C_Pad360::E_Button_RightThumb));
-
-	C_ButtonInput* flyUp   = new C_ButtonInputFromDevice(pPad, C_Pad360::E_Button_DPadUp);
-	C_ButtonInput* flyDown = new C_ButtonInputFromDevice(pPad, C_Pad360::E_Button_DPadDown);
-	pGameInput->SetAxisInput(E_Axis_PhotoMoveUp, new C_AxisInputFromButtons(flyDown, flyUp));
-
-	C_ButtonInput * pSteerLeftButton =									new C_ButtonInputFromDevice(pPad, 		C_Pad360::E_Button_DPadLeft);
-	C_ButtonInput * pSteerRightButton =									new C_ButtonInputFromDevice(pPad, 		C_Pad360::E_Button_DPadRight);
-	pGameInput->SetAxisInput(E_Axis_DigitalSteering,					new C_AxisInputFromButtons(pSteerLeftButton,	pSteerRightButton));
-
-	// Game axis
-	pGameInput->SetAxisInput(E_Axis_Steering,							new C_AxisInputFromDevice(pPad, 	C_Pad360::E_Axis_LeftStick_X));
-	pGameInput->SetAxisInput(E_Axis_Pitch,								new C_AxisInputFromDevice(pPad, 	C_Pad360::E_Axis_LeftStick_Y));
-
-	// Ui buttons
-	pGameInput->SetButtonInput(E_UiButton_Pad_Up,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_DPadUp));
-	pGameInput->SetButtonInput(E_UiButton_Pad_Down,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_DPadDown));
-	pGameInput->SetButtonInput(E_UiButton_Pad_Left,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_DPadLeft));
-	pGameInput->SetButtonInput(E_UiButton_Pad_Right,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_DPadRight));
-	pGameInput->SetButtonInput(E_UiButton_Confirm,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_A));
-	pGameInput->SetButtonInput(E_UiButton_Cancel,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_B));
-	pGameInput->SetButtonInput(E_UiButton_Option1,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_X));
-	pGameInput->SetButtonInput(E_UiButton_Option2,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_Y));
-	pGameInput->SetButtonInput(E_UiButton_LeftTrigger,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_LeftTrigger));
-	pGameInput->SetButtonInput(E_UiButton_RightTrigger,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_RightTrigger));
-	pGameInput->SetButtonInput(E_UiButton_LeftShoulder,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_LeftShoulder));
-	pGameInput->SetButtonInput(E_UiButton_RightShoulder,				new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_RightShoulder));
-	pGameInput->SetButtonInput(E_UiButton_LeftThumb,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_LeftThumb));
-	pGameInput->SetButtonInput(E_UiButton_RightThumb,					new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_RightThumb));
-	pGameInput->SetButtonInput(E_UiButton_Start,						new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_Start));
-	pGameInput->SetButtonInput(E_UiButton_Back,							new C_ButtonInputFromDevice(pPad, 	C_Pad360::E_Button_Back));
-	// Ui Axis
-	pGameInput->SetAxisInput(E_UiAxis_LeftStick_UD,						new C_AxisInputFromDevice(pPad, 		C_Pad360::E_Axis_LeftStick_Y));
-	pGameInput->SetAxisInput(E_UiAxis_LeftStick_LR,						new C_AxisInputFromDevice(pPad, 		C_Pad360::E_Axis_LeftStick_X));
-	pGameInput->SetAxisInput(E_UiAxis_RightStick_UD,					new C_AxisInputFromDevice(pPad, 		C_Pad360::E_Axis_RightStick_Y));
-	pGameInput->SetAxisInput(E_UiAxis_RightStick_LR,					new C_AxisInputFromDevice(pPad, 		C_Pad360::E_Axis_RightStick_X));
 	#endif
 
 	// Combine input from DPad and axis together according to kPadOrAxisSetup

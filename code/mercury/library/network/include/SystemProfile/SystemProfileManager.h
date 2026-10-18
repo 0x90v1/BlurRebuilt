@@ -17,8 +17,6 @@
 #include "../source/SystemProfile/ps3/NpFriendStorage.h"
 #elif defined ( PLATFORM_PC )
 #include "../source/SystemProfile/pc/pcFriendStorage.h"
-#elif defined ( PLATFORM_XENON )
-#include <xparty.h>
 #endif
 
 // forward declerations
@@ -327,16 +325,7 @@ namespace SysProfile
 		S32								m_AgeRequirement;
 		bool							m_GameInviteBeingSent;
 
-#if defined(PLATFORM_XENON)
-		HANDLE	m_ListenerHandle;
-		WCHAR	m_TitleUpdatePath[MAX_PATH];	
-		NetPlay::C_AsyncTask *m_pGameInviteTask;
-		XUID	m_InvitedFriends[MAX_FRIENDS];
-		XPARTY_USER_LIST m_PartyUserList;
-
-		F32								m_ReadUsersTimeout;
-		
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 		U32								m_NumNpBasicMessagesWaiting;
 		bool							m_InitialPresenceSent;
 		bool							m_PresenceDataModified;

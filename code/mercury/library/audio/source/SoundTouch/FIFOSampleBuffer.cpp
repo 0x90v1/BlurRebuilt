@@ -167,7 +167,7 @@ void FIFOSampleBuffer::ensureCapacity(uint capacityRequirement)
             throw std::runtime_error("Couldn't allocate memory!\n");
 #endif
         }
-        temp = (SAMPLETYPE *)(((ulong)tempUnaligned + 15) & -16);
+        temp = (SAMPLETYPE *)(((INTPTR)tempUnaligned + 15) & ~(INTPTR)15);	// [Blur2PC][x64] ulong is 32-bit
         memcpy(temp, ptrBegin(), samplesInBuffer * channels * sizeof(SAMPLETYPE));
         delete[] bufferUnaligned;
         buffer = temp;

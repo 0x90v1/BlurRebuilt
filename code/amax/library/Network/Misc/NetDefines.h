@@ -151,9 +151,7 @@ namespace RacerNet
 	#define	TITLE_STORAGE_LOC_UI_TABLE "MultiplayerTS"
 
 	// defines how lan session enumeration will filter out other platforms and versions.
-#if defined (PLATFORM_XENON)
-	const U32 AMAX_LAN_ID =  (0x0000002A);
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 	const U32 AMAX_LAN_ID =  (0x0000002B);
 #elif defined (PLATFORM_PC)
 	const U32 AMAX_LAN_ID =  (0x0000002C);

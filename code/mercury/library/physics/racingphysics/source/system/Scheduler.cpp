@@ -47,7 +47,7 @@ VOID SetThreadName( DWORD dwThreadID, LPCSTR strThreadName )
 
     __try
     {
-        RaiseException( 0x406D1388, 0, sizeof(info) / sizeof(DWORD), (DWORD*)&info );
+        RaiseException( 0x406D1388, 0, sizeof(info) / sizeof(ULONG_PTR), (const ULONG_PTR*)&info );	// [Blur2PC][x64] ULONG_PTR arguments (DWORD on x86)
     }
     __except( GetExceptionCode()== 0x406D1388 ? 
                 EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_EXECUTE_HANDLER ) 

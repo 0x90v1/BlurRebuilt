@@ -5,11 +5,7 @@
 #pragma once
 #endif
 
-#ifdef PLATFORM_XENON
-#define TRIG_INLINE __forceinline
-#else
 #define TRIG_INLINE	inline
-#endif
 
 #if defined (PLATFORM_PS3)
 #include <fastmath.h>

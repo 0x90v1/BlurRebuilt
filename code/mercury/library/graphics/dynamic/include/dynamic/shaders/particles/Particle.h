@@ -6,15 +6,8 @@ struct VS_OUTPUT
 #ifdef POINTSPRITE
 	float  pointsize		: PSIZE;
 	
-	#ifndef XB2
 		float4 psuv			: TEXCOORD0;
 		float4 uv			: TEXCOORD1;
-	#else
-		#ifdef PS_3_0
-			float2 psuv		: SPRITETEXCOORD;
-		#endif
-			float4 uv		: TEXCOORD0;
-	#endif
 #else
 	float4 uv : TEXCOORD0;
 #endif

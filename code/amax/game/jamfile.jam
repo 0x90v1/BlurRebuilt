@@ -1,8 +1,7 @@
 SubDir TOP Code Amax Game ;
 
-SupportedTargets WIN32 PS3 XBOX_360 ;
+SupportedTargets WIN32 PS3 ;
 
-CheckXDKVersion "Microsoft Xbox 360 SDK 2.0.11164.2" ;
 CheckPS3SDKVersion "310.001" ;
 
 MERCURY = $(TOP)/Code/Mercury/Library ;
@@ -104,10 +103,6 @@ LINKFLAGS += /SUBSYSTEM:WINDOWS /MACHINE:X86 /DEBUG ;
 LINKFLAGS += /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBCMT ;
 }
 
-XENONLIBS = 
-$(XENONSDK)/lib/xbox/xparty
-$(TOP)/libs/vendor/bink/1.9r/binkxenon 
-;
 
 PS3LIBS = 
 $(TOP)/libs/vendor/bink/1.9r/binkps3 
@@ -125,23 +120,8 @@ PCLIBS =
 $(TOP)/libs/vendor/bink/1.9r/binkw32
 ;
 
-if $(PLATFORM) = XENON
-{
-	LINKLIBS += xmp.lib ;
-}
 
 # Massive Advertising
-if $(PLATFORM) = XENON
-{
-	if $(BUILD) = Master
-	{
-		XENONLIBS += $(XENONSDK)/lib/xbox/xmassiveadclient ;
-	}
-	else
-	{
-		XENONLIBS += $(XENONSDK)/lib/xbox/xmassiveadclientlogging ;
-	}
-}
 
 if $(PLATFORM) = PC
 {
@@ -280,24 +260,6 @@ VEHICLE_SRC =
 : StdAfx.h ]
 ;
 
-if $(PLATFORM) = XENON
-{
-	DLC_SRC = 
-	[ Batch
-	./Game/DLC/DLC_Types.cpp
-	./Game/DLC/DLC_Controller.cpp
-	./Game/DLC/DLC_Controller_Xenon.cpp
-	: StdAfx.h ]
-	;
-
-	ACHIEVEMENT_SRC = 
-	[ Batch
-	./Game/Achievements/AchievementSystem_XENON.cpp
-	./Game/Achievements/AvatarAwardSystem_XENON.cpp
-	./Game/Achievements/PictureAwardSystem_XENON.cpp
-	: StdAfx.h ]
-	;
-}
 
 if $(PLATFORM) = PS3
 {
@@ -474,11 +436,6 @@ LinkLibraries Amax :
 		;
 		
 		
-if $(PLATFORM) = XENON
-{
-	XEXCFG = xex.xml ;
-	XEXADDITIONALSECTIONS += 41560845=\"xlast\\Amax.spa\",RO ;
-}
 
 
 Application Amax : $(SRC) : stdafx.cpp ;

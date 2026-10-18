@@ -14,10 +14,6 @@ void VerifySpinCb(void* pContext);
 Debug::Function g_verifyPaks("Util.LogicalFs.VerifyPaks", &LogicalFs::VerifyPaksCb, 0);
 Debug::Function g_verifySpin("Util.LogicalFs.VerifySpin", &LogicalFs::VerifySpinCb, 0);
 Debug::Bool g_enableSpin("Util.LogicalFs.SpinEnabled", true);
-#ifdef PLATFORM_XENON
-Debug::Int g_processor("Util.LogicalFs.Processor", 0, Debug::Range(0, 5));
-Debug::Int g_priority("Util.LogicalFs.Priority", THREAD_PRIORITY_NORMAL, Debug::Range(THREAD_PRIORITY_LOWEST, THREAD_PRIORITY_HIGHEST));
-#endif
 
 C_PakFsManager::C_PakFsManager()
 {
@@ -114,10 +110,6 @@ public:
 
 	virtual void ThreadMain()
 	{
-		#ifdef PLATFORM_XENON
-		XSetThreadProcessor(GetCurrentThread(), m_hwThread);
-		SetThreadPriority(GetCurrentThread(), m_priority);
-		#endif
 
 		S32 spinCount(0);
 		while(g_enableSpin)
@@ -141,10 +133,6 @@ public:
 
 	virtual void ThreadMain()
 	{
-		#ifdef PLATFORM_XENON
-		XSetThreadProcessor(GetCurrentThread(), m_hwThread);
-		SetThreadPriority(GetCurrentThread(), m_priority);
-		#endif
 
 		while(g_enableSpin)
 		{
@@ -163,21 +151,13 @@ public:
 
 void VerifyPaksCb(void* pContext)
 {
-	#ifdef PLATFORM_XENON
-	VerifyThread* pVt = new VerifyThread(g_processor, g_priority);
-	#else
 	VerifyThread* pVt = new VerifyThread(0, 0);
-	#endif
 	pVt->Start();
 }
 
 void VerifySpinCb(void* pContext)
 {
-	#ifdef PLATFORM_XENON
-	SpinThread* pVt = new SpinThread(g_processor, g_priority);
-	#else
 	SpinThread* pVt = new SpinThread(0, 0);
-	#endif
 	pVt->Start();
 }
 

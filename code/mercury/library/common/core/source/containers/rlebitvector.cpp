@@ -1,8 +1,5 @@
 #include "CorePch.h"
 #include <core/containers/rlebitvector.h>
-#ifdef PLATFORM_XENON
-#include <xtl.h>
-#endif
 
 namespace Ut
 {

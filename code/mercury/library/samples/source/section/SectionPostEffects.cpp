@@ -10,11 +10,7 @@
 Debug::Bool g_debugUsePostEffects("Section.PostEffects.UsePostEffects", true);
 Debug::Bool g_debugUsePostEffectsShaderHDR("Section.PostEffects.UseShaderHDR", false);
 
-#ifndef PLATFORM_XENON
 Debug::Bool g_debugUsePostEffectsShaderHDRU32("Section.PostEffects.UseShaderHDRU32", true);
-#else
-Debug::Bool g_debugUsePostEffectsShaderHDRU32("Section.PostEffects.UseShaderHDRU32", false);
-#endif
 
 #define USE_POST_EFFECTS
 #define USE_POST_EFFECTS_HDR

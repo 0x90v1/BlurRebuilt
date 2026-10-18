@@ -116,9 +116,6 @@ namespace airacingtech
 	{
 
 		PERF_EVENT("AI.CSpeedTracker.Update");
-#ifdef _XENON
-		//PixEvent pix(0xffffffff, "CSpeedTracker::Update()");
-#endif
 
 		if (m_pIData && m_pTrackData && m_pSplineTracker && m_pVehState)
 		{

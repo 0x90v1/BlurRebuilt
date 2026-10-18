@@ -100,11 +100,6 @@ io/IoRequest.cpp
 io/IoService.cpp
 ;
 
-XENONSRC = 
-scheduler/jobqueue_xenon.cpp
-Perf/ProfilerXenon.cpp
-artery/wsSocket.cpp
-;
 
 PS3SRC = 
 scheduler/jobqueue_ps3.cpp
@@ -187,8 +182,6 @@ SRC =
 ###### Unit test
 PS3SRC =
 test/scheduler/testscheduler.cpp(SPU)
-;
-XENONSRC =
 ;
 PCSRC =
 ;

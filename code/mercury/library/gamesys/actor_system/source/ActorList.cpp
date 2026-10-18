@@ -20,9 +20,6 @@
 #pragma optimize( "", off ) 
 #endif
 
-#ifdef PLATFORM_XENON
-#define DONT_PROFILE_ACTOR_CREATION
-#endif
 
 enum E_DebugDumpLevel
 {
@@ -1589,7 +1586,7 @@ public:
 
 void C_ActorList::DebugDumpActors(void* eLevel)
 {
-	const int debugDumpLevel = (int)eLevel;
+	const int debugDumpLevel = (int)(INTPTR)eLevel;	// [Blur2PC][x64] level carried in the pointer
 
 	C_DebugActorListDumpVisitor visitor;
 
@@ -1633,7 +1630,7 @@ void C_ActorList::DebugDumpActors(void* eLevel)
 
 void C_ActorList::DebugDumpComponents(void* eLevel)
 {
-	const int debugDumpLevel = (int)eLevel;
+	const int debugDumpLevel = (int)(INTPTR)eLevel;	// [Blur2PC][x64] level carried in the pointer
 
 	typedef Btl::Vector<const Actor::I_ActorComponent*> C_Components;
 	typedef Btl::Map<Component::C_ComponentTypeId, C_Components> C_ComponentData;
@@ -1689,7 +1686,7 @@ void C_ActorList::DebugDumpComponents(void* eLevel)
 
 void C_ActorList::DebugDumpSubscribers(void* eLevel)
 {
-	const int debugDumpLevel = (int)eLevel;
+	const int debugDumpLevel = (int)(INTPTR)eLevel;	// [Blur2PC][x64] level carried in the pointer
 
 	LOGINFO(GetDebugLogGeneral(), "Dumping ActorList message subscribers...");
 

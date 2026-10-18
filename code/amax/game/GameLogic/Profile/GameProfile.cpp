@@ -198,21 +198,6 @@ ProfileOptions::E_AudioOutputType ProfileOptions::GetDefaultAudioOutputType()
 	}
 #endif
 
-#ifdef PLATFORM_XENON
-
-	XAUDIOSPEAKERCONFIG config;
-
-	HRESULT res = XGetSpeakerConfig(&config);
-
-	if(config == XAUDIOSPEAKERCONFIG_ANALOG_SURROUND)
-	{
-		return E_AudioOutputType_Stereo;
-	}
-	else
-	{
-		return E_AudioOutputType_Surround;
-	}
-#endif
 	
 	return E_AudioOutputType_Stereo;
 }
@@ -881,57 +866,6 @@ C_ProfileBase* C_GameProfile::GetCurrentInGameProfile()
 
 void C_GameProfile::SetSystemDefaults()
 {
-#ifdef PLATFORM_XENON
-	DWORD settingIds[4] = {XPROFILE_GAMER_RACE_CAMERA_LOCATION, XPROFILE_GAMER_RACE_BRAKE_CONTROL, XPROFILE_GAMER_RACE_ACCELERATOR_CONTROL, XPROFILE_GAMER_YAXIS_INVERSION};
-	int settingsCount = 4;
-	DWORD bufferSize = 0;
-
-	C_ScopedDeviceSuspend scopedSuspendDevice; // Prevent TCR # 022 by calling device Suspend / Resume around stalling calls
-	DWORD ret = XUserReadProfileSettings(0, 0, settingsCount, settingIds, &bufferSize, 0, 0);
-	if (ret != ERROR_SUCCESS && ret != ERROR_INSUFFICIENT_BUFFER)
-		return;
-
-	U8* buffer = (U8*)alloca(bufferSize);
-	if (!buffer)
-		return;
-
-	memset(buffer, 0, bufferSize);
-
-	XUSER_READ_PROFILE_SETTING_RESULT* result = (XUSER_READ_PROFILE_SETTING_RESULT*)buffer;
-
-	XUserReadProfileSettings(0, mControllerIndex, settingsCount, settingIds, &bufferSize, result, 0);
-
-	scopedSuspendDevice.Resume(); // Prevent TCR # 022 by calling device Suspend / Resume around stalling calls
-
-	if (result->pSettings)
-	{
-		const XUSER_PROFILE_SETTING& cam_default = result->pSettings[0];
-		if(cam_default.data.nData == XPROFILE_RACE_CAMERA_LOCATION_BEHIND)
-		{
-			mOptions.mCameraType=AmaxCam::E_VFCamera_Hollywood;
-		}
-		if(cam_default.data.nData == XPROFILE_RACE_CAMERA_LOCATION_IN_FRONT || cam_default.data.nData == XPROFILE_RACE_CAMERA_LOCATION_INSIDE)
-		{
-			mOptions.mCameraType=AmaxCam::E_VFCamera_Bumper;
-		}
-				
-		const XUSER_PROFILE_SETTING& brake = result->pSettings[1];
-		const XUSER_PROFILE_SETTING& throttle = result->pSettings[2];
-		if(brake.data.nData == XPROFILE_RACE_BRAKE_CONTROL_TRIGGER && throttle.data.nData == XPROFILE_RACE_BRAKE_CONTROL_TRIGGER)
-		{
-			//default, triggers for both
-			mOptions.mControlIndex=0;
-		}
-		if(brake.data.nData == XPROFILE_RACE_BRAKE_CONTROL_BUTTON || throttle.data.nData == XPROFILE_RACE_BRAKE_CONTROL_BUTTON)
-		{
-			//digital, button accelerate and button brakes
-			mOptions.mControlIndex=1;
-		} 
-
-		const XUSER_PROFILE_SETTING& inversion = result->pSettings[3];
-		mInvertY = (inversion.data.nData == XPROFILE_YAXIS_INVERSION_ON);
-	}
-#endif
 
 #ifdef PLATFORM_PC
 	// [Blur2PC] retail Blur PC (0x00b9f3a0) sets up keyboard and pad from the profile (0x00c2fe70)

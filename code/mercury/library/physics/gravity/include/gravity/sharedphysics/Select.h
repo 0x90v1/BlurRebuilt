@@ -7,9 +7,9 @@ namespace SharedPhysics
 template<class T_Source>
 NOALIAS inline T_Source* __restrict Fast_Select(const bool b, const T_Source* const __restrict pIfTrue, const T_Source* const __restrict pIfFalse)
 {
-	const U32 selector = ~(((U32)b)-1);
-	const U32 pTrue((U32)pIfTrue);
-	const U32 pFalse((U32)pIfFalse);
+	const INTPTR selector = ~(((INTPTR)b)-1);	// [Blur2PC][x64] pointer-wide select
+	const INTPTR pTrue((INTPTR)pIfTrue);
+	const INTPTR pFalse((INTPTR)pIfFalse);
 	return (T_Source*)((pTrue & selector) | (pFalse & (~selector)));
 }
 

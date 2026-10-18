@@ -15,19 +15,7 @@ EXTERN_SHADER(vsPrimitiveTex2D);
 EXTERN_SHADER(psPrimitiveTex);
 
 #ifndef OBJ_SHADERS
-#if defined(DEVICE_PCD3D9)
-#include "Render/Shaders/Debug/PCD3D9/vsPrimitive2D.shader"
-#include "Render/Shaders/Debug/PCD3D9/vsPrimitiveTex2D.shader"
-#include "Render/Shaders/Debug/PCD3D9/vsPrimitive3D.shader"
-#include "Render/Shaders/Debug/PCD3D9/psPrimitive.shader"
-#include "Render/Shaders/Debug/PCD3D9/psPrimitiveTex.shader"
-#elif defined(DEVICE_XB2D3D9)
-#include "Render/Shaders/Debug/XB2/vsPrimitive2D.shader"
-#include "Render/Shaders/Debug/XB2/vsPrimitiveTex2D.shader"
-#include "Render/Shaders/Debug/XB2/vsPrimitive3D.shader"
-#include "Render/Shaders/Debug/XB2/psPrimitive.shader"
-#include "Render/Shaders/Debug/XB2/psPrimitiveTex.shader"
-#elif defined(DEVICE_PS3GCM)
+#if defined(DEVICE_PS3GCM)
 #include "Render/Shaders/Debug/PS3/vsPrimitive2D.shader"
 #include "Render/Shaders/Debug/PS3/vsPrimitiveTex2D.shader"
 #include "Render/Shaders/Debug/PS3/vsPrimitive3D.shader"

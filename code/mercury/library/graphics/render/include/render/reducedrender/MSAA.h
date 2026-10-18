@@ -25,10 +25,7 @@ private:
 	mutable const Display::C_Surface*	m_pColourSurface;
 	mutable const Display::C_Surface*	m_pDepthStencilSurface;
 
-#if defined(PLATFORM_XENON)
-	mutable D3DSurface					m_d3dColourSurface;
-	mutable D3DSurface					m_d3dDepthStencilSurface;
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	mutable CellGcmSurface				m_gcmSurface;
 #endif
 

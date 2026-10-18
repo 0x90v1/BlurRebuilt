@@ -86,10 +86,6 @@ public:
 	MathsStorage::Float4A16		m_ClipPlanes[m_MaxPlaneCount];
 	MathsStorage::Float4A16		m_ClipPlanesAbs[m_MaxPlaneCount];
 
-#ifdef PLATFORM_XENON
-	MathsStorage::Float4A16		m_TilePlanes[3];
-	MathsStorage::Float4A16		m_TilePlanesAbs[3];
-#endif
 
 	MathsStorage::Float4A16		m_Points[8];
 };

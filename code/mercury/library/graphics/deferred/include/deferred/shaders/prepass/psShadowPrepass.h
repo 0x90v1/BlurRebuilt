@@ -81,35 +81,7 @@ float GetShadowJitter(sampler2D tShadow, float3 vShadowCoord, float2 vScreenCoor
 float GetShadowPCF(sampler2D tShadow, float3 vShadowCoord)
 {
 	vShadowCoord.z = vShadowCoord.z + g_fDepthBias;
-#if defined(XB2)
-	float3	vSamples012;
-	float3	vSamples456;
-	float3	vSamples789;
-	asm
-	{
-		tfetch2D vSamples012.x__, vShadowCoord.xy, tShadow, OffsetX = -1.0, OffsetY = -1.0, MinFilter=point, MagFilter=point
-		tfetch2D vSamples012._x_, vShadowCoord.xy, tShadow, OffsetX = -0.0, OffsetY = -1.0, MinFilter=point, MagFilter=point
-		tfetch2D vSamples012.__x, vShadowCoord.xy, tShadow, OffsetX = +1.0, OffsetY = -1.0, MinFilter=point, MagFilter=point
-		sge vSamples012.xyz, vSamples012.xyz, vShadowCoord.zzz
-		tfetch2D vSamples456.x__, vShadowCoord.xy, tShadow, OffsetX = -1.0, OffsetY = -0.0, MinFilter=point, MagFilter=point
-		tfetch2D vSamples456._x_, vShadowCoord.xy, tShadow, OffsetX = -0.0, OffsetY = -0.0, MinFilter=point, MagFilter=point
-		tfetch2D vSamples456.__x, vShadowCoord.xy, tShadow, OffsetX = +1.0, OffsetY = -0.0, MinFilter=point, MagFilter=point
-		sge vSamples456.xyz, vSamples456.xyz, vShadowCoord.zzz
-		tfetch2D vSamples789.x__, vShadowCoord.xy, tShadow, OffsetX = -1.0, OffsetY = +1.0, MinFilter=point, MagFilter=point
-		tfetch2D vSamples789._x_, vShadowCoord.xy, tShadow, OffsetX = -0.0, OffsetY = +1.0, MinFilter=point, MagFilter=point
-		tfetch2D vSamples789.__x, vShadowCoord.xy, tShadow, OffsetX = +1.0, OffsetY = +1.0, MinFilter=point, MagFilter=point
-		sge vSamples789.xyz, vSamples789.xyz, vShadowCoord.zzz
-	};
-	float2	vShadowFrac		= frac(vShadowCoord.xy * g_vShadowSize);
-	float3	vShadowLerp0	= lerp(vSamples012, vSamples456, vShadowFrac.y);
-	float3	vShadowLerp1	= lerp(vSamples456, vSamples789, vShadowFrac.y);
-	
-	float4	vShadowLerp;
-	vShadowLerp.xy			= lerp(vShadowLerp0.xy, vShadowLerp0.yz, vShadowFrac.x);
-	vShadowLerp.zw			= lerp(vShadowLerp1.xy, vShadowLerp1.yz, vShadowFrac.x);
-	
-	float	fShadow			= dot(vShadowLerp, float4(0.25f, 0.25f, 0.25f, 0.25f));
-#elif defined(PS3)
+#if defined(PS3)
 	float4	vShadow;
 	vShadow.x	= tex2D(tShadow, vShadowCoord + 0.5f * float3(-g_fPixelWidth, -g_fPixelHeight, 0.0f)).r;
 	vShadow.y	= tex2D(tShadow, vShadowCoord + 0.5f * float3(-g_fPixelWidth, +g_fPixelHeight, 0.0f)).r;
@@ -170,20 +142,10 @@ float GetShadowExponential(sampler2D tShadow, float3 vShadowCoord)
 	float2	vInterp		= frac(vShadowCoord.xy * g_vShadowSize);
 
 	float4	vMoments0123;
-#if defined(XB2)
-	asm
-	{
-		tfetch2D vMoments0123.x___, vShadowCoord.xy, tShadow, OffsetX = +0.0, OffsetY = +0.0, MinFilter=point, MagFilter=point
-		tfetch2D vMoments0123._x__, vShadowCoord.xy, tShadow, OffsetX = +1.0, OffsetY = +0.0, MinFilter=point, MagFilter=point
-		tfetch2D vMoments0123.__x_, vShadowCoord.xy, tShadow, OffsetX = +0.0, OffsetY = +1.0, MinFilter=point, MagFilter=point
-		tfetch2D vMoments0123.___x, vShadowCoord.xy, tShadow, OffsetX = +1.0, OffsetY = +1.0, MinFilter=point, MagFilter=point
-	};
-#else
 	vMoments0123.x	= tex2D(tShadow, vShadowCoord.xy).r;
 	vMoments0123.y	= tex2D(tShadow, vShadowCoord.xy + float2(g_fPixelWidth, 0.0f)).r;
 	vMoments0123.z	= tex2D(tShadow, vShadowCoord.xy + float2(0.0f, g_fPixelHeight)).r;
 	vMoments0123.w	= tex2D(tShadow, vShadowCoord.xy + float2(g_fPixelWidth, g_fPixelHeight)).r;
-#endif
 	
 	float2	vMoments01	= lerp(vMoments0123.xz, vMoments0123.yw, vInterp.x);
 	float	fMoment		= lerp(vMoments01.x, vMoments01.y, vInterp.y);

@@ -296,7 +296,7 @@ void C_DynamicLights::Render() const
 
 	MathsStorage::Float4 vDepthParameter = Render::C_RenderState::Instance().GetDepthScaleShaderParameter();
 
-#if defined(PLATFORM_XENON) || defined(PLATFORM_PC)
+#if defined(PLATFORM_PC)
 	const Display::C_RenderTarget& renderTarget = Display::Device()->GetRenderTarget();
 	const F32 fOffsetX = -1.0f / (F32) renderTarget.GetColourSurface()->GetWidth();
 	const F32 fOffsetY = +1.0f / (F32) renderTarget.GetColourSurface()->GetHeight();
@@ -385,11 +385,7 @@ void C_DynamicLights::RenderSpotlightVolume(const MathsStorage::MatrixRow44& mWo
 		Display::Device()->SetBlendMode(Display::E_BlendMode_AdditiveSmooth);
 	}
 
-	#if PLATFORM_XENON // I have no idea why I have to do this, CW should work fine on all platforms
-	Display::Device()->SetCullMode(Display::E_CullMode_Cw);
-	#else
 	Display::Device()->SetCullMode(Display::E_CullMode_Ccw);
-	#endif
 	Display::Device()->SetDepthEnable(Display::E_Bool_False);
 	Display::Device()->SetDepthWriteEnable(Display::E_Bool_False);
 

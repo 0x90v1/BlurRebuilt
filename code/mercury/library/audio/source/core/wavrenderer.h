@@ -2,9 +2,6 @@
 #define _WAVRENDERER_H_
 
 //#include "windows.h"
-#ifdef _XBOX360
-#include "Xtl.h"
-#endif
 
 namespace Audio
 {

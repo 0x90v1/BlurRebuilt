@@ -1208,9 +1208,6 @@ namespace airacingtech
 
 	void CAccelBrakeController::Update()
 	{
-#ifdef _XENON
-//		PixEvent pix(0xffffffff, "CAccelBrakeController::Update()");
-#endif
 		// TODO : Remember to include the override speed here, maybe do a pd controller for the speed and brake....
 
 		if (m_pIVehicleState && m_pIData && m_pIData->GetControlState()) // TODO [Darren] : Take this out for optimisation

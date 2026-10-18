@@ -4,18 +4,7 @@
 #include "Core/Utility/MemCpy.h"
 #include <system/scheduler/jobqueue.h>
 
-#if PLATFORM_XENON
-
-void CopyGPUData(void* pDst, const void* pSrc, S32 size)
-{
-	XMemCpyStreaming(pDst, pSrc, size);
-
-	// flush the gpu cache
-	for(int offset=0; offset < size; offset+=128)
-		__dcbf(offset, pDst);
-}
-
-#elif PLATFORM_PS3
+#if PLATFORM_PS3
 
 void CopyGPUData(void* pDst, const void* pSrc, S32 size)
 {
@@ -70,7 +59,7 @@ void MemCopyWorker::Process() const
 
 void MemCopyTask(Scheduler::Task* pTask)
 {
-	const MemCopyWorker* p = (const MemCopyWorker*)Spu::FetchAllocAsync((void*)*pTask->ParamData, sizeof(MemCopyWorker), 0);
+	const MemCopyWorker* p = (const MemCopyWorker*)Spu::FetchAllocAsync(*(void**)pTask->ParamData, sizeof(MemCopyWorker), 0);	// [Blur2PC][x64] a pointer-sized parameter
 	Spu::Wait(0);
 	p->Process();
 }

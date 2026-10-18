@@ -95,15 +95,6 @@ inline void FP_UnmaskExceptions()
     
     #endif
     
-    #if defined( PLATFORM_XENON )
-    // MS supplied magic... undocumented!
-    __asm
-    {
-        mfmsr r11;
-        ori r11, r11, 0x900;
-        mtmsr r11;
-    }
-    #endif
     
     #endif
 }

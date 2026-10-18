@@ -171,43 +171,6 @@ void Audio::MonoOneShotSoundTable::InitContext(U8* pObjContext)
             }
             break;
 */
-#ifdef _XBOX360
-        case Core::uXMA16Bit:
-            {
-				//  XMA wave data
-				Core::XMADecoder::WaveData waveData;
-
-				//  get wave
-				if (Success != m_pObject->GetWaveManager()->GetWave(m_pObject->GetString(m_pData->strBank), m_pObject->GetString(m_aWaves[uWave].strWave), &waveData))
-					COMPONENT_ERROR("cannot get wave '%s' from bank '%s'", m_pObject->GetString(m_aWaves[uWave].strWave), m_pObject->GetString(m_pData->strBank));
-
-				//  check data
-				Assert(waveData.uChannels == 1);
-
-				//  for each instance
-				//for (U32 uWave = 0; uWave < m_pData->uWaves; uWave++)
-				{
-					for (U32 uInst = 0; uInst < m_pData->uInstances; uInst++)
-					{
-						//  create decoders
-						Core::XMADecoder* pDecoderA = new Core::XMADecoder;
-						pContext->apDecoder[2 * (uWave * m_pData->uInstances + uInst)] = pDecoderA;
-
-						Core::XMADecoder* pDecoderB = new Core::XMADecoder;
-						pContext->apDecoder[2 * (uWave * m_pData->uInstances + uInst) + 1] = pDecoderB;
-
-						//  set wave data
-						pDecoderA->SetWaveData(waveData);
-						pDecoderB->SetWaveData(waveData);
-
-						//  reset decoders
-						pDecoderA->Reset(NULL);
-						pDecoderB->Reset(NULL);
-					}
-				}
-            }
-            break;
-#endif // _XBOX360
 
         default:
             {

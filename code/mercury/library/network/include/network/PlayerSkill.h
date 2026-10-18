@@ -28,15 +28,8 @@ namespace NetPlay
 	 */
 	struct PlayerSkill
 	{
-#if defined (PLATFORM_XENON)
-		PlayerSkill () : m_Skill(X_STATS_SKILL_SKILL_DEFAULT), m_Mu(X_STATS_SKILL_MU_DEFAULT), m_Sigma(X_STATS_SKILL_SIGMA_DEFAULT) {}
-		S64 m_Skill;		/**< ranges from 1 to 50 for xbox360. */
-		F64 m_Mu;			/**< Truskill mu value. xbox360 only. */
-		F64 m_Sigma;		/**< Trueskill sigma value. xbox360 only. */
-#else
 		PlayerSkill () : m_Skill(0) {}
 		S64	m_Skill;		/**< ranges from -1000 to +1000 when using demonware. */
-#endif
 	};
 
 	/// Wraps the data required to update the players skill value on the server.

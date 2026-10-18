@@ -125,15 +125,9 @@ protected:
 	ActiveBlocks						m_ActiveBlocks;
 	BitVectors							m_VisBits;
 
-#ifdef PLATFORM_XENON
-	static const U32 m_nNumPrimitives = 1;
-	static const U32 m_nNumVertices = 4;
-	static const Display::E_PrimitiveType	m_ePrimitiveType = Display::E_PrimitiveType_QuadList;
-#else
 	static const U32 m_nNumPrimitives = 2;
 	static const U32 m_nNumVertices = 3;
 	static const Display::E_PrimitiveType	m_ePrimitiveType = Display::E_PrimitiveType_TriangleList;
-#endif
 
 private:
 	void	SetDefaults();

@@ -30,19 +30,11 @@ public:
 
 	void	RebuildSampleTexture( const U32 uWidth, const U32 uHeight );
 
-#ifdef PLATFORM_XENON
-	void	SetColourDepthStencilBuffers( const Display::C_Texture2D* pColourTexture, const Display::C_Texture2D* pDepthTexture )
-			{
-				m_pColourTexture = pColourTexture;
-				m_pDepthTexture = pDepthTexture;
-			}
-#else
 	void	SetColourDepthStencilBuffers( const Display::C_RenderTexture2D* pColourTexture, const Display::C_Texture2D* pDepthTexture )
 			{
 				m_pColourTexture = &pColourTexture->GetTexture();
 				m_pDepthTexture = pDepthTexture;
 			}
-#endif
 
 private:
 	const Display::C_Texture2D*			m_pColourTexture;

@@ -291,11 +291,6 @@ void SerialiseProfilerCapture(ProfilerCommon *pProfiler, Archive ar, EventList *
 	EventList &eventList = *pEventList;
 //	LOGINFO( g_Log, "Sending %d events.\n", eventList.Size());
 
-#ifdef PLATFORM_XENON
-	U64 freq;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-	freq = freq / 1000000L;
-#endif
 
 	ar << "EventList";
 
@@ -335,7 +330,7 @@ void SerialiseProfilerCapture(ProfilerCommon *pProfiler, Archive ar, EventList *
 				ar << 0xfffffffe;	// signal extra info is coming
 				ar << e.thread;		// extra info type
 				ar << (int)(e.time&0xffffffffULL);	// extra info
-				ar << (int)e.name;					// extra info
+				ar << (int)(INTPTR)e.name;	// [Blur2PC][x64] the profiler protocol sends 32 bits					// extra info
 				continue;
 			}
 
@@ -390,8 +385,6 @@ void SerialiseProfilerCapture(ProfilerCommon *pProfiler, Archive ar, EventList *
 			ar << iStringIdx;
 #if defined(PLATFORM_PS3)
 			ar << (U32) ((PROFILER_EVENT_TIME(e)-iStartTime)/80);
-#elif defined(PLATFORM_XENON)
-			ar << (U32) ((PROFILER_EVENT_TIME(e)-iStartTime)/freq);
 #else
 			ar << (U32) ((PROFILER_EVENT_TIME(e)-iStartTime));
 #endif
@@ -410,8 +403,6 @@ void SerialiseProfilerCapture(ProfilerCommon *pProfiler, Archive ar, EventList *
 #if defined(PLATFORM_PS3)
 	ar << 9 << "GPU" << "PPU1" << "PPU2";
 	ar << "SPU0" << "SPU1" << "SPU2" << "SPU3" << "SPU4" << "SPU5";
-#elif defined(PLATFORM_XENON)
-	ar << 7 << "GPU" << "HT0" << "HT1" << "HT2" << "HT3" << "HT4" << "HT5";
 #elif defined(PLATFORM_PC)
 	ar << 1 << "CPU";
 #else
@@ -453,11 +444,6 @@ static MT::Event g_ProfilerPauseEvent;
 
 static bool gbContinuousCaptureStartFirstTime = true;
 static bool gbContinuousCaptureInProgress = false;
-#ifdef PLATFORM_XENON
-static HANDLE g_hContinuousCaptureFile = 0;
-static OVERLAPPED g_ContinousCaptureOverlappedIO;
-static U8 *g_pContinuousCaptureBuffer;
-#endif
 int PadIntTo512(int i)
 {
 	return (i+511)&~511;
@@ -467,61 +453,17 @@ static U32 g_iContinousCaptureOffset = 0;
 /// save each frame's capture data to harddisk
 void ContinuousCaptureCallback(ProfilerCommon *pProfiler, void* /**/)
 {
-#if defined( PLATFORM_XENON )
-	// wait for previous overlapped IO to complete
-	WaitForSingleObject(g_ContinousCaptureOverlappedIO.hEvent, INFINITE);
-
-	// get event list and copy data into temporary buffer
-	EventList eventList = pProfiler->GetEventList();
-	int c = eventList.Size() * sizeof(Event);
-	((int*)g_pContinuousCaptureBuffer)[0] = pProfiler->GetCurrentFrameIndex();
-	c = PadIntTo512(c + 8);
-	((int*)g_pContinuousCaptureBuffer)[1] = c;
-	memcpy(g_pContinuousCaptureBuffer+8, &eventList[0], c);
-	// save the data to file using asynchronous IO
-	g_ContinousCaptureOverlappedIO.Offset = g_iContinousCaptureOffset;
-	WriteFile( g_hContinuousCaptureFile, g_pContinuousCaptureBuffer, c, NULL, &g_ContinousCaptureOverlappedIO);
-	g_iContinousCaptureOffset += c;
-#else
-#endif
 }
 
 /// start continuous capture
 void StartContinuousCapture()
 {
-#ifdef PLATFORM_XENON
-	g_hContinuousCaptureFile = CreateFile("GAME:\\perfview.bin", GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_FLAG_OVERLAPPED|FILE_FLAG_NO_BUFFERING, NULL);
-	if (g_hContinuousCaptureFile != INVALID_HANDLE_VALUE)
-	{
-		// initialise data to perform capture
-		g_pContinuousCaptureBuffer = new U8[PadIntTo512(Profiler::E_Profiler_MaxEvents * sizeof(Event) + 8)];
-		g_ContinousCaptureOverlappedIO.hEvent = CreateEvent(NULL, FALSE, TRUE, "CCaptEvent");;
-		if (gbContinuousCaptureStartFirstTime)
-			g_iContinousCaptureOffset = 0;
-		else
-			g_iContinousCaptureOffset = GetFileSize(g_hContinuousCaptureFile, NULL);
-		g_ContinousCaptureOverlappedIO.OffsetHigh = 0;
-
-		// reserve 512MB of space in the file to write to
-		SetFilePointer( g_hContinuousCaptureFile, 1024*1024*512, NULL, FILE_BEGIN );
-		SetEndOfFile( g_hContinuousCaptureFile );
-
-		// register capture callback
-		Profiler::Instance().RegisterCallback(ContinuousCaptureCallback);
-	}
-#endif
 }
 
 /// stop continuous capture
 void StopContinuousCapture()
 {
 	Profiler::Instance().UnregisterCallback(ContinuousCaptureCallback);
-#ifdef PLATFORM_XENON
-	WaitForSingleObject(g_ContinousCaptureOverlappedIO.hEvent, INFINITE);
-	CloseHandle(g_ContinousCaptureOverlappedIO.hEvent);
-	CloseHandle(g_hContinuousCaptureFile);
-	delete [] g_pContinuousCaptureBuffer;
-#endif
 }
 
 /// retrieve a particular frame from the continous capture file

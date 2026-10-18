@@ -2,7 +2,7 @@ echo "Building Amax shaders for $(PLATFORM)" ;
 
 SubDir TOP Code Amax Game Shaders ;
 
-SupportedTargets WIN32 PS3 XBOX_360 ;
+SupportedTargets WIN32 PS3 ;
 
 SHADER_HASH_FILE = $(TOP)/Code/Amax/Game/Shaders/shader_hash.txt ;
 
@@ -13,7 +13,6 @@ StoreVcprojInfo AmaxShaders ;
 
 # Compile the shaders into Amax
 
-AutoSetXenonRemoteLocation ;
 SetGameFolder Z:/Amax ;
 include $(TOP)/code/amax/game/shaders/shaders.jam ;
 

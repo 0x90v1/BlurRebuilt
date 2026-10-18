@@ -385,9 +385,6 @@ void C_ContextBase::SetBlendMode(E_BlendMode blendMode)
 			blendState.SetBlendAlphaDst(Display2::E_Blend_SrcColour);
 			blendState.SetBlendAlphaOp(Display2::E_BlendOp_Add);
 
-#if PLATFORM_XENON
-			m_Context.GetD3DDevice()->SetRenderState(D3DRS_HIGHPRECISIONBLENDENABLE, TRUE);
-#endif
 		}
 		break;
 
@@ -473,9 +470,6 @@ void C_ContextBase::SetSamplerState(const U32 sampler, const Display::C_SamplerS
 
 	m_Context.SetSamplerState(sampler, *pS);
 
-	#if PLATFORM_XENON
-	m_Context.GetD3DDevice()->SetSamplerState(sampler, D3DSAMP_MAXANISOTROPY, pS->m_MaxAnisotropy);
-	#endif
 }
 
 void C_ContextBase::SetVertexSamplerState(const U32 sampler, const Display::C_SamplerState *pS)

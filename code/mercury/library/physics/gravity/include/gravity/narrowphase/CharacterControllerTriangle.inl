@@ -8,11 +8,7 @@ NOALIAS FORCE_INLINE Maths::Scalar_Bool IntersectTriangleSegmentCC(const Maths::
 {
 	using namespace Maths;
 	const HF32 zero(Constants<HF32>::Zero());
-	#ifdef XENON
-	const Scalar_Bool bFalse(zero.m_F);
-	#else
 	const Scalar_Bool bFalse(false);
-	#endif
 
 	const HF32 radSq(radius * radius);
 

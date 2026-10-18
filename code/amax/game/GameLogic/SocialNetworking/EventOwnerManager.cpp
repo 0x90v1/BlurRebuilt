@@ -177,15 +177,6 @@ void C_EventOwnerManager::Update()
 
 			if(pGamerPictureManager)
 			{
-#ifdef PLATFORM_XENON
-				SysProfile::UserIdentifier user;
-				user.m_IsGuest=false;
-				user.m_Uid=mFriend;
-
-				// WillB - removed as its getting called whenever the NetConnectionTask popup is active
-				//pGamerPictureManager->Flush();
-				//pGamerPictureManager->RequestRemotePicture( SysProfile::C_Manager::Instance().GetPrimaryPadNo(), user, 1 );
-#endif
 			}
 
 			mReadingStats=false;

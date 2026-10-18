@@ -13,9 +13,7 @@
 #if defined( INCLUDE_THIS )
 #undef INCLUDE_THIS
 
-#if defined( PLATFORM_XENON ) && defined( _VMX128_ )
-#include <ppcintrinsics.h>
-#elif defined (PLATFORM_PS3)
+#if defined (PLATFORM_PS3)
 #include <ppu_intrinsics.h>
 #endif
 
@@ -164,43 +162,24 @@ NOALIAS __forceinline bool	BitToBool(const U32 flags, const int shift) {
 /// IntToBool Returns: ( src == 0 ? false [0x00] : true [0x01] )
 NOALIAS __forceinline const bool IntToBool( const S32 src )
 {
-    #if defined( PLATFORM_XENON )
-    if ( __IsIntConst( src ) && ( src == 0 ) ) return false;
-    if ( __IsIntConst( src ) && ( src != 0 ) ) return true;
     const char result( (char)( (U32)( src | -src ) >> 31 ) );
     return (bool&)result;
-    #else
-    const char result( (char)( (U32)( src | -src ) >> 31 ) );
-    return (bool&)result;
-    #endif
 }
 
 /// IntToMask [S32] Returns: ( src == 0 ? 0x00000000 : 0xFFFFFFFF )
 NOALIAS __forceinline const S32 IntToMask( const S32 src )
 {
-    #if defined( PLATFORM_XENON )
-    return ( (S32)_CountLeadingZeros( src ) - 32 ) >> 31;
-    #else
     return ( src | -src ) >> 31;
-    #endif
 }
 NOALIAS __forceinline const U32 IntToMask( const U32 src )
 {
-    #if defined( PLATFORM_XENON )
-    return (U32)(( (S32)_CountLeadingZeros( (S32)src ) - 32 ) >> 31);
-    #else
     return (U32)(( (S32)src | -(S32)src ) >> 31);
-    #endif
 }
 
 /// IntToMask [S64] Returns: ( src == 0 ? 0x0000000000000000 : 0xFFFFFFFFFFFFFFFF )
 NOALIAS __forceinline const S64 IntToMask( const S64 src )
 {
-    #if defined( PLATFORM_XENON )
-    return ( (S64)_CountLeadingZeros64( src ) - 64 ) >> 63;
-    #else
     return ( src | -src ) >> 63;
-    #endif
 }
 
 /// Bool to S32 mask
@@ -264,7 +243,7 @@ LoadFloatSignFromBit(	const	U32 v, const int shiftIndex	)
 //	Select: xenon opt to go via int load.
 __forceinline F32	Select(bool	selector, F32 x, F32 y) 
 {
-#if (defined(PLATFORM_XENON) || defined(PLATFORM_PS3)) && (!defined(PLATFORM_SPU))
+#if defined(PLATFORM_PS3) && !defined(PLATFORM_SPU)
 	static const F32 fsel_values[2]= { -1.f, 1.f };
 	return	(F32) __fsel(  fsel_values[ BoolToInt(selector) ], x, y);
 #else
@@ -517,7 +496,7 @@ NOALIAS __forceinline const T Abs( const T a )
     return ::abs( a );
 }
 
-#if !defined( PLATFORM_XENON ) && !defined( PLATFORM_PS3 )
+#if !defined(PLATFORM_PS3)
 //#if !defined( PLATFORM_XENON ) // xenon optimised versions further below
 
 template <>
@@ -778,7 +757,7 @@ NOALIAS __forceinline const S32 Select( const bool test, const S32 result_if_tru
 
 NOALIAS __forceinline U32 Select( const bool test, const U32 result_if_true, const U32 result_if_false )
 {
-#if (defined(PLATFORM_XENON) || defined(PLATFORM_PS3)) && (!defined(PLATFORM_SPU))
+#if defined(PLATFORM_PS3) && !defined(PLATFORM_SPU)
 
 	// [TODO -codegen, was this ok without it ?]
 	U32	mask = BoolToMaskU32(test);
@@ -790,7 +769,7 @@ NOALIAS __forceinline U32 Select( const bool test, const U32 result_if_true, con
 }
 NOALIAS __forceinline S32 Select( const bool test, const S32 result_if_true, const S32 result_if_false )
 {
-#if (defined(PLATFORM_XENON) || defined(PLATFORM_PS3)) && (!defined(PLATFORM_SPU))
+#if defined(PLATFORM_PS3) && !defined(PLATFORM_SPU)
 
 	// [TODO -codegen, was this ok without it ?]
 	S32	mask = BoolToMaskS32(test);
@@ -803,7 +782,7 @@ NOALIAS __forceinline S32 Select( const bool test, const S32 result_if_true, con
 }
 NOALIAS __forceinline S32 Select( const S32 boolInInt_Test, const S32 result_if_true, const S32 result_if_false )
 {
-#if (defined(PLATFORM_XENON) || defined(PLATFORM_PS3)) && (!defined(PLATFORM_SPU))
+#if defined(PLATFORM_PS3) && !defined(PLATFORM_SPU)
 
 	// [TODO -codegen, was this ok without it ?]
 	S32	mask = IntToMask(boolInInt_Test);
@@ -845,21 +824,13 @@ NOALIAS __forceinline T RadToDeg( const T r )
 NOALIAS __forceinline const F32 Floor( const F32 f ) __attribute__(( const, always_inline ));
 NOALIAS __forceinline const F32 Floor( const F32 f )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__frnd( f - 0.5f ); // NOTE: Rounding mode MUST be the default 'round to nearest'!
-#else
     return floorf( f );
-#endif
 }
 
 NOALIAS __forceinline const F32 Ceil( const F32 f ) __attribute__(( const, always_inline ));
 NOALIAS __forceinline const F32 Ceil( const F32 f )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__frnd( f + 0.5f ); // NOTE: Rounding mode MUST be the default 'round to nearest'!
-#else
     return ceilf( f );
-#endif
 }
 
 
@@ -887,7 +858,7 @@ NOALIAS __forceinline const F32 Ceil( const F32 f )
 
 
 
-#if defined( PLATFORM_XENON ) || defined( PLATFORM_PS3 )
+#if defined(PLATFORM_PS3)
 //#if defined( PLATFORM_XENON )
 
 //
@@ -957,9 +928,7 @@ NOALIAS __forceinline const S32 Max( const S32 a, const S32 b )
 template <>
 NOALIAS __forceinline const float Min( const float a, const float b )
 {
-#if defined( PLATFORM_XENON )
-    return (float)__fsel( a - b, b, a );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 	return __fsels( a - b, b, a );
 #endif
 }
@@ -973,9 +942,7 @@ NOALIAS __forceinline const double Min( const double a, const double b )
 template <>
 NOALIAS __forceinline const float Max( const float a, const float b )
 {
-#if defined( PLATFORM_XENON )
-    return (float)__fsel( a - b, a, b );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 	return __fsels( a - b, a, b );
 #endif
 }
@@ -991,9 +958,7 @@ NOALIAS __forceinline const double Max( const double a, const double b )
 template <>
 NOALIAS __forceinline float Sign( const float x )
 {
-#if defined( PLATFORM_XENON )
-    return float( __fsel( x, __fsel( -x, 0.0f, 1.0f ), -1.0f ) );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 	return __fsels( x, __fsels( -x, 0.0f, 1.0f ), -1.0f );
 #endif
 }
@@ -1007,9 +972,7 @@ NOALIAS __forceinline double Sign( const double x )
 template <>
 NOALIAS __forceinline const float Abs( const float a )
 {
-#if defined( PLATFORM_XENON )
-    return (float)__fabs( (double)a );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
 	return __fabsf( a );
 #endif
 }
@@ -1023,15 +986,7 @@ NOALIAS __forceinline const double Abs( const double a )
 template <>
 NOALIAS __forceinline const float Reciprocal( const float src )
 {
-#if defined( PLATFORM_XENON )
-    const float one( 1.0f );
-    const float B( src );
-    const float y0( __fres( src ) );                      // Estimate: 8 bit accuracy
-    const float y1( y0 + ( y0 * ( one - ( B * y0 ) ) ) ); // NR iteration 1: 16 bit accuracy
-    const float y2( y1 + ( y1 * ( one - ( B * y1 ) ) ) ); // NR iteration 2: 24 bit accuracy
-    //return (float)__fsel( y2, y2, __fsel( -y2, y2, 0.0f ) ); // Returns 0.0 if y2 is a NAN
-    return (float)__fsel( __fabs( y2 ), y2, 0.0f ); // Returns 0.0 if y2 is a NAN
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     const float one( 1.0f );
     const float B( src );
     const float y0( __fres( src ) );                      // Estimate: 8 bit accuracy
@@ -1057,15 +1012,7 @@ NOALIAS __forceinline const double Reciprocal( const double src )
 template <>
 NOALIAS __forceinline const float ReciprocalSqrt( const float src )
 {
-#if defined( PLATFORM_XENON )
-    const float half( 0.5f );
-    const float one( 1.0f );
-    const float B( src );
-    const float y0( (float)__frsqrte( B ) );                          // Estimate: 8 bit accuracy
-    const float y1( y0 + ( half * y0 * ( one - ( B * y0 * y0 ) ) ) ); // NR iteration 1: 16 bit accuracy
-    const float y2( y1 + ( half * y1 * ( one - ( B * y1 * y1 ) ) ) ); // NR iteration 2: 24 bit accuracy
-    return (float)__fsel( y2, y2, 0.0f ); // Returns 0.0 if y2 is a NAN
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     const float half( 0.5f );
     const float one( 1.0f );
     const float B( src );
@@ -1092,9 +1039,7 @@ NOALIAS __forceinline const double ReciprocalSqrt( const double src )
 template <>
 NOALIAS __forceinline const float Sqrt( const float a )
 {
-#if defined( PLATFORM_XENON )
-    return (float)__fsel( -a, 0.0f, a * ReciprocalSqrt( a ) ); // Returns 0.0 if a <= 0.0
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( -a, 0.0f, a * ReciprocalSqrt( a ) ); // Returns 0.0 if a <= 0.0
 #endif
 }
@@ -1114,9 +1059,7 @@ NOALIAS __forceinline const double Sqrt( const double a )
 template <>
 NOALIAS __forceinline const F32 Select_GE_Zero( const F32 test, const F32 result_if_test_GE_zero, const F32 result_if_test_LT_zero )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__fsel( test, result_if_test_GE_zero, result_if_test_LT_zero );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( test, result_if_test_GE_zero, result_if_test_LT_zero );
 #endif
 }
@@ -1128,9 +1071,7 @@ NOALIAS __forceinline const F32 Select_GE_Zero( const F32 test, const F32 result
 template <>
 NOALIAS __forceinline const F32 Select_EQ( const F32 a, const F32 b, const F32 result_if_true, const F32 result_if_false )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__fsel( -Abs( a - b ) /* >= 0.0f */, result_if_true, result_if_false );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( -Abs( a - b ) /* >= 0.0f */, result_if_true, result_if_false );
 #endif
 }
@@ -1139,9 +1080,7 @@ NOALIAS __forceinline const F32 Select_EQ( const F32 a, const F32 b, const F32 r
 template <>
 NOALIAS __forceinline const F32 Select_NE( const F32 a, const F32 b, const F32 result_if_true, const F32 result_if_false )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__fsel( -Abs( a - b ) /* >= 0.0f */, result_if_false, result_if_true );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( -Abs( a - b ) /* >= 0.0f */, result_if_false, result_if_true );
 #endif
 }
@@ -1150,9 +1089,7 @@ NOALIAS __forceinline const F32 Select_NE( const F32 a, const F32 b, const F32 r
 template <>
 NOALIAS __forceinline const F32 Select_GE( const F32 a, const F32 b, const F32 result_if_true, const F32 result_if_false )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__fsel( a - b /* >= 0.0f */, result_if_true, result_if_false );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( a - b /* >= 0.0f */, result_if_true, result_if_false );
 #endif
 }
@@ -1161,9 +1098,7 @@ NOALIAS __forceinline const F32 Select_GE( const F32 a, const F32 b, const F32 r
 template <>
 NOALIAS __forceinline const F32 Select_LT( const F32 a, const F32 b, const F32 result_if_true, const F32 result_if_false )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__fsel( a - b /* < 0.0f */, result_if_false, result_if_true );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( a - b /* < 0.0f */, result_if_false, result_if_true );
 #endif
 }
@@ -1172,9 +1107,7 @@ NOALIAS __forceinline const F32 Select_LT( const F32 a, const F32 b, const F32 r
 template <>
 NOALIAS __forceinline const F32 Select_LE( const F32 a, const F32 b, const F32 result_if_true, const F32 result_if_false )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__fsel( b - a /* >= 0.0f */, result_if_true, result_if_false );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( b - a /* >= 0.0f */, result_if_true, result_if_false );
 #endif
 }
@@ -1183,9 +1116,7 @@ NOALIAS __forceinline const F32 Select_LE( const F32 a, const F32 b, const F32 r
 template <>
 NOALIAS __forceinline const F32 Select_GT( const F32 a, const F32 b, const F32 result_if_true, const F32 result_if_false )
 {
-#if defined( PLATFORM_XENON )
-    return (F32)__fsel( b - a /* < 0.0f */, result_if_false, result_if_true );
-#elif defined( PLATFORM_PS3 )
+#if defined( PLATFORM_PS3 )
     return __fsels( b - a /* < 0.0f */, result_if_false, result_if_true );
 #endif
 }
@@ -1512,9 +1443,7 @@ __forceinline void	SetMinMax(float& minValueOut, float& maxValueOut, const float
 
 
 // TODO - ARCH_PPC DEFINE
-#if defined(PLATFORM_XENON)
-	inline float FSel(const float cmp, const float a, const float b) { return (float)__fsel(cmp,a,b); }
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	inline float FSel(const float cmp, const float a, const float b) { return __fsels(cmp,a,b); }
 #else
 	inline float FSel(const float cmp,const float a, const float b) { return (cmp>=0)?a:b; }
@@ -1534,19 +1463,9 @@ __forceinline void SetZeroIf_LT(float& value, const float deadzone) {
 
 NOALIAS __forceinline const F32 Div( const F32 A, const F32 B )
 {
-    #if defined( PLATFORM_XENON )
-    
-    const F32 one( 1.0 );
-    const F32 y0( __fres( B ) );                        // 8 bit accuracy
-    const F32 y1( y0 + ( y0 * ( one - ( B * y0 ) ) ) ); // 16 bit accuracy
-    const F32 y2( y1 + ( y1 * ( one - ( B * y1 ) ) ) ); // 24 bit accuracy
-    return A * y2;
-    
-    #else
     
     return A / B;
     
-    #endif
 }
 
 

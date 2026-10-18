@@ -650,9 +650,6 @@ const char* GetBuildConfig()
 
 const char* GetPlatform()
 {
-	#ifdef PLATFORM_XENON
-	return "360";
-	#endif
 
 	#ifdef PLATFORM_PC
 	return "PC";

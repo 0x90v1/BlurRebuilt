@@ -22,22 +22,14 @@ static S32 StartEnumeration( lua_State* pState )
 
 	S32 sPadNo = (S32)lua_tonumber( pState, 1 );
 
-#ifdef PLATFORM_XENON
-	lua_pushboolean( pState, C_Marketplace::Instance().StartEnumeration( sPadNo ) );
-#else
 	lua_pushboolean( pState, false );
-#endif
 	return 1;
 }
 
 // ContinueEnumeration
 static S32 ContinueEnumeration( lua_State* pState )
 {
-#ifdef PLATFORM_XENON
-	lua_pushboolean( pState, C_Marketplace::Instance().ContinueEnumeration() );
-#else
 	lua_pushboolean( pState, true );
-#endif
 	return 1;
 }
 
@@ -53,53 +45,34 @@ static S32 StartPurchase( lua_State* pState )
 	S32 sPadNo = (S32)lua_tonumber( pState, 1 );
 	U64 uIndex = (U64)lua_tonumber( pState, 2 );
 
-#ifdef PLATFORM_XENON
-	lua_pushboolean( pState, C_Marketplace::Instance().StartPurchase( sPadNo, uIndex ) );
-#else
 	lua_pushboolean( pState, false );
-#endif
 	return 1;
 }
 
 // ContinuePurchase
 static S32 ContinuePurchase( lua_State* pState )
 {
-#ifdef PLATFORM_XENON
-	lua_pushboolean( pState, C_Marketplace::Instance().ContinuePurchase() );
-#else
 	lua_pushboolean( pState, true );
-#endif
 	return 1;
 }
 
 // GetNumOffers
 static S32 GetNumOffers( lua_State* pState )
 {
-#ifdef PLATFORM_XENON
-	lua_pushnumber( pState, C_Marketplace::Instance().Enumerating() ? 0 : (lua_Number)C_Marketplace::Instance().GetNumOffers() );
-#else
 	lua_pushnumber( pState, 0 );
-#endif
 	return 1;
 }
 
 // Downloading
 static S32 Downloading( lua_State* pState )
 {
-#ifdef PLATFORM_XENON
-	lua_pushboolean( pState, C_Marketplace::Instance().Downloading() );
-#else
 	lua_pushboolean( pState, false );
-#endif
 	return 1;
 }
 
 // Cleanup
 static S32 Cleanup( lua_State* pState )
 {
-#ifdef PLATFORM_XENON
-	C_Marketplace::Instance().Cleanup();
-#endif
 	return 0;
 }
 

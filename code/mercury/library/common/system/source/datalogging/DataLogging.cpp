@@ -310,7 +310,7 @@ namespace DataLog
 #ifndef CFG_GOLD
 		ArteryWaitContext wc;
 
-		DatabaseLocation& dbLocation = gDatabaseLocations[(int)context];
+		DatabaseLocation& dbLocation = gDatabaseLocations[(int)(INTPTR)context];	// [Blur2PC][x64] index carried in the context pointer
 
 		if (con.IsConnected())
 		{
@@ -324,9 +324,7 @@ namespace DataLog
 
 				mb.Write((int)1);	// Version
 
-#if defined(PLATFORM_XENON)
-				mb.Write((int)1);	// 360
-#elif defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 				mb.Write((int)2);	// PS3
 #elif defined(PLATFORM_PC)
 				mb.Write((int)3);	// PC
@@ -337,12 +335,7 @@ namespace DataLog
 				mb.Write(dbLocation.name); // Database name
 
 				char name[256];
-#ifdef PLATFORM_XENON
-				DWORD len = lengthof(name);
-				DmGetXboxName(name, &len);
-#else
 				strcpy_s(name, lengthof(name), "unknown");
-#endif
 
 				mb.Write("KITNAME");
 				mb.Write(name);

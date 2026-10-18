@@ -65,10 +65,8 @@ bool Socket::Connect(const Address &ia, U32 port)
 		return (r == 0);
 	}
 
-#elif !defined( PLATFORM_XENON )
-	return (::connect(m_socket, (struct sockaddr *)&addr, (socklen_t)sizeof(addr)) == 0);
 #else
-	return (::connect(m_socket, (struct sockaddr *)&addr, (int)sizeof(addr)) == 0);
+	return (::connect(m_socket, (struct sockaddr *)&addr, (socklen_t)sizeof(addr)) == 0);
 #endif
 }
 
@@ -128,12 +126,7 @@ U32 Socket::Receive(void *buf, U64 len)
 /// peek
 U32 Socket::Peek(void *buf, U64 len)
 {
-#if defined( PLATFORM_XENON )
-	assert(0);	// peek not supported on xenon
-	return -1;
-#else
 	return (U32) ::recv(m_socket, (char *)buf, (int) len, MSG_PEEK);
-#endif
 }
 
 
@@ -175,9 +168,7 @@ Socket(AF_INET, SOCK_STREAM, 0)
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-#if !defined( PLATFORM_XENON )
 //	addr.sin_addr = hostaddr.GetAddress();
-#endif
 	addr.sin_port = htons(port);
 
 #if defined( PLATFORM_PS3)
@@ -188,11 +179,7 @@ Socket(AF_INET, SOCK_STREAM, 0)
 
 
 	int opt = 1;
-#if defined( PLATFORM_XENON )
-	setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, (int)sizeof(opt));
-#else
 	setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, (socklen_t)sizeof(opt));
-#endif
 
 	bind(m_socket, (struct sockaddr *)&addr, sizeof(addr));
 

@@ -1,9 +1,6 @@
 #include "StdAfx.h"
 #include "Samples/Section/SectionMovie.h"
 
-#ifdef PLATFORM_XENON
-#include <xaudio.h>
-#endif
 
 Debug::Int g_debugMovieVolume	("Section.Movie.Volume",	32768,		Debug::Range(0, 65536));
 
@@ -27,11 +24,6 @@ C_SectionMovie::C_SectionMovie(const Util::C_String& name) : C_Section(name)
 	}*/
 	#endif
 
-	#ifdef PLATFORM_XENON
-	XAUDIOENGINEINIT audioEngineInit = {0};
-	audioEngineInit.pEffectTable = &XAudioDefaultEffectTable;
-	XAudioInitialize(&audioEngineInit);
-	#endif
 }
 
 C_SectionMovie::~C_SectionMovie()
@@ -82,24 +74,6 @@ void C_SectionMovie::OnInput(const C_Input& input, const C_Timer& timer)
 	}
 	#endif
 
-	#ifdef PLATFORM_XENON
-	if(input.IsButtonDn(Samples::E_Button_A))
-	{
-		m_Movie.SetAudio(!m_Movie.GetAudio());
-	}
-	if(input.IsButtonDn(Samples::E_Button_B))
-	{
-		m_Movie.SetVideo(!m_Movie.GetVideo());
-	}
-	if(input.IsButtonDn(Samples::E_Button_X))
-	{
-		m_Movie.SetPaused(!m_Movie.GetPaused());
-	}
-	//if(input.IsButtonDn(Samples::E_Button_B))
-		//m_Movie.SetLooping(!m_Movie.GetLooping());
-	//if(input.IsButtonDn(Samples::E_Button_Y))
-		//m_Movie.Rewind();
-	#endif
 }
 
 void C_SectionMovie::OnUpdate(const C_Input& input, const C_Timer& timer)
