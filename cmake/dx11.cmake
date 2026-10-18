@@ -159,7 +159,7 @@ if(TARGET display2)
         ${BLUR_TOP}/code/mercury/library/graphics/display2/source/device/PCD3D11Device.cpp)
     target_include_directories(display2_dx11_backend PRIVATE
         $<TARGET_PROPERTY:display2,INCLUDE_DIRECTORIES>)
-    target_compile_definitions(display2_dx11_backend PRIVATE BUILD_CONFIG_SPEED)
+    # [Blur2PC][x64] BUILD_CONFIG_* comes from blur_common.cmake per configuration (Master builds too).
     # [Blur1PCDX11] Texture ownership now releases the shared native view helper.
     target_link_libraries(display2_dx11_backend PRIVATE blur_dx11)
     set_target_properties(display2_dx11_backend PROPERTIES FOLDER "dx11")
@@ -181,7 +181,7 @@ if(TARGET display)
         ${BLUR_TOP}/code/mercury/library/graphics/display/source/manager/d3d11/D3D11Manager.cpp)
     target_include_directories(display_dx11_context_backend PRIVATE
         $<TARGET_PROPERTY:display,INCLUDE_DIRECTORIES>)
-    target_compile_definitions(display_dx11_context_backend PRIVATE BUILD_CONFIG_SPEED)
+    # [Blur2PC][x64] BUILD_CONFIG_* comes from blur_common.cmake per configuration (Master builds too).
     set_target_properties(display_dx11_context_backend PROPERTIES FOLDER "dx11")
 
     target_sources(display PRIVATE

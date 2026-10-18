@@ -1231,7 +1231,13 @@ namespace Target
 // Vertex buffer objects (40 bytes)
 // Index buffer objects (36 bytes)
 //Sys::MemoryBuffer g_resourceAllocator;
+#if defined(_WIN64)
+// [Blur2PC][x64] The retail areas fit the x86 object and pointer-array sizes; those at most
+// double on x64 (a 13-entry vertex-buffer pointer array is 104 bytes), so the areas double too.
+int g_sizes[] = {32, 96, 192, 0};
+#else
 int g_sizes[] = {16, 48, 96, 0}; 
+#endif
 Memory::BlockAllocator g_resourceAllocator(g_sizes, false);
 MT::Mutex g_resourceAllocatorMutex;
 

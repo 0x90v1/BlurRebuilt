@@ -440,6 +440,14 @@ void *BlockAllocator::Allocate(U32 blockSize)
 
 	// Calculate which small-block area this allocation should go to
 	U32 areaIndex = SizeToAreaIndex(blockSize);
+	// [Blur2PC][x64] A size above the largest area maps one past the area array.
+	BIZ_ASSERT_MSG(areaIndex < (U32)m_nAreas, "block size %u exceeds the largest area", blockSize);
+	if (areaIndex >= (U32)m_nAreas)
+	{
+		if (m_pMutex)
+			m_pMutex->Exit();
+		return NULL;
+	}
 	void* memory = m_pArea[areaIndex].AllocateBlock(m_PageUsage);
 	if (!memory)
 	{

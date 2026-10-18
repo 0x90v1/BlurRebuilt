@@ -908,3 +908,11 @@ Next: user review; on approval commit T244 on this branch, commit T245 in Blur1P
 Files touched: cmake/{blur_common,dx11,demonware,targets}.cmake, CMakeLists.txt, code/tools/demonware_cmake/*, engine/game sources and jamfiles (see git status), docs/blur1pcdx11/{x64,analysis,decisions,LEDGER,BOARD}.md; Blur1PCDX11: D3D11GameDeviceNative.cpp, docs/blur1pcdx11/BOARD.md.
 
 Commit (2026-10-18, user authorized): T245 committed on blur1pcdx11 as 0cb00815 (code only; the T245 board row in Blur1PCDX11 stays uncommitted beside another session's T233 edit), merged into uKER/blur1pcdx11-hdr as 4a467ae2 (that worktree's uncommitted T239 docs untouched), T244 committed on uKER/blur1pcdx11-x64 and the HDR branch merged into it. No push.
+
+## 2026-10-18 — session Claude x64 — T244 follow-up
+
+Did: moved the worktree to C:/AIProjects/Blur2PC/Blur1PCDX11HDRx64 (the HDR child to C:/AIProjects/Blur2PC/Blur1PCDX11HDR) on user request. Fixed the x64 model-loading crash the user hit in a copied install (RenderingData resource-allocator areas 32/96/192 on x64; BlockAllocator rejects sizes above its largest area). Per user, the player exe on this branch is the Master configuration (no developer menus/HUD/debug_values.xml); automated tests use the Speed build from _work/run_dev. Merged the Blur1PC retail-icon commit (T246) through the HDR child; kept this branch's Master flags beside it in overrides.cmake. Corrected x64.md: audio is DirectSound and no OpenAL DLL is needed; fx11/ is the only runtime file beside the exe.
+Verified: Speed build errsum 0; 100 s main-menu idle and Observatory races at 60 Hz/unlocked exit 0 with zero DX11 validation messages; Master build errsum 0, its run exits 0, shows retail's start screen without developer text and leaves debug_values.xml untouched.
+Blocked: none.
+Next: none required; the icon rebuild of run (Master) and run_dev (Speed) follows this commit.
+Files touched: cmake/{dx11,overrides}.cmake, BlockAllocator.cpp, renderingdata target/archive.cpp, docs/blur1pcdx11/{x64,LEDGER}.md.

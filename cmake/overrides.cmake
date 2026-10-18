@@ -40,3 +40,8 @@ if(EXISTS ${BLUR_RETAIL_ICON})
 else()
     message(WARNING "Retail icon not found at ${BLUR_RETAIL_ICON}; Amax.exe builds without it")
 endif()
+# [Blur2PC][x64] MinSizeRel is the engine's Master configuration (BUILD_CONFIG_MASTER,
+# CFG_GOLD: retail's build, no developer menus/HUD or debug_values.xml). It is the
+# player's exe on this branch, so optimise it like Release; CMake's default is /O1.
+set(CMAKE_C_FLAGS_MINSIZEREL "/O2 /Ob2 /DNDEBUG")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "/O2 /Ob2 /DNDEBUG")
