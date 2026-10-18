@@ -21,6 +21,7 @@ Claim a task before working on it. One task per agent. Keep rows short; details 
 | ID | Milestone | Task | Owner | Status | Files / scope | Blocked on |
 |---|---|---|---|---|---|---|
 | T238 | HDR | Native HDR output from unclipped scene lighting, display detection/calibration and SDR fallback on child branch `uKER/blur1pcdx11-hdr` | session Codex HDR commit | done (all six audited limits fixed, verified and delivered; commit authorized, Blur1PC current) | Found in / Belongs to DX11 HDR child; three color stages FP16, extended float RGBM, HDR SH/glass helpers and recovered FX transformations; _work/t238/range_fixes | Release/errsum0; hardware/WARP range probes pass; 60Hz/unlocked gameplay/startup and reset exit0; SDR fallback checked; physical visual review and WININT runtime reachability remain unverified |
+| T248 | HDR | Flickering coloured orbs during the start-screen camera spin and in races: scenery LightFlare sprites in the planar reflection reach thousands (authored to brighten with distance); the T238 FP16 reflection blur spread them into discs up to 123. Blurred reflection restored to retail A8R8G8B8. Found in / Belongs to the DX11 HDR child | session Claude x64 | done (user confirmed visually; committed on the HDR child and merged into x64) | GameWorld/View/Reflection.cpp; docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md | none |
 
 ## x64 child branch
 

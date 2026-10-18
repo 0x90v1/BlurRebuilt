@@ -924,3 +924,11 @@ Verified: x64 Speed and Master builds errsum0; unlocked start-screen transition 
 Blocked: none.
 Next: none for T247. The coloured orbs the user also reported are a separate HDR issue.
 Files touched: display occlusion/d3d11/D3D11OcclusionQuery.{h,cpp}; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md.
+
+## 2026-10-18 - session Claude x64 - T248 reflection flare orbs
+
+Did: traced the orbs with real-speed asynchronous FP16 readback (temporary, removed) to scenery LightFlare sprites in the planar reflection, spread into discs by the T238 FP16 reflection blur. Restored retail A8R8G8B8 for the blurred reflection in `GameWorld/View/Reflection.cpp` (identical working-copy edit in x64). Withdrew the earlier 8-bit bloom and racification attempts; the original HDR racification effects are back in both run folders. Not committed.
+Verified: x64 diagnostic runs at real speed: baseline 13-15 spikes per transition; blurred reflection at 8-bit with original racification 0, 0, 0. HDR and x64 rebuilt and delivered (see the board row).
+Blocked: none. User confirmed the orbs are gone and authorized the commit.
+Next: none for T248. Night-race reflection range (content above 1.0 other than flares) was not measured.
+Files touched: GameWorld/View/Reflection.cpp; docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md.

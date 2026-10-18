@@ -133,10 +133,11 @@ bool C_ReflectionView::OnCreate()
 bool C_ReflectionView::OnCreateVolatile()
 {
 	RESOURCE_MEMORY_ID("Reflection");
-	Display::E_Format blurFormat = Display::E_Format_A8R8G8B8;
-	// [Blur2PC][HDR] Match sharp reflection storage through both blur writes/reset paths.
-	if (Display::Device()->GetBackBuffer().GetColourFormat() == Display::E_Format_A16B16G16R16F)
-		blurFormat = Display::E_Format_A16B16G16R16F;
+	// [Blur2PC][HDR] The blurred reflection keeps retail's A8R8G8B8 under HDR output. Scenery light
+	// flares are authored to grow brighter with distance and reach thousands in the sharp reflection;
+	// retail's 8-bit blur capped each at 1, a small glow on the wet road. In FP16 they blurred into
+	// bright coloured discs that blinked with the flares (T248). Nothing else in it exceeded 1.
+	const Display::E_Format blurFormat = Display::E_Format_A8R8G8B8;
 
 #if PLATFORM_PC
 	// [Blur2PC] Retail PC (Blur.exe 1.2 0x00426500): the blur textures at half the reflection target, then the
