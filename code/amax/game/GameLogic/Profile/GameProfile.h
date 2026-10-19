@@ -65,6 +65,8 @@ public:
 	void InitKeyboard();
 	//! [Blur2PC] T144: fills the audio quality bytes of options read from a 1373/1374 save (see GameProfile.cpp)
 	void InsertAudioQualityIntoLegacyOptions();
+	//! [Blur2PC] T250: reads the options of a save older than 1378 (Blur2PC's own 0x44/0x7c-byte layouts)
+	void ReadLegacyOptions( Sys::BinaryDeserialiserAutoEndian& in, int version );
 #endif
 
 	U8 mGameDifficulty;
@@ -122,6 +124,14 @@ public:
 	S8 mMatchingRule;
 
 #ifdef PLATFORM_PC
+	// [Blur2PC] T250: retail Blur PC (Blur.exe 1.2) saves ProfileOptions whole at 0x170 bytes, so every PC field
+	// sits at its retail offset (static_asserts in GameProfile.cpp).
+	// Online login strings, +0x41 and +0x61 (recovered names): retail reads them through two getters
+	// (0x00b9ff00, 0x00b9ff40) that return NULL for an empty string; Lua Amax "OnlineConnectionPossible"
+	// (0x00c16820) needs both, "Connect" (0x00c16880) passes both to the online service. Init empties them.
+	char mOnlineLoginName[0x20];
+	char mOnlineLoginPassword[0x63];
+
 	// [Blur2PC] Retail Blur PC keyboard options (Blur.exe 1.2 ProfileOptions +0xc4..+0xf8 and +0x16d, defaults
 	// from ProfileOptions::Init 0x00b9e790; saved with the profile). The keys are C_Keyboard enum values of the
 	// custom layout, which retail's UI never offers; mKeyboardLayout is the layout in use (0 or 1).
@@ -139,6 +149,9 @@ public:
 	S32 mKeyPowerUpBwd;
 	S32 mKeySteerLeft;
 	S32 mKeySteerRight;
+	// [Blur2PC] T250: +0xfc..+0x16c: no retail code reads or writes these bytes (searched for every offset as a
+	// profile and an options displacement); they round-trip through the save unchanged. Unknown.
+	U8 mRetailUnknownFC[0x71];
 	S8 mKeyboardLayout;
 #endif
 private:
@@ -266,7 +279,16 @@ public:
 	//Previously on blur DLC and news TMS ids
 	U16	mLatestBlurNewsItemId;
 	U16	mLatestDlcItemId;
-	U16	mLatestCommunityItemId;	
+	U16	mLatestCommunityItemId;
+
+#ifdef PLATFORM_PC
+	// [Blur2PC] T250: retail Blur PC profile +0x20bc, a set of DLC pack ids unlocked by code entry; saved after
+	// the multiplayer profile, cleared by Init (0x00ba0580). Retail adds through Lua Amax "SetDLCUnlocked"
+	// (0x00b89610, from SpDlcEntry.lua) and checks it when licensing DLC packs (0x004debd0).
+	Btl::Set<U8> mDLCUnlocked;
+	bool IsDLCUnlocked( U8 packId );		// retail 0x00b9fe20
+	void SetDLCUnlocked( U8 packId );		// retail 0x00ba1850
+#endif
 
 	Game::E_MPS_Result DownloadMultiplayerProfile(const SysProfile::FullProfile& localPlayer, const SysProfile::UserIdentifier& fileOwner);
 	bool IsDownloadMultiplayerProfileFinished(Game::E_MPS_Result& result);

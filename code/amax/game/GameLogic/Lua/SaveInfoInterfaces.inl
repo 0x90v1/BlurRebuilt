@@ -126,7 +126,11 @@ public:
 				m_FileInfo.PushBack( 
 					C_SaveFileInfo(
 						  uFileSize												// m_uFileSize
+					#ifdef PLATFORM_PC
+						, "BLURSAVE"											// m_FileName ([Blur2PC] T250: retail 0x00c20180)
+					#else
 						, "AMAXSAVE"											// m_FileName
+					#endif
 					)
 				);
 			}
@@ -157,10 +161,16 @@ public:
 					Sys::C_MemoryStream stream( pDecompressed, uOriginalSize );
 					Sys::BinaryDeserialiserAutoEndian serial( stream );
 					result = Game::LoadGameImpl( serial );
-					delete pDecompressed;
 				#if PLATFORM_PC
-					LOGINFO( g_Log, "[Blur2PC] profile save load %s (%u bytes)\n", result ? "succeeded" : "failed", uOriginalSize );
+					// [Blur2PC] T250: bytes the load left unread (0 when the format matched)
+					U32 uUnread = 0;
+					U8 uExtra;
+					while ( result && serial.Read( &uExtra, 1 ) )
+						uUnread++;
+					LOGINFO( g_Log, "[Blur2PC] profile save load %s (version %d, %u bytes, %u unread)\n", result ? "succeeded" : "failed",
+						GetLoadingSaveGameVersion(), uOriginalSize, uUnread );
 				#endif
+					delete pDecompressed;
 				}
 				else
 				{
