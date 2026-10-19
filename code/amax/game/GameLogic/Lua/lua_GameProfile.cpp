@@ -52,14 +52,15 @@ const char* saveGameFilename = "debug_save.amax";
 #ifdef PLATFORM_PC
 // [Blur2PC] 1374: the profile options carry retail Blur PC's keyboard options (T103). 1373 saves still load.
 // [Blur2PC] 1375: and retail's audio quality byte (T144). 1373 and 1374 saves still load.
-const int saveGameVersion = 1375; // Increment if anything saved has changed.
-static const int kPreviousSaveGameVersion = 1374;
-static const int kOlderSaveGameVersion = 1373;
+// [Blur2PC] 1378: retail Blur PC 1.2's format (T250; LoadGameImpl 0x00c1d4c0, SaveGameImpl 0x00c1c220): 0x170-byte
+// profile options, the unlocked DLC packs after the multiplayer profile, no TU2 friend demand user ids at the end.
+// Blur2PC's 1373-1375 saves still load.
+const int saveGameVersion = 1378; // Increment if anything saved has changed.
 static int s_LoadingSaveGameVersion = saveGameVersion;
 
 static bool IsLoadableSaveGameVersion( const int version )
 {
-	return version == saveGameVersion || version == kPreviousSaveGameVersion || version == kOlderSaveGameVersion;
+	return version == saveGameVersion || version == 1375 || version == 1374 || version == 1373;
 }
 
 const int GetLoadingSaveGameVersion()
@@ -216,8 +217,10 @@ static bool SaveGameImpl( Sys::BinarySerialiserAutoEndian& serial )
 
 	serial << gameProf->mRaceBookProfile->mLifetimeStatistics;
 
+#ifndef PLATFORM_PC	// [Blur2PC] T250: retail PC's save ends at the lifetime statistics
 	//new for TU2
 	serial.Write(&Game::C_FriendChallenges::Instance().mFriendDemandUserIDStore, sizeof(bdOnlineUserID) * MAX_FRIEND_DEMANDS);
+#endif
 
 	return true;
 }
@@ -297,7 +300,14 @@ static bool LoadGameImpl( Sys::BinaryDeserialiserAutoEndian& serial )
 	serial >> gameProf->mRaceBookProfile->mLifetimeStatistics;
 
 	//new for TU2
+#ifdef PLATFORM_PC
+	// [Blur2PC] T250: retail PC's 1378 save has no user ids; Blur2PC's 1373-1375 saves do
+	bool ok=false;
+	if(currentVersion < 1378)
+		ok=serial.Read(&Game::C_FriendChallenges::Instance().mFriendDemandUserIDStore, sizeof(bdOnlineUserID) * MAX_FRIEND_DEMANDS);
+#else
 	bool ok=serial.Read(&Game::C_FriendChallenges::Instance().mFriendDemandUserIDStore, sizeof(bdOnlineUserID) * MAX_FRIEND_DEMANDS);
+#endif
 	if(!ok)	//if its not Ok then clear out the array, in case crap has been written into it, this should only happen on the initial load when the TU has been applied
 	{
 		for(int a=0;a<MAX_FRIEND_DEMANDS;a++)
