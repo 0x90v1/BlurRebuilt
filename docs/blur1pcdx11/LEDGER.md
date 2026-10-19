@@ -921,3 +921,11 @@ Verified: Blur1PCDX11 Release, HDR Release, x64 Release and x64 Master errsum 0.
 Blocked: none.
 Next: none for T249. Committed on Blur1PCDX11 at the user's request and merged through HDR and x64.
 Files touched: Blur1PCDX11 display `source/device/d3d11/D3D11GameDevice.cpp`; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md.
+
+## 2026-10-18 - session Claude x64 - T251 crowd flag NaN flashes
+
+Did: traced the flashes near the start/finish arch (user report, HDR/x64) with an AI-driven Observatory lap (debug car page, car 1 controller AI) and a real-speed FP16 scene readback (temporary, removed): NaN texels on the crowd's waving flags. Pass drops and an effect-skip switch (temporary) isolated the built-in `psCrowdFlag.psh`; retail's bytecode for it uses `rsq`+`rcp` (abs input). Fixed with `sqrt(abs())` under `BLUR_DX11`. Applied the identical working-copy edit in HDR and x64 for delivery. A racification clamp was tested first and made no difference (reverted).
+Verified: x64 Speed lap: NaN frames 268 before, 0 after. Before/after still: x64 `_work/t251/flag_before_after.png` (flag with black fringe and red haze before, clean after). Builds and delivery: see board row.
+Blocked: none.
+Next: none for T251. User confirmed the flashes are gone; committed on Blur1PCDX11 at the user's request and merged through HDR and x64.
+Files touched: Blur1PCDX11 `gamesys/crowd_system/Shaders/psCrowdFlag.psh`; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md.

@@ -48,7 +48,13 @@ float4 EvaluateFinalColour(in float4 vColour)
 	float4 colour	= 0.0h;
     
     colour.rgb		= vColour.rgb * g_Luminance.x;
+#if defined(BLUR_DX11)
+    // [Blur2PC] Retail's ps_3_0 (Blur.exe 1.2) emits rsq then rcp per channel, and rsq takes abs(source).
+    // The SH lighting goes negative on flag faces turned from the light; SM5 sqrt gives NaN there (T251).
+    colour.rgb		= sqrt(abs(colour.rgb));
+#else
     colour.rgb		= sqrt(colour.rgb);
+#endif
 
     colour.a		= vColour.a;
 
