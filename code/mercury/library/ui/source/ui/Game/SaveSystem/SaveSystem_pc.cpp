@@ -9,12 +9,35 @@
 
 #include <system/misc/StringUtil.h>
 
+#include <shlobj.h>		// [Blur2PC] T250: SHGetFolderPathA (save location)
+
 #ifdef CFG_ALLOW_OPTIMIZE_OFF
 #pragma optimize( "", off )
 #endif
 
 namespace UI
 {
+
+// [Blur2PC] T250: retail Blur PC 1.2 (0x004fc4a0, used by all four save threads) keeps saves under
+// "%APPDATA%\Bizarre Creations\Blur\" (created if missing) followed by the interface's save root, and builds each
+// path with "%s%s\%s" (root, save root, file name). BLUR2PC_SAVE_ROOT replaces that folder for scripted runs so
+// they never touch the player's saves; not in retail.
+static void GetUserDataRoot( char* pRoot, const size_t uSize )
+{
+	if( const char* pOverride = getenv( "BLUR2PC_SAVE_ROOT" ) )
+	{
+		sprintf_s( pRoot, uSize, "%s\\", pOverride );
+	}
+	else
+	{
+		char appData[ MAX_PATH ] = { 0 };
+		SHGetFolderPathA( NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, appData );
+		sprintf_s( pRoot, uSize, "%s\\Bizarre Creations\\Blur\\", appData );
+	}
+
+	if ( !Sys::C_FileSystem::Instance().FileExists( pRoot ) )
+		Sys::C_FileSystem::Instance().CreateDirectory( pRoot );
+}
 
 // -----------------
 // C_AsyncLoadThread
@@ -32,7 +55,12 @@ void C_AsyncLoadThread::ThreadMain()
 
 		Sys::C_DirectoryInfo dirInfo;
 
-		bool bSuccess = Sys::C_FileSystem::Instance().DirectoryInfo( pSaveInfoInterface->m_SaveRoot.Chars(), &dirInfo );
+		// [Blur2PC] T250: retail 0x0075dc24
+		char enumPath[ MAX_PATH ] = { 0 };
+		GetUserDataRoot( enumPath, MAX_PATH );
+		strcat_s( enumPath, MAX_PATH, pSaveInfoInterface->m_SaveRoot.Chars() );
+
+		bool bSuccess = Sys::C_FileSystem::Instance().DirectoryInfo( enumPath, &dirInfo );
 
 		if ( !bSuccess )
 		{
@@ -64,15 +92,17 @@ void C_AsyncLoadThread::ThreadMain()
 	else
 	{
 		char loadPath[ MAX_PATH ] = { 0 };
+		char userRoot[ MAX_PATH ] = { 0 };
+		GetUserDataRoot( userRoot, MAX_PATH );	// [Blur2PC] T250: retail 0x0075de21
 
 		S32 sNumFiles = ( pSaveInfoInterface->m_eType == E_UiSaveInfoType_Enumerate ) ? 1 : pSaveInfoInterface->m_FileInfo.Size();
 
 		for ( S32 i = 0; i < sNumFiles; i++ )
 		{
 			if ( pSaveInfoInterface->m_eType == E_UiSaveInfoType_Enumerate )
-				sprintf_s( loadPath, MAX_PATH, "%s\\%s", pSaveInfoInterface->m_SaveRoot.Chars(), C_SaveSystem::Instance().m_EnumeratedFileInfo[ pSaveInfoInterface->m_sEnumeration ].m_FileName );
+				sprintf_s( loadPath, MAX_PATH, "%s%s\\%s", userRoot, pSaveInfoInterface->m_SaveRoot.Chars(), C_SaveSystem::Instance().m_EnumeratedFileInfo[ pSaveInfoInterface->m_sEnumeration ].m_FileName );
 			else
-				sprintf_s( loadPath, MAX_PATH, "%s\\%s", pSaveInfoInterface->m_SaveRoot.Chars(), pSaveInfoInterface->m_FileInfo[ i ].m_FileName.Chars() );
+				sprintf_s( loadPath, MAX_PATH, "%s%s\\%s", userRoot, pSaveInfoInterface->m_SaveRoot.Chars(), pSaveInfoInterface->m_FileInfo[ i ].m_FileName.Chars() );
 
 			if ( !Sys::C_FileSystem::Instance().FileExists( loadPath ) )
 			{
@@ -153,7 +183,9 @@ void C_AsyncSaveThread::ThreadMain()
 	// TODO - free space checks?
 
 	char savePath[ MAX_PATH ] = { 0 };
-	strcpy_s( savePath, MAX_PATH, pSaveInfoInterface->m_SaveRoot.Chars() );
+	char userRoot[ MAX_PATH ] = { 0 };
+	GetUserDataRoot( userRoot, MAX_PATH );	// [Blur2PC] T250: retail 0x0075e0c0
+	sprintf_s( savePath, MAX_PATH, "%s%s", userRoot, pSaveInfoInterface->m_SaveRoot.Chars() );
 
 	// Create the directory if it doesnt exist.
 	if ( !Sys::C_FileSystem::Instance().FileExists( savePath ) )
@@ -165,7 +197,7 @@ void C_AsyncSaveThread::ThreadMain()
 		for ( S32 i = 0; i < pSaveInfoInterface->m_FileInfo.Size(); i++ )
 		{
 			// open or create the save file.
-			sprintf_s( savePath, MAX_PATH, "%s\\%s", pSaveInfoInterface->m_SaveRoot.Chars(), pSaveInfoInterface->m_FileInfo[ i ].m_FileName.Chars() );
+			sprintf_s( savePath, MAX_PATH, "%s%s\\%s", userRoot, pSaveInfoInterface->m_SaveRoot.Chars(), pSaveInfoInterface->m_FileInfo[ i ].m_FileName.Chars() );
 
 			Sys::C_OpenParams params;
 			params.m_IsCritical = false;
@@ -239,10 +271,12 @@ void C_AsyncDeleteThread::ThreadMain()
 		return;
 
 	char loadPath[ MAX_PATH ] = { 0 };
+	char userRoot[ MAX_PATH ] = { 0 };
+	GetUserDataRoot( userRoot, MAX_PATH );	// [Blur2PC] T250: retail 0x0075e37f
 
 	for ( S32 i = 0; i < pSaveInfoInterface->m_FileInfo.Size(); i++ )
 	{
-		sprintf_s( loadPath, MAX_PATH, "%s\\%s", pSaveInfoInterface->m_SaveRoot.Chars(), pSaveInfoInterface->m_FileInfo[ i ].m_FileName.Chars() );
+		sprintf_s( loadPath, MAX_PATH, "%s%s\\%s", userRoot, pSaveInfoInterface->m_SaveRoot.Chars(), pSaveInfoInterface->m_FileInfo[ i ].m_FileName.Chars() );
 
 		// if save file exists, delete it.
 		if ( Sys::C_FileSystem::Instance().FileExists( loadPath ) )
