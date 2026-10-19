@@ -54,5 +54,10 @@ to the display (about 30 fps while the display sleeps). Point `BLUR2PC_SETTINGS`
 `vsync="0"` and set `BLUR2PC_FRAMELIMIT` (for example 144) to test a given render rate; launch
 through `Blur1PC/tools/game_slot.ps1` so other sessions' runs queue.
 
+Saves: like retail, the game keeps its saves in `%APPDATA%\Bizarre Creations\Blur\SAVE\BLURSAVE` (and
+`PHOTO`, `VINYL`). `BLUR2PC_SAVE_ROOT` replaces the `%APPDATA%\Bizarre Creations\Blur` folder; a run
+script sets it to a private folder so scripted runs never load or overwrite the player's career. To test
+with a given save, copy it to `<folder>\SAVE\BLURSAVE` and point `BLUR2PC_SAVE_ROOT` at `<folder>`.
+
 The full menu run (`race_long.txt` in `Blur1PC/_work/run/scripts`) still exercises the front end;
 it is the T061 regression run.

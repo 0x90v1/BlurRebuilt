@@ -46,6 +46,10 @@ C_GameProfile::C_GameProfile():
 	// [Blur2PC] retail's profiles are static objects, so the keyboard layout reads 0 until set; ProfileOptions::Init
 	// (0x00b9e790) does not touch it
 	mOptions.mKeyboardLayout = 0;
+	// [Blur2PC] T250: likewise the option bytes nothing in retail touches stay zero
+	memset( mOptions.mOnlineLoginName, 0, sizeof(mOptions.mOnlineLoginName) );
+	memset( mOptions.mOnlineLoginPassword, 0, sizeof(mOptions.mOnlineLoginPassword) );
+	memset( mOptions.mRetailUnknownFC, 0, sizeof(mOptions.mRetailUnknownFC) );
 #endif
 }
 
@@ -121,9 +125,26 @@ void C_GameProfile::Init(int controller_index)
 	mLatestDlcItemId = 0;
 	mLatestCommunityItemId = 0;
 	mSelectingSPGame = 1;
+#ifdef PLATFORM_PC
+	mDLCUnlocked.Clear();	// [Blur2PC] T250: retail 0x00ba0580
+#endif
 
 	ReloadSorceryData();
 }
+
+#ifdef PLATFORM_PC
+// [Blur2PC] T250: retail 0x00b9fe20
+bool C_GameProfile::IsDLCUnlocked( U8 packId )
+{
+	return mDLCUnlocked.Find( packId ) != mDLCUnlocked.End();
+}
+
+// [Blur2PC] T250: retail 0x00ba1850
+void C_GameProfile::SetDLCUnlocked( U8 packId )
+{
+	mDLCUnlocked.Insert( packId );
+}
+#endif
 
 void C_GameProfile::CacheDLCData()
 {
@@ -284,6 +305,9 @@ void ProfileOptions::Init()
 	mMatchingRule = RacerNet::eMatchingRuleAny;
 
 #ifdef PLATFORM_PC
+	// [Blur2PC] T250: retail 0x00b9e790 empties the online login strings
+	mOnlineLoginName[0] = 0;
+	mOnlineLoginPassword[0] = 0;
 	InitKeyboard();
 #endif
 }
@@ -328,6 +352,49 @@ static_assert( offsetof(ProfileOptions, mGammaIndex) == 0x0f, "PROFILE_OPTIONS_G
 static_assert( offsetof(ProfileOptions, mAudioSpeakerAngleFL) == 0x10, "PROFILE_OPTIONS_SPEAKER_OFFSET" );
 static_assert( offsetof(ProfileOptions, mDefaultAudioQuality) == 0x24, "PROFILE_OPTIONS_DEFAULT_QUALITY_OFFSET" );
 static_assert( offsetof(ProfileOptions, mDefaultAudioSpeakerAngleFL) == 0x30, "PROFILE_OPTIONS_DEFAULT_SPEAKER_OFFSET" );
+// [Blur2PC] T250: retail saves the options whole (profile load 0x00ba43c0 reads 0x170 bytes)
+static_assert( offsetof(ProfileOptions, mMatchingRule) == 0x40, "PROFILE_OPTIONS_MATCHING_RULE_OFFSET" );
+static_assert( offsetof(ProfileOptions, mOnlineLoginName) == 0x41, "PROFILE_OPTIONS_LOGIN_NAME_OFFSET" );
+static_assert( offsetof(ProfileOptions, mOnlineLoginPassword) == 0x61, "PROFILE_OPTIONS_LOGIN_PASSWORD_OFFSET" );
+static_assert( offsetof(ProfileOptions, mKeyboardIsCustom) == 0xc4, "PROFILE_OPTIONS_KEYBOARD_CUSTOM_OFFSET" );
+static_assert( offsetof(ProfileOptions, mKeyThrottle) == 0xc8, "PROFILE_OPTIONS_KEYS_OFFSET" );
+static_assert( offsetof(ProfileOptions, mKeySteerRight) == 0xf8, "PROFILE_OPTIONS_LAST_KEY_OFFSET" );
+static_assert( offsetof(ProfileOptions, mKeyboardLayout) == 0x16d, "PROFILE_OPTIONS_KEYBOARD_LAYOUT_OFFSET" );
+static_assert( sizeof(ProfileOptions) == 0x170, "PROFILE_OPTIONS_SIZE" );
+
+// [Blur2PC] T250: Blur2PC's own saves before 1378 kept the options at 0x7c bytes (1374/1375: keyboard custom flag
+// at +0x41, keys at +0x44, layout at +0x78) or 0x44 bytes (1373: up to the matching rule); 1373/1374 also lack
+// the audio quality byte
+static const int kLegacyOptionsSize1373 = 0x44;
+static const int kLegacyOptionsSize1374 = 0x7c;
+static const int kLegacyOptionsKeyboardOffset = 0x41;
+static const int kLegacyOptionsKeysOffset = 0x44;
+static const int kLegacyOptionsLayoutOffset = 0x78;
+
+void ProfileOptions::ReadLegacyOptions( Sys::BinaryDeserialiserAutoEndian& in, int version )
+{
+	U8 legacy[kLegacyOptionsSize1374];
+	const int size = ( version == 1373 ) ? kLegacyOptionsSize1373 : kLegacyOptionsSize1374;
+	in.Read( legacy, size );
+
+	memcpy( this, legacy, offsetof(ProfileOptions, mOnlineLoginName) );
+	mOnlineLoginName[0] = 0;
+	mOnlineLoginPassword[0] = 0;
+	if( version == 1373 )
+	{
+		InitKeyboard();
+		mKeyboardLayout = 0;
+	}
+	else
+	{
+		mKeyboardIsCustom = (S8)legacy[kLegacyOptionsKeyboardOffset];
+		memcpy( &mKeyThrottle, legacy + kLegacyOptionsKeysOffset, kLegacyOptionsLayoutOffset - kLegacyOptionsKeysOffset );
+		mKeyboardLayout = (S8)legacy[kLegacyOptionsLayoutOffset];
+	}
+
+	if( version == 1373 || version == 1374 )
+		InsertAudioQualityIntoLegacyOptions();
+}
 
 // [Blur2PC] T144: a 1373/1374 save has the bytes from the SFX volume to the gamma index one place lower, in
 // both the options and their defaults; move them up and give quality its default
@@ -618,6 +685,13 @@ void C_GameProfile::Serialise( Sys::BinarySerialiserAutoEndian& stream )
 	out << mSelectingSPGame;
 
 	out << mMultiplayerProfile;  // Going to be thrown away - just for the purposes of PoB (previously on Blur)
+
+#ifdef PLATFORM_PC
+	// [Blur2PC] T250: retail 1378 (0x00ba2530)
+	out << mDLCUnlocked.Size();
+	for( Btl::Set<U8>::Iterator it = mDLCUnlocked.Begin(); it != mDLCUnlocked.End(); it++ )
+		out << (U8)*it;
+#endif
 }
 
 Game::E_MPS_Result C_GameProfile::UploadMultiplayerProfile(const SysProfile::FullProfile& player)
@@ -698,22 +772,12 @@ void C_GameProfile::Deserialise( Sys::BinaryDeserialiserAutoEndian& stream )
 	}
 
 #ifdef PLATFORM_PC
-	// [Blur2PC] saves before T103 (version 1373) end the options at the multiplayer matching rule; the keyboard
-	// options then start from their defaults
-	if( GetLoadingSaveGameVersion() == 1373 )
-	{
-		in.Read( &mOptions, (offsetof(ProfileOptions, mKeyboardIsCustom) + 3) & ~3 );
-		mOptions.InitKeyboard();
-		mOptions.mKeyboardLayout = 0;
-	}
+	// [Blur2PC] T250: Blur2PC saves before retail's 1378 have smaller options (see ReadLegacyOptions)
+	if( GetLoadingSaveGameVersion() < 1378 )
+		mOptions.ReadLegacyOptions( in, GetLoadingSaveGameVersion() );
 	else
 #endif
 	in.Read( &mOptions, sizeof(ProfileOptions) );
-#ifdef PLATFORM_PC
-	// [Blur2PC] T144: saves before 1375 have no audio quality byte
-	if( GetLoadingSaveGameVersion() == 1373 || GetLoadingSaveGameVersion() == 1374 )
-		mOptions.InsertAudioQualityIntoLegacyOptions();
-#endif
 
 	int numHistory;
 	in >> numHistory;
@@ -769,6 +833,21 @@ void C_GameProfile::Deserialise( Sys::BinaryDeserialiserAutoEndian& stream )
 	in >> mSelectingSPGame;
 
 	in >> mMultiplayerProfile; // Going to be thrown away - just for the purposes of PoB (previously on Blur)
+
+#ifdef PLATFORM_PC
+	// [Blur2PC] T250: retail 1378 (0x00ba43c0) ends the profile with the unlocked DLC packs; Init cleared them
+	if( GetLoadingSaveGameVersion() >= 1378 )
+	{
+		int numDLC;
+		in >> numDLC;
+		for( int i = 0; i < numDLC; i++ )
+		{
+			U8 packId;
+			in >> packId;
+			mDLCUnlocked.Insert( packId );
+		}
+	}
+#endif
 }
 
 Game::E_MPS_Result C_GameProfile::DownloadMultiplayerProfile(const SysProfile::FullProfile& localPlayer, const SysProfile::UserIdentifier& fileOwner)
