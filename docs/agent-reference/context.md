@@ -35,7 +35,7 @@ python tools/agent_context.py log _work/build/amax.log
 python tools/agent_context.py log _work/run/example.log --pattern 'shader|fatal' --matches 6
 ```
 
-The helper returns matching lines with neighboring context and a short tail, all under the same character cap. Read other ranges if the displayed failures need more context. Continue to judge localized MSBuild results using `code/tools/jam2cmake/errsum.py`, not English text matching alone.
+The helper returns matching lines with neighboring context and a short tail, all under the same character cap. Read other ranges if the displayed failures need more context. Continue to judge localized MSBuild results using `tools/jam2cmake/errsum.py`, not English text matching alone.
 
 ## Measure results
 

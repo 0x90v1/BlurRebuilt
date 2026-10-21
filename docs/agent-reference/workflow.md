@@ -19,11 +19,11 @@ In the future we'll want to:
 
 ## Conventions
 
-- New engine code lives beside what it extends, on the branch of the phase it belongs to. New tools live under `code/tools/<name>/`. Do not restructure the source tree.
+- New engine code lives beside what it extends, on the branch of the phase it belongs to. New project tools live under root `tools/<name>/`. Keep `code/tools/` for tools shipped with the leaked source. Do not restructure the source tree.
 - Build output and scratch output go under the phase's `_work/` (gitignored).
 - The C++ source's own serialisers are the ground truth for PC formats.
 - Never guess a value to make something load. Record unknowns as unknowns.
-- **Any reported gameplay or engine issue gets fixed by replicating retail's actual code 100% faithfully.** Find the real mechanism (source diff against the pristine snapshot, or Ghidra against the retail binary per `code/tools/ghidra_retail`) and port it exactly. Do not invent a workaround, approximation, or "close enough" substitute. If the real mechanism cannot be recovered (for example, it lives inside DRM-obfuscated code with no source equivalent), say so explicitly, record what part is and isn't verified in `docs/analysis.md`, and treat any substitute as a stopgap, not a fix.
+- **Any reported gameplay or engine issue gets fixed by replicating retail's actual code 100% faithfully.** Find the real mechanism (source diff against the pristine snapshot, or Ghidra against the retail binary per `tools/ghidra_retail`) and port it exactly. Do not invent a workaround, approximation, or "close enough" substitute. If the real mechanism cannot be recovered (for example, it lives inside DRM-obfuscated code with no source equivalent), say so explicitly, record what part is and isn't verified in `docs/analysis.md`, and treat any substitute as a stopgap, not a fix.
 
 ## Multi-session / multi-agent protocol
 

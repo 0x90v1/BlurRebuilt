@@ -27,7 +27,7 @@ def main() -> int:
     top = args.top.resolve()
     output_root = args.out.resolve()
     entries = json.loads(args.manifest.read_text(encoding="utf-8"))["effects"]
-    compiler = top / "code/tools/dx11_fxcompile/compile_fx.py"
+    compiler = top / "tools/dx11_fxcompile/compile_fx.py"
     include_dirs = [
         top / "code/amax/game/Shaders",
         top / "code/mercury/library/graphics/shader/include",
@@ -41,7 +41,7 @@ def main() -> int:
     # Incremental authored compilation must account for includes and technique
     # compiler changes. The index/metadata are still regenerated on every run.
     authored_inputs = [compiler, args.manifest,
-                       top / "code/tools/dx11_shadercompile/alpha_test.py"] + [header for directory in include_dirs
+                       top / "tools/dx11_shadercompile/alpha_test.py"] + [header for directory in include_dirs
                                                   for header in directory.rglob("*.h")]
     authored_mtime = max(path.stat().st_mtime_ns for path in authored_inputs)
     jobs: list[tuple[Path, Path, list[str]]] = []
