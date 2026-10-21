@@ -6,11 +6,11 @@ project(Blur1PC LANGUAGES C CXX)
 # below, which each branch adds and the ones above it never touch. Run from
 # the worktree root (see AGENTS.md "Building"); the generated description lives
 # in cmake/targets.cmake and every build product goes under _work/ here.
-#   python code/tools/jam2cmake/jamextract.py --top . --root code/amax/game/jamfile.jam --target WIN32 --platform PC --build Speed --out _work/build/targets_pc_speed.json
-#   python code/tools/jam2cmake/cpgen.py <all .cp/.cv/.sp>
-#   python code/tools/jam2cmake/shadergen.py --json _work/build/targets_pc_speed.json --out _work/build/gen/shaders
-#   python code/tools/jam2cmake/luabundle.py --json _work/build/targets_pc_speed.json --out _work/build/gen/blobs/amax_lua_bundle.cpp
-#   python code/tools/jam2cmake/gen_cmake.py --json _work/build/targets_pc_speed.json --out cmake/targets.cmake
+#   python tools/jam2cmake/jamextract.py --top . --root code/amax/game/jamfile.jam --target WIN32 --platform PC --build Speed --out _work/build/targets_pc_speed.json
+#   python tools/jam2cmake/cpgen.py <all .cp/.cv/.sp>
+#   python tools/jam2cmake/shadergen.py --json _work/build/targets_pc_speed.json --out _work/build/gen/shaders
+#   python tools/jam2cmake/luabundle.py --json _work/build/targets_pc_speed.json --out _work/build/gen/blobs/amax_lua_bundle.cpp
+#   python tools/jam2cmake/gen_cmake.py --json _work/build/targets_pc_speed.json --out cmake/targets.cmake
 # Configure: cmake -S . -B _work/build/vs -G "Visual Studio 18 2026" -A Win32
 
 set(BLUR_TOP ${CMAKE_SOURCE_DIR})
