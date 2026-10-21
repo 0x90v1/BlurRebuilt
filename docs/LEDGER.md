@@ -638,3 +638,15 @@ Verified: tools/build.sh errsum 0 (layout static_asserts compile); Amax.exe/pdb 
 Blocked: none.
 Next: merged into Blur1Multi, Blur1PCDX11, its HDR child and the x64 child at the user's request; those phases now share the APPDATA save (Blur1Multi's per-source `save\AMAXSAVE` files are no longer read). BlurX not merged (not requested). Not ported: Lua `Amax.SetDLCUnlocked` (0x00b89610), the DLC licensing check (0x004debd0), anything that sets the online login strings.
 Files touched: code/amax/game/GameLogic/Profile/GameProfile.{h,cpp}, code/amax/game/GameLogic/Lua/{lua_GameProfile.cpp,SaveInfoInterfaces.inl}, code/mercury/library/ui/source/ui/Game/SaveSystem/SaveSystem_pc.cpp, tools/ghidra_retail/{DecompileTree,FindScalarRange,FindPointers,RawFind,FindRelBranches}.py, tools/blur2pc_automation/README.md, docs/{BOARD,analysis,LEDGER}.md; ignored `_work/run/run_script.ps1`, `_work/t247/`.
+
+## 2026-10-20 — session Codex tool relocation — T252
+
+Did: moved all 4 project-added tool directories in this worktree from code/tools to root tools, including existing edits, untracked files and local caches. Original leaked tool directories stayed in place. Updated build/CMake dependencies, Python imports/project-root depths, relative HDR probe includes where applicable, commands, metadata provenance and documentation references. Shared AGENTS/workflow policy and accepted D18 now reserve code/tools for the original source tools. Historical documentation paths were updated mechanically; no gameplay or rendering changes. No staging, commits or pushes.
+Verified: Standard Release build: errsum 0 errors; EXE/PDB delivered to this phase's _work/run and SHA256 matched. Tool payload hash/existence checks, Python 3 syntax checks and case-insensitive old-path scan are recorded in Blur1PCDX11HDRx64/_work/t252/verification.json; original master worktree remains clean.
+Blocked: none for tool relocation.
+Next: No relocation work remains; commit only when the user asks.
+Files touched: tools/ additions relocated from code/tools; build/CMake/script/source-comment/document path references; AGENTS.md, docs/agent-reference, docs/decisions.md and phase BOARD/analysis/LEDGER. Verification logs under this phase's ignored _work/t252; consolidated inventory/backups/build/test/delivery evidence in Blur1PCDX11HDRx64/_work/t252.
+
+## 2026-10-21 - session Codex tool relocation - T252 commit
+
+User authorized committing T252. Commit the tracked tool relocations, reference updates and placement policy; retain the earlier verification results above. Propagate the shared change with merges through the phase branches. No push requested.

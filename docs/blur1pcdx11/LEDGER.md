@@ -855,3 +855,5 @@ Files touched: tools/ additions relocated from code/tools; build/CMake/script/so
 ## 2026-10-21 - session Codex tool relocation - T252 commit
 
 User authorized committing T252. Commit the tracked tool relocations, reference updates and placement policy; retain the earlier verification results above. Propagate the shared change with merges through the phase branches. No push requested.
+
+T252 propagation (2026-10-21): merged blur1pc into this branch with git merge; retained this phase's tool set and regenerated the jam-derived CMake source list. Prior T252 build/test verification is recorded above. No push.
