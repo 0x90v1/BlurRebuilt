@@ -245,3 +245,7 @@ T232 final verification: queued minimized runs of the delivered standard executa
 ### Retail icon (T246, 2026-10-18)
 
 Retail Blur.exe 1.2 has a single icon group, `RT_GROUP_ICON` 101 (one 32x32 24 bpp image), and no other icon resources. The source tree has no `.rc`/`.ico`, but `C_Application` already loads resource 101 for the window (`ApplicationPC.cpp`, `LoadIconA(..., MAKEINTRESOURCEA(101))` sent as `WM_SETICON` small and big), so with no resource the window and the exe had the default icon. `_work/vendor/retail_icons/extract_icons.py` extracts the group from the user's retail exe to `blur_101.ico` (shared through every phase's vendor folder); `cmake/overrides.cmake` writes a one-line `.rc` (`101 ICON`) into the build directory and adds it to Amax when that file exists, otherwise the build warns and links without an icon. The built exe carries `RT_GROUP_ICON` 101.
+
+## T252 — Project tool placement (2026-10-20)
+
+The shared placement policy is D18 in `docs/decisions.md`: root `tools/` holds project-authored tools; `code/tools/` retains the original leaked tools. Tools added by this phase now reside under root `tools/`: `blur2pc_automation`, `ghidra_retail`, `jam2cmake`, `stacksample`. Inherited tools use the same layout. Commands, generator provenance, CMake dependencies, imports and project-root calculations were updated, preserving local edits and untracked payloads. No gameplay or rendering changes for T252.
