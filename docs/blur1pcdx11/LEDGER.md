@@ -25,7 +25,7 @@ Blocked: a playable D3D11 exe needs the Display and Display2 resources/draw-stat
 
 Next: implement a D3D11 display manager/window and resource bindings in the new branch, then replace the D3D9 backend selection only after the game's shaders and render targets are supported. Keep verifying against the native probe and compile the existing Amax target; run the game through the queued minimized harness when the backend supports it.
 
-Files touched: Blur1PCDX11 `CMakeLists.txt`, `cmake/dx11.cmake`, display `device/d3d11/{D3D11Device.h,D3D11Device.cpp}`, two built-in display shaders, `code/tools/dx11_probe/main.cpp`, `README.Blur1PCDX11.md`; Blur1PC docs/{BOARD,LEDGER,analysis}.md. No commit.
+Files touched: Blur1PCDX11 `CMakeLists.txt`, `cmake/dx11.cmake`, display `device/d3d11/{D3D11Device.h,D3D11Device.cpp}`, two built-in display shaders, `tools/dx11_probe/main.cpp`, `README.Blur1PCDX11.md`; Blur1PC docs/{BOARD,LEDGER,analysis}.md. No commit.
 
 ## 2026-09-26 19:43 — session Codex DX11 continuation — T127
 
@@ -37,7 +37,7 @@ Blocked: native Display and Display2 resource/device implementations, then the r
 
 Next: implement the native Display/Display2 backend in `Blur1PCDX11/`, port the effect source and shader cache to SM5, select and build `Amax` under `BLUR_USE_DX11=ON`, then deliver and validate the DX11 exe under the game-run protocol.
 
-Files touched: Blur1PCDX11 `CMakeLists.txt`, `cmake/dx11.cmake`, `README.Blur1PCDX11.md`, display `device/d3d11/*`, shader variants, `code/tools/dx11_probe/main.cpp`; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No commit.
+Files touched: Blur1PCDX11 `CMakeLists.txt`, `cmake/dx11.cmake`, `README.Blur1PCDX11.md`, display `device/d3d11/*`, shader variants, `tools/dx11_probe/main.cpp`; Blur1PC docs/{BOARD,analysis,LEDGER}.md. No commit.
 
 ## 2026-09-26 21:20 — session Codex DX11 continuation — T127
 
@@ -92,7 +92,7 @@ Files touched: `display2/source/utils/Utils.cpp`, display device `d3d11/{D3D11Ga
 
 Did: committed the branch's uncommitted state and pushed `blur1pcdx11`, at the user's instruction. No source changes this session. T150's `CloneTexture2D` GPU copy went in on its own commit; everything else, including the T127 and T150 records in this file and on the board, went in on a T127 commit.
 
-Verified: `git status` before staging listed 97 modified tracked files and 109 untracked files, all inside the DX11 scope (display and display2 D3D11 backends, 24 built-in shader sources, `fx/NativeFX11`, `movie/w32/bink`, `code/tools/dx11_*`, `code/vendor/fx11`, `docs/blur1pcdx11`). Largest new file 199 KB, no binary among them, and the only secret-shaped string is `secrets.GITHUB_TOKEN` in Microsoft's own fx11 CI workflow. The tree still carries the T127/T149 investigation traces (`ApplicationBase.cpp`, `deferred/Manager.cpp`, `GameWorld.cpp`, `Lighting/Prepass.cpp`, `ModelResource.cpp`), all behind `#if defined(BLUR_USE_DX11)`.
+Verified: `git status` before staging listed 97 modified tracked files and 109 untracked files, all inside the DX11 scope (display and display2 D3D11 backends, 24 built-in shader sources, `fx/NativeFX11`, `movie/w32/bink`, `tools/dx11_*`, `code/vendor/fx11`, `docs/blur1pcdx11`). Largest new file 199 KB, no binary among them, and the only secret-shaped string is `secrets.GITHUB_TOKEN` in Microsoft's own fx11 CI workflow. The tree still carries the T127/T149 investigation traces (`ApplicationBase.cpp`, `deferred/Manager.cpp`, `GameWorld.cpp`, `Lighting/Prepass.cpp`, `ModelResource.cpp`), all behind `#if defined(BLUR_USE_DX11)`.
 
 Blocked: unchanged — the post-process chain loses the frame, and the vehicle effects need the shipped techniques (T148 and T149 open).
 
@@ -134,7 +134,7 @@ Blocked: none for this continuation's compiler/binding corrections and visual as
 
 Next: use the fresh D3D9/ DX11 visual baseline, isolate Road / MaterialLights albedo and diffuse inputs in the window render texture, and validate actual texture contents and GPU resource/sampler/constant-buffer bindings at the draw. Implement the existing sRGB sampler contract, then tackle the missing shipped vehicle techniques. The reflection-only isolation has already been tried and did not solve the washout.
 
-Files touched: README.Blur1PCDX11.md, cmake/dx11.cmake, display device/d3d11/{D3D11EffectLibrary.h/.cpp,D3D11GameDevice.h,D3D11GameDeviceNative.cpp,D3D11Device.cpp}, display/source/context/Context_D3D11.cpp, fx/source/{NativeFX11.cpp,FxContext.cpp}, code/tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py}, code/tools/dx11_probe/main.cpp, docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored build/run scripts, effects and visual artifacts. All tracked changes remain uncommitted.
+Files touched: README.Blur1PCDX11.md, cmake/dx11.cmake, display device/d3d11/{D3D11EffectLibrary.h/.cpp,D3D11GameDevice.h,D3D11GameDeviceNative.cpp,D3D11Device.cpp}, display/source/context/Context_D3D11.cpp, fx/source/{NativeFX11.cpp,FxContext.cpp}, tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py}, tools/dx11_probe/main.cpp, docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored build/run scripts, effects and visual artifacts. All tracked changes remain uncommitted.
 
 ## 2026-09-29 18:35 - Codex context-efficiency - T176
 Did: applied the user-authorized context-efficiency patch to this phase worktree and the other active phase worktrees (blur1pc, blur1multi, blurx, blur1pcdx11). Reduced always-loaded AGENTS.md from about 22 KB to 6,054 bytes; preserved every original substantive section in docs/agent-reference/{layout,build,architecture,workflow}.md and added context.md. Added tools/agent_context.py for bounded task/ownership/ledger reads, saved-log excerpts, and recorded Codex token metrics. Global Codex limits: tool_output_token_limit=4000, model_auto_compact_token_limit=140000.
@@ -165,7 +165,7 @@ Blocked: none for the recovered-pass task; T148 is done for the 102 captured per
 
 Next: inspect a broken Showroom building draw's actual GPU inputs, shader/declaration formats, constants and texture samples; compare its serialized vertex contract with the compiled shader and implement the existing sRGB contract. Keep Showroom as the fast testbed; use races only for broader validation later. Exact recovery evidence is `_work/build/fxdump_variants`, not the historical overwrite-prone `fxdump`.
 
-Files touched: fx/{Effect.h,NativeFX11.h,Manager.cpp,System.cpp,NativeFX11.cpp,FxContext.cpp}; display/device/d3d11/D3D11GameDeviceNative.cpp; vehicle/include/vehicle/shaders/retail_dx11/{102 .fx files and sampler sidecars}; code/tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py,recover_vehicle.py,test_recover_vehicle.py}; code/tools/dx11_probe/main.cpp; cmake/dx11.cmake; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored build/dump/run artifacts. Renderer work remains uncommitted.
+Files touched: fx/{Effect.h,NativeFX11.h,Manager.cpp,System.cpp,NativeFX11.cpp,FxContext.cpp}; display/device/d3d11/D3D11GameDeviceNative.cpp; vehicle/include/vehicle/shaders/retail_dx11/{102 .fx files and sampler sidecars}; tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py,recover_vehicle.py,test_recover_vehicle.py}; tools/dx11_probe/main.cpp; cmake/dx11.cmake; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored build/dump/run artifacts. Renderer work remains uncommitted.
 
 ## 2026-09-29 23:54 — session Codex visual diagnosis — T127
 
@@ -177,7 +177,7 @@ Blocked: none for this repair batch. T127 remains in progress: vehicle/scene lig
 
 Next: implement the original per-sampler sRGB contract with compatible texture/view formats, verify actual GPU sample values, then compare the same Showroom against the saved D3D9 reference. Separately identify the remaining no-VS draw callers and recover any missing variants from correctly keyed retail captures.
 
-Files touched: display/source/{context/Context_D3D11.cpp,device/d3d11/{D3D11GameDeviceNative.cpp,D3D11States.cpp,PCD3D11GameDevice.cpp},texture/d3d11/D3D11TextureLoad.cpp}; display/include/display/device/d3d11/D3D11States.h; fx/source/{NativeFX11.cpp,System.cpp}; render/deferred/UI/drop-shadow pixel shader interfaces; code/tools/dx11_shadercompile/{alpha_test.py,compile_builtins.py}; code/tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py}; code/tools/dx11_probe/main.cpp; cmake/dx11.cmake; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored diagnostic/build/run artifacts. Existing unrelated work preserved.
+Files touched: display/source/{context/Context_D3D11.cpp,device/d3d11/{D3D11GameDeviceNative.cpp,D3D11States.cpp,PCD3D11GameDevice.cpp},texture/d3d11/D3D11TextureLoad.cpp}; display/include/display/device/d3d11/D3D11States.h; fx/source/{NativeFX11.cpp,System.cpp}; render/deferred/UI/drop-shadow pixel shader interfaces; tools/dx11_shadercompile/{alpha_test.py,compile_builtins.py}; tools/dx11_fxcompile/{compile_fx.py,compile_manifest.py}; tools/dx11_probe/main.cpp; cmake/dx11.cmake; README.Blur1PCDX11.md; docs/blur1pcdx11/{BOARD.md,analysis.md,LEDGER.md}; ignored diagnostic/build/run artifacts. Existing unrelated work preserved.
 
 ## 2026-09-30 01:30 — session Codex visual diagnosis — T127
 
@@ -644,7 +644,7 @@ Blocked: none. Other-vendor D3D9 alpha behaviour remains unmeasured.
 
 Next: the Observatory billboard shrubs draw a darker full-quad rectangle on native (PC is clean). Compare the Billboard draw sequence and its non-alpha-tested writes against the D3D9 replay.
 
-Files touched: code/tools/dx11_shadercompile/alpha_test.py, display device d3d11/D3D11GameDeviceNative.cpp, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.
+Files touched: tools/dx11_shadercompile/alpha_test.py, display device d3d11/D3D11GameDeviceNative.cpp, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.
 
 ## 2026-10-03 — session Claude DX11 continuation — T127 shipped prepass clip
 
@@ -660,7 +660,7 @@ Files touched: code/amax/game/Shaders/Common/Pixel.h, fx/source/System.cpp, docs
 
 ## 2026-10-03 — session Claude DX11 continuation — T127 shader revision audit
 
-Did: committed the prepass alpha clip as `b5d31dcd`. Built `code/tools/dx11_shader_audit/`, which compiles source passes with the retail-era D3DCompiler_42 and compares them with the retail dump. Recovered under `BLUR_DX11`: the depth-sample `abs`, the water `*NoDepth` techniques, the flare radius saturate, white SyntheticBillboard vertex colour, MeshEffect skinned bind-normal fresnel, and the road `_NW` zero normal with D3D9 `nrm(0)` semantics.
+Did: committed the prepass alpha clip as `b5d31dcd`. Built `tools/dx11_shader_audit/`, which compiles source passes with the retail-era D3DCompiler_42 and compares them with the retail dump. Recovered under `BLUR_DX11`: the depth-sample `abs`, the water `*NoDepth` techniques, the flare radius saturate, white SyntheticBillboard vertex colour, MeshEffect skinned bind-normal fresnel, and the road `_NW` zero normal with D3D9 `nrm(0)` semantics.
 
 Verified: native audit 1,197/1,288 identical, with the remainder explained interface differences. D3D9/D3D11 zero-normal probes match on hardware. Standard build errsum 0, 1254/1254 effects; EXE/PDB/effects delivered. Brighton detail 1 (PC/native60/unlocked) and Observatory native60/unlocked exit 0. Evidence `_work/build/{shader_audit_oct03,shader_audit_dx11_oct03,road_nw_zero_normal_oct03,shader_revisions_oct03}`.
 
@@ -668,7 +668,7 @@ Blocked: the Blur1PC D3D9 capture at graphical detail 1 is black (Blur1PC fault,
 
 Next: dump retail shaders on other tracks (water, night, perks) and rerun the audit; trace the 8 "VS object has no native shader" draws (caller 0x01499128).
 
-Files touched: Shaders/{Road.fx,Road.h,RoadTwoSpec.fx,Water.fx,WaterCubeMap.fx,WaterFlow.fx,SyntheticBillboard.fx,Effects/LightFlare.fx,Perks/MeshEffect.fx}, shader/misc/Resolve.h, code/tools/dx11_shader_audit/, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.
+Files touched: Shaders/{Road.fx,Road.h,RoadTwoSpec.fx,Water.fx,WaterCubeMap.fx,WaterFlow.fx,SyntheticBillboard.fx,Effects/LightFlare.fx,Perks/MeshEffect.fx}, shader/misc/Resolve.h, tools/dx11_shader_audit/, docs/blur1pcdx11/{analysis,LEDGER,BOARD}.md.
 
 ## 2026-10-03 — session Claude DX11 continuation — T127 native built-in renderers
 
@@ -901,11 +901,11 @@ Exact next step: report the resulting range-fix commit and that all current comm
 
 ## 2026-10-18 — session Claude x64 — T244, T245
 
-Did: created worktree/branch `uKER/blur1pcdx11-x64` from `uKER/blur1pcdx11-hdr` 3223bbc7 and converted the DX11/HDR game to x64: arch-aware CMake (x64 D3DX/OpenAL selection, `/we4311 /we4302`), DemonWare and curl built from source (`cmake/demonware.cmake`, `code/tools/demonware_cmake/`), x64 OpenSSL 0.9.8i, `Core::PointerToSlot32`, and ~250 pointer-width fixes across core, system, scheduler, FX, renderingdata, UI, audio, particles, Gravity, portal and game code (three read-only audits for silent 32-bit accesses). Fixed the x64 UI sprite clear (DCBZ128 vs 136-byte sprites). Per user, removed all D3D9 and Xbox 360 code (720 files reduced, 238 deleted, jamfiles/CMake updated, d3d9/d3dx9 unlinked). Found T245 (Blur1PCDX11 constant-register guard) and applied it uncommitted in Blur1PCDX11 plus an identical stopgap here. Docs: `docs/blur1pcdx11/x64.md`, analysis, decisions (proposed build.sh architecture option).
+Did: created worktree/branch `uKER/blur1pcdx11-x64` from `uKER/blur1pcdx11-hdr` 3223bbc7 and converted the DX11/HDR game to x64: arch-aware CMake (x64 D3DX/OpenAL selection, `/we4311 /we4302`), DemonWare and curl built from source (`cmake/demonware.cmake`, `tools/demonware_cmake/`), x64 OpenSSL 0.9.8i, `Core::PointerToSlot32`, and ~250 pointer-width fixes across core, system, scheduler, FX, renderingdata, UI, audio, particles, Gravity, portal and game code (three read-only audits for silent 32-bit accesses). Fixed the x64 UI sprite clear (DCBZ128 vs 136-byte sprites). Per user, removed all D3D9 and Xbox 360 code (720 files reduced, 238 deleted, jamfiles/CMake updated, d3d9/d3dx9 unlinked). Found T245 (Blur1PCDX11 constant-register guard) and applied it uncommitted in Blur1PCDX11 plus an identical stopgap here. Docs: `docs/blur1pcdx11/x64.md`, analysis, decisions (proposed build.sh architecture option).
 Verified: x64 Release build errsum 0 (`_work/t244/build11.out`); exe PE32+ importing d3d11/dxgi/d3dcompiler only; queued minimized runs exit 0: startup/menus match the x86 HDR reference (`_work/t244/startup2/ac.png`), Observatory debug race at 60 Hz and unlocked with the D3D11 debug layer and zero validation messages before and after the removals (`_work/t244/race_*`; grid `_work/t244/race_clean_grid.png`). OpenSSL unit tests and TLS handshakes pass. Exe/PDB/fx11/OpenAL x64 delivered to `_work/run`.
 Blocked: T245 needs a user-authorized commit in Blur1PCDX11 and merges through the HDR child; standard `tools/build.sh` cannot select x64 (proposed decision). Nothing committed.
 Next: user review; on approval commit T244 on this branch, commit T245 in Blur1PCDX11 and merge it up (HDR, then x64) so the stopgap line resolves to the lower-phase fix; decide the build.sh architecture option in Blur1PC.
-Files touched: cmake/{blur_common,dx11,demonware,targets}.cmake, CMakeLists.txt, code/tools/demonware_cmake/*, engine/game sources and jamfiles (see git status), docs/blur1pcdx11/{x64,analysis,decisions,LEDGER,BOARD}.md; Blur1PCDX11: D3D11GameDeviceNative.cpp, docs/blur1pcdx11/BOARD.md.
+Files touched: cmake/{blur_common,dx11,demonware,targets}.cmake, CMakeLists.txt, tools/demonware_cmake/*, engine/game sources and jamfiles (see git status), docs/blur1pcdx11/{x64,analysis,decisions,LEDGER,BOARD}.md; Blur1PCDX11: D3D11GameDeviceNative.cpp, docs/blur1pcdx11/BOARD.md.
 
 Commit (2026-10-18, user authorized): T245 committed on blur1pcdx11 as 0cb00815 (code only; the T245 board row in Blur1PCDX11 stays uncommitted beside another session's T233 edit), merged into uKER/blur1pcdx11-hdr as 4a467ae2 (that worktree's uncommitted T239 docs untouched), T244 committed on uKER/blur1pcdx11-x64 and the HDR branch merged into it. No push.
 
@@ -947,3 +947,15 @@ Verified: x64 Speed lap: NaN frames 268 before, 0 after. Before/after still: x64
 Blocked: none.
 Next: none for T251. User confirmed the flashes are gone; committed on Blur1PCDX11 at the user's request and merged through HDR and x64.
 Files touched: Blur1PCDX11 `gamesys/crowd_system/Shaders/psCrowdFlag.psh`; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md.
+
+## 2026-10-20 — session Codex tool relocation — T252
+
+Did: moved all 9 project-added tool directories in this worktree from code/tools to root tools, including existing edits, untracked files and local caches. Original leaked tool directories stayed in place. Updated build/CMake dependencies, Python imports/project-root depths, relative HDR probe includes where applicable, commands, metadata provenance and documentation references. Shared AGENTS/workflow policy and accepted D18 now reserve code/tools for the original source tools. Historical documentation paths were updated mechanically; no gameplay or rendering changes. No staging, commits or pushes.
+Verified: Documented x64 variant of tools/build.sh regenerated CMake/headers/shaders and eight DemonWare libraries. Full Amax build blocked by C2082 in code/mercury/library/common/system/source/network/SMTPClient.cpp:28: local hostname redeclares the Connect parameter. This file was already modified at startup and was not edited by T252. Relocated dx11_probe builds with errsum 0. Existing delivered Master EXE/PDB preserved; x64 delivery pending this unrelated source fix. Tool payload hash/existence checks, Python 3 syntax checks and case-insensitive old-path scan are recorded in Blur1PCDX11HDRx64/_work/t252/verification.json; original master worktree remains clean.
+Blocked: Full x64 build/delivery only: pre-existing SMTPClient.cpp hostname C2082, outside T252.
+Next: Owner of the existing SMTP edit resolves its duplicate hostname; rerun the documented x64 Release build and deliver Amax.exe/PDB. No relocation work remains.
+Files touched: tools/ additions relocated from code/tools; build/CMake/script/source-comment/document path references; AGENTS.md, docs/agent-reference, docs/decisions.md and phase BOARD/analysis/LEDGER. Verification logs under this phase's ignored _work/t252; consolidated inventory/backups/build/test/delivery evidence in Blur1PCDX11HDRx64/_work/t252.
+
+## 2026-10-21 - session Codex tool relocation - T252 commit
+
+User authorized committing T252. Commit the tracked tool relocations, reference updates and placement policy; retain the earlier verification results above. Propagate the shared change with merges through the phase branches. No push requested.

@@ -120,10 +120,10 @@ if(BLUR_X64)
     # [Blur2PC][x64] DemonWare ships x86 libraries only; build the same libraries
     # from the bundled sources (cmake/demonware.cmake, generated from the
     # Release-mt|Win32 projects) against an x64 OpenSSL 0.9.8i built by
-    # code/tools/demonware_cmake/build_openssl_x64.cmd.
+    # tools/demonware_cmake/build_openssl_x64.cmd.
     set(BLUR_OPENSSL_X64 ${BLUR_PROJECT}/_work/vendor_x64/openssl-x64 CACHE PATH "x64 OpenSSL 0.9.8i install (build_openssl_x64.cmd)")
     if(NOT EXISTS ${BLUR_OPENSSL_X64}/lib/libeay32.lib)
-        message(FATAL_ERROR "x64 OpenSSL 0.9.8i missing at ${BLUR_OPENSSL_X64}; run code/tools/demonware_cmake/build_openssl_x64.cmd")
+        message(FATAL_ERROR "x64 OpenSSL 0.9.8i missing at ${BLUR_OPENSSL_X64}; run tools/demonware_cmake/build_openssl_x64.cmd")
     endif()
     include(${BLUR_TOP}/cmake/demonware.cmake)
     foreach(lib bdConnection bdCore bdLobby bdSocket bdPlatform bdNet bdExampleCommonLobby)

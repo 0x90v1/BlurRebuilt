@@ -102,7 +102,7 @@ compressed video; do not capture PNG bursts.
 `_work/build/fxdump_variants/` using their actual FXB filenames. The old
 `fxdump/` files used internal names and could overwrite different permutations;
 do not use them as permutation-specific evidence. No retail files are changed.
-`code/tools/dx11_fxcompile/recover_vehicle.py` disassembles those captures with
+`tools/dx11_fxcompile/recover_vehicle.py` disassembles those captures with
 FXC and generates the native-only sources under
 `vehicle/include/vehicle/shaders/retail_dx11/`, retaining CTAB parameter names,
 instruction comments and input SHA256 hashes. It rejects unsupported operations

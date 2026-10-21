@@ -39,15 +39,15 @@ file(GLOB_RECURSE _dx11_fx_jam CONFIGURE_DEPENDS
     ${BLUR_TOP}/code/mercury/library/graphics/shader/*.jam
     ${BLUR_TOP}/code/mercury/library/graphics/vehicle/*.jam)
 add_custom_command(OUTPUT ${_dx11_fx_manifest}
-    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/code/tools/jam2cmake/jamextract.py
+    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/tools/jam2cmake/jamextract.py
         --top ${BLUR_TOP}
         --root code/amax/game/Shaders/jamfile.jam
         --target WIN32 --platform PC --build Speed
         --out ${_dx11_fx_manifest}
-    DEPENDS ${_dx11_fx_jam} ${BLUR_TOP}/code/tools/jam2cmake/jamextract.py
+    DEPENDS ${_dx11_fx_jam} ${BLUR_TOP}/tools/jam2cmake/jamextract.py
     VERBATIM)
 add_custom_command(OUTPUT ${_dx11_fx_stamp}
-    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/code/tools/dx11_fxcompile/compile_manifest.py
+    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/tools/dx11_fxcompile/compile_manifest.py
         --top ${BLUR_TOP} --manifest ${_dx11_fx_manifest}
         --fxc ${BLUR_FXC_EXE}
         --out ${BLUR_TOP}/_work/build/gen/fx11/effects
@@ -55,9 +55,9 @@ add_custom_command(OUTPUT ${_dx11_fx_stamp}
     COMMAND ${CMAKE_COMMAND} -E touch ${_dx11_fx_stamp}
     DEPENDS ${_dx11_fx_manifest} ${_dx11_fx_sources} ${_dx11_fx_includes}
         ${_dx11_recovered_samplers}
-        ${BLUR_TOP}/code/tools/dx11_fxcompile/compile_fx.py
-        ${BLUR_TOP}/code/tools/dx11_fxcompile/compile_manifest.py
-        ${BLUR_TOP}/code/tools/dx11_shadercompile/alpha_test.py
+        ${BLUR_TOP}/tools/dx11_fxcompile/compile_fx.py
+        ${BLUR_TOP}/tools/dx11_fxcompile/compile_manifest.py
+        ${BLUR_TOP}/tools/dx11_shadercompile/alpha_test.py
     VERBATIM)
 add_custom_target(dx11_fx_all DEPENDS ${_dx11_fx_stamp})
 set_target_properties(dx11_fx_all PROPERTIES FOLDER "dx11")
@@ -71,9 +71,9 @@ endif()
 set(_dx11_shader_dir ${BLUR_TOP}/code/mercury/library/graphics/display/include/display/shaders)
 add_custom_command(
     OUTPUT ${_dx11_shader_dir}/psConstants.h ${_dx11_shader_dir}/vsConstants.h
-    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/code/tools/jam2cmake/cpgen.py
+    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/tools/jam2cmake/cpgen.py
         ${_dx11_shader_dir}/psConstants.cp ${_dx11_shader_dir}/vsConstants.cv
-    DEPENDS ${BLUR_TOP}/code/tools/jam2cmake/cpgen.py
+    DEPENDS ${BLUR_TOP}/tools/jam2cmake/cpgen.py
         ${_dx11_shader_dir}/psConstants.cp ${_dx11_shader_dir}/vsConstants.cv
     VERBATIM)
 add_custom_target(dx11_shader_headers DEPENDS
@@ -97,21 +97,21 @@ file(GLOB_RECURSE _dx11_builtin_sources CONFIGURE_DEPENDS
     ${BLUR_TOP}/code/mercury/library/ui/*.psh
     ${BLUR_TOP}/code/mercury/library/ui/*.h)
 add_custom_command(OUTPUT ${_dx11_builtin_manifest}
-    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/code/tools/jam2cmake/jamextract.py
+    COMMAND ${Python3_EXECUTABLE} ${BLUR_TOP}/tools/jam2cmake/jamextract.py
         --top ${BLUR_TOP} --root code/amax/game/jamfile.jam
         --target WIN32 --platform PC --build Speed
         --out ${_dx11_builtin_manifest}
-    DEPENDS ${_dx11_builtin_jams} ${BLUR_TOP}/code/tools/jam2cmake/jamextract.py
+    DEPENDS ${_dx11_builtin_jams} ${BLUR_TOP}/tools/jam2cmake/jamextract.py
     VERBATIM)
 add_custom_command(OUTPUT ${_dx11_builtin_report}
     COMMAND ${Python3_EXECUTABLE}
-        ${BLUR_TOP}/code/tools/dx11_shadercompile/compile_builtins.py
+        ${BLUR_TOP}/tools/dx11_shadercompile/compile_builtins.py
         --manifest ${_dx11_builtin_manifest} --top ${BLUR_TOP}
         --fxc ${BLUR_FXC_EXE}
         --out ${BLUR_TOP}/_work/build/gen/dx11_builtins --jobs 4
     DEPENDS ${_dx11_builtin_manifest} ${_dx11_builtin_sources}
-        ${BLUR_TOP}/code/tools/dx11_shadercompile/compile_builtins.py
-        ${BLUR_TOP}/code/tools/dx11_shadercompile/alpha_test.py
+        ${BLUR_TOP}/tools/dx11_shadercompile/compile_builtins.py
+        ${BLUR_TOP}/tools/dx11_shadercompile/alpha_test.py
     VERBATIM)
 add_custom_target(dx11_shaders_all DEPENDS ${_dx11_builtin_report})
 add_dependencies(dx11_shaders_all dx11_shader_headers)
@@ -119,12 +119,12 @@ set_target_properties(dx11_shaders_all PROPERTIES FOLDER "dx11")
 set(_dx11_builtin_embedded ${BLUR_TOP}/_work/build/gen/dx11_builtins/embedded.cpp)
 add_custom_command(OUTPUT ${_dx11_builtin_embedded}
     COMMAND ${Python3_EXECUTABLE}
-        ${BLUR_TOP}/code/tools/dx11_shadercompile/embed_builtins.py
+        ${BLUR_TOP}/tools/dx11_shadercompile/embed_builtins.py
         --manifest ${_dx11_builtin_manifest}
         --compiled ${BLUR_TOP}/_work/build/gen/dx11_builtins
         --out ${_dx11_builtin_embedded}
     DEPENDS ${_dx11_builtin_report}
-        ${BLUR_TOP}/code/tools/dx11_shadercompile/embed_builtins.py
+        ${BLUR_TOP}/tools/dx11_shadercompile/embed_builtins.py
     VERBATIM)
 
 add_library(blur_dx11 STATIC
@@ -191,14 +191,14 @@ if(TARGET display)
 endif()
 
 add_executable(dx11_probe
-    ${BLUR_TOP}/code/tools/dx11_probe/main.cpp)
+    ${BLUR_TOP}/tools/dx11_probe/main.cpp)
 target_compile_features(dx11_probe PRIVATE cxx_std_17)
 target_link_libraries(dx11_probe PRIVATE blur_dx11 blur_fx11)
 add_dependencies(dx11_probe dx11_shaders_all dx11_fx_all)
 set_target_properties(dx11_probe PROPERTIES FOLDER "dx11")
 
 # [Blur2PC][HDR] Exercise the production scRGB presenter across display peaks.
-add_executable(dx11_hdr_reference ${BLUR_TOP}/code/tools/dx11_probe/hdr_output_reference.cpp)
+add_executable(dx11_hdr_reference ${BLUR_TOP}/tools/dx11_probe/hdr_output_reference.cpp)
 target_compile_features(dx11_hdr_reference PRIVATE cxx_std_17)
 target_link_libraries(dx11_hdr_reference PRIVATE blur_dx11)
 set_target_properties(dx11_hdr_reference PROPERTIES FOLDER "dx11")
@@ -207,7 +207,7 @@ set_target_properties(dx11_hdr_reference PROPERTIES FOLDER "dx11")
 # Display2 lock implementation, including resource reuse before GPU completion.
 if(TARGET display2)
     add_executable(dx11_dynamic_buffer_reference
-        ${BLUR_TOP}/code/tools/dx11_probe/dynamic_buffer_reference.cpp)
+        ${BLUR_TOP}/tools/dx11_probe/dynamic_buffer_reference.cpp)
     target_include_directories(dx11_dynamic_buffer_reference PRIVATE
         $<TARGET_PROPERTY:display2,INCLUDE_DIRECTORIES>)
     target_compile_definitions(dx11_dynamic_buffer_reference PRIVATE BUILD_CONFIG_SPEED)
@@ -218,7 +218,7 @@ endif()
 
 # [Blur1PCDX11] Verify current-view reuse against fresh GPU sampling.
 add_executable(dx11_texture_view_reference
-    ${BLUR_TOP}/code/tools/dx11_probe/texture_view_reference.cpp)
+    ${BLUR_TOP}/tools/dx11_probe/texture_view_reference.cpp)
 target_compile_features(dx11_texture_view_reference PRIVATE cxx_std_17)
 target_link_libraries(dx11_texture_view_reference PRIVATE blur_dx11)
 set_target_properties(dx11_texture_view_reference PROPERTIES FOLDER "dx11")
