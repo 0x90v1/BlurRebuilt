@@ -29,3 +29,7 @@ D17 evidence addendum (2026-10-07, T232): stock retail runtime capture confirms 
 D17 direction confirmed by user (2026-10-07, T232): the user rejects any stopgap and requires a 1:1 retail implementation. The provisional Render2DBG clear is removed from source. T232 must recover and port the actual surface-binding lifecycle; delivery remains pending until rebuilt and verified.
 
 D17 replacement delivered and verified (T232): the runtime-decoded retail EndRenderSplitscreenWithoutAA callback restores prepass view-1 depth/stencil for one view at graphical detail > 1 after the retail view-dependent FX refresh and post-processing. That sequence is now implemented exactly, with its recovered getter, and passes delivered 60-Hz/unlocked intro/results checks. No new clear or workaround. See analysis.md T232.
+
+## D18 — Project-authored tools live outside the leaked source
+
+Status: accepted (user, 2026-10-20; T252). New project tools belong in root `tools/<name>/`. `code/tools/` is reserved for tools shipped with the leaked Blur source. Relocate our existing additions and update commands, imports, project-root calculations, CMake dependencies and documentation across all working branches; preserve each phase's own tools and local edits. This supersedes the former `code/tools/<name>/` placement convention, without moving engine code or the original leaked tools.

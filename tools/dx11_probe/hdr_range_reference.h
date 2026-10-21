@@ -1,6 +1,6 @@
 // [Blur2PC][HDR] Exercise production light/blur/bloom shaders and vehicle range paths.
 #pragma once
-#include "../../amax/game/Game/GameWorld/VehicleLightRGBM.h"
+#include "../../code/amax/game/Game/GameWorld/VehicleLightRGBM.h"
 
 struct HDRRangeTarget
 {

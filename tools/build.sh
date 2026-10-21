@@ -6,7 +6,7 @@
 # (AGENTS.md protocol rule 9) once the running exe, if any, has exited.
 set -e
 cd "$(dirname "$0")/.."
-J=code/tools/jam2cmake
+J=tools/jam2cmake
 CM="/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
 mkdir -p _work/build
 python $J/jamextract.py --top . --root code/amax/game/jamfile.jam --target WIN32 --platform PC --build Speed --out _work/build/targets_pc_speed.json | tail -1

@@ -7,7 +7,7 @@ Run from PowerShell, inputs through environment variables named at the top of ea
 ```
 $env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot"
 $env:BLUR2PC_ADDRS = "00415a30"; $env:BLUR2PC_OUT = "C:\AIProjects\Blur2PC\_work\ghidra\out.c"
-& "C:\tools\ghidra_12.1.2_PUBLIC\support\pyghidraRun.bat" -H C:/tools/ghidra_proj Blur -process Blur.exe -noanalysis -readOnly -scriptPath C:/AIProjects/Blur2PC/Blur1PC/code/tools/ghidra_retail -postScript DecompileAt.py
+& "C:\tools\ghidra_12.1.2_PUBLIC\support\pyghidraRun.bat" -H C:/tools/ghidra_proj Blur -process Blur.exe -noanalysis -readOnly -scriptPath C:/AIProjects/Blur2PC/Blur1PC/tools/ghidra_retail -postScript DecompileAt.py
 ```
 
 Findings made with them are in `docs/analysis.md` ("Controls on PC").

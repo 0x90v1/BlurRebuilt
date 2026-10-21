@@ -1094,7 +1094,7 @@ bool C_Application::LoadingScreenEnabledState() const
 }
 
 // ------------------------------------------------------------------------------------------------------------
-// [Blur2PC] Retail Blur PC graphics settings. Recovered from Blur.exe 1.2 with Ghidra (code/tools/ghidra_retail);
+// [Blur2PC] Retail Blur PC graphics settings. Recovered from Blur.exe 1.2 with Ghidra (tools/ghidra_retail);
 // retail addresses are given per function. Details and what is not verified: docs/analysis.md
 // "Graphics options (PC)".
 // ------------------------------------------------------------------------------------------------------------
