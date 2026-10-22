@@ -213,6 +213,7 @@ bool C_PCD3D11GameDevice::CreateDevice()
     if(FAILED(m_pSwapChain->GetBuffer(0,__uuidof(ID3D11Texture2D),
         reinterpret_cast<void**>(&back->m_ColourSurface.m_pd3dSurface)))) {delete back;return false;}
     m_BackBuffers.PushBack(back);
+    SetAspectRatio((F32)back->m_Width/(F32)back->m_Height);    // [Blur1PCDX11] as PCD3D9Device (T254)
     if(!m_Display2.CreateDepthStencilSurface(back->m_Width,back->m_Height,E_Usage_DepthStencil,
         static_cast<Display2::E_SurfaceFormat>(back->m_DepthStencilFormat),Display2::E_Multisample_None,nullptr,
         &back->m_DepthStencilSurface))return false;
@@ -259,6 +260,7 @@ bool C_PCD3D11GameDevice::CreateDeviceVolatile()
     back->m_ColourFormat=m_DeviceParams.m_ColourFormat;
     back->m_DepthStencilFormat=m_DeviceParams.m_DepthStencilFormat;
     back->m_Multisample=E_Multisample_None;
+    SetAspectRatio((F32)back->m_Width/(F32)back->m_Height);    // [Blur1PCDX11] as PCD3D9Device (T254)
     if(FAILED(m_pSwapChain->GetBuffer(0,__uuidof(ID3D11Texture2D),
         reinterpret_cast<void**>(&back->m_ColourSurface.m_pd3dSurface))))return false;
     if(!m_Display2.CreateDepthStencilSurface(back->m_Width,back->m_Height,E_Usage_DepthStencil,
