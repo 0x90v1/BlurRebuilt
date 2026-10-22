@@ -6,14 +6,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelXML", "..\Managed Helper Libraries\ExcelXML\ExcelXML.csproj", "{9AF9E184-19A6-4813-A108-AD6AE78B692F}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 3
-		SccProjectUniqueName0 = ..\\Managed\u0020Helper\u0020Libraries\\ExcelXML\\ExcelXML.csproj
-		SccLocalPath0 = ..\\Managed\u0020Helper\u0020Libraries\\ExcelXML
-		SccLocalPath1 = .
-		SccProjectUniqueName2 = CompileTimeAnalysis.csproj
-		SccLocalPath2 = .
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

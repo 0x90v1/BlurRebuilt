@@ -5,10 +5,6 @@
 	Name="Nexus Core"
 	ProjectGUID="{FA9575F3-B3ED-4576-A7D6-4E2179F5301B}"
 	RootNamespace="Nexus Core"
-	SccProjectName="SAK"
-	SccAuxPath="SAK"
-	SccLocalPath="SAK"
-	SccProvider="SAK"
 	Keyword="Win32Proj"
 	>
 	<Platforms>

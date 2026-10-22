@@ -12,8 +12,8 @@ int main(int argc, char* argv[])
 		Attk::C_Image tmp;
 //		status = tmp.Read("c:/images/16x16.bmp");
 		//status = tmp.Read("c:/images/lenna.tga");
-//		status = tmp.Read("Z:/PGR4/Art/Circuits/Tokyo/Textures/CityBlocks/block_01/B01_kddannexbase_DIFF.tga");
-		status = tmp.Read("Z:/PGR4/Art/Circuits/Tokyo/Textures/CityBlocks/block_01/B01_shop06base_SIGMA_DIFF.tga");
+//		status = tmp.Read("PGR4/Art/Circuits/Tokyo/Textures/CityBlocks/block_01/B01_kddannexbase_DIFF.tga");
+		status = tmp.Read("PGR4/Art/Circuits/Tokyo/Textures/CityBlocks/block_01/B01_shop06base_SIGMA_DIFF.tga");
 //		status = tmp.Read("c:/images/input.bmp");
 //		tmp.ChangePixelFormat(Attk::E_PixelFormat_A32R32G32B32F);
 //		status = tmp.Write("c:/images/export/lenna_o.bmp");
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 //		AttkUt::C_ImageFilter::Filter2D(tmp, AttkUt::C_ImageFilter::E_PixelFilter_Bartlett,1,1);
 
 //		AttkUt::C_ImageResize::Resize(tmp, 128, 128, 1, AttkUt::C_ImageFilter::E_PixelFilter_Box);
-//		status = tmp.Write("z:\box.bmp");
+//		status = tmp.Write("box.bmp");
 //		return 0;
 
 		AttkUt::C_GenerateMipmaps::Generate(
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 		{
 			Attk::C_Image* pMipLevel = mipmapChain.GetLevelPtr(i);
 			std::stringstream ss;
-			ss << "z:/miptest/test_" << i << ".bmp";
+			ss << "miptest/test_" << i << ".bmp";
 			status = pMipLevel->Write(ss.str().c_str());
 		}
 	}
@@ -68,12 +68,12 @@ int main(int argc, char* argv[])
 	Attk::C_Image tmp[4];
 
 	//load volume slices
-	tmp[0].Read("z:\\test_textures\\red.tga");
-	tmp[1].Read("z:\\test_textures\\green.tga");
-	tmp[2].Read("z:\\test_textures\\blue.tga");
-	tmp[3].Read("z:\\test_textures\\black.tga");
-	//tmp[4].Read("z:\\test_textures\\yellow.tga");
-	//tmp[5].Read("z:\\test_textures\\black.tga");
+	tmp[0].Read("test_textures\\red.tga");
+	tmp[1].Read("test_textures\\green.tga");
+	tmp[2].Read("test_textures\\blue.tga");
+	tmp[3].Read("test_textures\\black.tga");
+	//tmp[4].Read("test_textures\\yellow.tga");
+	//tmp[5].Read("test_textures\\black.tga");
 
 
 	//pack into single volume texture
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 			* Attk::C_BaseImage::GetBytesPerPixel(image.GetPixelFormat()) * i;
 		U8* sliceData = image.GetPixelDataPtr();
 		sliceData += offset;
-		sprintf(file, "z:\\attktest\\volslice_%d.png", i);
+		sprintf(file, "attktest\\volslice_%d.png", i);
 
 		Attk::C_Image slice;
 		slice.NewPixelData(image.GetWidth(), image.GetHeight(), 1, pixFormat, sliceData);
@@ -118,12 +118,12 @@ int main(int argc, char* argv[])
 	Attk::C_CubeMap tmp;
 	status = tmp.Read("C:\\Program Files\\ATI Research Inc\\CubeMapGen v1.1\\Textures\\CubeMaps\\SkyBeamHDR512.dds");
 
-	//tmp[Attk::E_CubeMap_Face_X_Pos].Read("z:\\test_textures\\red.tga");
-	//tmp[Attk::E_CubeMap_Face_X_Neg].Read("z:\\test_textures\\green.tga");
-	//tmp[Attk::E_CubeMap_Face_Y_Pos].Read("z:\\test_textures\\blue.tga");
-	//tmp[Attk::E_CubeMap_Face_Y_Neg].Read("z:\\test_textures\\yellow.tga");
-	//tmp[Attk::E_CubeMap_Face_Z_Pos].Read("z:\\test_textures\\black.tga");
-	//tmp[Attk::E_CubeMap_Face_Z_Neg].Read("z:\\test_textures\\white.tga");
+	//tmp[Attk::E_CubeMap_Face_X_Pos].Read("test_textures\\red.tga");
+	//tmp[Attk::E_CubeMap_Face_X_Neg].Read("test_textures\\green.tga");
+	//tmp[Attk::E_CubeMap_Face_Y_Pos].Read("test_textures\\blue.tga");
+	//tmp[Attk::E_CubeMap_Face_Y_Neg].Read("test_textures\\yellow.tga");
+	//tmp[Attk::E_CubeMap_Face_Z_Pos].Read("test_textures\\black.tga");
+	//tmp[Attk::E_CubeMap_Face_Z_Neg].Read("test_textures\\white.tga");
 
 	Attk::C_MipmapCubeMapImageChain mipmapChain;
 	AttkUt::C_GenerateMipmaps::Generate(mipmapChain, tmp, 16);
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 	{
 		for (U32 j=0; j<mipmapChain[i].GetNumLevels(); ++j)
 		{
-			sprintf(filename, "z:\\attktest\\attktest_%d_%d.png", i, j);
+			sprintf(filename, "attktest\\attktest_%d_%d.png", i, j);
 			mipmapChain[i].GetLevelPtr(j)->ChangePixelFormat(Attk::E_PixelFormat_R8G8B8A8U);
 			mipmapChain[i].GetLevelPtr(j)->Write(filename);
 		}

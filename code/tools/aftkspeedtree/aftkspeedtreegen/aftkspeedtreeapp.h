@@ -13,7 +13,7 @@ public:
 			"aftkspeedtreegen",
 			"Bizarre Creations Speedtree Mesh Generator",
 			"tools.aftkspeedtreegen",
-			"\\\\bizbuild03\\CrashDumps\\")
+			"")
 	{
 	}
 

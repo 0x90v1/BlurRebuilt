@@ -13,7 +13,7 @@ static Debug::Logger &g_Log = Debug::GetLogger("tools.lux");
 
 const int			TexturePreprocessor::m_iDatabaseVersion		= 2;
 const int			TexturePreprocessor::m_iMaxResolution		= 32;
-const char			*TexturePreprocessor::m_szDatabaseFilename	= "z:/Gotham3/code/Texlibcache/test.dat";
+const char			*TexturePreprocessor::m_szDatabaseFilename	= "Gotham3/code/Texlibcache/test.dat";
 
 TexturePreprocessor::TexturePreprocessor()
 {
@@ -65,16 +65,25 @@ bool TexturePreprocessor::AddTexture(const std::string &name)
 		strcpy(buffer, name.c_str());
 		StrToLower(buffer);
 
-		char *psz = strstr(buffer, "z:\\");
-		if (!psz)
-			psz = strstr(buffer, "z:/");
+		// [Blur2PC] the assets share was a hard-coded z:; BIZARRE_ROOT names it now
+		const char *pszRoot = getenv("BIZARRE_ROOT");
+		char *pszRest = NULL;
+		if (pszRoot && *pszRoot)
+		{
+			char lowerRoot[512];
+			strcpy(lowerRoot, pszRoot);
+			StrToLower(lowerRoot);
+			char *psz = strstr(buffer, lowerRoot);
+			if (psz)
+				pszRest = psz + strlen(lowerRoot);
+		}
 
-		if (!psz)
+		if (!pszRest)
 			return false;
 
 		char buffer2[512];
 		strcpy(buffer2, gpszGothamPathName);
-		strcat(buffer2, psz+2);
+		strcat(buffer2, pszRest);
 
 		if (!image.Load( buffer2 ))
 			return false;

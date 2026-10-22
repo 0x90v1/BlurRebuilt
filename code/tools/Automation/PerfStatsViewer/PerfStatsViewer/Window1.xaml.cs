@@ -29,7 +29,7 @@ namespace PerfStatsViewer
         private uint locationId = 0;
         private uint routeId = 0;
 
-        static string connectionString = string.Format("Database=information_schema;Data Source={0};User Id={1};Password={2}", "uklpldb01", "datalog", "datalog");
+        static string connectionString = string.Format("Database=information_schema;Data Source={0};User Id={1};Password={2}", "localhost", "", "");
 
         class PerfInfo
         {

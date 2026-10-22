@@ -50,9 +50,9 @@ LinkLibraries ubercopy : core system tools_shared ;
 Application ubercopy : $(SRC) : stdafx.cpp ;
 ExportVcproj ubercopy ;
 
-Depends z:/tools/common_tools_wip/win32/ubercopy/ubercopy.exe : z:/tools/common_tools_wip/win32/ubercopy/ ;
-MkDir z:/tools/common_tools_wip/win32/ubercopy/ ;
-EmbedManifest z:/tools/common_tools_wip/win32/ubercopy/ubercopy.exe : ubercopy.exe ;
+Depends $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ubercopy/ubercopy.exe : $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ubercopy/ ;
+MkDir $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ubercopy/ ;
+EmbedManifest $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ubercopy/ubercopy.exe : ubercopy.exe ;
 
 
 SubInclude TOP Code Mercury Library Common Core ;

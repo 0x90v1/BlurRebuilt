@@ -9,7 +9,7 @@ public:
 			"Vis",									// application name
 			"Bizarre Creations PVS Rendering Tool",	// application description
 			"tools.vis",							// application logger
-			"\\\\bizsymbol\\CrashDumps\\")			// .dmp file destination path
+			"")			// .dmp file destination path
 	{
 	}
 

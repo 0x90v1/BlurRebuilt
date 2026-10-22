@@ -2,7 +2,7 @@
 #include <windows.h>
 
 //This file provides definitions that are required by the Aftk. You could also provide these yourself of course
-//as opposed to including this header. See http://bizfs02/toolswiki/doku.php?id=aftk for more information.
+//as opposed to including this header.
 #include <core/core.h>
 #include <core/maths.h>
 #include "Aftk/Aftk.h"

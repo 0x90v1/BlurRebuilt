@@ -100,15 +100,15 @@ int VisApp::Main(int argc, char **argv, Progress::I_ProgressBar *pProgress)
 	cmd.add( crowdSwitch );
 
 	// server mode path
-	ValueArg<string> clientPath("e","clientexe","Override vis.exe path that screensaver clients will use",false,"\\\\saville\\tools\\netmapping\\vis.exe","svpath");
+	ValueArg<string> clientPath("e","clientexe","Override vis.exe path that screensaver clients will use",false,"","svpath");
 	cmd.add( clientPath );
 
 	// fxb path
-	ValueArg<string> fxbPath("f","fxbpath","Set the z:\\mercurygame\\tools\\data\\shaders path",false,"z:\\mercurygame\\tools\\data\\shaders","fxbpath");
+	ValueArg<string> fxbPath("f","fxbpath","Set the fxb shader path",false,"","fxbpath");
 	cmd.add( fxbPath );
 
 	// texture cache path
-	ValueArg<string> textureCachePath("t","tcachepath","Set the z:\\mercurygame\\temp\\texture_cache path",false,"z:\\mercurygame\\temp\\texture_cache","tcachepath");
+	ValueArg<string> textureCachePath("t","tcachepath","Set the texture cache path",false,"","tcachepath");
 	cmd.add( textureCachePath );
 
 	// car switch

@@ -34,7 +34,7 @@ S32 C_Application::Main(S32 argc, char **argv, Progress::I_ProgressBar *pProgres
 	C_Options options;
 	bool success = true;
 
-	Debug::LogFileSubscriber* pLogFile = new Debug::LogFileSubscriber("z:/tools/temp/cmd_line_tool.log");
+	Debug::LogFileSubscriber* pLogFile = new Debug::LogFileSubscriber("cmd_line_tool.log");
 	GetLogger().AddSubscriber( pLogFile );
 
 	//Build options struct

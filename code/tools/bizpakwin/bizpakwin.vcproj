@@ -21,9 +21,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -41,9 +41,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -61,9 +61,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -81,9 +81,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -101,9 +101,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -121,9 +121,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool_2008\Debug\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -141,9 +141,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool_2008\Release\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -161,9 +161,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool_2008\Speed\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -181,9 +181,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool_2008\Profile\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -201,9 +201,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL_2008 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool_2008\Master\BizPakWin.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\code\mercury\library\common\btl\include;..\..\..\code\mercury\library\common\core\include;..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\code\mercury\library\common\system\include;..\..\..\code\mercury\library\common\xt2\include;..\..\..\code\mercury\library\graphics\display\include;..\..\..\code\mercury\library\graphics\display2\include;..\..\..\code\vendor\cxxtest\current;..\..\..\libs\vendor\wxwidgets\2.8.9;..\..\..\libs\vendor\wxwidgets\2.8.9\contrib\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include;..\..\..\libs\vendor\wxwidgets\2.8.9\include\msvc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\expat\lib;..\..\..\libs\vendor\wxwidgets\2.8.9\src\html;..\..\..\libs\vendor\wxwidgets\2.8.9\src\jpeg;..\..\..\libs\vendor\wxwidgets\2.8.9\src\png;..\..\..\libs\vendor\wxwidgets\2.8.9\src\regex;..\..\..\libs\vendor\wxwidgets\2.8.9\src\tiff;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xml;..\..\..\libs\vendor\wxwidgets\2.8.9\src\xrc;..\..\..\libs\vendor\wxwidgets\2.8.9\src\zlib;..\..\mercury\library\common\core;..\..\mercury\library\common\core\include;..\..\mercury\library\common\system;..\..\mercury\library\common\system\include;.\source;c:\program files\microsoft directx sdk (march 2009)\include"

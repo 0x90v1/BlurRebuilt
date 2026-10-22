@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Texture Converter",
 		"Texture Converter",
 		"tools.textureconverter",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

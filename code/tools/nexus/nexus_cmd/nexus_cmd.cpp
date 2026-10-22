@@ -55,7 +55,7 @@ MainApp::MainApp()
 	applicationName.Chars(),			
 	"Command-line Version",			
 	"tools.nexus",			
-	"\\\\bizbuild03\\\\CrashDumps\\",				
+	"",				
 	true)
 {
 }
@@ -176,7 +176,7 @@ Tu::Status MainApp::Create(NexusCmd::CommandLineOptions& options)
 	#ifdef _DEBUG
 		g_pDebugManager->SetConsoleEnabledFlag(false);
 		g_pDebugManager->SetDebugEnabledFlag(false);
-		g_pDebugManager->Create("z:/tools/temp/log/nexus_export.log");
+		g_pDebugManager->Create("nexus_export.log");
 		g_pDebugManager->Create(options.logFile);
 		g_pDebugManager->SetLogFileEnabledFlag(true);
 	#else
@@ -189,12 +189,12 @@ Tu::Status MainApp::Create(NexusCmd::CommandLineOptions& options)
 	if (options.logFile.length() == 0)
 	{
 		#ifdef _DEBUG
-		g_pOutputManager->Create("z:/tools/temp/log/nexus_export.log");
+		g_pOutputManager->Create("nexus_export.log");
 		g_pOutputManager->SetLogFileEnabledFlag(true);
 		g_pOutputManager->SetDebugEnabledFlag(true);
 		g_pDebugManager->SetConsoleEnabledFlag(false);
 		#else
-		g_pOutputManager->Create("z:/tools/temp/log/nexus_export.log");
+		g_pOutputManager->Create("nexus_export.log");
 		g_pOutputManager->SetConsoleEnabledFlag(false);
 		g_pDebugManager->SetConsoleEnabledFlag(false);
 		g_pOutputManager->SetLogFileEnabledFlag(true);

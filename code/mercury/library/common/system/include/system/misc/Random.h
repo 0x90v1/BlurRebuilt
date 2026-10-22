@@ -10,9 +10,6 @@
 namespace Util
 {
 
-// WIKI PAGE :
-// http://biznet/Teams/Tech/Mercury/Library/Common/System/Misc/Random_Numbers
-
 class C_Random
 {
 public:

@@ -19,12 +19,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core_pc_2008", "..\..\mercury\library\common\core\core_pc_2008.vcproj", "{9634D64A-F9D4-490B-BF97-AEBD078679F9}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 2
-		SccProjectUniqueName0 = LuaDebugger\\LuaDebugger.csproj
-		SccLocalPath0 = LuaDebugger
-		SccLocalPath1 = .
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Any CPU = Debug Win64|Any CPU
 		Debug Win64|Mixed Platforms = Debug Win64|Mixed Platforms

@@ -20,7 +20,7 @@ EMailSubscriber::EMailSubscriber()
 	m_sSMTPHost = "";
 	m_sUser = "";
 	m_sPassword = "";
-	m_sSender = "janv@bizarrecreations.com";
+	m_sSender = "";
 	m_sRecipient = "";
 	m_sSubject = "Automated Log E-Mail";
 	m_triggerLevel = DebugLevel::Error;

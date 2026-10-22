@@ -2,9 +2,9 @@
 
 set COMP="%DXSDK_DIR%Utilities\Bin\x86\fxc" /nologo
 set COPY=xcopy /d /f /y /k /r /c 
-set ODIR=Z:\shitstorm\working\PC\data\Image\Shaders\World
-set CDIR=Z:\shitstorm\game\PC\data\Image\Shaders\World
-rem set CDIR=Z:\devroot\code\genesis\applications\Minimal\Data\Shaders\World
+set ODIR=%BIZARRE_ROOT%\shitstorm\working\PC\data\Image\Shaders\World
+set CDIR=%BIZARRE_ROOT%\shitstorm\game\PC\data\Image\Shaders\World
+rem set CDIR=%SRC_ROOT%\code\genesis\applications\Minimal\Data\Shaders\World
 
 set PLATFORM_NAME=PC
 

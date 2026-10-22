@@ -1,7 +1,7 @@
 set COMP="%XEDK%\bin\win32\fxc"
 set COPY="%XEDK%\bin\win32\xbcp" /f /y 
-set IDIR=Z:\devroot\code\mercury\library\display\include\display\shaders
-set SDIR=Z:\devroot\code\mercury\library\display\include\display\shaders\render
+set IDIR=%SRC_ROOT%\code\mercury\library\display\include\display\shaders
+set SDIR=%SRC_ROOT%\code\mercury\library\display\include\display\shaders\render
 set ODIR=.\xe
 set CDIR=xe:\particles_xe\Data\Shaders
 

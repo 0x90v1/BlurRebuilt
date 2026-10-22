@@ -114,7 +114,7 @@ bool C_Application::ExportData(Tools::FileCopy::C_FileCopyList& uberCopyList, co
 		if (!success) goto exit;
 
 #ifdef BUILD_CONFIG_DEBUG
-		aftkScene.Write("z:/preproc.a3d");
+		aftkScene.Write("preproc.a3d");
 #endif
 
 		//Convert our particle data into our in-memory format.

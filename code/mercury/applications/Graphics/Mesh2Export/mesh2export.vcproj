@@ -20,9 +20,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\Mesh2Export.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -40,9 +40,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\Mesh2Export.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -60,9 +60,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\Mesh2Export.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -80,9 +80,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\Mesh2Export.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;c:\program files\microsoft directx sdk (march 2009)\include"
@@ -100,9 +100,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\Mesh2Export.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;c:\program files\microsoft directx sdk (march 2009)\include"

@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Ai Converter",
 		"Ai Converter",
 		"tools.aiconverter",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

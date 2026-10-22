@@ -16,8 +16,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="z:/spd/memcpy"
-			IntermediateDirectory="z:/spd/memcpy"
+			OutputDirectory="$(ProjectDir)spd/memcpy"
+			IntermediateDirectory="$(ProjectDir)spd/memcpy"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -94,8 +94,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="z:/spu/memcpy"
-			IntermediateDirectory="z:/spu/memcpy"
+			OutputDirectory="$(ProjectDir)spu/memcpy"
+			IntermediateDirectory="$(ProjectDir)spu/memcpy"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -172,8 +172,8 @@
 		</Configuration>
 		<Configuration
 			Name="BluRayMaster|Win32"
-			OutputDirectory="z:/spu/memcpy"
-			IntermediateDirectory="z:/spu/memcpy"
+			OutputDirectory="$(ProjectDir)spu/memcpy"
+			IntermediateDirectory="$(ProjectDir)spu/memcpy"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -250,8 +250,8 @@
 		</Configuration>
 		<Configuration
 			Name="Speed|Win32"
-			OutputDirectory="z:/sps/memcpy"
-			IntermediateDirectory="z:/sps/memcpy"
+			OutputDirectory="$(ProjectDir)sps/memcpy"
+			IntermediateDirectory="$(ProjectDir)sps/memcpy"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -328,8 +328,8 @@
 		</Configuration>
 		<Configuration
 			Name="Master|Win32"
-			OutputDirectory="z:/spm/memcpy"
-			IntermediateDirectory="z:/spm/memcpy"
+			OutputDirectory="$(ProjectDir)spm/memcpy"
+			IntermediateDirectory="$(ProjectDir)spm/memcpy"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>

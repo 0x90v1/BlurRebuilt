@@ -3,7 +3,6 @@ Mercury Game
 This is location for the various tech test applications.
 
 
-http://biznet/Teams/Tech/Mercury_Game
 
 
 

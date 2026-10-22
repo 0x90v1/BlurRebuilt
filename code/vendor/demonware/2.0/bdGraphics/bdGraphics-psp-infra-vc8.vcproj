@@ -4,7 +4,6 @@
 	Version="8.00"
 	Name="bdGraphics"
 	ProjectGUID="722735DD-2B55-54DE-EE19-7131A7866424"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

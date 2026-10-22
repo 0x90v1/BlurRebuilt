@@ -14,7 +14,7 @@ void InitServerPaths(RunServerStruct &net)
 	net.pszTmpFilename1[0] = 0;
 	net.pszTmpFilename2[0] = 0;
 
-	char *pWindowsPath = "\\\\biztools01\\farm\\tmp\\";
+	char pWindowsPath[MAX_PATH]; GetTempPathA(MAX_PATH, pWindowsPath); // [Blur2PC] local temp folder; the farm share is gone
 
 #ifdef __GNUC__
 	// no farm job spawning for linux version

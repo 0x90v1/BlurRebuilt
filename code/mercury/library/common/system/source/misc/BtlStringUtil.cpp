@@ -279,8 +279,14 @@ const Btl::String ConvertFilenameToCurrentDirectory(const Btl::String &currentDi
 
 #ifdef PLATFORM_PC
 
-//[Ken] Todo: Need a better way of defining this!
-#define ALIEN_BRAIN_DRIVE	"z:\\"
+// [Blur2PC] The Alienbrain workspace drive (retail hard-coded z:) comes from BIZARRE_ROOT, the
+// variable the build scripts use for that share; unset, paths pass through unchanged.
+static Btl::String AlienBrainDrive()
+{
+	const char* root = getenv("BIZARRE_ROOT");
+	return (root && *root) ? Btl::String(root) + "\\" : Btl::String("");
+}
+#define ALIEN_BRAIN_DRIVE	AlienBrainDrive()
 #define ALIEN_BRAIN_FOLDER	"alienbrainwork\\"
 
 Btl::String ConvertABNetworkPathToLocalPath(const Btl::String& assetPath)
@@ -292,7 +298,7 @@ Btl::String ConvertABNetworkPathToLocalPath(const Btl::String& assetPath)
 	if (pos == -1)
 		return result;
 
-	result = Btl::String(ALIEN_BRAIN_DRIVE) + result(pos + (S32)strlen(ALIEN_BRAIN_FOLDER), result.Length());
+	result = ALIEN_BRAIN_DRIVE + result(pos + (S32)strlen(ALIEN_BRAIN_FOLDER), result.Length());
 	return result;
 }
 
@@ -303,13 +309,13 @@ Btl::String ConvertLocalPathToABNetworkPath(
 	Btl::String result(assetPath);
 	result = FormatWindowsFileString(result);
 
-	S32 pos = result.ISearch(ALIEN_BRAIN_DRIVE);
+	S32 pos = ALIEN_BRAIN_DRIVE.Length() ? result.ISearch(ALIEN_BRAIN_DRIVE) : -1;
 	if (pos != 0)
 	{
 		return result;
 	}
 
-	result = Btl::String("\\\\") + computerName + Btl::String("\\") + Btl::String(ALIEN_BRAIN_FOLDER) + result(pos + (S32)strlen(ALIEN_BRAIN_DRIVE), result.Length());
+	result = Btl::String("\\\\") + computerName + Btl::String("\\") + Btl::String(ALIEN_BRAIN_FOLDER) + result(pos + ALIEN_BRAIN_DRIVE.Length(), result.Length());
 	return result;
 }
 

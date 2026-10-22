@@ -131,8 +131,6 @@ S32 C_Application::Main(S32 argc, char **argv, Progress::I_ProgressBar *pProgres
 {	
 	MEMORY_TRACKER_PUSH("ApplicationMain");
 
-	LOGINFO( Tools::g_log, "For help on Warnings and Errors, see <a href=http://biznet/Teams/Tech/Using_The_New_Tech/Exporting_Assets/Errors_and_Warnings target=\"_blank\">http://biznet/Teams/Tech/Using_The_New_Tech/Exporting_Assets/Errors_and_Warnings</a>");
-
 	bool success = Aftk::C_Global::Create();
 	if(!success) goto exit;
 	

@@ -22,22 +22,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "system_pc_2008", "..\..\..\mercury\library\common\system\system_pc_2008.vcproj", "{661BB307-31CE-4D19-9181-BB3B2939199D}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 6
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = ..\\..\\..\\mercury\\library\\common\\core\\core_pc_2008.vcproj
-		SccLocalPath1 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection1 = code\\mercury\\library\\common\\core\\
-		SccProjectUniqueName2 = PickNMix\\PickNMix.csproj
-		SccLocalPath2 = PickNMix
-		SccProjectUniqueName3 = ..\\..\\..\\mercury\\library\\common\\system\\system_pc_managed_2008.vcproj
-		SccLocalPath3 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection3 = code\\mercury\\library\\common\\system\\
-		SccProjectUniqueName4 = ..\\..\\Managed\u0020Helper\u0020Libraries\\XtInterop\\XtInterop.vcproj
-		SccLocalPath4 = ..\\..\\Managed\u0020Helper\u0020Libraries\\XtInterop
-		SccProjectUniqueName5 = ..\\..\\..\\mercury\\library\\common\\xt2\\xttool_pc_2008.vcproj
-		SccLocalPath5 = ..\\..\\..\\mercury\\library\\common\\xt2
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Any CPU = Debug Win64|Any CPU
 		Debug Win64|Mixed Platforms = Debug Win64|Mixed Platforms

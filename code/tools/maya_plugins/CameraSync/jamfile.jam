@@ -30,7 +30,7 @@ LinkLibraries CameraSync :
 DLL CameraSync : $(SRC) : stdafx.cpp ;
 ExportVcproj CameraSync ;
 
-EmbedManifestDLL Z:/tools/art_tools/maya/packages/biz_CameraSystem/plugins/2008/camerasync.mll : CameraSync.exe ;
+EmbedManifestDLL $(BIZARRE_ROOT)/tools/art_tools/maya/packages/biz_CameraSystem/plugins/2008/camerasync.mll : CameraSync.exe ;
 
 SubInclude TOP Code Mercury Library Common Core ;
 SubInclude TOP Code Mercury Library Common System ;

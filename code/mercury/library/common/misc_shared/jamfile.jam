@@ -134,7 +134,6 @@ SRC = [ Batch $(SRC) : MiscSharedPch.h ] ;
 
 Library misc_shared : $(SRC) : MiscSharedPch.cpp : MiscSharedPch.h ;
 
-DoxygenLocation biztools01 : MercuryGame : misc_shared ;
 
 ###### Unit test
 

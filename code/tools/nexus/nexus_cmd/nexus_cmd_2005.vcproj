@@ -5,10 +5,6 @@
 	Name="Nexus Cmd"
 	ProjectGUID="{8C1068CC-A985-4168-B788-6964F1E35931}"
 	RootNamespace="Nexus Cmd"
-	SccProjectName="SAK"
-	SccAuxPath="SAK"
-	SccLocalPath="SAK"
-	SccProvider="SAK"
 	Keyword="Win32Proj"
 	>
 	<Platforms>

@@ -80,9 +80,9 @@ LinkLibraries polygonexporter : core system misc_shared zlib ;
 DLL polygonexporter : <src>$(SRC) <rc>$(RC) ;
 ExportVcproj polygonexporter ;
 
-EmbedManifest "Z:/tools/art_tools/illustrator/plugins/polygonexporter.aip" : polygonexporter.exe ;
+EmbedManifest "$(BIZARRE_ROOT)/tools/art_tools/illustrator/plugins/polygonexporter.aip" : polygonexporter.exe ;
 
-#Copy "Z:/tools/art_tools/illustrator/plugins/polygonexporter.aip" : polygonexporter.exe ;
+#Copy "$(BIZARRE_ROOT)/tools/art_tools/illustrator/plugins/polygonexporter.aip" : polygonexporter.exe ;
 
 SubInclude TOP Code Mercury Library Common Core ;
 SubInclude TOP Code Mercury Library Common System ;

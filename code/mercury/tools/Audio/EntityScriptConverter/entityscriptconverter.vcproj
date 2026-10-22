@@ -5,9 +5,6 @@
 	Name="EntityScriptConverter"
 	ProjectGUID="{645DEB23-AEBC-4CF4-9EDC-D60E2ADB72AF}"
 	RootNamespace="EntityScriptConverter"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="MakeFileProj"
 	>
 	<Platforms>
@@ -27,9 +24,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\EntityScriptConverter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core\include;..\..\..\library\common\system\include;..\..\..\library\common\xt2\include;..\..\..\library\common\xt2\source;.\entityscriptconverterpc;.\include;c:\program files\microsoft directx sdk (june 2008)\include"
@@ -48,9 +45,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release&#x0D;&#x0A;copy bin\Win32_tool\Release\EntityScriptConverter.exe z:\tools\common_tools\audio_entityscriptconverter&#x0D;&#x0A;copy bin\Win32_tool\Release\EntityScriptConverter.exe.manifest z:\tools\common_tools\audio_entityscriptconverter"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release&#x0D;&#x0A;copy bin\Win32_tool\Release\EntityScriptConverter.exe z:\tools\common_tools\audio_entityscriptconverter&#x0D;&#x0A;copy bin\Win32_tool\Release\EntityScriptConverter.exe.manifest z:\tools\common_tools\audio_entityscriptconverter"
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\EntityScriptConverter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core\include;..\..\..\library\common\system\include;..\..\..\library\common\xt2\include;..\..\..\library\common\xt2\source;.\entityscriptconverterpc;.\include;c:\program files\microsoft directx sdk (june 2008)\include"
@@ -69,9 +66,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\EntityScriptConverter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core\include;..\..\..\library\common\system\include;..\..\..\library\common\xt2\include;..\..\..\library\common\xt2\source;.\entityscriptconverterpc;.\include;c:\program files\microsoft directx sdk (june 2008)\include"
@@ -90,9 +87,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\EntityScriptConverter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core\include;..\..\..\library\common\system\include;..\..\..\library\common\xt2\include;..\..\..\library\common\xt2\source;.\entityscriptconverterpc;.\include;c:\program files\microsoft directx sdk (june 2008)\include"
@@ -111,9 +108,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\EntityScriptConverter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core\include;..\..\..\library\common\system\include;..\..\..\library\common\xt2\include;..\..\..\library\common\xt2\source;.\entityscriptconverterpc;.\include;c:\program files\microsoft directx sdk (june 2008)\include"

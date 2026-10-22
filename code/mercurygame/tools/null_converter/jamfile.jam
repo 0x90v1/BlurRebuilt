@@ -28,9 +28,9 @@ LinkLibraries null_converter : core system tools_shared ;
 		
 Application null_converter : $(SRC) : stdafx.cpp ;
 
-Depends z:/tools/common_tools_wip/win32/null_converter/null_converter.exe : z:/tools/common_tools_wip/win32/null_converter/ ;
-MkDir z:/tools/common_tools_wip/win32/null_converter/ ;
-EmbedManifest z:/tools/common_tools_wip/win32/null_converter/null_converter.exe : null_converter.exe ;
+Depends $(BIZARRE_ROOT)/tools/common_tools_wip/win32/null_converter/null_converter.exe : $(BIZARRE_ROOT)/tools/common_tools_wip/win32/null_converter/ ;
+MkDir $(BIZARRE_ROOT)/tools/common_tools_wip/win32/null_converter/ ;
+EmbedManifest $(BIZARRE_ROOT)/tools/common_tools_wip/win32/null_converter/null_converter.exe : null_converter.exe ;
 
 ExportVcproj null_converter ;
 

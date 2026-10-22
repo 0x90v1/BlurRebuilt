@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Null Converter",
 		"Null Converter",
 		"tools.nullconverter",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

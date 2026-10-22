@@ -402,7 +402,7 @@ void TestIW()
 	Aftk::C_Scene* pAftkScene = new Aftk::C_Scene();
 
 	LOGINFO(AftkUt::g_Log, "Reading AFTK scene...\n\n");
-	pAftkScene->Read("z:\\test_scenes\\test_sphere.a3d");
+	pAftkScene->Read("test_scenes\\test_sphere.a3d");
 
 	Aftk::Position3 pos0(0.3f, 0.0f, 0.3f);
 	Aftk::Position3 pos1(0.3f, 0.0f, -0.3f);
@@ -450,7 +450,7 @@ void TestIW()
 	}
 
 
-	pAftkScene->Write("z:\\test_scenes\\test_sphere_out.a3d");
+	pAftkScene->Write("test_scenes\\test_sphere_out.a3d");
 
 	delete pAftkScene;
 	Aftk::C_Global::Destroy();
@@ -539,7 +539,7 @@ void TestKM()
 
 	LOGINFO(AftkUt::g_Log, "Reading AFTK scene...\n\n");
 
-	pAftkScene->Read("z:/amaxxsi.a3d");
+	pAftkScene->Read("amaxxsi.a3d");
 
 	Aftk::C_SceneNode* p = pAftkScene->GetSceneNodePtr("cube");
 	AftkUt::C_NodeFlagParser parser(*p);
@@ -547,7 +547,7 @@ void TestKM()
 
 	std::string str = parser.GetActorName();
 
-	pAftkScene->Write("z:/actortest_out.a3d");
+	pAftkScene->Write("actortest_out.a3d");
 
 	delete pAftkScene;
 
@@ -570,15 +570,15 @@ void TestOT()
 
 	LOGINFO(AftkUt::g_Log, "Reading AFTK scene...\n\n");
 
-	pAftkScene->Read("Z:/steelmill_artlevel.a3d");
+	pAftkScene->Read("steelmill_artlevel.a3d");
 
 	AftkUt::C_RemoveBaseInstances::RemoveBaseInstances(pAftkScene);
 
 	AftkUt::C_FindAmbiguousActorNames::ActorAttributeList actorAttrList;
-	AftkUt::C_FindAmbiguousActorNames::ReadActorAttributeListFromFile("z:/attrList.txt", actorAttrList);
+	AftkUt::C_FindAmbiguousActorNames::ReadActorAttributeListFromFile("attrList.txt", actorAttrList);
 	AftkUt::C_FindAmbiguousActorNames::C_FindClashingActorNames(pAftkScene);
 
-	pAftkScene->Write("z:/instancetestout.a3d");
+	pAftkScene->Write("instancetestout.a3d");
 
 	delete pAftkScene;
 

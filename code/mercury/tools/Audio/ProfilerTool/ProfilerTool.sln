@@ -21,22 +21,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Faders", "..\Controls\AVFader\Faders.csproj", "{38D64789-5F1E-4582-A20E-E53746DECB61}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 6
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = ..\\..\\..\\library\\common\\system\\system_pc_2005.vcproj
-		SccLocalPath1 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection1 = library\\common\\system\\
-		SccProjectUniqueName2 = ProfilerTool\\ProfilerTool.csproj
-		SccLocalPath2 = ProfilerTool
-		SccProjectUniqueName3 = ..\\..\\..\\library\\common\\system\\system_pc_managed_2005.vcproj
-		SccLocalPath3 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection3 = library\\common\\system\\
-		SccProjectUniqueName4 = ..\\..\\..\\library\\common\\core\\core_pc_2005.vcproj
-		SccLocalPath4 = ..\\..\\..\\library\\common\\core
-		SccProjectUniqueName5 = ..\\Controls\\AVFader\\Faders.csproj
-		SccLocalPath5 = ..\\Controls\\AVFader
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Any CPU = Debug Win64|Any CPU
 		Debug Win64|Mixed Platforms = Debug Win64|Mixed Platforms

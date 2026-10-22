@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Font Converter",
 		"Font Converter",
 		"tools.fontconverter",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

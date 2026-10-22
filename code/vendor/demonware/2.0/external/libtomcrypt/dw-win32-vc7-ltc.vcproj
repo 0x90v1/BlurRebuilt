@@ -5,7 +5,6 @@
 	Name="libtomcrypt"
 	ProjectGUID="{BC78D24B-264A-4C9D-965B-2BCC6EA98F24}"
 	RootNamespace="dw-libtomcrypt"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

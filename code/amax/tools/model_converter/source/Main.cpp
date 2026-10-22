@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 		"Model Converter",
 		"Model Converter",
 		"tools.model_converter",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

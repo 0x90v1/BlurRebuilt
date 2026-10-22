@@ -6,9 +6,6 @@
 
 namespace Misc
 {
-	// WIKI PAGE:
-	// http://biznet/Teams/Tech/Mercury/Library/Common/System/Misc/String_Utilities
-
 	/// returns the contents of the string up to and including the last slash
 	/// returns an empty string if there is no slash
 	Btl::String ExtractDirectory(const Btl::String& inString);

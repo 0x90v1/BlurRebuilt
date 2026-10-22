@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Example A3D Converter",
 		"Example A3D Converter",
 		"tools.examplea3dconverter",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

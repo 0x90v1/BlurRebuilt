@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Animation Converter",
 		"Bizarre Creations Animation Converter",
 		"tools.animationconverter",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

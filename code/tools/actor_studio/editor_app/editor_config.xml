@@ -1,5 +1,5 @@
 <editor>
-	<dump path="\\bizsymbol\CrashDumps\"/>
+	<dump path=""/>
 	<xtdb path="%BIZARRE_ROOT%/%BIZARRE_PROJECT%/sorcery/main"/>
 	<a3d_cache
 		path="%BIZARRE_ROOT%/%BIZARRE_PROJECT%/temp/"

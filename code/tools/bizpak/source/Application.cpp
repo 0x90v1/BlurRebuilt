@@ -320,7 +320,7 @@ bool C_Application::ParseCommandLineOptions(
 	if (options.switches.quiet)
 		Debug::GetRootLogger().RemoveSubscriber(g_pConsoleSubscriber);
 
-	LOGINFO(g_log, "BizPak - Bizarre Creations command line pak file utility. \nFor assistance contact ken.macleod@bizarrecreations.com");
+	LOGINFO(g_log, "BizPak - Bizarre Creations command line pak file utility.");
 	return status;
 }
 

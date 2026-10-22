@@ -35,9 +35,9 @@ LINKLIBS += ws2_32.lib ;
 LinkLibraries network_shim2 : core system tools_shared file_tag_db ;
 		
 Application network_shim2 : $(SRC) : stdafx.cpp ;
-Depends z:/tools/common_tools_wip/win32/network_shim/network_shim2.exe : z:/tools/common_tools_wip/win32/network_shim/ ;
-MkDir z:/tools/common_tools_wip/win32/network_shim/ ;
-EmbedManifest z:/tools/common_tools_wip/win32/network_shim/network_shim2.exe : network_shim2.exe ;
+Depends $(BIZARRE_ROOT)/tools/common_tools_wip/win32/network_shim/network_shim2.exe : $(BIZARRE_ROOT)/tools/common_tools_wip/win32/network_shim/ ;
+MkDir $(BIZARRE_ROOT)/tools/common_tools_wip/win32/network_shim/ ;
+EmbedManifest $(BIZARRE_ROOT)/tools/common_tools_wip/win32/network_shim/network_shim2.exe : network_shim2.exe ;
 
 ExportVcproj network_shim2 ;
 

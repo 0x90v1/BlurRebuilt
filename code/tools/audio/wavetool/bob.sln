@@ -37,19 +37,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "svn_wrapper_2008", "..\..\svn_wrapper\svn_wrapper_2008.vcproj", "{49E365E0-24F7-451D-8A6F-1CBEDA6D41E7}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 2
-		SccProjectUniqueName0 = ..\\..\\..\\mercury\\tools\\Audio\\WaveBundler\\XmaEncoderDll\\XmaEncoderDll.vcproj
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\mercury\\tools\\Audio\\WaveBundler\\XmaEncoderDll\\
-		SccProjectUniqueName1 = ..\\..\\..\\mercury\\tools\\Audio\\WaveBundler\\Library\\WaveBundlerLibrary.vcproj
-		SccProjectName1 = Perforce\u0020Project
-		SccLocalPath1 = ..\\..\\..\\..
-		SccProvider1 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection1 = code\\mercury\\tools\\Audio\\WaveBundler\\Library\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_WIN32_TOOL|Win32 = Debug_WIN32_TOOL|Win32
 		Debug_WIN32_TOOL|Xbox 360 = Debug_WIN32_TOOL|Xbox 360

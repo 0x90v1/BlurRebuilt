@@ -7,7 +7,7 @@
 <pc
 	compiler="fxc.exe /nologo /T:fx_2_0 /Od /Zi /Fo #output #input"
 	workingDestination="./shader_bin"
-	targetDestination="Z:\MyGame"
+	targetDestination="%BIZARRE_ROOT%\MyGame"
 	targetType="pc"
 	workingCopyTool="cmd /c copy #source #destination"
 	targetCopyTool="cmd /c copy #source #destination"
@@ -16,7 +16,7 @@
 
 <xbox360
 	compiler="fxc.exe /nologo /T:fx_2_0 /Od /Zi /Fo #output #input"
-	workingDestination="Z:\MyGame"
+	workingDestination="%BIZARRE_ROOT%\MyGame"
 	targetDestination="devkit:\MyGame"
 	targetType="xbox360"
 	workingCopyTool="cmd /c copy #source #destination"

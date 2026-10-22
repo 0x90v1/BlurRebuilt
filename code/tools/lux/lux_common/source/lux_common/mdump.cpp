@@ -139,30 +139,21 @@ LONG WINAPI TopLevelFilter( struct _EXCEPTION_POINTERS *pExceptionInfo )
 
 			if (bSilent)
 			{
-				CopyFile(g_lightingModelFile.c_str(), "\\\\saville\\Tools\\Netmapping\\Crash\\crash.xml", false);
-				if (gpszLogFile[0])
-					CopyFile(gpszLogFile, "\\\\saville\\Tools\\Netmapping\\Crash\\crash.log", false);
 
-				LOGFATAL( log, "An error occured in the Lightmapper, and diagnostic files have been saved to the server.\n");
+				LOGFATAL( log, "An error occured in the Lightmapper, and a diagnostic file has been saved.\n");
 				LOGFATAL( log, "This program will now exit silently.\n");
 				exit(-1);
 			}
 
 			if (::MessageBox( NULL, "An error occured in the Lightmapper, and a diagnostic file has been saved.\n"
-								"The program will now upload the crash information to the server.", "Unhandled Exception", MB_OKCANCEL|MB_ICONERROR )==IDOK)
+								"You will now be asked to send an e-mail with information about the crash.", "Unhandled Exception", MB_OKCANCEL|MB_ICONERROR )==IDOK)
 			{
-				// copy the crash files onto Jan's PC
-//				CopyFile(g_inputSceneFile.c_str(), "\\\\saville\\Tools\\Netmapping\\Crash\\crash.a3d", false);
-				CopyFile(g_lightingModelFile.c_str(), "\\\\saville\\Tools\\Netmapping\\Crash\\crash.xml", false);
-				if (gpszLogFile[0])
-					CopyFile(gpszLogFile, "\\\\saville\\Tools\\Netmapping\\Crash\\crash.log", false);
 
 				Tu::Status status;
 				Tu::SendEmail mail(status);
 
 				mail.SetBody("<enter details about the crash here>");
 				mail.SetSubject("Lighting Tool crash report");
-				mail.AddRecipient("janv@bizarrecreations.com");
 				mail.AttachFile(szDumpPath);
 				mail.AttachFile(g_inputSceneFile);
 				mail.AttachFile(g_lightingModelFile);

@@ -37,9 +37,9 @@ LinkLibraries BizPak :
 
 Application BizPak : $(SRC) : stdafx.cpp ;
 
-Depends z:/tools/common_tools_wip/win32/bizpak/BizPak.exe : z:/tools/common_tools_wip/win32/bizpak/ ;
-MkDir z:/tools/common_tools_wip/win32/bizpak/ ;
-EmbedManifest z:/tools/common_tools_wip/win32/bizpak/BizPak.exe : BizPak.exe ;
+Depends $(BIZARRE_ROOT)/tools/common_tools_wip/win32/bizpak/BizPak.exe : $(BIZARRE_ROOT)/tools/common_tools_wip/win32/bizpak/ ;
+MkDir $(BIZARRE_ROOT)/tools/common_tools_wip/win32/bizpak/ ;
+EmbedManifest $(BIZARRE_ROOT)/tools/common_tools_wip/win32/bizpak/BizPak.exe : BizPak.exe ;
 
 ExportVcproj BizPak ;
 

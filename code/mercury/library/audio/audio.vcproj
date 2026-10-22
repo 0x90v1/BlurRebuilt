@@ -4,9 +4,6 @@
 	Version="9.00"
 	Name="Audio"
 	ProjectGUID="{645DEB23-AEBC-4CF4-9EDC-D60E2ADB72AF}"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="MakeFileProj"
 	TargetFrameworkVersion="131072"
 	>
@@ -36,9 +33,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32\Debug\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -112,9 +109,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32\Release\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -188,9 +185,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32\Speed\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -264,9 +261,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32\Profile\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -340,9 +337,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32\Master\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -477,9 +474,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Xbox_360\Debug\Audio.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -566,9 +563,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Xbox_360\Release\Audio.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -655,9 +652,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Xbox_360\Speed\Audio.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -744,9 +741,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Xbox_360\Profile\Audio.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -833,9 +830,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Xbox_360\Master\Audio.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -861,9 +858,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Ps3\Debug\Audio.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -937,9 +934,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Ps3\Release\Audio.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1013,9 +1010,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Ps3\Speed\Audio.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1089,9 +1086,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Ps3\Profile\Audio.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1165,9 +1162,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Ps3\Master\Audio.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1241,9 +1238,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1317,9 +1314,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1393,9 +1390,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1469,9 +1466,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1545,9 +1542,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1621,9 +1618,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win64\Debug\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1697,9 +1694,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win64\Release\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1773,9 +1770,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win64\Speed\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1849,9 +1846,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win64\Profile\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -1925,9 +1922,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win64\Master\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -2001,9 +1998,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win64_tool\Debug\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -2078,9 +2075,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win64_tool\Release\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -2154,9 +2151,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win64_tool\Speed\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -2230,9 +2227,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win64_tool\Profile\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"
@@ -2306,9 +2303,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win64_tool\Master\Audio.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\libs\vendor\openal\1.1\include;.\include"

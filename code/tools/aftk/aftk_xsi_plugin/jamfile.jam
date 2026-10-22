@@ -70,8 +70,8 @@ DLL aftk_xsi_plugin : $(SRC) : XSIA3DExportPCH.cpp ;
 
 ExportVcproj aftk_xsi_plugin ;
 
-#Copy z:/tools/art_tools/xsi/packages/Application/Plugins/A3DImportExport.dll : aftk_xsi_plugin.exe ;
-EmbedManifestDLL z:/tools/art_tools/xsi/packages/Application/Plugins/A3DImportExport.dll : aftk_xsi_plugin.exe ;
+#Copy $(BIZARRE_ROOT)/tools/art_tools/xsi/packages/Application/Plugins/A3DImportExport.dll : aftk_xsi_plugin.exe ;
+EmbedManifestDLL $(BIZARRE_ROOT)/tools/art_tools/xsi/packages/Application/Plugins/A3DImportExport.dll : aftk_xsi_plugin.exe ;
 
 SubInclude TOP Code Vendor Zlib Current_Mercury ;
 SubInclude TOP Code Mercury Library Common Misc_Shared ;

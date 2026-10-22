@@ -13,7 +13,7 @@ StoreVcprojInfo AmaxShaders ;
 
 # Compile the shaders into Amax
 
-SetGameFolder Z:/Amax ;
+SetGameFolder $(BIZARRE_ROOT)/Amax ;
 include $(TOP)/code/amax/game/shaders/shaders.jam ;
 
 MERCURYSHADERDIR = [ FSubDirPath TOP Code Mercury Library Graphics Shader ] ;

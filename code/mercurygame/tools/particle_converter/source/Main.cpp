@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Particle Converter",
 		"Particle Converter",
 		"tools.particleconverter",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

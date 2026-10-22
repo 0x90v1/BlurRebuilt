@@ -1,7 +1,7 @@
 scene_converter
 ===============
 
-Z:\MYDEVROOT\code\mercurygame\tools\scene_converter\docs\SceneProcessingFlow.jpg
+code\mercurygame\tools\scene_converter\docs\SceneProcessingFlow.jpg
 
 Design Decisions:
 -----------------

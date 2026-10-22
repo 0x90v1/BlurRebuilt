@@ -72,7 +72,7 @@ LinkLibraries ResourceBundler : core system misc_shared tools_shared attk compre
 Application ResourceBundler : $(SRC) ;
 ExportVcproj ResourceBundler ;
 
-EmbedManifest z:/tools/common_tools_wip/win32/resource_bundler/ResourceBundler.exe : ResourceBundler.exe ;
+EmbedManifest $(BIZARRE_ROOT)/tools/common_tools_wip/win32/resource_bundler/ResourceBundler.exe : ResourceBundler.exe ;
 
 SubInclude TOP Code Mercury Library Common Core ;
 SubInclude TOP Code Mercury Library Common System ;

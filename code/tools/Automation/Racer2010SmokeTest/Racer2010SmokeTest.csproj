@@ -12,11 +12,8 @@
     <AssemblyName>Racer2010SmokeTest</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SccProjectName>Perforce Project</SccProjectName>
-    <SccLocalPath>..\..\..\..</SccLocalPath>
     <SccAuxPath>
     </SccAuxPath>
-    <SccProvider>MSSCCI:Perforce SCM</SccProvider>
     <ManifestCertificateThumbprint>06E8DF28692DAB24FA024B34C644D9144809AFCB</ManifestCertificateThumbprint>
     <ManifestKeyFile>AmaxSmokeTest_TemporaryKey.pfx</ManifestKeyFile>
     <GenerateManifests>false</GenerateManifests>

@@ -35,37 +35,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Misc", "..\..\Managed Helper Libraries\Misc\Misc.csproj", "{6055A38F-7FB2-4E76-8A45-AC8C20A083CA}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 10
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\tools\\Automation\\AutomationHelper\\
-		SccProjectUniqueName1 = ..\\..\\..\\mercury\\library\\common\\core\\core_pc_2008.vcproj
-		SccLocalPath1 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection1 = code\\mercury\\library\\common\\core\\
-		SccProjectUniqueName2 = AmaxAutomationHelper\\AmaxAutomationHelper.csproj
-		SccLocalPath2 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection2 = code\\tools\\Automation\\AutomationHelper\\AmaxAutomationHelper\\
-		SccProjectUniqueName3 = AutomationHelper\\AutomationHelper.csproj
-		SccLocalPath3 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection3 = code\\tools\\Automation\\AutomationHelper\\AutomationHelper\\
-		SccProjectUniqueName4 = ..\\AutomationTest\\AutomationTest.csproj
-		SccLocalPath4 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection4 = code\\tools\\Automation\\AutomationTest\\
-		SccProjectUniqueName5 = ..\\..\\..\\mercury\\library\\common\\system\\system_pc_2008.vcproj
-		SccLocalPath5 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection5 = code\\mercury\\library\\common\\system\\
-		SccProjectUniqueName6 = ..\\..\\Managed\u0020Helper\u0020Libraries\\XtInterop\\XtInterop.vcproj
-		SccLocalPath6 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection6 = code\\tools\\Managed\u0020Helper\u0020Libraries\\XtInterop\\
-		SccProjectUniqueName7 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Logging\\Logging.csproj
-		SccLocalPath7 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Logging
-		SccProjectUniqueName8 = ..\\..\\Managed\u0020Helper\u0020Libraries\\ExcelXML\\ExcelXML.csproj
-		SccLocalPath8 = ..\\..\\Managed\u0020Helper\u0020Libraries\\ExcelXML
-		SccProjectUniqueName9 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Misc\\Misc.csproj
-		SccLocalPath9 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Misc
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Any CPU = Debug Win64|Any CPU
 		Debug Win64|Mixed Platforms = Debug Win64|Mixed Platforms

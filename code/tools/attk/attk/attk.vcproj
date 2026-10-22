@@ -4,9 +4,6 @@
 	Version="8.00"
 	Name="attk"
 	ProjectGUID="{D5F4CD7C-A449-4EB4-A7E5-FCAA323922D1}"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="MakeFileProj"
 	>
 	<Platforms>
@@ -26,9 +23,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\attk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\attk\attk\include;..\..\..\..\code\tools\attk\attk\source;..\..\..\..\libs\vendor\ati_cubemapgen\include;..\..\..\..\libs\vendor\devil\1.6.7-mercury\include"
@@ -47,9 +44,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\attk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\attk\attk\include;..\..\..\..\code\tools\attk\attk\source;..\..\..\..\libs\vendor\ati_cubemapgen\include;..\..\..\..\libs\vendor\devil\1.6.7-mercury\include"
@@ -68,9 +65,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\attk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\attk\attk\include;..\..\..\..\code\tools\attk\attk\source;..\..\..\..\libs\vendor\ati_cubemapgen\include;..\..\..\..\libs\vendor\devil\1.6.7-mercury\include"
@@ -89,9 +86,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\attk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\attk\attk\include;..\..\..\..\code\tools\attk\attk\source;..\..\..\..\libs\vendor\ati_cubemapgen\include;..\..\..\..\libs\vendor\devil\1.6.7-mercury\include"
@@ -110,9 +107,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\attk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\attk\attk\include;..\..\..\..\code\tools\attk\attk\source;..\..\..\..\libs\vendor\ati_cubemapgen\include;..\..\..\..\libs\vendor\devil\1.6.7-mercury\include"

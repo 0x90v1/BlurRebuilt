@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Camera Converter",
 		"Convert cameras to a CSE file",
 		"mercury.camera2",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

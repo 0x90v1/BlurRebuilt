@@ -17,7 +17,7 @@ int main(int argc, char**argv)
 		"AftkConv",
 		"",
 		"tools.aftkConv",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		false);
 
     g_pConsoleSubscriber = new Debug::ConsoleSubscriber();

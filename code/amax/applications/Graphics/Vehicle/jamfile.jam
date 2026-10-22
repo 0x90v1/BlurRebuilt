@@ -5,7 +5,7 @@ SubDir TOP Code MercuryGame Applications Graphics Vehicle ;
 SupportedTargets WIN32 PS3 XBOX_360 ;
 
 XenonRemoteLocation MercuryGame ;
-SetGameFolder z:\\MercuryGame ;
+SetGameFolder $(BIZARRE_ROOT)/MercuryGame ;
 
 IncludePath 
 Vehicle$(_PLATFORM)

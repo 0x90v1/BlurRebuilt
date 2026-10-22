@@ -12,9 +12,6 @@ class TCPSocket;
 namespace Progress
 {
 
-// Progress Bars Wiki Page:
-// http://biznet/Teams/Tech/Mercury/Library/Common/System/Misc/Progress_Bars
-
 /// any progress bar should be derived from I_ProgressBar.
 class I_ProgressBar
 {

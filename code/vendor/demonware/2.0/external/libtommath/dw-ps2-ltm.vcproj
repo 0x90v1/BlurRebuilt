@@ -5,7 +5,6 @@
 	Name="libtommath"
 	ProjectGUID="{412F92D9-50F5-4DF7-B800-5B8BCA9A3E98}"
 	RootNamespace="libtommath"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

@@ -900,7 +900,7 @@ namespace Automation
             mail.Subject = ReplaceTokensInString(mail.Subject);
             mail.Body = ReplaceTokensInString(mail.Body);
 
-            mail.Sender = "automation-do-not-reply@bizarrecreations.com";
+            mail.Sender = "";
             
             mail.AddAttachment(reportFilename);
 

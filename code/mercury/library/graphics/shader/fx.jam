@@ -3,7 +3,7 @@
 CPFile $(TOP)/code/mercury/library/graphics/shader/include/shader/psConstants.cp ;
 CPFile $(TOP)/code/mercury/library/graphics/shader/include/shader/vsConstants.cv ;
 
-SetGameFolder Z:/MercuryGame ;
+SetGameFolder $(BIZARRE_ROOT)/MercuryGame ;
 
 rule ExpandWithLighting
 {

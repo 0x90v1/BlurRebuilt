@@ -25,7 +25,7 @@ C_ToolsApplication::C_ToolsApplication(const char *szName, const char *szSubtitl
 	: m_log(Debug::GetLogger(szLogger))
 	, m_pszApplicationName(szName)
 	, m_pszApplicationSubtitle(szSubtitle)
-	, m_pszDmpPath("\\\\bizsymbol\\CrashDumps\\")
+	, m_pszDmpPath(szDmpPath ? szDmpPath : "") // [Blur2PC] was the \\bizsymbol dump share; empty writes beside the working folder
 	, m_bExecuter(bExecuter)
 {
 	g_pMyApplication = this;

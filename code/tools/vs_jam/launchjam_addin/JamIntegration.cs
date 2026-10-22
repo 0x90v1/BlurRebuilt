@@ -41,14 +41,14 @@ namespace BizarreCreations.JamIntegration
 			ReadIBConfigFile();
 		}
 
-		string m_sJAMExePath = "z:\\tools\\common_bin\\jam.exe";
+		string m_sJAMExePath = "jam.exe";
 
 		void ReadIBConfigFile()
 		{
 			char[] ctrim = { '\n', '\r', '\t' } ;
 			char[] ctrim2 = { '\"', ';', ' ' } ;
 
-			string s = ReadTextFile("z:\\tools\\code_tools\\build_tools\\jambase\\ib_cmdlines.txt");
+			string s = ReadTextFile(Environment.GetEnvironmentVariable("BIZARRE_ROOT") + "\\tools\\code_tools\\build_tools\\jambase\\ib_cmdlines.txt");
 			// pull out the individual lines
 			string[] lines = s.Split('\n');
 			int n = lines.Length;

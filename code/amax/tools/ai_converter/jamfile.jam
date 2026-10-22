@@ -22,9 +22,9 @@ source/Main.cpp
 LinkLibraries ai_converter : core system tools_shared ;
 		
 Application ai_converter : $(SRC) : stdafx.cpp ;
-Depends z:/tools/common_tools_wip/win32/ai_converter/ai_converter.exe : z:/tools/common_tools_wip/win32/ai_converter/ ;
-MkDir z:/tools/common_tools_wip/win32/ai_converter/ ;
-EmbedManifest z:/tools/common_tools_wip/win32/ai_converter/ai_converter.exe : ai_converter.exe ;
+Depends $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ai_converter/ai_converter.exe : $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ai_converter/ ;
+MkDir $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ai_converter/ ;
+EmbedManifest $(BIZARRE_ROOT)/tools/common_tools_wip/win32/ai_converter/ai_converter.exe : ai_converter.exe ;
 
 ExportVcproj ai_converter ;
 

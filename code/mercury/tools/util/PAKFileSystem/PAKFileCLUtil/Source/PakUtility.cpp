@@ -10,7 +10,7 @@ C_PAKUtility::C_PAKUtility()
 : C_ToolsApplication(	"PakUtility",			
 						"Utility Tool",			
 						"tools.PakUtility",			
-						"\\\\bizbuild03\\\\CrashDumps\\",				
+						"",				
 						true )
 {
 }

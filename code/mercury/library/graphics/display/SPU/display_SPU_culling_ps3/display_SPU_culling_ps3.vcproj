@@ -16,8 +16,8 @@
 	<Configurations>
 		<Configuration
 			Name="PS3 Debug|Win32"
-			OutputDirectory="z:/spd/culling"
-			IntermediateDirectory="z:/spd/culling"
+			OutputDirectory="$(ProjectDir)spd/culling"
+			IntermediateDirectory="$(ProjectDir)spd/culling"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -95,8 +95,8 @@
 		</Configuration>
 		<Configuration
 			Name="PS3 Release|Win32"
-			OutputDirectory="z:/spu/culling"
-			IntermediateDirectory="z:/spu/culling"
+			OutputDirectory="$(ProjectDir)spu/culling"
+			IntermediateDirectory="$(ProjectDir)spu/culling"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -173,8 +173,8 @@
 		</Configuration>
 		<Configuration
 			Name="BluRayMaster|Win32"
-			OutputDirectory="z:/spu/culling"
-			IntermediateDirectory="z:/spu/culling"
+			OutputDirectory="$(ProjectDir)spu/culling"
+			IntermediateDirectory="$(ProjectDir)spu/culling"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -251,8 +251,8 @@
 		</Configuration>
 		<Configuration
 			Name="Speed|Win32"
-			OutputDirectory="z:/sps/culling"
-			IntermediateDirectory="z:/sps/culling"
+			OutputDirectory="$(ProjectDir)sps/culling"
+			IntermediateDirectory="$(ProjectDir)sps/culling"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -329,8 +329,8 @@
 		</Configuration>
 		<Configuration
 			Name="Master|Win32"
-			OutputDirectory="z:/spm/culling"
-			IntermediateDirectory="z:/spm/culling"
+			OutputDirectory="$(ProjectDir)spm/culling"
+			IntermediateDirectory="$(ProjectDir)spm/culling"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>

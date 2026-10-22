@@ -531,7 +531,7 @@ void C_Frame::OnQuit(wxCommandEvent& WXUNUSED(event))
 
 void C_Frame::OnHelp( wxCommandEvent& e )
 {
-	::wxLaunchDefaultBrowser( "http://biznet/Teams/Tech/Mercury/Library/Animation/MotionWorks" );
+	// [Blur2PC] The internal wiki page this opened is gone.
 }
 
 void C_Frame::OnAbout(wxCommandEvent& WXUNUSED(event))

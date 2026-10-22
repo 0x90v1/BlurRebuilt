@@ -5,9 +5,6 @@
 	Name="WaveBundlerDll"
 	ProjectGUID="{CD27747A-801F-4868-BC46-178080A27494}"
 	RootNamespace="WaveBundlerDll"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>

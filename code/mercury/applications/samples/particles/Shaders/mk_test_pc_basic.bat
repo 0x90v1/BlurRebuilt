@@ -1,9 +1,9 @@
 set COMP="%DXSDK_DIR%Utilities\Bin\x86\fxc"
 set COPY=copy
-set IDIR="Z:\devroot\code\mercury\library\display\include\display\shaders"
-set SDIR="Z:\devroot\code\mercury\library\display\include\display\shaders\render"
+set IDIR="%SRC_ROOT%\code\mercury\library\display\include\display\shaders"
+set SDIR="%SRC_ROOT%\code\mercury\library\display\include\display\shaders\render"
 set ODIR=".\pc"
-set CDIR="Z:\devroot\code\mercury\applications\samples\particles\Data\Shaders"
+set CDIR="%SRC_ROOT%\code\mercury\applications\samples\particles\Data\Shaders"
 
 %COMP% /T vs_2_0 /E main /nologo /I %IDIR% /Fo %ODIR%\vsBasicRenderColoured2D.pcv %SDIR%\vsBasicRenderColoured2D.vsh
 %COMP% /T vs_2_0 /E main /nologo /I %IDIR% /Fo %ODIR%\vsBasicRenderColoured3D.pcv %SDIR%\vsBasicRenderColoured3D.vsh

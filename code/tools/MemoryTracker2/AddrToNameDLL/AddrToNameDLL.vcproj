@@ -5,9 +5,6 @@
 	Name="AddrToNameDLL"
 	ProjectGUID="{662C7CCF-6DE2-4C78-BA34-CBDCFE2B5EB6}"
 	RootNamespace="AddrToNameDLL"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>

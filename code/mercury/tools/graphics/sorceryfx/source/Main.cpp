@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Sorcery FX",
 		".FX to Sorcery schema converter",
 		"tools.sorceryfx",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		false);
 	
 	Debug::ConsoleSubscriber *p1 = new Debug::ConsoleSubscriber();

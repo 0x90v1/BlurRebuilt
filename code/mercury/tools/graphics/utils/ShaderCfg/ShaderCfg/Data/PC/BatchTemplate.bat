@@ -10,8 +10,8 @@ echo.
 echo Building %PLATFORM_NAME% %SHADER_NAME% Shaders
 echo.
 
-set IDIR=Z:\devroot\code\genesis\library\include\render\shaders\world
-set SDIR=Z:\devroot\code\genesis\library\include\render\shaders\world
+set IDIR=%SRC_ROOT%\code\genesis\library\include\render\shaders\world
+set SDIR=%SRC_ROOT%\code\genesis\library\include\render\shaders\world
 
 set VS_OPTIONS=/T vs_3_0 /I%IDIR%
 set PS_OPTIONS=/T ps_3_0 /I%IDIR%

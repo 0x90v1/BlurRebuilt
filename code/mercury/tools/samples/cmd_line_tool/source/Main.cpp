@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"Example Command-line Tool",
 		"",
 		"tools.examplecommandlinetool",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		false);
 		
 	return app.Run(argc, argv);

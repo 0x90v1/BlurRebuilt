@@ -82,22 +82,22 @@ if $(SERVER_BUILD) != 1
 {
 	if $(PLATFORM) = XBOX_360
 	{
-		Depends Audition.xex : z:/MercuryGame/image/360/ ;
-		MkDir z:/MercuryGame/image/360/ ;
-		Copy z:/MercuryGame/image/360/Audition.xex : Audition.xex ;
+		Depends Audition.xex : $(BIZARRE_ROOT)/MercuryGame/image/360/ ;
+		MkDir $(BIZARRE_ROOT)/MercuryGame/image/360/ ;
+		Copy $(BIZARRE_ROOT)/MercuryGame/image/360/Audition.xex : Audition.xex ;
 	}
 
 	if $(PLATFORM) = PS3
 	{
-		Depends Audition.self : z:/MercuryGame/image/PS3/ ;
-		MkDir z:/MercuryGame/image/PS3/ ;
-		Copy z:/MercuryGame/image/PS3/Audition.self : Audition.self ;
+		Depends Audition.self : $(BIZARRE_ROOT)/MercuryGame/image/PS3/ ;
+		MkDir $(BIZARRE_ROOT)/MercuryGame/image/PS3/ ;
+		Copy $(BIZARRE_ROOT)/MercuryGame/image/PS3/Audition.self : Audition.self ;
 	}
 
 	if $(PLATFORM) = PC
 	{
-		Depends Audition.exe : z:/MercuryGame/image/PC/ ;
-		MkDir z:/MercuryGame/image/PC/ ;
-		Copy z:/MercuryGame/image/PC/Audition.exe : Audition.exe ;
+		Depends Audition.exe : $(BIZARRE_ROOT)/MercuryGame/image/PC/ ;
+		MkDir $(BIZARRE_ROOT)/MercuryGame/image/PC/ ;
+		Copy $(BIZARRE_ROOT)/MercuryGame/image/PC/Audition.exe : Audition.exe ;
 	}
 }

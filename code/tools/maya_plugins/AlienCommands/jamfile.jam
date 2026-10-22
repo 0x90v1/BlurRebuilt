@@ -32,7 +32,7 @@ DLL aliencommands : $(SRC) : stdafx.cpp ;
 
 ExportVcproj AlienCommands ;
 
-EmbedManifestDLL Z:/tools/art_tools/maya/plugins/2008/alienCommand_WIP.mll : aliencommands.exe ;
+EmbedManifestDLL $(BIZARRE_ROOT)/tools/art_tools/maya/plugins/2008/alienCommand_WIP.mll : aliencommands.exe ;
 
 
 

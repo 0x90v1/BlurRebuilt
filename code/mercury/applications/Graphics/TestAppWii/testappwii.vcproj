@@ -21,9 +21,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32\Debug\TestAppWii.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -41,9 +41,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32\Release\TestAppWii.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -61,9 +61,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32\Speed\TestAppWii.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -81,9 +81,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32\Profile\TestAppWii.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -101,9 +101,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32\Master\TestAppWii.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -121,9 +121,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Ps3\Debug\TestAppWii.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -141,9 +141,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Ps3\Release\TestAppWii.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -161,9 +161,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Ps3\Speed\TestAppWii.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -181,9 +181,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Ps3\Profile\TestAppWii.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -201,9 +201,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Ps3\Master\TestAppWii.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -221,9 +221,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Xbox_360\Debug\TestAppWii.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -242,9 +242,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Xbox_360\Release\TestAppWii.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -263,9 +263,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Xbox_360\Speed\TestAppWii.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -284,9 +284,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Xbox_360\Profile\TestAppWii.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"
@@ -305,9 +305,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Xbox_360\Master\TestAppWii.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\code\mercury\applications\graphics\testappwii;..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\library\common\core;..\..\..\library\common\core\include;..\..\..\library\common\system;..\..\..\library\common\system\include;..\..\..\library\graphics\display2;..\..\..\library\graphics\display2\include"

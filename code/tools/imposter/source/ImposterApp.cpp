@@ -17,7 +17,7 @@ public:
 			"ImposterCreate",
 			"Bizarre Creations Imposter LOD Generator",
 			"tools.imposter",
-			"\\\\bizsymbol\\CrashDumps\\")
+			"")
 	{
 	}
 

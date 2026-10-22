@@ -8,14 +8,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "..\..\..\mercury\library\common\core\core.vcproj", "{24E7603E-BCA0-477F-B0D0-AC59BCFD7102}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 1
-		SccProjectUniqueName0 = ..\\..\\..\\mercury\\library\\common\\core\\core.vcproj
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\mercury\\library\\common\\core\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_PS3|Win32 = Debug_PS3|Win32
 		Debug_PS3|x64 = Debug_PS3|x64

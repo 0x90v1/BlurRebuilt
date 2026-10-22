@@ -5,10 +5,6 @@
 	Name="XtInterop"
 	ProjectGUID="{29905316-ED23-4FD4-944C-F7E971D6CC3D}"
 	RootNamespace="Hack"
-	SccProjectName="SAK"
-	SccAuxPath="SAK"
-	SccLocalPath="SAK"
-	SccProvider="SAK"
 	Keyword="ManagedCProj"
 	TargetFrameworkVersion="131072"
 	>

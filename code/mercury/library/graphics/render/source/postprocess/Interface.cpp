@@ -66,7 +66,8 @@ void I_PostProcess::DisplayFinal(const Display::C_PixelShader* pPixelShader, Dis
 								0, nullptr, &listing)))
 							{
 								FILE* file = nullptr;
-								if (fopen_s(&file, "C:/AIProjects/Blur2PC/Blur1PCDX11/_work/run/scripts/final.ps.txt", "wb") == 0)
+								CreateDirectoryA("dx11_trace", nullptr); // [Blur2PC] opt-in dump beside the game, not a developer path
+								if (fopen_s(&file, "dx11_trace\\final.ps.txt", "wb") == 0)
 								{
 									fwrite(listing->GetBufferPointer(), 1, listing->GetBufferSize(), file);
 									fclose(file);

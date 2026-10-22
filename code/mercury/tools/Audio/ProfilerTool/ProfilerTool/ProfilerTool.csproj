@@ -9,10 +9,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ProfilerTool</RootNamespace>
     <AssemblyName>ProfilerTool</AssemblyName>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <ManifestCertificateThumbprint>6C383D558CC7EC9EC86F5683DC72F4C108B00100</ManifestCertificateThumbprint>
     <ManifestKeyFile>ProfilerTool_TemporaryKey.pfx</ManifestKeyFile>
@@ -242,9 +238,6 @@
     <None Include="Resources\refreshbutton.bmp" />
     <Content Include="Resources\loadmixbutton.gif" />
     <Content Include="Resources\savemixbutton.gif" />
-    <Content Include="Z:\tools\common_tools\win32\audio_profiler\components.xml">
-      <Link>components.xml</Link>
-    </Content>
     <Content Include="Resources\connectbutton.bmp" />
     <None Include="ProfilerTool_TemporaryKey.pfx" />
     <None Include="Resources\LED_Yellow_On.bmp" />
@@ -301,10 +294,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetDir)ProfilerTool.exe Z:\tools\common_tools_wip\win32\audio_profiler
-copy $(TargetDir)AVFader.dll Z:\tools\common_tools_wip\win32\audio_profiler
-copy $(TargetDir)Interop.XDevkit.dll Z:\tools\common_tools_wip\win32\audio_profiler
-copy $(TargetDir)system_pc_managed.dll Z:\tools\common_tools_wip\win32\audio_profiler
+    <PostBuildEvent>
 
 </PostBuildEvent>
   </PropertyGroup>

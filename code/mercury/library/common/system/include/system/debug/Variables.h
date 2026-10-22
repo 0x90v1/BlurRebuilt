@@ -10,10 +10,6 @@
 //
 // ** Welcome to the debug variables header file! **
 //
-// An explanation of this voodoo can be found here: 
-//
-// http://biznet/Teams/Tech/Mercury/Library/Common/System/Debug/Debug_Variables
-//
 
 // Prevent warning spam
 

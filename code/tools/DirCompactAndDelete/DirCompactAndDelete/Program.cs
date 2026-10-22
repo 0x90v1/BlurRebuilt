@@ -244,7 +244,6 @@ namespace DirCompactAndDelete
 
             //rootFolder = @"c:\testdata";
             rootFolder = @"E:\SymbolServer\Source";
-            //rootFolder = @"\\bizsymbol\symbolserver\Source";
 
             List<DirInfo> dirInfo = new List<DirInfo>();
 

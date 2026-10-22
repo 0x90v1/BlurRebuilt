@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 
-<template alienbrain_project = "The Club" texture_viewer = "Z:\tools\ravin\win32\texture_viewer\texture_viewer.exe">
+<template alienbrain_project = "The Club" texture_viewer = "%BIZARRE_ROOT%\tools\ravin\win32\texture_viewer\texture_viewer.exe">
   <menu_items>
-	  <!--menu_item name ="Wiki page" owner ="Help" value ="http://biznet/doku.php?id=projects:pgr4:art:city_building:city_construction:texture_tagging#texture_tagging" /-->
 	  <menu_item name ="Coming soon" owner ="Help" value ="" />
 	  
   </menu_items>

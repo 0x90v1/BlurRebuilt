@@ -28,45 +28,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "system_pc_2008", "..\..\..\mercury\library\common\system\system_pc_2008.vcproj", "{661BB307-31CE-4D19-9181-BB3B2939199D}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 8
-		SccProjectUniqueName0 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Misc\\Misc.csproj
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Misc
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectUniqueName1 = ..\\AutomationHelper\\AmaxAutomationHelper\\AmaxAutomationHelper.csproj
-		SccProjectName1 = Perforce\u0020Project
-		SccLocalPath1 = ..\\..\\..\\..
-		SccProvider1 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection1 = code\\tools\\Automation\\AutomationHelper\\AmaxAutomationHelper\\
-		SccProjectUniqueName2 = ..\\AutomationHelper\\AutomationHelper\\AutomationHelper.csproj
-		SccProjectName2 = Perforce\u0020Project
-		SccLocalPath2 = ..\\..\\..\\..
-		SccProvider2 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection2 = code\\tools\\Automation\\AutomationHelper\\AutomationHelper\\
-		SccProjectUniqueName3 = ..\\..\\Managed\u0020Helper\u0020Libraries\\XtInterop\\XtInterop.vcproj
-		SccProjectName3 = Perforce\u0020Project
-		SccLocalPath3 = ..\\..\\Managed\u0020Helper\u0020Libraries\\XtInterop
-		SccProvider3 = MSSCCI:Perforce\u0020SCM
-		SccProjectUniqueName4 = ..\\..\\..\\mercury\\library\\common\\core\\core_pc_2008.vcproj
-		SccProjectName4 = Perforce\u0020Project
-		SccLocalPath4 = ..\\..\\..\\..
-		SccProvider4 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection4 = code\\mercury\\library\\common\\core\\
-		SccProjectUniqueName5 = ..\\..\\..\\mercury\\library\\common\\system\\system_pc_managed_2008.vcproj
-		SccProjectName5 = Perforce\u0020Project
-		SccLocalPath5 = ..\\..\\..\\mercury\\library\\common\\system
-		SccProvider5 = MSSCCI:Perforce\u0020SCM
-		SccProjectUniqueName6 = ..\\..\\..\\mercury\\library\\common\\xt2\\xttool_pc_2008.vcproj
-		SccProjectName6 = Perforce\u0020Project
-		SccLocalPath6 = ..\\..\\..\\mercury\\library\\common\\xt2
-		SccProvider6 = MSSCCI:Perforce\u0020SCM
-		SccProjectUniqueName7 = ..\\..\\..\\mercury\\library\\common\\system\\system_pc_2008.vcproj
-		SccProjectName7 = Perforce\u0020Project
-		SccLocalPath7 = ..\\..\\..\\..
-		SccProvider7 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection7 = code\\mercury\\library\\common\\system\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Any CPU = Debug Win64|Any CPU
 		Debug Win64|Mixed Platforms = Debug Win64|Mixed Platforms

@@ -3,7 +3,7 @@ SmokeTest command line
 
 NightwingSmokeTest.exe
 	-config <filename>	- Specify config file to use
-	-sorcery <path>		- Specify path to sorcery database (i.e. z:\amax\sorcery3\main)
+	-sorcery <path>		- Specify path to sorcery database (i.e. %BIZARRE_ROOT%\amax\sorcery3\main)
 	-pnm <filename>		- Pick n Mix file (used for selecting certain Sorcery records to use)
 	-kits <filename>	- Name of file to get list of kits from
 	
@@ -19,7 +19,7 @@ NightwingSmokeTest.exe
 
 e.g.
 
-NightwingSmokeTest -sorcery z:\nightwing\sorcery3\main -kits e:\AutoReports\kits.xml -config e:\AutoReports\config.xml
+NightwingSmokeTest -sorcery %BIZARRE_ROOT%\nightwing\sorcery3\main -kits e:\AutoReports\kits.xml -config e:\AutoReports\config.xml
 
 
 Example config file:

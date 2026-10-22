@@ -107,46 +107,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "system", "..\..\mercury\lib
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 13
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\tools\\nexus\\
-		SccProjectUniqueName1 = nexus_app\\Nexus_2005.vcproj
-		SccLocalPath1 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection1 = code\\tools\\nexus\\nexus_app\\
-		SccProjectUniqueName2 = nexus_core\\nexus_core_2005.vcproj
-		SccLocalPath2 = nexus_core
-		SccProjectUniqueName3 = nexus_cmd\\nexus_cmd_2005.vcproj
-		SccLocalPath3 = nexus_cmd
-		SccProjectUniqueName4 = nexus_render\\Render\u0020Lib_2005.vcproj
-		SccLocalPath4 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection4 = code\\tools\\nexus\\nexus_render\\
-		SccProjectUniqueName5 = lua\\lua-5.0.2_2005.vcproj
-		SccLocalPath5 = lua
-		SccProjectUniqueName6 = ..\\aftk\\aftk\\jam_maya\\aftk_maya.vcproj
-		SccLocalPath6 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection6 = code\\tools\\aftk\\aftk\\jam_maya\\
-		SccProjectUniqueName7 = ..\\aftk\\aftk\\jam_native\\aftk.vcproj
-		SccLocalPath7 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection7 = code\\tools\\aftk\\aftk\\jam_native\\
-		SccProjectUniqueName8 = ..\\aftkut\\AftkUtLib\\aftkut.vcproj
-		SccLocalPath8 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection8 = code\\tools\\aftkut\\AftkUtLib\\
-		SccProjectUniqueName9 = ..\\attk\\attk\\attk.vcproj
-		SccLocalPath9 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection9 = code\\tools\\attk\\attk\\
-		SccProjectUniqueName10 = ..\\..\\mercury\\library\\util\\tools_shared\\tools_shared.vcproj
-		SccLocalPath10 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection10 = code\\mercury\\library\\util\\tools_shared\\
-		SccProjectUniqueName11 = ..\\..\\mercury\\library\\common\\core\\core.vcproj
-		SccLocalPath11 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection11 = code\\mercury\\library\\common\\core\\
-		SccProjectUniqueName12 = ..\\..\\mercury\\library\\common\\system\\system.vcproj
-		SccLocalPath12 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection12 = code\\mercury\\library\\common\\system\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug APP|Win32 = Debug APP|Win32
 		Debug APP|x64 = Debug APP|x64

@@ -4,9 +4,6 @@
 	Version="8.00"
 	Name="Quantize"
 	ProjectGUID="{7322BE8C-0E5E-4773-92AB-6B214B3E7254}"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="Win32Proj"
 	>
 	<Platforms>

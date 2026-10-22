@@ -4,9 +4,6 @@
 	Version="8.00"
 	Name="aftk"
 	ProjectGUID="{645DEB23-AEBC-4CF4-9EDC-D60E2ADB72AF}"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="MakeFileProj"
 	>
 	<Platforms>
@@ -35,9 +32,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32\Debug\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -110,9 +107,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32\Release\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -185,9 +182,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32\Speed\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -260,9 +257,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32\Profile\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -335,9 +332,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32\Master\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -471,9 +468,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Xbox_360\Debug\aftk.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -560,9 +557,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Xbox_360\Release\aftk.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -649,9 +646,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Xbox_360\Speed\aftk.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -738,9 +735,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Xbox_360\Profile\aftk.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -827,9 +824,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Xbox_360\Master\aftk.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -855,9 +852,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Ps3\Debug\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -930,9 +927,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Ps3\Release\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1005,9 +1002,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Ps3\Speed\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1080,9 +1077,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Ps3\Profile\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1155,9 +1152,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Ps3\Master\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1230,9 +1227,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1305,9 +1302,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1380,9 +1377,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1455,9 +1452,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1530,9 +1527,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1605,9 +1602,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win64\Debug\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1680,9 +1677,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win64\Release\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1755,9 +1752,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win64\Speed\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1830,9 +1827,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win64\Profile\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1905,9 +1902,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win64\Master\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -1980,9 +1977,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win64_tool\Debug\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -2056,9 +2053,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win64_tool\Release\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -2131,9 +2128,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win64_tool\Speed\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -2206,9 +2203,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win64_tool\Profile\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"
@@ -2281,9 +2278,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win64_tool\Master\aftk.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\common;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk"

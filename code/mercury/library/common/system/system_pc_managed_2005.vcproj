@@ -5,10 +5,6 @@
 	Name="system_pc_managed"
 	ProjectGUID="{533C54CD-7CD0-4CFF-9870-98F2EF157EF7}"
 	RootNamespace="system2"
-	SccProjectName="SAK"
-	SccAuxPath="SAK"
-	SccLocalPath="SAK"
-	SccProvider="SAK"
 	Keyword="ManagedCProj"
 	TargetFrameworkVersion="131072"
 	>

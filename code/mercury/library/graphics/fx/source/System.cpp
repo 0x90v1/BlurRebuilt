@@ -22,6 +22,10 @@ namespace FX
 
 FX::System g_System;
 
+// [Blur2PC] Opt-in shader dumps (BLUR_DX11_DUMP_FX) go under dx11_trace\ in the working folder;
+// they used to name one developer's worktree.
+static const char* FxDumpDir() { CreateDirectoryA("dx11_trace", nullptr); return "dx11_trace"; }
+
 // Point unbindable parameters at these globals, to avoid a branch in the update parameter loop.
 Parameter STOREALIGN16 gFXNullParameter;
 Maths::HMat44 gFXIdentityMatrix = Maths::HMat44();
@@ -468,7 +472,7 @@ void System::OnEffectLoad(Effect *pEffect)
 					for (const char* c = filename; *c; ++c) if (*c == '/' || *c == '\\') basename = c + 1;
 					strcpy_s(variant, basename);
 					if (char* extension = strrchr(variant, '.')) *extension = 0;
-					sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\fxdump_variants\\%s_%s_%d_%s.bin",
+					sprintf_s(path, "%s\\fxdump_variants_%s_%s_%d_%s.bin", FxDumpDir(),
 						variant, pEffect->Techniques[i].Name.Chars(), j,
 						shaderType ? "vs" : "ps");
 					FILE* file = nullptr;
@@ -490,7 +494,7 @@ void System::OnEffectLoad(Effect *pEffect)
 					if (dumps++ < 40)
 					{
 						char path[MAX_PATH] = {};
-						sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\fxdump\\%s_%s_%d_%s.bin",
+						sprintf_s(path, "%s\\fxdump_%s_%s_%d_%s.bin", FxDumpDir(),
 							pEffect->Name.Chars(), pEffect->Techniques[i].Name.Chars(), j,
 							type == E_ShaderType_VertexShader ? "vs" : "ps");
 						FILE* file = nullptr;

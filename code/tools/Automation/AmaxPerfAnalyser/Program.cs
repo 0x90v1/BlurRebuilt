@@ -71,7 +71,7 @@
 
     class Program
     {
-        static string connectionString = string.Format("Database=information_schema;Data Source={0};User Id={1};Password={2}", "uklpldb01", "datalog", "datalog");
+        static string connectionString = string.Format("Database=information_schema;Data Source={0};User Id={1};Password={2}", "localhost", "", "");
 
         static void Main(string[] args)
         {
@@ -562,8 +562,7 @@
             Mail mail = new Mail();
 
             mail.Subject = session + " - Amax Performance Report - " + platforms;
-            mail.Sender = "autoperf-do-not-reply@bizarrecreations.com";
-            mail.AddRecipient("roger.perkins@bizarrecreations.com");
+            mail.Sender = "";
 
             mail.Body = htmlBody;
             mail.IsBodyHtml = true;

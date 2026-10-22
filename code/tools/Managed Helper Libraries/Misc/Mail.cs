@@ -11,8 +11,8 @@
      * 
         Mail mail = new Mail();
 
-        mail.Sender         = "automation-do-not-reply@bizarrecreations.com";
-        mail.AddRecipient("test.recipient@bizarrecreations.com");
+        mail.Sender         = "sender@example.com";
+        mail.AddRecipient("recipient@example.com");
 
         mail.Subject        = "Test Subject";
         mail.Body           = "Test Body of email";
@@ -25,7 +25,7 @@
 
     public class Mail
     {
-        private string smtpServer = "uklplex01.activision.com";
+        private string smtpServer = "localhost";
 
         private string smtpServerUsername;
 

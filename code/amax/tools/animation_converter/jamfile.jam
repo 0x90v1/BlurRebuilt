@@ -35,9 +35,9 @@ LinkLibraries animation_converter :
 
 Application animation_converter : $(SRC) : stdafx.cpp ;
 
-#TOOL_DIR = Z:/amax/tools_wip/win32/animation_converter ;
-#TOOL_DIR = Z:/Nightwing/tools_wip/win32/animation_converter ;
-TOOL_DIR = Z:/Amax/tools_wip/win32/animation_converter ;
+#TOOL_DIR = $(BIZARRE_ROOT)/amax/tools_wip/win32/animation_converter ;
+#TOOL_DIR = $(BIZARRE_ROOT)/Nightwing/tools_wip/win32/animation_converter ;
+TOOL_DIR = $(BIZARRE_ROOT)/Amax/tools_wip/win32/animation_converter ;
 Depends $(TOOL_DIR)/animation_converter.exe : $(TOOL_DIR)/ ;
 MkDir $(TOOL_DIR)/ ;
 

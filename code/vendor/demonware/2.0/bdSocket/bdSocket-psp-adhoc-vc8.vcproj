@@ -4,7 +4,6 @@
 	Version="8.00"
 	Name="bdSocket"
 	ProjectGUID="CBCE2696-8608-F0BC-ABEE-E40A95E00916"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

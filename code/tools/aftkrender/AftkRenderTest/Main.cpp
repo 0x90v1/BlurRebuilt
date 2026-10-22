@@ -103,7 +103,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 	app.Create(pWindow->GetWidth(), pWindow->GetHeight());
 
 	g_pScene = new Aftk::C_Scene();
-	Aftk::C_Status status = g_pScene->Read("z:/TestAssets/uvissue.a3d");
+	Aftk::C_Status status = g_pScene->Read("TestAssets/uvissue.a3d");
 	AftkRender::C_SceneRenderer renderer;
 	renderer.LoadFromScene(g_pScene);
 
@@ -127,7 +127,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 	
 	g_pSceneRenderer = new Test::SceneRenderer();
 	g_pScene = new Aftk::C_Scene();
-	Aftk::C_Status status = g_pScene->Read("Z:/testassets/barrierskin.a3d");
+	Aftk::C_Status status = g_pScene->Read("testassets/barrierskin.a3d");
 
 	g_pSceneRenderer->m_DeviceParams.m_Width		= 800;
 	g_pSceneRenderer->m_DeviceParams.m_Height		= 600;

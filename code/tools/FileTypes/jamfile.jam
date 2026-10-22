@@ -25,7 +25,7 @@ ExportVcproj FileType ;
 SubInclude TOP Code Mercury Library Common Core ;
 SubInclude TOP Code Mercury Library Common System ;
 
-Depends z:/Tools/common_tools_WIP/win32/filetypes/FileType.exe : z:/Tools/common_tools_WIP/win32/filetypes/ ;
-MkDir z:/Tools/common_tools_WIP/win32/filetypes/ ;
+Depends $(BIZARRE_ROOT)/Tools/common_tools_WIP/win32/filetypes/FileType.exe : $(BIZARRE_ROOT)/Tools/common_tools_WIP/win32/filetypes/ ;
+MkDir $(BIZARRE_ROOT)/Tools/common_tools_WIP/win32/filetypes/ ;
 
-EmbedManifest z:/Tools/common_tools_WIP/win32/filetypes/FileType.exe : FileType.exe ;
+EmbedManifest $(BIZARRE_ROOT)/Tools/common_tools_WIP/win32/filetypes/FileType.exe : FileType.exe ;

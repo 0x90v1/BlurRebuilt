@@ -5,9 +5,6 @@
 	Name="XmaEncoderDll"
 	ProjectGUID="{920FA90A-1F2B-47BB-A3D2-73AD0824AAEC}"
 	RootNamespace="XmaEncoderDll"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>

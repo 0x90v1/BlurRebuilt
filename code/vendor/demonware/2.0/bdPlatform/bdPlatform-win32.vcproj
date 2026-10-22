@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="bdPlatform"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

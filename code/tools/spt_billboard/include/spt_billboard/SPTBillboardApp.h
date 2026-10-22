@@ -9,7 +9,7 @@ public:
 			"spt_billboard",
 			"Bizarre Creations Speedtree Billboard Generator",
 			"tools.speedtreebillboard",
-			"\\\\bizbuild03\\CrashDumps\\")
+			"")
 	{
 	}
 

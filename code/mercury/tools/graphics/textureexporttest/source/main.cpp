@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 		"Texture Export Test",
 		"",
 		"tools.examplecommandlinetool",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		false);
 		
 	return app.Run(argc, argv);

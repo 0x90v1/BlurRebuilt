@@ -4,9 +4,6 @@
 	Version="8.00"
 	Name="animationlib_test"
 	ProjectGUID="{645DEB23-AEBC-4CF4-9EDC-D60E2ADB72AF}"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="MakeFileProj"
 	>
 	<Platforms>
@@ -32,9 +29,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug test"
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a test"
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32\Debug\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -168,9 +165,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release test"
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a test"
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32\Release\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -304,9 +301,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed test"
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a test"
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32\Speed\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -440,9 +437,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile test"
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a test"
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32\Profile\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -576,9 +573,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master test"
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a test"
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32\Master\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -774,9 +771,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug test"
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a test"
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Xbox_360\Debug\animationlib_test.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -924,9 +921,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release test"
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a test"
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Xbox_360\Release\animationlib_test.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -1074,9 +1071,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed test"
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a test"
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Xbox_360\Speed\animationlib_test.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -1224,9 +1221,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile test"
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a test"
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Xbox_360\Profile\animationlib_test.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -1374,9 +1371,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master test"
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a test"
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Xbox_360\Master\animationlib_test.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -1462,9 +1459,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug test"
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a test"
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Ps3\Debug\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -1598,9 +1595,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release test"
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a test"
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Ps3\Release\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -1734,9 +1731,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed test"
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a test"
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Ps3\Speed\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -1870,9 +1867,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile test"
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a test"
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Ps3\Profile\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2006,9 +2003,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master test"
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a test"
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Ps3\Master\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2142,9 +2139,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug test"
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a test"
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2278,9 +2275,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release test"
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a test"
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2414,9 +2411,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed test"
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a test"
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2550,9 +2547,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile test"
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a test"
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2686,9 +2683,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master test"
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a test"
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2822,9 +2819,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug test"
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug -a test"
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win64\Debug\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -2958,9 +2955,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release test"
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release -a test"
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win64\Release\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -3094,9 +3091,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed test"
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed -a test"
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win64\Speed\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -3230,9 +3227,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile test"
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile -a test"
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win64\Profile\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -3366,9 +3363,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master test"
+				ReBuildCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master -a test"
+				CleanCommandLine="jam -sTARGET=WIN64 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win64\Master\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -3502,9 +3499,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug test"
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug -a test"
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win64_tool\Debug\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -3638,9 +3635,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release test"
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release -a test"
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win64_tool\Release\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -3774,9 +3771,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed test"
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed -a test"
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win64_tool\Speed\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -3910,9 +3907,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile test"
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile -a test"
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win64_tool\Profile\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"
@@ -4046,9 +4043,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master test"
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master -a test"
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master test"
+				ReBuildCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master -a test"
+				CleanCommandLine="jam -sTARGET=WIN64_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win64_tool\Master\animationlib_test.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\code\vendor\cxxtest\current;..\common\core\include;..\common\system\include;.\include;.\source"

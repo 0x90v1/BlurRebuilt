@@ -12,7 +12,7 @@ StoreVcprojInfo MercuryGameShaders ;
 # Compile the shaders into Mercury Game
 
 AutoSetXenonRemoteLocation ;
-SetGameFolder Z:/MercuryGame ;
+SetGameFolder $(BIZARRE_ROOT)/MercuryGame ;
 include $(TOP)/code/mercury/library/graphics/shader/shaders.jam ;
 include $(TOP)/code/mercury/library/graphics/vehicle/shaders.jam ;
 

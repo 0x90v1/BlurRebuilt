@@ -41,7 +41,6 @@ if $(BUILD) = Debug || $(BUILD) = Release
 
 Library actor_system : $(SRC) : ActorSystemPch.cpp : ActorSystemPch.h ;
 
-DoxygenLocation biztools01 : MercuryGame : actor_system ;
 
 ###### Unit test
 

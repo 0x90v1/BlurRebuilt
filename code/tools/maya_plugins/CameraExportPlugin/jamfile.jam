@@ -38,7 +38,7 @@ LinkLibraries CameraExportPlugin :
 DLL CameraExportPlugin : $(SRC) : stdafx.cpp ;
 ExportVcproj CameraExportPlugin ;
 
-EmbedManifestDLL Z:/tools/art_tools/maya/packages/biz_CameraSystem/plugins/2008/cameraexportplugin.mll : CameraExportPlugin.exe ;
+EmbedManifestDLL $(BIZARRE_ROOT)/tools/art_tools/maya/packages/biz_CameraSystem/plugins/2008/cameraexportplugin.mll : CameraExportPlugin.exe ;
 
 SubInclude TOP code mercury library common core ;
 SubInclude TOP code mercury library common system ;

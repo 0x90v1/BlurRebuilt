@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"BizPak",
 		"",
 		"tools.bizpak",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		false);
 	return app.Run(argc, argv);
 }
@@ -25,7 +25,7 @@ int main(int argc, char**argv)
 		"BizPak",
 		"",
 		"tools.bizpak",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		false);
 
     g_pConsoleSubscriber = new Debug::ConsoleSubscriber();

@@ -51,9 +51,9 @@ LinkLibraries AftkConv :
 
 Application AftkConv : $(SRC) : stdafx.cpp ;
 
-Depends z:/tools/common_tools_wip/win32/AftkConv/AftkConv.exe : z:/tools/common_tools_wip/win32/AftkConv/ ;
-MkDir z:/tools/common_tools_wip/win32/AftkConv/ ;
-EmbedManifest z:/tools/common_tools_wip/win32/AftkConv/AftkConv.exe : AftkConv.exe ;
+Depends $(BIZARRE_ROOT)/tools/common_tools_wip/win32/AftkConv/AftkConv.exe : $(BIZARRE_ROOT)/tools/common_tools_wip/win32/AftkConv/ ;
+MkDir $(BIZARRE_ROOT)/tools/common_tools_wip/win32/AftkConv/ ;
+EmbedManifest $(BIZARRE_ROOT)/tools/common_tools_wip/win32/AftkConv/AftkConv.exe : AftkConv.exe ;
 
 ExportVcproj AftkConv ;
 

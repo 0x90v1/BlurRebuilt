@@ -37,7 +37,7 @@ LinkLibraries camera_converter : core system tools_shared camera2tool aftk_maya 
 Application camera_converter : $(SRC) : stdafx.cpp ;
 ExportVcproj camera_converter ;
 
-DEST_EXE = Z:\\tools\\common_tools\\win32\\camera_converter\\camera_converter.exe ;
+DEST_EXE = $(BIZARRE_ROOT)/tools\\common_tools\\win32\\camera_converter\\camera_converter.exe ;
 
 MkDir $(DEST_EXE:D) ;
 Depends $(DEST_EXE) $(DEST_EXE).manifest : $(DEST_EXE:D) ;
@@ -45,7 +45,7 @@ Depends $(DEST_EXE).manifest : camera_converter.exe ;
 Copy $(DEST_EXE) : camera_converter.exe ;
 Copy $(DEST_EXE).manifest : $(OUTDIR)\\camera_converter.exe.manifest ;
 
-DEST2_EXE = Z:\\tools\\common_tools_wip\\win32\\camera_converter\\camera_converter.exe ;
+DEST2_EXE = $(BIZARRE_ROOT)/tools\\common_tools_wip\\win32\\camera_converter\\camera_converter.exe ;
 MkDir $(DEST2_EXE:D) ;
 Depends $(DEST2_EXE) $(DEST2_EXE).manifest : $(DEST2_EXE:D) ;
 Depends $(DEST2_EXE).manifest : camera_converter.exe ;

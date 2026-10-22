@@ -520,6 +520,6 @@ if $(USERNAME) = jcutter
 {
 	if $(PLATFORM) = PS3
 	{
-		Copy z:\\Amax\\image\\PS3\\Amax.self : Amax.self ;
+		Copy $(BIZARRE_ROOT)/Amax/image/PS3/Amax.self : Amax.self ;
 	}
 }

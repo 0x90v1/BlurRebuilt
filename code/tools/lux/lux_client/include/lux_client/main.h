@@ -9,7 +9,7 @@ public:
 			"Lux",									// application name
 			"Bizarre Creations Lighting Tool",		// application description
 			"tools.lux",							// application logger
-			"\\\\bizbuild03\\CrashDumps\\")			// .dmp file destination path
+			"")			// .dmp file destination path
 	{
 	}
 

@@ -3,16 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "make_lut", "make_lut.vcproj", "{645DEB23-AEBC-4CF4-9EDC-D60E2ADB72AF}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 2
-		SccProjectUniqueName0 = make_lut.vcproj
-		SccLocalPath0 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection0 = Code\\tools\\image_tools\\make_lut
-		SccProjectName1 = Perforce\u0020Project
-		SccLocalPath1 = ..\\..\\..\\..
-		SccProvider1 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection1 = Code\\tools\\image_tools\\make_lut
-	EndGlobalSection
 
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 tool = Debug|Win32 tool

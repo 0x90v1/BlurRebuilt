@@ -4,9 +4,6 @@
 	Version="8.00"
 	Name="GravityExporter"
 	ProjectGUID="{645DEB23-AEBC-4CF4-9EDC-D60E2ADB72AF}"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="MakeFileProj"
 	>
 	<Platforms>
@@ -26,9 +23,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32_tool\Debug\GravityExporter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\..\code\common;..\..\..\..\..\..\code\common\;..\..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\..\..\code\tools\aftkut\aftkutlib\include;..\..\..\..\..\..\code\vendor;..\..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include\kbaselib;..\..\..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk;..\..\..\..\..\tools\aftk\aftk;..\..\..\..\..\tools\aftkut\aftkutlib;..\..\..\..\..\tools\aftkut\aftkutlib\include;..\..\..\..\..\vendor\zlib\current_mercury;..\..\..\..\library\common\core;..\..\..\..\library\common\core\include;..\..\..\..\library\common\misc_shared;..\..\..\..\library\common\misc_shared\include;..\..\..\..\library\common\system;..\..\..\..\library\common\system\include;..\..\..\..\library\physics\gravity;..\..\..\..\library\physics\gravity\include;c:\program files\microsoft xbox 360 sdk\include\win32\vs2005"
@@ -47,9 +44,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32_tool\Release\GravityExporter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\..\code\common;..\..\..\..\..\..\code\common\;..\..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\..\..\code\tools\aftkut\aftkutlib\include;..\..\..\..\..\..\code\vendor;..\..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include\kbaselib;..\..\..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk;..\..\..\..\..\tools\aftk\aftk;..\..\..\..\..\tools\aftkut\aftkutlib;..\..\..\..\..\tools\aftkut\aftkutlib\include;..\..\..\..\..\vendor\zlib\current_mercury;..\..\..\..\library\common\core;..\..\..\..\library\common\core\include;..\..\..\..\library\common\misc_shared;..\..\..\..\library\common\misc_shared\include;..\..\..\..\library\common\system;..\..\..\..\library\common\system\include;..\..\..\..\library\physics\gravity;..\..\..\..\library\physics\gravity\include;c:\program files\microsoft xbox 360 sdk\include\win32\vs2005"
@@ -68,9 +65,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32_tool\Speed\GravityExporter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\..\code\common;..\..\..\..\..\..\code\common\;..\..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\..\..\code\tools\aftkut\aftkutlib\include;..\..\..\..\..\..\code\vendor;..\..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include\kbaselib;..\..\..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk;..\..\..\..\..\tools\aftk\aftk;..\..\..\..\..\tools\aftkut\aftkutlib;..\..\..\..\..\tools\aftkut\aftkutlib\include;..\..\..\..\..\vendor\zlib\current_mercury;..\..\..\..\library\common\core;..\..\..\..\library\common\core\include;..\..\..\..\library\common\misc_shared;..\..\..\..\library\common\misc_shared\include;..\..\..\..\library\common\system;..\..\..\..\library\common\system\include;..\..\..\..\library\physics\gravity;..\..\..\..\library\physics\gravity\include;c:\program files\microsoft xbox 360 sdk\include\win32\vs2005"
@@ -89,9 +86,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32_tool\Profile\GravityExporter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\..\code\common;..\..\..\..\..\..\code\common\;..\..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\..\..\code\tools\aftkut\aftkutlib\include;..\..\..\..\..\..\code\vendor;..\..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include\kbaselib;..\..\..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk;..\..\..\..\..\tools\aftk\aftk;..\..\..\..\..\tools\aftkut\aftkutlib;..\..\..\..\..\tools\aftkut\aftkutlib\include;..\..\..\..\..\vendor\zlib\current_mercury;..\..\..\..\library\common\core;..\..\..\..\library\common\core\include;..\..\..\..\library\common\misc_shared;..\..\..\..\library\common\misc_shared\include;..\..\..\..\library\common\system;..\..\..\..\library\common\system\include;..\..\..\..\library\physics\gravity;..\..\..\..\library\physics\gravity\include;c:\program files\microsoft xbox 360 sdk\include\win32\vs2005"
@@ -110,9 +107,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32_TOOL $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32_tool\Master\GravityExporter.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath=".;..\..\..\..\..\..\code\common;..\..\..\..\..\..\code\common\;..\..\..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\..\..\code\tools\aftk\aftk\include;..\..\..\..\..\..\code\tools\aftkut\aftkutlib\include;..\..\..\..\..\..\code\vendor;..\..\..\..\..\..\code\vendor\cxxtest\current;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include;..\..\..\..\..\..\libs\vendor\fbx_sdk\2009.1\include\kbaselib;..\..\..\..\..\..\libs\vendor\maya\2008\include;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\core;..\..\..\..\..\..\libs\vendor\xsiftk\5.11\h\ftk;..\..\..\..\..\tools\aftk\aftk;..\..\..\..\..\tools\aftkut\aftkutlib;..\..\..\..\..\tools\aftkut\aftkutlib\include;..\..\..\..\..\vendor\zlib\current_mercury;..\..\..\..\library\common\core;..\..\..\..\library\common\core\include;..\..\..\..\library\common\misc_shared;..\..\..\..\library\common\misc_shared\include;..\..\..\..\library\common\system;..\..\..\..\library\common\system\include;..\..\..\..\library\physics\gravity;..\..\..\..\library\physics\gravity\include;c:\program files\microsoft xbox 360 sdk\include\win32\vs2005"

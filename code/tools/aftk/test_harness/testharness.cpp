@@ -262,7 +262,7 @@ int main(int argc, char **argv)
 
 	DWORD start = GetTickCount();
 
-	aftkStatus = pAftkScene->Read("Z:/BeforeMergeMeshes.a3d");
+	aftkStatus = pAftkScene->Read("BeforeMergeMeshes.a3d");
 
 	Aftk::C_SceneMeshNode* pSceneNode = (Aftk::C_SceneMeshNode*)pAftkScene->GetSceneNodePtrByUniqueID(135);
 
@@ -283,14 +283,14 @@ int main(int argc, char **argv)
 		pAftkScene->DeleteSceneNodeAndReparentChildren(toDelete[i], true);
 
 	}
-	pAftkScene->Write("z:/test.a3d");
+	pAftkScene->Write("test.a3d");
 	return 0;
 
 	pAftkScene->Validate();
-	pAftkScene->Write("z:/TestAssets/genattrout.a3d");
+	pAftkScene->Write("TestAssets/genattrout.a3d");
 	return 0;
 	pAftkScene->Optimise();
-//	pAftkScene->Write("z:/newout.a3d");
+//	pAftkScene->Write("newout.a3d");
 		
 
 	if (!aftkStatus)
@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 	std::cout << "OKAY" << std::endl;
 	return 0;
 
-//	aftkStatus = pAftkScene->Read("Z:/mergeme.a3d");
+//	aftkStatus = pAftkScene->Read("mergeme.a3d");
 //	Aftk::C_SceneMeshNode* pCube1 = (Aftk::C_SceneMeshNode*)pAftkScene->GetSceneNodePtr("pCube1");
 //	Aftk::C_SceneMeshNode* pNew = (Aftk::C_SceneMeshNode*)pCube1->Clone(pAftkScene);
 //	pNew->AddMesh(pCube1);
@@ -368,7 +368,7 @@ int main(int argc, char **argv)
 	std::cout << "time : " << (F32)time / 1000.f << " seconds " << std::endl;
 	U32 count = pAftkScene->Validate();
 	std::cout << count << std::endl;
-	pAftkScene->Write("z:/newout.a3d");
+	pAftkScene->Write("newout.a3d");
 	delete pAftkScene;
  	Aftk::C_Global::Destroy();
 	return 0;
@@ -426,9 +426,9 @@ int main(int argc, char **argv)
 		pCurve->Evaluate(test, 16.f);
 		
 
-		aftkStatus = pAftkScene->Write("z:/fored.a3d");
+		aftkStatus = pAftkScene->Write("fored.a3d");
 		return 0;
-//		aftkStatus = pAftkScene->Read("Z:/loc.mb");
+//		aftkStatus = pAftkScene->Read("loc.mb");
 /*
 		Aftk::Vector3F32 scale;
 		Aftk::C_SceneNode* pSceneNode;
@@ -443,16 +443,16 @@ int main(int argc, char **argv)
 		pSceneNode = pAftkScene->GetSceneNodePtr("spotLight3");
 		pSceneNode->GetScale(scale);
 
-		aftkStatus = pAftkScene->Write("z:/janbug.a3d");
+		aftkStatus = pAftkScene->Write("janbug.a3d");
 		return 0;
 }
 /*
-		aftkStatus = pAftkScene->Read("z:/upvector.a3d");
+		aftkStatus = pAftkScene->Read("upvector.a3d");
 		pSceneNode = pAftkScene->GetSceneNodePtr("Cube_Aimed_aimConstraint1");
 
 		return 0;
 }
-//		aftkStatus = pAftkScene->Read("z:/polyflagtest.a3d");
+//		aftkStatus = pAftkScene->Read("polyflagtest.a3d");
 /*		{
 			pAftkScene->SetSlerpRotation(true);
 			Aftk::C_SceneNodeIterator it(pAftkScene);
@@ -483,10 +483,10 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		aftkStatus = pAftkScene->Write("z:/polyflagtest.a3d");
+		aftkStatus = pAftkScene->Write("polyflagtest.a3d");
 		return 0;
 		std::cout << "\n\n\n*************************\n\n\n" << std::endl;
-		aftkStatus = pAftkScene->Read("z:/polyflagtest.a3d");
+		aftkStatus = pAftkScene->Read("polyflagtest.a3d");
 		{
 			Aftk::C_SceneNodeIterator it(pAftkScene);
 			for(; it; it++)
@@ -632,7 +632,7 @@ int main(int argc, char **argv)
 		}
 /*		{
 			Aftk::C_Scene scene2;
-			aftkStatus = scene2.Read("Z:/xsi/Moving_Steeringwheel.xsi", Aftk::E_FileType_BestGuess, options);
+			aftkStatus = scene2.Read("xsi/Moving_Steeringwheel.xsi", Aftk::E_FileType_BestGuess, options);
 			if (!aftkStatus)
 				std::cout << "Bollocks." << aftkStatus.GetErrorString() << std::endl;
 
@@ -644,13 +644,13 @@ int main(int argc, char **argv)
 		*/
 /*
 		pAftkScene->OutputSceneGraph();
-		aftkStatus = pAftkScene->Write("z:/namespace.a3d", Aftk::E_FileType_BestGuess);
+		aftkStatus = pAftkScene->Write("namespace.a3d", Aftk::E_FileType_BestGuess);
 		if (!aftkStatus)
 			std::cout << "Bollocks." << aftkStatus.GetErrorString() << std::endl;
 
 		pAftkScene->Clear();
-//		aftkStatus = pAftkScene->Read("z:/tex.a3d", Aftk::E_FileType_BestGuess, options);
-		aftkStatus = pAftkScene->Read("z:/namespace.a3d", Aftk::E_FileType_BestGuess, options);
+//		aftkStatus = pAftkScene->Read("tex.a3d", Aftk::E_FileType_BestGuess, options);
+		aftkStatus = pAftkScene->Read("namespace.a3d", Aftk::E_FileType_BestGuess, options);
 		if (!aftkStatus)
 			std::cout << "Bollocks." << aftkStatus.GetErrorString() << std::endl;
 		pHip = pAftkScene->GetSceneNodePtr("pCube1");
@@ -784,10 +784,10 @@ int main(int argc, char **argv)
 		//aftkStatus = pAftkScene->Read("F:/TheGoodAndTheBad/thegood.mb", E_FileType_BestGuess, &nonFatalErrors, options);
 	//	aftkStatus = pAftkScene->Read("f:/testing/texcube.a3d", E_FileType_BestGuess);
 	//	aftkStatus = pAftkScene->Read("f:/160/Tokyo_Main_Only.a3d", E_FileType_BestGuess);
-	//	aftkStatus = pAftkScene->Read("Z:/Gotham3/Art/Circuits/Las Vegas/Models/Routes/Route_01.mb", E_FileType_BestGuess, &nonFatalErrors, options);
+	//	aftkStatus = pAftkScene->Read("Gotham3/Art/Circuits/Las Vegas/Models/Routes/Route_01.mb", E_FileType_BestGuess, &nonFatalErrors, options);
 	//	aftkStatus = pAftkScene->Read("f:/fixme/trees_input.a3d", E_FileType_BestGuess);
 	//	aftkStatus = pAftkScene->Read("f:/170/tantest.mb");
-	//	aftkStatus = pAftkScene->Read("Z:/shitstorm/Assets/Objects/Characters/Skins/PunkRogers/MayaWork/low+normal02.mb", E_FileType_BestGuess, &nonFatalErrors, options);
+	//	aftkStatus = pAftkScene->Read("shitstorm/Assets/Objects/Characters/Skins/PunkRogers/MayaWork/low+normal02.mb", E_FileType_BestGuess, &nonFatalErrors, options);
 	//	aftkStatus = pAftkScene->Read("f:/160/cube65.a3d");
 	//	aftkStatus = pAftkScene->Read("f:/trime/exp.a3d");
 	}
@@ -888,10 +888,10 @@ int main(int argc, char **argv)
 //	ConvertNormalInstancesToRemappedInstances(pAftkScene);
 	
 //	aftkStatus = pAftkScene->Read("f:/fixme/tokyo/route06.a3d", E_FileType_BestGuess, &nonFatalErrors, options);
-//	aftkStatus = pAftkScene->Read("Z:/Gotham3/Art/Circuits/London/Models/Routes/route11.mb", E_FileType_BestGuess, &nonFatalErrors, options);
+//	aftkStatus = pAftkScene->Read("Gotham3/Art/Circuits/London/Models/Routes/route11.mb", E_FileType_BestGuess, &nonFatalErrors, options);
 //	aftkStatus = pAftkScene->Read("f:/fixme/las vegas/lasvegas.a3d", E_FileType_BestGuess, &nonFatalErrors, options);
 //	pAftkScene->Triangulate();
-//	aftkStatus = pAftkScene->Read("Z:/Gotham3/Art/Circuits/Graphical/Export/GraphicalKen.a3d", E_FileType_BestGuess, &nonFatalErrors, options);
+//	aftkStatus = pAftkScene->Read("Gotham3/Art/Circuits/Graphical/Export/GraphicalKen.a3d", E_FileType_BestGuess, &nonFatalErrors, options);
 //	aftkStatus = pAftkScene->Read("f:/160/route01layer.a3d", E_FileType_BestGuess, &nonFatalErrors, options);
 	//g_aftkMemoryManager.CollectGarbage();
 	std::cout << "C_Global alloc count " << g_globalAllocCount << std::endl;
@@ -919,7 +919,7 @@ int main(int argc, char **argv)
 
 //	pAftkScene->ExpandUniqueRemappedInstances();
 
-//	pAftkScene->Write("Z:/Gotham3/Art/Circuits/Graphical/Export/GraphicalKenExpanded.a3d", AFTK_FILE_TYPE_A3D);
+//	pAftkScene->Write("Gotham3/Art/Circuits/Graphical/Export/GraphicalKenExpanded.a3d", AFTK_FILE_TYPE_A3D);
 
 //	std::cout << "read" << std::endl;
 
@@ -972,7 +972,7 @@ int main(int argc, char **argv)
 		temp.Read("f:/fixme/Tokyo/Route06.a3d");
  		pAftkScene->Import(&temp);
 	}
-	pAftkScene->Write("Z:/Gotham3/Art/Circuits/Graphical/Export/graphicalkenhack_new.a3d", AFTK_FILE_TYPE_A3D);
+	pAftkScene->Write("Gotham3/Art/Circuits/Graphical/Export/graphicalkenhack_new.a3d", AFTK_FILE_TYPE_A3D);
 	delete pAftkScene;
 	return 0;
 	{
@@ -1092,7 +1092,7 @@ int main(int argc, char **argv)
 	
 //	pAftkScene->Write("f:/testing/import.a3d", AFTK_FILE_TYPE_A3D);
 
-//	pAftkScene->Read("Z:/Gotham3/Art/Circuits/Tokyo/Models/Routes/Route01.mb", E_FileType_BestGuess, &nonFatalErrors, options);
+//	pAftkScene->Read("Gotham3/Art/Circuits/Tokyo/Models/Routes/Route01.mb", E_FileType_BestGuess, &nonFatalErrors, options);
 //	pAftkScene->OutputSceneGraph();
 //pAftkScene->Read("f:/testing/import.a3d", AFTK_FILE_TYPE_A3D);
 //	if (pAftkScene->Validate() == 0)
@@ -1209,7 +1209,7 @@ int main(int argc, char **argv)
 	std::cout << "time : " << time << std::endl;
 //	aftkStatus = pAftkScene->Write("f:/EdBug/meh.a3d", AFTK_FILE_TYPE_A3D);
 
-//	aftkStatus = pAftkScene->Read("Z:/Gotham3/Art/Circuits/nurburgring/models/buildings/ground_mesh3.mb", E_FileType_BestGuess, &nonFatalErrors);
+//	aftkStatus = pAftkScene->Read("Gotham3/Art/Circuits/nurburgring/models/buildings/ground_mesh3.mb", E_FileType_BestGuess, &nonFatalErrors);
 //	pAftkScene->WeldMeshes();
 //	aftkStatus = pAftkScene->Read("C:/Documents and Settings/kenm/My Documents/maya/projects/default/scenes/uvset.mb");
 //	aftkStatus = pAftkScene->Read("F:/ChadBug/ClusterTest.xsi");
@@ -1370,8 +1370,8 @@ int main(int argc, char **argv)
 
 	//aftkStatus = pAftkScene->Read("F:/barriers/barriertest.mb");
 
-//	aftkStatus = pAftkScene->Read("Z:/Gotham3/Art/Circuits/Tokyo/Models/paulbug.mb");
-//	aftkStatus = pAftkScene->Read("Z:/Gotham3/Art/Circuits/Tokyo/Models/paulbug2.mb");
+//	aftkStatus = pAftkScene->Read("Gotham3/Art/Circuits/Tokyo/Models/paulbug.mb");
+//	aftkStatus = pAftkScene->Read("Gotham3/Art/Circuits/Tokyo/Models/paulbug2.mb");
 
 	*g_pDebugManager << "*** Dumping active x-ref scenes ***\n";
 	for (U32 iRef = 0; iRef < pAftkScene->GetNumActiveXRefScenes(); iRef++)

@@ -40,9 +40,9 @@ SubInclude TOP Code Mercury Library Common Core ;
 SubInclude TOP Code Mercury Library Common System ;
 SubInclude TOP code Mercury Library Common xt2 ;
 
-Copy Z:/tools/common_tools/win32/audio_entityscriptconverter : EntityScriptConverter.exe ;
-Copy Z:/tools/common_tools/win32/audio_entityscriptconverter : $(TOP)/code/mercury/tools/Audio/EntityScriptConverter/bin/win32_tool/$(BUILD)/EntityScriptConverter.exe.manifest ;
-Copy Z:/tools/common_tools_wip/win32/audio_entityscriptconverter : EntityScriptConverter.exe ;
-Copy Z:/tools/common_tools_wip/win32/audio_entityscriptconverter : $(TOP)/code/mercury/tools/Audio/EntityScriptConverter/bin/win32_tool/$(BUILD)/EntityScriptConverter.exe.manifest ;
+Copy $(BIZARRE_ROOT)/tools/common_tools/win32/audio_entityscriptconverter : EntityScriptConverter.exe ;
+Copy $(BIZARRE_ROOT)/tools/common_tools/win32/audio_entityscriptconverter : $(TOP)/code/mercury/tools/Audio/EntityScriptConverter/bin/win32_tool/$(BUILD)/EntityScriptConverter.exe.manifest ;
+Copy $(BIZARRE_ROOT)/tools/common_tools_wip/win32/audio_entityscriptconverter : EntityScriptConverter.exe ;
+Copy $(BIZARRE_ROOT)/tools/common_tools_wip/win32/audio_entityscriptconverter : $(TOP)/code/mercury/tools/Audio/EntityScriptConverter/bin/win32_tool/$(BUILD)/EntityScriptConverter.exe.manifest ;
 
 

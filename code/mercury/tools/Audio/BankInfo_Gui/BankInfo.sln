@@ -12,21 +12,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "system_pc", "..\..\..\library\common\system\system_pc_2005.vcproj", "{661BB307-31CE-4D19-9181-BB3B2939199D}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 4
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\mercury\\tools\\Audio\\BankInfo_Gui\\
-		SccProjectUniqueName1 = BankInfo.vcproj
-		SccLocalPath1 = ..\\..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection1 = code\\mercury\\tools\\Audio\\BankInfo_Gui\\
-		SccProjectUniqueName2 = ..\\..\\..\\library\\common\\core\\core_pc_2005.vcproj
-		SccLocalPath2 = ..\\..\\..\\library\\common\\core
-		SccProjectUniqueName3 = ..\\..\\..\\library\\common\\system\\system_pc_2005.vcproj
-		SccLocalPath3 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection3 = library\\common\\system\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Win32 = Debug Win64|Win32
 		Debug Win64|Xbox 360 = Debug Win64|Xbox 360

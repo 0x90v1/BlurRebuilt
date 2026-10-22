@@ -156,7 +156,7 @@ class MainGuiFrame : public wxFrame {
 	m_pSceneRenderer->CreateVolatile();
 	
 	m_pScene = new Aftk::C_Scene();
-	if (!m_pScene->Read("Z:/testassets/barrierskin.a3d"))
+	if (!m_pScene->Read("testassets/barrierskin.a3d"))
 		int i=0;
 
 	//Aftk::C_SceneNodeConstIterator it(m_pScene);

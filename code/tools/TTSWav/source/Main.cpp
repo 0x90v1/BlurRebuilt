@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 		"TTSWav Command-line Tool",
 		"Bizarre Creations Text-To-Speech Tool",
 		"tools.ttswav",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		false);
 		
 	return app.Run(argc, argv);

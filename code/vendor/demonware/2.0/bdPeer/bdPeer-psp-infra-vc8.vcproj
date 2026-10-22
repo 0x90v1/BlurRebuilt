@@ -4,7 +4,6 @@
 	Version="8.00"
 	Name="bdPeer"
 	ProjectGUID="E0EAC88C-7ACA-7C30-4056-EAF38F86C08A"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

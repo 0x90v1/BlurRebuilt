@@ -5,9 +5,6 @@
 	Name="Render Lib"
 	ProjectGUID="{1881A006-EF42-4883-993E-1ABAC6308CB4}"
 	RootNamespace="Render Lib"
-	SccProjectName="Perforce Project"
-	SccLocalPath="..\..\..\.."
-	SccProvider="MSSCCI:Perforce SCM"
 	Keyword="Win32Proj"
 	>
 	<Platforms>

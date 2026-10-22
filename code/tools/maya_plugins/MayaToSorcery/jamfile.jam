@@ -38,7 +38,7 @@ DLL MayaToSorcery : $(SRC) ;
 
 ExportVcproj MayaToSorcery ;
 
-EmbedManifestDLL Z:/tools/art_tools/maya/plugins/2008/mayaToSorcery.mll : MayaToSorcery.exe ;
+EmbedManifestDLL $(BIZARRE_ROOT)/tools/art_tools/maya/plugins/2008/mayaToSorcery.mll : MayaToSorcery.exe ;
 
 SubInclude TOP code mercury library common core ;
 SubInclude TOP code mercury library common system ;

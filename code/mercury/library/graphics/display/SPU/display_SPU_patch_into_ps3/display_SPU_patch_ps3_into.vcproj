@@ -16,8 +16,8 @@
 	<Configurations>
 		<Configuration
 			Name="PS3 Debug|Win32"
-			OutputDirectory="z:/spd/fp_i"
-			IntermediateDirectory="z:/spd/fp_i"
+			OutputDirectory="$(ProjectDir)spd/fp_i"
+			IntermediateDirectory="$(ProjectDir)spd/fp_i"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -95,8 +95,8 @@
 		</Configuration>
 		<Configuration
 			Name="PS3 Release|Win32"
-			OutputDirectory="z:/spu/fp_i"
-			IntermediateDirectory="z:/spu/fp_i"
+			OutputDirectory="$(ProjectDir)spu/fp_i"
+			IntermediateDirectory="$(ProjectDir)spu/fp_i"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -173,8 +173,8 @@
 		</Configuration>
 		<Configuration
 			Name="BluRayMaster|Win32"
-			OutputDirectory="z:/spu/fp_i"
-			IntermediateDirectory="z:/spu/fp_i"
+			OutputDirectory="$(ProjectDir)spu/fp_i"
+			IntermediateDirectory="$(ProjectDir)spu/fp_i"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -251,8 +251,8 @@
 		</Configuration>
 		<Configuration
 			Name="Speed|Win32"
-			OutputDirectory="z:/sps/fp_i"
-			IntermediateDirectory="z:/sps/fp_i"
+			OutputDirectory="$(ProjectDir)sps/fp_i"
+			IntermediateDirectory="$(ProjectDir)sps/fp_i"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>
@@ -329,8 +329,8 @@
 		</Configuration>
 		<Configuration
 			Name="Master|Win32"
-			OutputDirectory="z:/spm/fp_i"
-			IntermediateDirectory="z:/spm/fp_i"
+			OutputDirectory="$(ProjectDir)spm/fp_i"
+			IntermediateDirectory="$(ProjectDir)spm/fp_i"
 			ConfigurationType="1"
 			DeleteExtensionsOnClean="*.obj;*.d;*.map;*.lst;*.pch;$(TargetPath);undefined"
 			>

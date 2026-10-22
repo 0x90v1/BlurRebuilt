@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 		"FxExporter",
 		"Bizarre Creations .FX file compiler",
 		"tools.fxb",
-		"\\\\bizsymbol\\\\CrashDumps\\",
+		"",
 		false);
 
 	return app.Main(argc, argv, NULL);

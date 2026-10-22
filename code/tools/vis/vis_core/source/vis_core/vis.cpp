@@ -470,7 +470,7 @@ bool Vis::Process(Progress::I_ProgressBar *pProgress)
 			char hostname[512];
 			gethostname(hostname, 512);
 
-			char *pszSaville="\\\\biztools01\\farm\\tmp";
+			char pszSaville[MAX_PATH]; GetTempPathA(MAX_PATH, pszSaville); // [Blur2PC] local temp folder; the farm share is gone
 
 			// copy the file to a temporary folder on the network
 			char pszTmp[MAX_PATH];

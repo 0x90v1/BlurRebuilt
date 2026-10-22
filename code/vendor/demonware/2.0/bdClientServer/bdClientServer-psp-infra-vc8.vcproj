@@ -4,7 +4,6 @@
 	Version="8.00"
 	Name="bdClientServer"
 	ProjectGUID="BA8DDC81-9087-BC1C-FAC5-872DF8D0DB2C"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

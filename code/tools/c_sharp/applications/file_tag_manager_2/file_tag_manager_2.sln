@@ -28,30 +28,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "super_collections", "..\..\libraries\super_collections\super_collections.csproj", "{1CE57BFE-CA38-456C-B59D-4D7D2E2DAF40}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 11
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = ..\\..\\libraries\\alienbrain_interface\\alienbrain_interface.csproj
-		SccLocalPath1 = ..\\..\\libraries\\alienbrain_interface
-		SccProjectUniqueName2 = ..\\..\\libraries\\super_list_view\\super_list_view.csproj
-		SccLocalPath2 = ..\\..\\libraries\\super_list_view
-		SccProjectUniqueName3 = ..\\..\\libraries\\xml_menu_system\\menu_system_library\\menu_system_library.csproj
-		SccLocalPath3 = ..\\..\\libraries\\xml_menu_system\\menu_system_library
-		SccProjectUniqueName4 = ..\\..\\libraries\\windows_messages\\windows_messages.csproj
-		SccLocalPath4 = ..\\..\\libraries\\windows_messages
-		SccProjectUniqueName5 = file_tag_manager_2.csproj
-		SccLocalPath5 = .
-		SccProjectUniqueName6 = ..\\..\\libraries\\xml_helper\\xml_helper.csproj
-		SccLocalPath6 = ..\\..\\libraries\\xml_helper
-		SccProjectUniqueName7 = ..\\..\\..\\alienbrain_wrapper\\alienbrain_wrapper.vcproj
-		SccLocalPath7 = ..\\..\\..\\alienbrain_wrapper
-		SccProjectUniqueName8 = ..\\..\\libraries\\super_event_wait_handle\\super_event_wait_handle.csproj
-		SccLocalPath8 = ..\\..\\libraries\\super_event_wait_handle
-		SccProjectUniqueName9 = ..\\..\\libraries\\macro_expander\\macro_expander.csproj
-		SccLocalPath9 = ..\\..\\libraries\\macro_expander
-		SccProjectUniqueName10 = ..\\..\\libraries\\super_collections\\super_collections.csproj
-		SccLocalPath10 = ..\\..\\libraries\\super_collections
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug remote|Any CPU = Debug remote|Any CPU
 		Debug remote|Mixed Platforms = Debug remote|Mixed Platforms

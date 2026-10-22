@@ -5,7 +5,7 @@
 #endif
 
 //This file provides definitions that are required by the Aftk. You could also provide these yourself of course
-//as opposed to including this header. See http://bizfs02/toolswiki/doku.php?id=aftk for more information.
+//as opposed to including this header.
 
 //This includes the Aftk itself.
 #include "../Aftk/include/Aftk/Aftk.h"
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 		Aftk::C_Scene aftkScene;
 
 		//Read in an A3D file from disk.
-		status = aftkScene.Read("z:/Mikes FBX/MEND_M01_ChairThrow_L_01.a3d");
+		status = aftkScene.Read("Mikes FBX/MEND_M01_ChairThrow_L_01.a3d");
 		//Check whether we succeed or not.
 		if (!status)
 		{
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 		}
 
 		//Write our scene to disk.
-		status = aftkScene.Write("z:/output.a3d", Aftk::E_FileType_A3d);
+		status = aftkScene.Write("output.a3d", Aftk::E_FileType_A3d);
 		//Check whether we succeed or not.
 		if (!status)
 		{

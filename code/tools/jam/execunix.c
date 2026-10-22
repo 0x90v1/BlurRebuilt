@@ -374,7 +374,7 @@ execwait()
 		if (!GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, 0))
 		{
 			// do it the old-fashioned way
-			printf("WARNING: Forcibly killing child processes. Please run \\\\biztools01\\Shared\\dev_setup_stub\\setup.bat\n");
+			printf("WARNING: Forcibly killing child processes.\n");
 			for (int i=0; i<MAXJOBS; i++)
 			{
 				if (cmdtab[i].pid)

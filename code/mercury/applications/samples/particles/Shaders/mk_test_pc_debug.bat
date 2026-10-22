@@ -1,7 +1,7 @@
 set COMP="%DXSDK_DIR%Utilities\Bin\x86\fxc"
 set COPY=copy
-set IDIR=Z:\devroot\code\mercury\library\display\include\display\shaders
-set SDIR=Z:\devroot\code\mercury\library\render\include\render\shaders\debug
+set IDIR=%SRC_ROOT%\code\mercury\library\display\include\display\shaders
+set SDIR=%SRC_ROOT%\code\mercury\library\render\include\render\shaders\debug
 set ODIR=.\pc
 set CDIR=..\Data\Shaders
 

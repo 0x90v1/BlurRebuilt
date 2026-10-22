@@ -5,10 +5,6 @@
 	Name="jam"
 	ProjectGUID="{EC827ABD-C8A3-4339-88FC-6895BF0CA574}"
 	RootNamespace="jam"
-	SccProjectName="SAK"
-	SccAuxPath="SAK"
-	SccLocalPath="SAK"
-	SccProvider="SAK"
 	Keyword="Win32Proj"
 	>
 	<Platforms>

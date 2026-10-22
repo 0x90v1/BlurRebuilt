@@ -58,7 +58,7 @@ DLL replayimporter_plugin : $(SRC) : stdafx.cpp ;
 
 ExportVcproj replayimporter_plugin ;
 
-EmbedManifestDLL Z:/tools/art_tools/maya/plugins/2008/replayImport_WIP.mll : replayimporter_plugin.exe ;
+EmbedManifestDLL $(BIZARRE_ROOT)/tools/art_tools/maya/plugins/2008/replayImport_WIP.mll : replayimporter_plugin.exe ;
 
 SubInclude TOP Code Mercury Library Common Core ;
 SubInclude TOP Code Mercury Library Common Misc_Shared ;

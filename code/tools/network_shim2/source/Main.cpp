@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 		"NetworkShim2",
 		"NetworkShim2",
 		"tools.networkshim2",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

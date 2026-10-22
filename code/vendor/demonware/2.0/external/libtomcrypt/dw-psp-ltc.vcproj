@@ -5,7 +5,6 @@
 	Name="libtomcrypt"
 	ProjectGUID="{94F5B87A-CF28-4EAF-BA02-F325180F8058}"
 	RootNamespace="libtomcrypt"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

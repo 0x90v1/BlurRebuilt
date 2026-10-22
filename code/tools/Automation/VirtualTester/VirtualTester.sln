@@ -27,23 +27,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ps3Interop", "..\..\Managed Helper Libraries\Ps3Interop\Ps3Interop.vcproj", "{43020126-1C3F-477F-BBB6-ED7798C4A3B3}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 3
-		SccProjectUniqueName0 = ..\\..\\..\\mercury\\library\\common\\system\\system_pc_2008.vcproj
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\mercury\\library\\common\\system\\
-		SccProjectUniqueName1 = ..\\..\\..\\mercury\\library\\common\\system\\system_pc_managed_2008.vcproj
-		SccProjectName1 = Perforce\u0020Project
-		SccLocalPath1 = ..\\..\\..\\mercury\\library\\common\\system
-		SccProvider1 = MSSCCI:Perforce\u0020SCM
-		SccProjectUniqueName2 = ..\\..\\..\\mercury\\library\\common\\core\\core_pc_2008.vcproj
-		SccProjectName2 = Perforce\u0020Project
-		SccLocalPath2 = ..\\..\\..\\..
-		SccProvider2 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection2 = code\\mercury\\library\\common\\core\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Any CPU = Debug Win64|Any CPU
 		Debug Win64|Mixed Platforms = Debug Win64|Mixed Platforms

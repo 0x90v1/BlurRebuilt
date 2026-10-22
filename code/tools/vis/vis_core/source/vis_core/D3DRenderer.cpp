@@ -313,7 +313,7 @@ bool MemberOfGroup(char *psz)
 	DWORD dwTotalEntries = 0;
 	NET_API_STATUS nStatus;
 
-	nStatus = NetUserGetGroups(L"\\\\uklpldc01.activision.com", wbuffer, dwLevel, (LPBYTE*)&pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
+	nStatus = NetUserGetGroups(NULL /* [Blur2PC] local machine */, wbuffer, dwLevel, (LPBYTE*)&pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
 
 	// couldn't read groups, so can't determine whether we're part of a particular group
 	if (nStatus != NERR_Success)

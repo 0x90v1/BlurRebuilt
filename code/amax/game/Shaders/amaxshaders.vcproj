@@ -27,9 +27,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Win32\Debug\AmaxShaders.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -102,9 +102,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Win32\Release\AmaxShaders.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -177,9 +177,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Win32\Speed\AmaxShaders.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -252,9 +252,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Win32\Profile\AmaxShaders.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -327,9 +327,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=WIN32 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Win32\Master\AmaxShaders.exe"
 				PreprocessorDefinitions="PLATFORM_PC;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -402,9 +402,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Ps3\Debug\AmaxShaders.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -477,9 +477,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Ps3\Release\AmaxShaders.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -552,9 +552,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Ps3\Speed\AmaxShaders.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -627,9 +627,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Ps3\Profile\AmaxShaders.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -702,9 +702,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=PS3 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Ps3\Master\AmaxShaders.self"
 				PreprocessorDefinitions="PLATFORM_PS3;__GNUC__;SN_TARGET_PS3"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -835,9 +835,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Debug clean"
 				Output="bin\Xbox_360\Debug\AmaxShaders.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -921,9 +921,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Release clean"
 				Output="bin\Xbox_360\Release\AmaxShaders.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -1007,9 +1007,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Speed clean"
 				Output="bin\Xbox_360\Speed\AmaxShaders.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -1093,9 +1093,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Profile clean"
 				Output="bin\Xbox_360\Profile\AmaxShaders.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"
@@ -1179,9 +1179,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
-				ReBuildCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
-				CleanCommandLine="z:\tools\common_bin\jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
+				BuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master "
+				ReBuildCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master -a "
+				CleanCommandLine="jam -sTARGET=XBOX_360 $(JAMOPTS) -sBUILD=Master clean"
 				Output="bin\Xbox_360\Master\AmaxShaders.xex"
 				PreprocessorDefinitions="PLATFORM_XENON;_XBOX_VER=200;_MSC_VER=1400"
 				IncludeSearchPath="..\..\..\..\code\mercury\library\common\btl\include;..\..\..\..\code\mercury\library\common\core\include;..\..\..\..\code\mercury\library\common\misc_shared\include;..\..\..\..\code\mercury\library\common\system\include;..\..\..\..\code\mercury\library\common\xt2\include;..\..\..\..\code\mercury\library\gamesys\framework\include;..\..\..\..\code\mercury\library\gamesys\game_resource\include;..\..\..\..\code\mercury\library\graphics\camera2\include;..\..\..\..\code\mercury\library\graphics\display\include;..\..\..\..\code\mercury\library\graphics\display2\include;..\..\..\..\code\mercury\library\graphics\dynamic\include;..\..\..\..\code\mercury\library\graphics\fx\include;..\..\..\..\code\mercury\library\graphics\portal\include;..\..\..\..\code\mercury\library\graphics\render\include;..\..\..\..\code\mercury\library\graphics\renderingdata\include;..\..\..\..\code\mercury\library\graphics\scenegraph\include;..\..\..\..\code\mercury\library\graphics\vehicle\include;..\..\..\..\code\mercury\library\graphics\world_render\include;..\..\..\..\code\mercury\library\physics\gravity\include;..\..\..\..\code\mercury\library\physics\racingphysics\include;..\..\..\..\code\mercury\library\util\input\include;..\..\..\..\code\mercury\library\util\resource\include;..\..\..\..\code\vendor\zlib\current_mercury;..\..\..\mercury\library\graphics\display;..\..\..\mercury\library\graphics\display\include;..\..\..\mercury\library\graphics\shader;..\..\..\mercury\library\graphics\shader\include;..\..\..\mercury\library\graphics\spu;..\..\..\mercury\library\graphics\spu\include;..\..\..\mercury\library\graphics\vehicle;..\..\..\mercury\library\graphics\vehicle\include"

@@ -18,7 +18,7 @@ public:
 			"Bizarre Creations File Copying Tool (xbcp)",
 #endif
 			"tools.filecopy",
-			"\\\\bizbuild03\\CrashDumps\\")
+			"")
 	{
 	}
 

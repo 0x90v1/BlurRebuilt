@@ -132,7 +132,6 @@ LONG WINAPI TopLevelFilter( struct _EXCEPTION_POINTERS *pExceptionInfo )
 
 					mail.SetBody("<enter details about the crash here>");
 					mail.SetSubject("VIS Tool crash report");
-					mail.AddRecipient("janv@bizarrecreations.com");
 					mail.AttachFile(szDumpPath);
 
 					status = mail.Send(true);

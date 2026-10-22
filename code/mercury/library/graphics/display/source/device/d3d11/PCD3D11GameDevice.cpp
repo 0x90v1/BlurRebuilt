@@ -673,7 +673,8 @@ void C_PCD3D11GameDevice::RestoreWindow(S32 index,U32 colourWrite)
             if (buffer) buffer->Release(); if (blend) blend->Release();
             if (depth) depth->Release(); traceContext->Release();
         }
-        TakeD3D11BackBufferScreenshot("C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\run\\scripts\\quadcolour.tga",
+        CreateDirectoryA("dx11_trace", nullptr); // [Blur2PC] opt-in still beside the game, not a developer path
+        TakeD3D11BackBufferScreenshot("dx11_trace\\quadcolour.tga",
             m_BackBuffers[0]->m_ColourSurface.m_pd3dSurface);
     }
     // [Blur1PCDX11] Retail branches on the engine's current colour surface, not on what is bound:

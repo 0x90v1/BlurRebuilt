@@ -28,33 +28,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NightwingAutomationHelper", "..\AutomationHelper\NightwingAutomationHelper\NightwingAutomationHelper.csproj", "{408C6A65-ACD8-4297-9E47-0EF3EFE68298}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 9
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\tools\\Automation\\NightwingSmokeTest\\
-		SccProjectUniqueName1 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Misc\\Misc.csproj
-		SccLocalPath1 = ..\\..\\Managed\u0020Helper\u0020Libraries\\Misc
-		SccProjectUniqueName2 = ..\\AutomationHelper\\AutomationHelper\\AutomationHelper.csproj
-		SccLocalPath2 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection2 = code\\tools\\Automation\\AutomationHelper\\AutomationHelper\\
-		SccProjectUniqueName3 = ..\\..\\Managed\u0020Helper\u0020Libraries\\XtInterop\\XtInterop.vcproj
-		SccLocalPath3 = ..\\..\\Managed\u0020Helper\u0020Libraries\\XtInterop
-		SccProjectUniqueName4 = ..\\..\\..\\mercury\\library\\common\\core\\core_pc_2008.vcproj
-		SccLocalPath4 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection4 = code\\mercury\\library\\common\\core\\
-		SccProjectUniqueName5 = ..\\..\\..\\mercury\\library\\common\\system\\system_pc_managed_2008.vcproj
-		SccLocalPath5 = ..\\..\\..\\mercury\\library\\common\\system
-		SccProjectUniqueName6 = ..\\..\\..\\mercury\\library\\common\\xt2\\xttool_pc_2008.vcproj
-		SccLocalPath6 = ..\\..\\..\\mercury\\library\\common\\xt2
-		SccProjectUniqueName7 = NightwingSmokeTest.csproj
-		SccLocalPath7 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection7 = code\\tools\\Automation\\NightwingSmokeTest\\
-		SccProjectUniqueName8 = ..\\AutomationHelper\\NightwingAutomationHelper\\NightwingAutomationHelper.csproj
-		SccLocalPath8 = ..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection8 = code\\tools\\Automation\\AutomationHelper\\NightwingAutomationHelper\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 		"Scene Converter",
 		"Scene Converter",
 		"tools.scene_converter",
-		"\\\\bizbuild03\\\\CrashDumps\\",
+		"",
 		true);
 		
 	return app.Run(argc, argv);

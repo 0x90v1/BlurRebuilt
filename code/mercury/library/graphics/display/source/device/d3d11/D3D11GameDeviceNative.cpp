@@ -18,6 +18,15 @@
 namespace FX { const char* NativeFX11LastError(); const char* NativeFX11CurrentPass(); }
 
 namespace Display { namespace D3D11 {
+// [Blur2PC] Opt-in diagnostics (BLUR_DX11_TRACE_* and friends) write under dx11_trace\ in the
+// working folder; they used to name one developer's worktree.
+static const char* TraceDir() { CreateDirectoryA("dx11_trace", nullptr); return "dx11_trace"; }
+static const char* TracePath(const char* name)
+{
+    static char path[MAX_PATH];
+    sprintf_s(path, "%s\\%s", TraceDir(), name);
+    return path;
+}
 bool (*g_FlushNativeFX)() = nullptr;
 // [Blur1PCDX11] FX effects declare the alpha-test cbuffer (b13), so an FX Apply
 // binds the effect's copy there; the device's buffer is rebound after each one.
@@ -1007,7 +1016,7 @@ static void TraceVehicleShader(ID3D11Device* device, ID3D11DeviceContext* contex
                 if (getenv("BLUR_DX11_TRACE_SCENE") || getenv("BLUR_DX11_TRACE_VEHICLE_DUMP"))
                 {
                     char path[MAX_PATH];
-                    sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_%s_%s.bin", vertex ? "VS" : "PS", variable.Name);
+                    sprintf_s(path, "%s\\scene_%s_%s.bin", TraceDir(), vertex ? "VS" : "PS", variable.Name);
                     FILE* file = nullptr;
                     if (fopen_s(&file, path, "wb") == 0)
                     { fwrite(static_cast<const U8*>(mapped.pData) + variable.StartOffset, variable.Size, 1, file); fclose(file); }
@@ -1060,7 +1069,7 @@ static void TraceVehicleShader(ID3D11Device* device, ID3D11DeviceContext* contex
                     (std::max)(1U, td.Height >> mip), depth, static_cast<UINT>(td.Format),
                     mapped.RowPitch, mapped.DepthPitch};
                 char path[MAX_PATH];
-                sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_%s_volume.bin", binding.Name);
+                sprintf_s(path, "%s\\scene_%s_volume.bin", TraceDir(), binding.Name);
                 FILE* file = nullptr;
                 if (fopen_s(&file, path, "wb") == 0)
                 { fwrite(header, sizeof(header), 1, file); fwrite(mapped.pData, mapped.DepthPitch, depth, file); fclose(file); }
@@ -1090,7 +1099,7 @@ static void TraceVehicleShader(ID3D11Device* device, ID3D11DeviceContext* contex
                     char path[MAX_PATH], suffix[64] = {};
                     if (td.ArraySize > 1) sprintf_s(suffix, "_face%u", face);
                     if (mip) { char level[32]; sprintf_s(level, "_mip%u", mip); strcat_s(suffix, level); }
-                    sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_%s%s.bin", binding.Name, suffix);
+                    sprintf_s(path, "%s\\scene_%s%s.bin", TraceDir(), binding.Name, suffix);
                     FILE* file = nullptr;
                     if (fopen_s(&file, path, "wb") == 0)
                     { fwrite(header, sizeof(header), 1, file); fwrite(mapped.pData, mapped.RowPitch, bc ? (height + 3) / 4 : height, file); fclose(file); }
@@ -1123,7 +1132,7 @@ static void TraceVehicleVertices(ID3D11Device* device, ID3D11DeviceContext* cont
         context->CopyResource(staging.Get(), buffer);
         D3D11_MAPPED_SUBRESOURCE mapped = {};
         if (FAILED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) return;
-        char path[MAX_PATH]; sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\paint_vertices_trace\\%s.bin", name);
+        char path[MAX_PATH]; sprintf_s(path, "%s\\paint_vertices_trace_%s.bin", TraceDir(), name);
         FILE* file = nullptr;
         if (fopen_s(&file, path, "wb") == 0) { fwrite(mapped.pData, 1, desc.ByteWidth, file); fclose(file); }
         context->Unmap(staging.Get(), 0);
@@ -1377,8 +1386,8 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
               if (bytes && SUCCEEDED(D3DDisassemble(bytes->data(), bytes->size(), 0, nullptr, &assembly)))
               {
                   FILE* file = nullptr;
-                  if (fopen_s(&file, stage ? "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_bound_ps.txt" :
-                      "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_bound_vs.txt", "wb") == 0)
+                  if (fopen_s(&file, stage ? TracePath("scene_bound_ps.txt") :
+                      TracePath("scene_bound_vs.txt"), "wb") == 0)
                   { fwrite(assembly->GetBufferPointer(), 1, assembly->GetBufferSize(), file); fclose(file); }
               }
           }
@@ -1404,8 +1413,8 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
               D3D11_MAPPED_SUBRESOURCE mapped = {};
               if (FAILED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) continue;
               FILE* file = nullptr;
-              if (fopen_s(&file, slot ? "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_ib.bin" :
-                  "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\build\\scene_vb.bin", "wb") == 0)
+              if (fopen_s(&file, slot ? TracePath("scene_ib.bin") :
+                  TracePath("scene_vb.bin"), "wb") == 0)
               { fwrite(mapped.pData, 1, desc.ByteWidth, file); fclose(file); }
               context->Unmap(staging.Get(), 0);
               Blur2PCAutomation::LogF("DX11 scene buffer slot=%u stride=%u offset=%u format=%u bytes=%u", slot, stride, offset, format, desc.ByteWidth);
@@ -1561,7 +1570,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
           if (rtv) rtv->GetResource(&resource);
           ComPtr<ID3D11Texture2D> texture;
           if (resource) resource.As(&texture);
-          if (texture) TakeD3D11BackBufferScreenshot("C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\run\\scripts\\draw_native.tga", texture.Get());
+          if (texture) TakeD3D11BackBufferScreenshot(TracePath("draw_native.tga"), texture.Get());
       }
   }
   if (testPS)
@@ -1592,7 +1601,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
               if (FAILED(context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped))) return;
               const U8* bytes = static_cast<const U8*>(mapped.pData);
               char path[MAX_PATH] = {};
-              sprintf_s(path, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\run\\scripts\\probe.%s", label);
+              sprintf_s(path, "%s\\probe.%s", TraceDir(), label);
               FILE* dump = nullptr;
               if (fopen_s(&dump, path, "wb") == 0)
               { fwrite(bytes, 1, desc.ByteWidth, dump); fclose(dump); }
@@ -1632,7 +1641,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
                   m_pVertexShader->m_Bytecode.size(), 0, nullptr, &listing)))
               {
                   FILE* shaderDump = nullptr;
-                  if (fopen_s(&shaderDump, "C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\run\\scripts\\probe.vs.txt", "wb") == 0)
+                  if (fopen_s(&shaderDump, TracePath("probe.vs.txt"), "wb") == 0)
                   { fwrite(listing->GetBufferPointer(), 1, listing->GetBufferSize(), shaderDump); fclose(shaderDump); }
               }
           }
@@ -1652,7 +1661,7 @@ void C_D3D11GameDevice::DrawIndexedPrimitive(E_PrimitiveType type, U32 base, U32
           if (rtv) rtv->GetResource(&resource);
           ComPtr<ID3D11Texture2D> texture;
           if (resource) resource.As(&texture);
-          if (texture) TakeD3D11BackBufferScreenshot("C:\\AIProjects\\Blur2PC\\Blur1PCDX11\\_work\\run\\scripts\\draw.tga", texture.Get());
+          if (texture) TakeD3D11BackBufferScreenshot(TracePath("draw.tga"), texture.Get());
       }
       context->RSSetState(oldRaster.Get());
       context->OMSetDepthStencilState(oldDepth.Get(), oldStencil);

@@ -3,7 +3,7 @@ SmokeTest command line
 
 Racer2010SmokeTest.exe
 	-config <filename>	- Specify config file to use
-	-sorcery <path>		- Specify path to sorcery database (i.e. z:\amax\sorcery3\main)
+	-sorcery <path>		- Specify path to sorcery database (i.e. %BIZARRE_ROOT%\amax\sorcery3\main)
 	-pnm <filename>		- Pick n Mix file (used for selecting certain Sorcery records to use)
 	-kits <filename>	- Name of file to get list of kits from
 	
@@ -28,7 +28,7 @@ Racer2010SmokeTest.exe
 e.g.
 
 
-Racer2010SmokeTest -sorcery z:\Racer2010\sorcery3\main -pnm z:\amax\smoketest.pnm -kits e:\AutoReports\kits.xml -vehicles -config e:\AutoReports\config.xml
+Racer2010SmokeTest -sorcery %BIZARRE_ROOT%\Racer2010\sorcery3\main -pnm %BIZARRE_ROOT%\amax\smoketest.pnm -kits e:\AutoReports\kits.xml -vehicles -config e:\AutoReports\config.xml
 
 The vehicle test pass can check the following things:
 
@@ -57,7 +57,7 @@ Example kit file:
 Example email file:
 
 	<root>
-	<to>andrew.guy@bizarrecreations.com</to>
+	<to>user@example.com</to>
 	<subject>%TITLE%: Test subject</subject>
 	<body>The automation results are ready to view for the latest build in test.
 

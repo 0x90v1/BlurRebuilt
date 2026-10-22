@@ -3,8 +3,8 @@
 @echo param #2 : build (debug / release)
 @color 37
 
-set _LOCALISATION="Z:\Nightwing\working\360\Image\Xt\Loc\Multiplayer\Multiplayer-en.loc"
-set _SEND="Z:\tools\common_bin\xbrobocopy\xbrobocopy.exe" /E /X360
+set _LOCALISATION="%BIZARRE_ROOT%\Nightwing\working\360\Image\Xt\Loc\Multiplayer\Multiplayer-en.loc"
+set _SEND="%BIZARRE_ROOT%\tools\common_bin\xbrobocopy\xbrobocopy.exe" /E /X360
 set _CACHE=".\cache"
 set _SOURCE="..\bin\Xbox_360\%2\*.xex"
 set _DEST="DEVKIT:\mercury"

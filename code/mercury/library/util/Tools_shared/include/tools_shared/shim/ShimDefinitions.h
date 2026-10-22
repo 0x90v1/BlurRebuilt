@@ -7,7 +7,6 @@
 
 namespace Tools
 {
-	#define ALIEN_BRAIN_DRIVE	"z:/"
 	#define ALIEN_BRAIN_FOLDER	"alienbrainwork"
 
 	namespace Shim

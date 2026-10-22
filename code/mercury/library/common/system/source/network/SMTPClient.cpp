@@ -24,7 +24,10 @@ bool SMTPClient::Connect(Util::C_String hostname)
 	if (GetResponse() != 250)
 		return false;
 
-	Send("EHLO bizex01");
+	// [Blur2PC] EHLO names this machine; retail named a Bizarre mail server.
+	char ehloName[256] = "localhost";
+	gethostname(ehloName, sizeof(ehloName));
+	Send(Util::C_String("EHLO ") + ehloName);
 
 	if (GetResponse() != 250)
 		return false;

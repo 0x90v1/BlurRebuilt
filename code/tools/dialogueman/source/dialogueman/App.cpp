@@ -62,7 +62,7 @@ bool C_App::OnInit()
 
 	Tools::InitialiseMemoryDbg();
 
-	m_pDummyToolsApp = new C_App::C_DummyToolsApp("\\\\bizsymbol\\CrashDumps");
+	m_pDummyToolsApp = new C_App::C_DummyToolsApp("");
 	m_pDummyToolsApp->Run(0, NULL, false);
 
 	memset(&m_flags, 0, sizeof(m_flags));

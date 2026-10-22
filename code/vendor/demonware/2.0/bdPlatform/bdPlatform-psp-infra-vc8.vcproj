@@ -4,7 +4,6 @@
 	Version="8.00"
 	Name="bdPlatform"
 	ProjectGUID="FC05AC92-420A-38BF-9B51-B5640C20A27C"
-	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
 		<Platform

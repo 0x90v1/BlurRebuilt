@@ -28,30 +28,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "system_pc", "..\..\..\libra
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 7
-		SccProjectName0 = Perforce\u0020Project
-		SccLocalPath0 = ..\\..\\..\\..\\..
-		SccProvider0 = MSSCCI:Perforce\u0020SCM
-		SccProjectFilePathRelativizedFromConnection0 = code\\mercury\\tools\\Audio\\WaveBundler\\
-		SccProjectUniqueName1 = Main\\WaveBundlerExe.vcproj
-		SccLocalPath1 = ..\\..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection1 = code\\mercury\\tools\\Audio\\WaveBundler\\Main\\
-		SccProjectUniqueName2 = Library\\WaveBundlerLibrary.vcproj
-		SccLocalPath2 = ..\\..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection2 = code\\mercury\\tools\\Audio\\WaveBundler\\Library\\
-		SccProjectUniqueName3 = XmaEncoderDll\\XmaEncoderDll.vcproj
-		SccLocalPath3 = ..\\..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection3 = code\\mercury\\tools\\Audio\\WaveBundler\\XmaEncoderDll\\
-		SccProjectUniqueName4 = WaveBundlerDll\\WaveBundlerDll.vcproj
-		SccLocalPath4 = ..\\..\\..\\..\\..
-		SccProjectFilePathRelativizedFromConnection4 = code\\mercury\\tools\\Audio\\WaveBundler\\WaveBundlerDll\\
-		SccProjectUniqueName5 = ..\\..\\..\\library\\common\\system\\system_pc_2005.vcproj
-		SccLocalPath5 = ..\\..\\..
-		SccProjectFilePathRelativizedFromConnection5 = library\\common\\system\\
-		SccProjectUniqueName6 = ..\\..\\..\\library\\common\\core\\core_pc_2005.vcproj
-		SccLocalPath6 = ..\\..\\..\\library\\common\\core
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Win64|Win32 = Debug Win64|Win32
 		Debug|Win32 = Debug|Win32

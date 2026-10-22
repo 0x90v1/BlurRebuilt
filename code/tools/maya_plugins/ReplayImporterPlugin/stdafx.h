@@ -39,7 +39,7 @@
 #include <System/Serialise.h>
 
 extern char g_versionString[512];
-#define AFTK_MAYA_SUPPORT_EMAIL "ken.macleod@bizarrecreations.com"
+#define AFTK_MAYA_SUPPORT_EMAIL ""
 
 //Plug-in headers
 #include <maya/MProgressWindow.h>
