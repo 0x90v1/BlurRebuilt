@@ -123,7 +123,7 @@ jobs:
         run: |
           & $env:BLUR_CMAKE -S . -B _work/build/vs -G $env:BLUR_GENERATOR -A x64
           if ($LASTEXITCODE -ne 0) { throw "configure exited $LASTEXITCODE" }
-          & $env:BLUR_CMAKE --build _work/build/vs --config MinSizeRel --target Amax -- -m -v:m -nologo *> _work/build/amax.log
+          & $env:BLUR_CMAKE --build _work/build/vs --config MinSizeRel --target Amax -- -m '-v:m' -nologo *> _work/build/amax.log
           $code = $LASTEXITCODE
           python tools/jam2cmake/errsum.py _work/build/amax.log
           if ($code -ne 0) { Get-Content _work/build/amax.log -Tail 60; throw "build exited $code" }
