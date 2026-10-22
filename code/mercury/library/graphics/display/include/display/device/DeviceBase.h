@@ -109,6 +109,9 @@ public:
 	const F32			GetAspectRatio() const;
 	const E_AspectRatio GetAspectRatioType() const;
 	void SetAspectRatioType(const E_AspectRatio aspectRatio);
+#ifdef PLATFORM_PC
+	void SetAspectRatio(const F32 aspectRatio);	// [Blur2PC]
+#endif
 	
 	const E_LuminanceWrite GetLuminanceWrite() const;
 	void SetLuminanceWrite(const E_LuminanceWrite luminanceWrite);
@@ -193,6 +196,11 @@ protected:
 	bool										m_WideScreen;
 	E_RefreshRate								m_RefreshRate;
 	E_AspectRatio								m_AspectRatio;
+#ifdef PLATFORM_PC
+	// [Blur2PC] retail Blur PC keeps the device aspect as a float (C_DeviceBase +0x8, 16/9 from the
+	// constructor 0x005a4f90) that follows the back buffer; GetAspectRatio returns it (T254)
+	F32											m_PCAspectRatio;
+#endif
 
 	E_ShaderProfile								m_ShaderProfile;
 	E_VertexShaderProfile						m_VertexShaderProfile;

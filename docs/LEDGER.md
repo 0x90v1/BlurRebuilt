@@ -650,3 +650,12 @@ Files touched: tools/ additions relocated from code/tools; build/CMake/script/so
 ## 2026-10-21 - session Codex tool relocation - T252 commit
 
 User authorized committing T252. Commit the tracked tool relocations, reference updates and placement policy; retain the earlier verification results above. Propagate the shared change with merges through the phase branches. No push requested.
+
+
+## 2026-10-22 - session Claude ultrawide - T254 device aspect follows the back buffer
+Did: the user's 3840x1080 screenshots (retail vs ours) showed our 3D view stretched and the HUD's top corners off screen. Retail's PC device keeps a float aspect (+0x8, 16/9 at construction) read by the camera feed, the UI 3D camera, AddDisplayWindow and the Hollywood camera; the snapshot returned the 16:9 enum. Added `C_DeviceBase::SetAspectRatio` (PC) and set it to back-buffer width/height at D3D9 create and reset. Details: analysis.md, Device aspect bullet.
+Verified: Blur1PC Release errsum 0, delivered to _work/run (hash matches). Queued minimised debug race at 2560x720 (private settings via BLUR2PC_SETTINGS, private junctioned data folder _work/t254/data with DebugRb): `_work/t254/uw/race.png`, car undistorted, minimap/laps/fans in the top-right corner, start screen car undistorted (`timeout.png`, first run).
+Unverified: the retail write site (not found statically; presumably in the obfuscated .8thSin device creation).
+Blocked: none. Not committed.
+Next: on the user's go, commit on blur1pc and merge through Blur1Multi/BlurX and Blur1PCDX11/HDR/x64; the DX11 phase needs the same SetAspectRatio call in C_PCD3D11GameDevice::CreateDevice/CreateDeviceVolatile (its own device, Blur1PCDX11 code).
+Files touched: code/mercury/library/graphics/display/{include/display/device/DeviceBase.h,include/display/device/DeviceBase.inl,source/device/DeviceBase.cpp,source/device/d3d9/PCD3D9Device.cpp}; docs/{BOARD,analysis,LEDGER}.md.

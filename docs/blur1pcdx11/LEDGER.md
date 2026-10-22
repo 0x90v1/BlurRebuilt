@@ -945,3 +945,10 @@ User authorized committing T252. Commit the tracked tool relocations, reference 
 T252 propagation (2026-10-21): merged blur1pc into this branch with git merge; retained this phase's tool set and regenerated the jam-derived CMake source list. Prior T252 build/test verification is recorded above. No push.
 
 T252 propagation (2026-10-21): merged blur1pcdx11 into this branch with git merge; retained this phase's tool set and regenerated the jam-derived CMake source list. Prior T252 build/test verification is recorded above. No push.
+
+## 2026-10-22 - session Claude ultrawide - T254 DX11 device aspect
+Did: merged blur1pc (T254: the PC device aspect is a float that follows the back buffer, retail C_DeviceBase +0x8; see docs/analysis.md Device aspect). The native D3D11 device is this phase's own code, so C_PCD3D11GameDevice::CreateDevice and CreateDeviceVolatile now call SetAspectRatio(back buffer width / height), as C_PCD3D9Device does.
+Verified: Blur1PCDX11 Release errsum 0 (_work/t254_build.txt). The behaviour was verified on Blur1PC at 2560x720 (Blur1PC _work/t254/uw/race.png); the user confirmed retail parity.
+Blocked: none.
+Next: none; merged into uKER/blur1pcdx11-hdr and uKER/blur1pcdx11-x64.
+Files touched: code/mercury/library/graphics/display/source/device/d3d11/PCD3D11GameDevice.cpp; docs/blur1pcdx11/{BOARD,LEDGER}.md.
