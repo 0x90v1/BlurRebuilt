@@ -40,3 +40,8 @@ code/mercury/library/ui/include/ui/shaders/vsConstants.h
 code/amax/game/Shaders/psConstants.h
 code/amax/game/Shaders/psTextures.h
 code/amax/game/Shaders/vsConstants.h
+
+# Local launchers, packaging and agent files kept out of the published repo
+/*.bat
+/*.lnk
+/CLAUDE.md
