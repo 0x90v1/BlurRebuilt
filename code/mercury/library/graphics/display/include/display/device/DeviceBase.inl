@@ -99,6 +99,14 @@ INLINE void C_DeviceBase::SetAspectRatioType(const E_AspectRatio aspectRatio)
 	m_AspectRatio = aspectRatio;
 }
 
+#ifdef PLATFORM_PC
+// [Blur2PC]
+INLINE void C_DeviceBase::SetAspectRatio(const F32 aspectRatio)
+{
+	m_PCAspectRatio = aspectRatio;
+}
+#endif
+
 INLINE const E_LuminanceWrite C_DeviceBase::GetLuminanceWrite() const
 {
 	return m_LuminanceWrite;
