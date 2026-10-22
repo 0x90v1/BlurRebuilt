@@ -63,8 +63,10 @@ jobs:
           New-Item -ItemType Directory -Force $dl, $vendor | Out-Null
           function Get-Checked($urls, $file, $sha1) {
             foreach ($url in $urls) {
-              try { Invoke-WebRequest $url -OutFile "$dl/$file" -MaximumRetryCount 3 -RetryIntervalSec 10; break }
-              catch { Write-Host "Download failed from ${url}: $_" }
+              # curl: SourceForge answers PowerShell's user agent with an HTML page.
+              curl.exe -fsSL --retry 3 --retry-delay 10 -o "$dl/$file" $url
+              if ($LASTEXITCODE -eq 0) { break }
+              Write-Host "Download failed from $url"
             }
             $actual = (Get-FileHash "$dl/$file" -Algorithm SHA1).Hash
             if ($actual -ne $sha1) { throw "$file SHA1 $actual, expected $sha1" }
@@ -90,7 +92,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $dl = '_work/vendor_x64/dl'
           New-Item -ItemType Directory -Force $dl | Out-Null
-          Invoke-WebRequest https://www.openssl.org/source/old/0.9.x/openssl-0.9.8i.tar.gz -OutFile "$dl/openssl.tar.gz" -MaximumRetryCount 3 -RetryIntervalSec 10
+          curl.exe -fsSL --retry 3 --retry-delay 10 -o "$dl/openssl.tar.gz" https://www.openssl.org/source/old/0.9.x/openssl-0.9.8i.tar.gz
           $actual = (Get-FileHash "$dl/openssl.tar.gz" -Algorithm SHA1).Hash
           if ($actual -ne 'B2E029CFB68BF32EAE997D60317A40945DB5A65F') { throw "openssl SHA1 $actual" }
           # The tarball's include/openssl entries are symlinks that Windows tar
