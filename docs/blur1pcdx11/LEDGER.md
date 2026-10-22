@@ -982,3 +982,5 @@ Verified: no `Z:`/host/e-mail-domain hit left under code/ by the T253 scan regex
 Blocked: none.
 Next: user decides whether lux_app/lux_client/vis_cmd/clusterserv_lib (whose jamfiles and clusterserv's sources still name xFarm's farm_library) follow the farm out, and the Xlast folder. Nothing committed.
 Files touched: code/tools/{xFarm,bizarresaver,BuildFarmSystem,BuildFarm2,DataLogging,alienbrain_wrapper,bizbrain}, code/tools/c_sharp/applications/{executer,the_monkey} deleted; aftk/attk/aftkut/aftkrender test sources, nexus_cmd.cpp, cmd_line_tool Application.cpp, particle_converter Application.cpp, lux TexPreprocess.cpp, actor_studio editor_visualisaton.xml, system misc StringUtil.cpp/BtlStringUtil.cpp, tools_shared ShimDefinitions.h; docs/blur1pcdx11/{x64,BOARD,LEDGER}.md.
+
+Commit (2026-10-22, user authorized): T253 committed on uKER/blur1pcdx11-x64 as 7df8a585 (1293 files: 758 deleted, the rest edited; only this task's hunk of PCD3D11GameDevice.cpp staged, the other session's uncommitted recorder change in that file left in the working tree; package.bat untracked). Top branch, no merges. No push.
