@@ -13,7 +13,11 @@ setlocal
 if "%~2"=="" (echo usage: %~nx0 ^<openssl-0.9.8i dir^> ^<install dir^> & exit /b 2)
 set "SRC=%~f1"
 set "OUT=%~f2"
-call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat" >nul || exit /b 1
+rem Any installed Visual Studio edition (the release workflow runs on GitHub's images).
+set "VCVARS="
+for /f "usebackq delims=" %%V in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -find VC\Auxiliary\Build\vcvars64.bat`) do set "VCVARS=%%V"
+if not defined VCVARS (echo vcvars64.bat not found & exit /b 1)
+call "%VCVARS%" >nul || exit /b 1
 rem OpenSSL's Configure and mk1mf need perl; Git for Windows ships one.
 where perl >nul 2>nul || set "PATH=%PATH%;C:\Program Files\Git\usr\bin"
 cd /d "%SRC%" || exit /b 1

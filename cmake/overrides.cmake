@@ -30,10 +30,11 @@ target_sources(Amax PRIVATE ${BLUR_TOP}/code/vendor/crash-handler/crash_handler.
 
 # [Blur2PC] Retail Blur.exe's icon. Retail carries one icon group, resource 101
 # (32x32, 24 bpp), which C_Application loads for the window (ApplicationPC.cpp,
-# LoadIcon 101) and Explorer shows for the exe. It is extracted from the user's
-# retail install into the shared vendor folder (_work/vendor/retail_icons, made
-# by extract_icons.py there), so the image itself is not in the repository.
-set(BLUR_RETAIL_ICON ${BLUR_VENDOR}/retail_icons/blur_101.ico CACHE FILEPATH "Retail Blur.exe icon group 101")
+# LoadIcon 101) and Explorer shows for the exe. It was extracted from the user's
+# retail install (_work/vendor/retail_icons/extract_icons.py in Blur1PC).
+# [Blur2PC][x64] This branch commits the icon beside ApplicationPC.cpp so GitHub
+# release builds (.github/workflows/release.yml) carry it too.
+set(BLUR_RETAIL_ICON ${BLUR_TOP}/code/mercury/library/gamesys/framework/source/application/blur_101.ico CACHE FILEPATH "Retail Blur.exe icon group 101")
 if(EXISTS ${BLUR_RETAIL_ICON})
     file(WRITE ${CMAKE_BINARY_DIR}/amax_icon.rc "101 ICON \"${BLUR_RETAIL_ICON}\"\n")
     target_sources(Amax PRIVATE ${CMAKE_BINARY_DIR}/amax_icon.rc)
