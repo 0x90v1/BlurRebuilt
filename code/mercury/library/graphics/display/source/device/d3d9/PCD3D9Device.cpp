@@ -81,6 +81,7 @@ bool C_PCD3D9Device::CreateDevice()
 	pBackBuffer->m_ColourFormat			= m_DeviceParams.m_ColourFormat;
 	pBackBuffer->m_DepthStencilFormat	= m_DeviceParams.m_DepthStencilFormat;
 	m_BackBuffers.PushBack(pBackBuffer);
+	SetAspectRatio((F32)pBackBuffer->m_Width / (F32)pBackBuffer->m_Height);	// [Blur2PC] T254, see DeviceBase.h
 
 	if(!C_D3D9Device::CreateDevice())
 		return false;
@@ -298,6 +299,7 @@ bool C_PCD3D9Device::CreateDeviceVolatile()
 		pBackBuffer->m_Multisample			= m_DeviceParams.m_Multisample;
 		pBackBuffer->m_ColourFormat			= m_DeviceParams.m_ColourFormat;
 		pBackBuffer->m_DepthStencilFormat	= m_DeviceParams.m_DepthStencilFormat;
+		SetAspectRatio((F32)pBackBuffer->m_Width / (F32)pBackBuffer->m_Height);	// [Blur2PC] T254
 	}
 
 	if(!C_D3D9Device::CreateDeviceVolatile())

@@ -70,6 +70,9 @@ C_DeviceBase::C_DeviceBase() :
 	m_WideScreen					= false;
 	m_RefreshRate					= E_RefreshRate_60HZ;
 	m_AspectRatio					= E_AspectRatio_16_9;
+#ifdef PLATFORM_PC
+	m_PCAspectRatio					= 16.f/9.f;	// [Blur2PC] retail 0x005a4f90
+#endif
 	m_ShaderProfile					= E_ShaderProfile_3_0;
 	m_VertexShaderProfile			= E_VertexShaderProfile_Unknown;
 	m_PixelShaderProfile			= E_PixelShaderProfile_Unknown;
@@ -440,7 +443,11 @@ void C_DeviceBase::SetGpuSpeed(const E_GpuSpeed gpuSpeed)
 
 const F32 C_DeviceBase::GetAspectRatio() const
 {
+#ifdef PLATFORM_PC
+	return m_PCAspectRatio;	// [Blur2PC]
+#else
 	return g_AspectRatio[m_AspectRatio];
+#endif
 }
 
 }; // namespace Display
