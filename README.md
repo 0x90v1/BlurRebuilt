@@ -1,26 +1,30 @@
 # Blur Rebuilt
 
-This is Bizarre Creations' Blur (2010), brought up to date for modern PCs.
+This is the 2010 game **Blur**, by Bizarre Creations, brought up to date for modern PCs.
 
 ## What's new
 
-### HDR
-
-This version of the game supports real HDR.
-On an HDR monitor with HDR turned on in Windows, the game will detect your display's peak brightness, and
-headlights, neon, street lamps, power-ups and the sky will be able to shine brighter than the rest of the picture.
-Menus and the HUD stay at normal brightness.
-
-### Smooth at any frame rate
-
-The original game was designed around 60 fps, and some things (cars, cameras, audio, particles, menus, etc.)
-misbehaved the farther you went above that.
-This version runs with unlocked frame rate and everything behaves properly.
+The original game was a 32-bit executable using DirectX 9, and had numerous issues when framerate was allowed
+to go over 60 FPS.
+This project intends to solve all of that.
 
 ### DirectX 11
 
 The original DirectX 9 renderer has been replaced with a DirectX 11 one. All shaders had to be recompiled
 for the new API.
+
+### HDR
+
+Made possible by the switch to DX11, this version of the game supports real HDR.
+On an HDR monitor with HDR turned on in Windows, the game will detect your display's peak brightness, and
+headlights, neon, street lamps, power-ups and the sky will be able to shine brighter than the rest of the picture.
+Menus and the HUD stay at normal brightness.
+
+### Unlocked frame rate
+
+The original game was designed around 60 fps, and some things (cars, cameras, audio, particles, menus, etc.)
+misbehaved the farther you went above that.
+This version runs with unlocked frame rate and everything behaves as expected.
 
 ### 64-bit
 
