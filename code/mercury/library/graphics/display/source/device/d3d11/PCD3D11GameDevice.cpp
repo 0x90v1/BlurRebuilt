@@ -11,6 +11,9 @@
 #include <vector>
 #include <string>
 #include "Display/Device/D3D11/D3D11HDROutput.h"
+#include <DirectXPackedVector.h> // [Blur2PC] recorder colour conversion
+#include <algorithm>
+#include <cmath>
 // [Blur1PCDX11] Supplied by fx, without introducing a display header dependency.
 namespace FX { const char* NativeFX11CurrentPass(); }
 namespace Display { namespace D3D11 {
@@ -342,6 +345,277 @@ void C_PCD3D11GameDevice::DestroyDevice()
     if(m_pd3dObject){m_pd3dObject->Release();m_pd3dObject=nullptr;}
 }
 extern unsigned g_dx11TraceFrame; // [Blur1PCDX11] Temporary, defined in D3D11GameDeviceNative.cpp.
+// [Blur2PC] Video recorder for the automation `record` command (system/debug/Blur2PCAutomation.h),
+// the native counterpart of the D3D9 device's: consecutive back buffers are copied to a ring of
+// staging textures, read back two frames later (the CPU never waits on the copy), reduced to half
+// size, converted to 8-bit sRGB (scRGB back buffers use the screenshot's paper-white mapping) and
+// streamed to ffmpeg by a writer thread as <prefix>.mp4. No per-frame image files (AGENTS.md rule 12).
+namespace
+{
+	struct C_D3D11Recorder
+	{
+		enum { k_Ring = 3 };
+		struct Frame { Frame* next; unsigned char* data; };
+
+		ID3D11Texture2D*	staging[k_Ring];
+		ID3D11Texture2D*	resolve;
+		DXGI_FORMAT			format;
+		UINT				srcWidth, srcHeight, width, height;
+		bool				scRGB;
+		float				paperWhite;
+		int					total, copied, read;
+		HANDLE				process, pipe, thread, wake;
+		CRITICAL_SECTION	lock;
+		Frame*				head;
+		Frame*				tail;
+		bool				closing;
+		FILE*				times;
+
+		static DWORD WINAPI Writer(LPVOID p)
+		{
+			C_D3D11Recorder& r = *(C_D3D11Recorder*)p;
+			const DWORD bytes = r.width * r.height * 4;
+			for (;;)
+			{
+				EnterCriticalSection(&r.lock);
+				Frame* f = r.head;
+				if (f) { r.head = f->next; if (!r.head) r.tail = NULL; }
+				const bool closing = r.closing;
+				LeaveCriticalSection(&r.lock);
+				if (!f)
+				{
+					if (closing) break;
+					WaitForSingleObject(r.wake, 100);
+					continue;
+				}
+				DWORD written = 0;
+				if (r.pipe) WriteFile(r.pipe, f->data, bytes, &written, NULL);
+				free(f->data);
+				delete f;
+			}
+			if (r.pipe) CloseHandle(r.pipe);
+			r.pipe = NULL;
+			DWORD code = (DWORD)-1;
+			if (r.process)
+			{
+				WaitForSingleObject(r.process, 120000);
+				GetExitCodeProcess(r.process, &code);
+				CloseHandle(r.process);
+				r.process = NULL;
+			}
+			Blur2PCAutomation::LogF("recording written, ffmpeg exit code %d", (int)code);
+			Blur2PCAutomation::RecordingDone();
+			return 0;
+		}
+
+		bool Start(ID3D11Device* device, ID3D11Texture2D* back, bool floatScRGB, float paperWhiteScale, const char* prefix, int frames)
+		{
+			memset(this, 0, sizeof(*this));
+			D3D11_TEXTURE2D_DESC desc = {};
+			back->GetDesc(&desc);
+			format = desc.Format;
+			if (format == DXGI_FORMAT_B8G8R8A8_TYPELESS) format = DXGI_FORMAT_B8G8R8A8_UNORM;
+			if (format == DXGI_FORMAT_R8G8B8A8_TYPELESS) format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			if (format != DXGI_FORMAT_B8G8R8A8_UNORM && format != DXGI_FORMAT_B8G8R8A8_UNORM_SRGB &&
+				format != DXGI_FORMAT_R8G8B8A8_UNORM && format != DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
+				format != DXGI_FORMAT_R16G16B16A16_FLOAT && format != DXGI_FORMAT_R10G10B10A2_UNORM)
+			{
+				Blur2PCAutomation::LogF("record: unsupported back buffer format %u", (unsigned)desc.Format);
+				return false;
+			}
+			scRGB = floatScRGB && format == DXGI_FORMAT_R16G16B16A16_FLOAT;
+			paperWhite = paperWhiteScale > 0.0f ? paperWhiteScale : 1.0f;
+			srcWidth = desc.Width;
+			srcHeight = desc.Height;
+			width = (desc.Width / 2) & ~1u;
+			height = (desc.Height / 2) & ~1u;
+			D3D11_TEXTURE2D_DESC s = desc;
+			s.SampleDesc.Count = 1; s.SampleDesc.Quality = 0;
+			s.MipLevels = 1; s.ArraySize = 1; s.MiscFlags = 0;
+			if (desc.SampleDesc.Count > 1)
+			{
+				D3D11_TEXTURE2D_DESC r = s;
+				r.Usage = D3D11_USAGE_DEFAULT; r.BindFlags = 0; r.CPUAccessFlags = 0;
+				if (FAILED(device->CreateTexture2D(&r, NULL, &resolve)))
+					return false;
+			}
+			s.Usage = D3D11_USAGE_STAGING; s.BindFlags = 0; s.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+			for (int i = 0; i < k_Ring; ++i)
+				if (FAILED(device->CreateTexture2D(&s, NULL, &staging[i])))
+					return false;
+
+			const char* fpsText = getenv("BLUR2PC_FRAMELIMIT");
+			const int fps = (fpsText && atoi(fpsText) > 0) ? atoi(fpsText) : 60;
+			const char* exe = getenv("BLUR2PC_FFMPEG");
+			char cmd[2048];
+			_snprintf_s(cmd, _TRUNCATE, "\"%s\" -hide_banner -loglevel error -y -f rawvideo -pixel_format bgr0 -video_size %ux%u -framerate %d -i - -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p \"%s.mp4\"",
+				exe ? exe : "ffmpeg.exe", width, height, fps, prefix);
+			SECURITY_ATTRIBUTES sa = { sizeof(sa), NULL, TRUE };
+			HANDLE readEnd = NULL;
+			if (!CreatePipe(&readEnd, &pipe, &sa, 8 * 1024 * 1024))
+				return false;
+			SetHandleInformation(pipe, HANDLE_FLAG_INHERIT, 0);
+			STARTUPINFOA si = { sizeof(si) };
+			si.dwFlags = STARTF_USESTDHANDLES;
+			si.hStdInput = readEnd;
+			si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+			si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+			PROCESS_INFORMATION pi;
+			const BOOL ok = CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+			CloseHandle(readEnd);
+			if (!ok)
+			{
+				Blur2PCAutomation::LogF("record: cannot start ffmpeg (%lu): %s", GetLastError(), cmd);
+				CloseHandle(pipe);
+				pipe = NULL;
+				return false;
+			}
+			CloseHandle(pi.hThread);
+			process = pi.hProcess;
+			char timesPath[MAX_PATH];
+			_snprintf_s(timesPath, _TRUNCATE, "%s_times.txt", prefix);
+			fopen_s(&times, timesPath, "w");
+			InitializeCriticalSection(&lock);
+			wake = CreateEvent(NULL, FALSE, FALSE, NULL);
+			total = frames;
+			thread = CreateThread(NULL, 0, Writer, this, 0, NULL);
+			Blur2PCAutomation::LogF("record: %d frames, %ux%u at %d fps, into %s.mp4", frames, width, height, fps, prefix);
+			return true;
+		}
+
+		static U8 ToByte(float v) { return static_cast<U8>((v <= 0.0f ? 0.0f : (v >= 1.0f ? 1.0f : v)) * 255.0f + 0.5f); }
+
+		void ReadBack(ID3D11DeviceContext* context)
+		{
+			const int slot = read % k_Ring;
+			++read;
+			D3D11_MAPPED_SUBRESOURCE mapped = {};
+			if (FAILED(context->Map(staging[slot], 0, D3D11_MAP_READ, 0, &mapped)))
+				return;
+			Frame* f = new Frame;
+			f->next = NULL;
+			f->data = (unsigned char*)malloc(width * height * 4);
+			const bool rgba = format == DXGI_FORMAT_R8G8B8A8_UNORM || format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			for (UINT y = 0; y < height; ++y)
+			{
+				const U8* row = static_cast<const U8*>(mapped.pData) + (y * 2) * mapped.RowPitch;
+				U8* out = f->data + y * width * 4;
+				for (UINT x = 0; x < width; ++x, out += 4)
+				{
+					if (format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+					{
+						const U16* fp = reinterpret_cast<const U16*>(row) + (x * 2) * 4;
+						for (int c = 0; c < 3; ++c)
+						{
+							float v = DirectX::PackedVector::XMConvertHalfToFloat(fp[c]);
+							if (scRGB) { v = (std::max)(0.0f, v / paperWhite); v = v <= 0.0031308f ? 12.92f * v : 1.055f * powf(v, 1.0f / 2.4f) - 0.055f; }
+							out[2 - c] = ToByte(v);
+						}
+					}
+					else if (format == DXGI_FORMAT_R10G10B10A2_UNORM)
+					{
+						const U32 p = *reinterpret_cast<const U32*>(row + (x * 2) * 4);
+						out[2] = static_cast<U8>(((p >> 0) & 1023) >> 2);
+						out[1] = static_cast<U8>(((p >> 10) & 1023) >> 2);
+						out[0] = static_cast<U8>(((p >> 20) & 1023) >> 2);
+					}
+					else
+					{
+						const U8* p = row + (x * 2) * 4;
+						out[0] = p[rgba ? 2 : 0]; out[1] = p[1]; out[2] = p[rgba ? 0 : 2];
+					}
+					out[3] = 255;
+				}
+			}
+			context->Unmap(staging[slot], 0);
+			EnterCriticalSection(&lock);
+			if (tail) tail->next = f; else head = f;
+			tail = f;
+			LeaveCriticalSection(&lock);
+			SetEvent(wake);
+		}
+
+		// Returns false once every frame has been handed to the writer.
+		bool Frame_(ID3D11DeviceContext* context, ID3D11Texture2D* back)
+		{
+			if (copied < total)
+			{
+				if (copied - read >= k_Ring - 1)
+					ReadBack(context);
+				if (resolve)
+				{
+					context->ResolveSubresource(resolve, 0, back, 0, format);
+					context->CopyResource(staging[copied % k_Ring], resolve);
+				}
+				else
+					context->CopyResource(staging[copied % k_Ring], back);
+				if (times)
+					fprintf(times, "%d %.4f\n", copied, Blur2PCAutomation::Now());
+				++copied;
+				return true;
+			}
+			while (read < copied)
+				ReadBack(context);
+			for (int i = 0; i < k_Ring; ++i)
+			{
+				if (staging[i]) staging[i]->Release();
+				staging[i] = NULL;
+			}
+			if (resolve) resolve->Release();
+			resolve = NULL;
+			if (times) fclose(times);
+			times = NULL;
+			EnterCriticalSection(&lock);
+			closing = true;
+			LeaveCriticalSection(&lock);
+			SetEvent(wake);
+			CloseHandle(thread);	// the writer finishes on its own and reports through RecordingDone
+			return false;
+		}
+	};
+
+	void RecordD3D11Frame(ID3D11Device* device, IDXGISwapChain* swapChain, bool floatScRGB, float paperWhiteScale)
+	{
+		static C_D3D11Recorder* s_pRecorder = NULL;
+		static bool s_busy = false;
+		if (!s_busy && !Blur2PCAutomation::IsActive())
+			return;
+		ID3D11Texture2D* back = NULL;
+		if (!s_busy)
+		{
+			int frames = 0;
+			const char* pPrefix = Blur2PCAutomation::TakeRecordRequest(&frames);
+			if (!pPrefix)
+				return;
+			if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&back))))
+			{
+				Blur2PCAutomation::RecordingDone();
+				return;
+			}
+			s_pRecorder = new C_D3D11Recorder;	// one per recording, never freed: its writer thread may outlive it
+			if (!s_pRecorder->Start(device, back, floatScRGB, paperWhiteScale, pPrefix, frames < 1 ? 1 : frames))
+			{
+				Blur2PCAutomation::LogF("record: could not start");
+				Blur2PCAutomation::RecordingDone();
+				back->Release();
+				return;
+			}
+			s_busy = true;
+		}
+		else if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&back))))
+			return;
+		ID3D11DeviceContext* context = NULL;
+		device->GetImmediateContext(&context);
+		if (context)
+		{
+			if (!s_pRecorder->Frame_(context, back))
+				s_busy = false;
+			context->Release();
+		}
+		back->Release();
+	}
+}
+
 bool C_PCD3D11GameDevice::Present()
 {
     if(!m_pSwapChain)return false;
@@ -394,6 +668,9 @@ bool C_PCD3D11GameDevice::Present()
 			}
 		}
     }
+    // [Blur2PC] scripted recording (see RecordD3D11Frame)
+    RecordD3D11Frame(m_pd3dDevice, m_pSwapChain, m_HDROutput && m_HDROutput->FloatSwapChain(),
+        m_HDROutput ? m_HDROutput->PaperWhiteScale() : 1.0f);
     {
         // [Blur1PCDX11] Temporary: trace every draw of one frame after BLUR_DX11_TRACE_AT seconds.
         static int traceAt = -1;
