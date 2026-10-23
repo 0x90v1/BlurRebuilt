@@ -26,6 +26,11 @@ The original game was designed around 60 fps, and some things (cars, cameras, au
 misbehaved the farther you went above that.
 This version runs with unlocked frame rate and everything behaves as expected.
 
+### Decreased audio latency in high quality setting
+
+The retail game had pretty noticeable audio latency when audio quality was set to high.
+This should now be fixed as well.
+
 ### 64-bit
 
 The game is now a native 64-bit application.
