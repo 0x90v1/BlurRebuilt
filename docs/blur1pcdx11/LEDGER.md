@@ -998,3 +998,26 @@ Verified: x64 Release errsum 0 and Master (MinSizeRel) errsum 0. Queued minimise
 Blocked: none.
 Next: user checks full screen 3840x1080 on the TV, including alt-tab (not exercised by automation). Not committed.
 Files touched: code/mercury/library/graphics/display/source/device/d3d11/PCD3D11GameDevice.cpp; docs/blur1pcdx11/{analysis,BOARD,LEDGER}.md.
+
+## 2026-10-23 - session Codex popup-coverage - T263 source prepared, delivery pending
+Did: traced the popup filter against pristine source, recovered retail Lua and runtime geometry. Added a PC-only viewport-size assignment in BlurRebuilt TheCustomPopup.lua PopupPostInit. Honored the user's corrected BlurRebuilt-only scope; withdrew the initial base board claim and made no base source/build changes. No commit or push.
+Verified: existing BlurRebuilt reproduces the 32:9 gap; diagnostic runtime resizing matches exact viewport dimensions at 3840x1080 and 1440x1080, exits 0, and covers the display. The diagnostic's delayed resize was intentional and noticed by the user; the implementation runs in PostInit before rendering. The candidate load-hook attempt did not install the source change and is not counted as verification.
+Blocked: final build/delivery awaits the user's pending build-content choice because current delivery includes another session's uncommitted AMAX work while AGENTS.md says to exclude other sessions' edits.
+Next: on that choice, use the documented x64 variant of tools/build.sh, verify errsum 0, deliver canonical EXE/PDB without removing authorized existing functionality, then capture the opening transition and verify exact coverage at 4:3, 16:9 and 32:9. No final approval screenshot exists yet; diagnostic evidence under _work/t263.
+Files touched: code/amax/library/Ui/game/lua_scripts/popups/TheCustomPopup.lua; docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md.
+
+
+## 2026-10-23 - session Codex popup-coverage - T263 delivered and verified
+Did: built the prepared popup initialization fix into BlurRebuilt and delivered standard Release Amax.exe/PDB to _work/run, the desktop shortcut target. Preserved the existing AMAX functionality. This supersedes the preceding pending build-content question; no lower-phase source/build changes, commit or push.
+Verified: documented x64 tools/build.sh variant, regenerated Lua bundle, final Amax link, errsum 0, unchanged generated targets.cmake, matching source/delivery EXE and PDB hashes in _work/t263/delivery.json. At the user's suggestion, used real Esc input at the first title screen. Three queued/minimized delivered-executable runs exit 0 and pass exact viewport bounds at 3840x1080, 1920x1080 and 1440x1080; no runtime resize injection. Inspected all three stills and the 32:9 opening video frames: full coverage from first visible fade, no delayed expansion. Approval: _work/t263/verify32/approval.png; transition: verify32/opening-contact.png and opening.mp4; other ratios: verify16/approval.png and verify4/approval.png.
+Blocked: none.
+Next: user can retest the desktop BlurRebuilt icon; implementation and delivery complete, changes remain uncommitted.
+Files touched: code/amax/library/Ui/game/lua_scripts/popups/TheCustomPopup.lua; docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md.
+
+
+## 2026-10-23 - session Codex popup-coverage - T263 approved commit
+Did: user approved the delivered result and requested commit. Committed only the viewport-sized popup initialization and T263 phase documentation on BlurRebuilt. No propagation or push, per the explicit phase boundary.
+Verified: source unchanged since the successful Release build/delivery and real title-screen Esc runs at 4:3, 16:9 and 32:9. Reviewed staged scope and diff whitespace; approval screenshot _work/t263/verify32/approval.png and opening-transition evidence _work/t263/verify32/opening-contact.png.
+Blocked: none.
+Next: none for T263; delivered fix accepted by the user.
+Files touched: code/amax/library/Ui/game/lua_scripts/popups/TheCustomPopup.lua; docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md.
