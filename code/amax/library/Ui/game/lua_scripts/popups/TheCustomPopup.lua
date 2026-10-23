@@ -262,6 +262,12 @@ end
 function PopupPostInit()
 	UIButtons.TimeLineActive("Popup_Active",true,0,true)
 
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] The filter is centred on the screen; match the viewport's
+		-- virtual dimensions exactly, without the authored widescreen overscan.
+		UIButtons.ChangeSize( SCUI_Popup.name_to_id[ "filter" ], SCREEN_WIDTH, 480 )
+	end
+
 	local menu_id = SCUI_Popup.name_to_id[ "options" ]
 	
 	-- this will change the current selection on the lobby menu only

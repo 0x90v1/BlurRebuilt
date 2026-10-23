@@ -51,3 +51,8 @@ Status: accepted (user, 2026-10-23; T257). Fix the clipped menu at 3840x1080 wit
 ## D35 - Skip the empty PC startup DLC worker
 
 Status: accepted (user, 2026-10-23; T258). The user approved the delivered startup change and requested commit and propagation. The current PC DLC worker has no implementation, confirmed against pristine source; skip its boot popup/thread on PC and retain real saved-profile loading. This deliberately simplifies the recovered retail Lua sequence. It does not restore retail PC DLC licensing or shorten the independent 5.6-second autosave-warning minimum. Revisit the skip if functional PC DLC support is ported. Profile-loading delays and the warning duration remain unchanged.
+
+
+## D36 - Extend viewport dimming updates to the base phase
+
+Status: accepted (user request, 2026-10-23; T265). Apply the recent BlurRebuilt ultrawide batch to Blur1PC, Blur1Multi and BlurX. This explicitly expands the earlier T263/T264 destination restriction: popup, event selection and garage dimming use the existing viewport width and 480-unit height at initialization. T254/T257 are already inherited. Propagate the base implementation through merges once commit authorization is provided; no push requested.
