@@ -2757,8 +2757,8 @@ void C_UiManager::PreRender()
 		{			
 			// E_GameSpritePanel_3DAA_WORLD
 #ifdef PLATFORM_PC
-			// [Blur2PC] retail's C_Simple2D has no widescreen flag; the UI 3D camera scale carries the aspect
-			// ratio (Lua Camera_UseFrontend: aspect / (16/9)), so the scaled path is always used (identical at 16:9)
+			// [Blur2PC] PC always uses the camera-scale path. Its projections already
+			// follow the viewport aspect, so frontend and in-game both use unit scale.
 			if( false )
 #else
 			if( gSimple2D.WideScreen() )
