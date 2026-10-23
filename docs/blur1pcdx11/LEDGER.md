@@ -991,3 +991,10 @@ Verified: Blur1PCDX11 Release errsum 0 (_work/t254_build.txt). The behaviour was
 Blocked: none.
 Next: none; merged into uKER/blur1pcdx11-hdr and uKER/blur1pcdx11-x64.
 Files touched: code/mercury/library/graphics/display/source/device/d3d11/PCD3D11GameDevice.cpp; docs/blur1pcdx11/{BOARD,LEDGER}.md.
+
+## 2026-10-23 - session Claude ultrawide - T255 DX11 full screen display mode
+Did: full screen at 3840x1080 on a 16:9 3840x2160 output was stretched to 16:9. DXGI resolves the mode to its STRETCHED variant and keeps the desktop mode; D3D9 sets 3840x1080 with the driver's aspect-preserving scaling (probes and numbers in analysis.md T255). The D3D11 device now sets the full screen mode with ChangeDisplaySettingsEx(CDS_FULLSCREEN) and presents through a windowed swap chain covering the monitor; focus loss restores the desktop mode and minimises, reactivation re-applies.
+Verified: x64 Release errsum 0 and Master (MinSizeRel) errsum 0. Queued minimised Speed run with BLUR2PC_FULLSCREEN=1 at 3840x1080 exit 0: display 3840x1080 with scaling 4 (aspect-ratio centred, same as D3D9) during the run, 3840x2160 restored after; start-screen frame undistorted (`_work/uw_probe/start_view.jpg`). Delivered Master Amax.exe/pdb to _work/run; hashes match.
+Blocked: none.
+Next: user checks full screen 3840x1080 on the TV, including alt-tab (not exercised by automation). Not committed.
+Files touched: code/mercury/library/graphics/display/source/device/d3d11/PCD3D11GameDevice.cpp; docs/blur1pcdx11/{analysis,BOARD,LEDGER}.md.

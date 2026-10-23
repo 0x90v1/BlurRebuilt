@@ -107,6 +107,90 @@ bool TearingSupported()
     factory->Release();
     return supported;
 }
+// [Blur1PCDX11] Full screen changes the display mode the way D3D9 exclusive mode does, and the
+// swap chain stays a DXGI windowed chain in a popup covering the monitor. DXGI full screen cannot
+// reproduce the D3D9 mode: FindClosestMatchingMode/ResizeTarget turn an unspecified scaling into
+// the STRETCHED variant of a mode whose aspect differs from the panel's, which on the measured
+// NVIDIA/3840x2160 output kept the desktop mode and stretched a 3840x1080 buffer to 16:9.
+// D3D9 (and ChangeDisplaySettingsEx) set 3840x1080 with the driver's default scaling,
+// DISPLAYCONFIG_SCALING_ASPECTRATIOCENTEREDMAX there (probes in _work/uw_probe).
+struct S_FullscreenMode
+{
+    HWND m_Window;
+    WNDPROC m_WindowProc;
+    char m_Device[CCHDEVICENAME];
+    DEVMODEA m_Mode;
+    bool m_Wanted;
+    bool m_Applied;
+};
+S_FullscreenMode g_FullscreenMode = {};
+void RestoreDesktopMode()
+{
+    if (!g_FullscreenMode.m_Applied) return;
+    ChangeDisplaySettingsExA(g_FullscreenMode.m_Device, nullptr, nullptr, 0, nullptr);
+    g_FullscreenMode.m_Applied = false;
+}
+void ApplyFullscreenMode()
+{
+    if (!g_FullscreenMode.m_Wanted || g_FullscreenMode.m_Applied) return;
+    const LONG result = ChangeDisplaySettingsExA(g_FullscreenMode.m_Device, &g_FullscreenMode.m_Mode, nullptr,
+        CDS_FULLSCREEN, nullptr);
+    g_FullscreenMode.m_Applied = result == DISP_CHANGE_SUCCESSFUL;
+    MONITORINFO info = {sizeof(info)};
+    GetMonitorInfoA(MonitorFromWindow(g_FullscreenMode.m_Window, MONITOR_DEFAULTTONEAREST), &info);
+    SetWindowPos(g_FullscreenMode.m_Window, HWND_TOP, info.rcMonitor.left, info.rcMonitor.top,
+        g_FullscreenMode.m_Mode.dmPelsWidth, g_FullscreenMode.m_Mode.dmPelsHeight, SWP_NOACTIVATE | SWP_NOCOPYBITS);
+    Blur2PCAutomation::LogF("DX11 full screen mode %s %ux%u@%u result %d", g_FullscreenMode.m_Device,
+        (unsigned)g_FullscreenMode.m_Mode.dmPelsWidth, (unsigned)g_FullscreenMode.m_Mode.dmPelsHeight,
+        (unsigned)g_FullscreenMode.m_Mode.dmDisplayFrequency, (int)result);
+}
+// D3D9 exclusive mode returns the desktop mode and minimises the window when the application loses
+// activation, and sets the mode again when it is reactivated.
+LRESULT CALLBACK FullscreenWindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    const WNDPROC next = g_FullscreenMode.m_WindowProc;
+    if (message == WM_ACTIVATEAPP && g_FullscreenMode.m_Wanted)
+    {
+        if (wParam) { if (IsIconic(window)) ShowWindow(window, SW_RESTORE); ApplyFullscreenMode(); }
+        else if (g_FullscreenMode.m_Applied) { RestoreDesktopMode(); ShowWindow(window, SW_MINIMIZE); }
+    }
+    return CallWindowProcA(next, window, message, wParam, lParam);
+}
+void SetFullscreenMode(HWND window, bool fullscreen, U32 width, U32 height, U32 refreshRate)
+{
+    if (!g_FullscreenMode.m_WindowProc)
+    {
+        g_FullscreenMode.m_Window = window;
+        g_FullscreenMode.m_WindowProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrA(window, GWLP_WNDPROC,
+            reinterpret_cast<LONG_PTR>(FullscreenWindowProc)));
+    }
+    if (!fullscreen) { g_FullscreenMode.m_Wanted = false; RestoreDesktopMode(); return; }
+    if (!g_FullscreenMode.m_Applied)
+    {
+        MONITORINFOEXA info = {};
+        info.cbSize = sizeof(info);
+        GetMonitorInfoA(MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST), &info);
+        memcpy(g_FullscreenMode.m_Device, info.szDevice, sizeof(g_FullscreenMode.m_Device));
+    }
+    DEVMODEA& mode = g_FullscreenMode.m_Mode;
+    ZeroMemory(&mode, sizeof(mode));
+    mode.dmSize = sizeof(mode);
+    mode.dmPelsWidth = width;
+    mode.dmPelsHeight = height;
+    mode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+    if (refreshRate) { mode.dmDisplayFrequency = refreshRate; mode.dmFields |= DM_DISPLAYFREQUENCY; }
+    g_FullscreenMode.m_Wanted = true;
+    g_FullscreenMode.m_Applied = false;
+    ApplyFullscreenMode();
+}
+void ReleaseFullscreenMode()
+{
+    g_FullscreenMode.m_Wanted = false;
+    RestoreDesktopMode();
+    if (g_FullscreenMode.m_WindowProc && IsWindow(g_FullscreenMode.m_Window))
+        SetWindowLongPtrA(g_FullscreenMode.m_Window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(g_FullscreenMode.m_WindowProc));
+    g_FullscreenMode.m_WindowProc = nullptr;
+}
 }
 void C_PCD3D11GameDevice::SetPresentParamsD3D11()
 {
@@ -120,7 +204,7 @@ void C_PCD3D11GameDevice::SetPresentParamsD3D11()
     m_d3dPresentParams.BufferUsage=DXGI_USAGE_RENDER_TARGET_OUTPUT;
     m_d3dPresentParams.BufferCount=1;
     m_d3dPresentParams.OutputWindow=m_DeviceParams.m_hWnd;
-    m_d3dPresentParams.Windowed=m_HDROutput && m_HDROutput->FloatSwapChain() ? TRUE : m_DeviceParams.m_Windowed;
+    m_d3dPresentParams.Windowed=TRUE;    // full screen is a display mode and a covering popup (SetFullscreenMode)
     m_d3dPresentParams.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
     if(!g_legacySwapChain)
     {
@@ -132,13 +216,13 @@ void C_PCD3D11GameDevice::SetPresentParamsD3D11()
 }
 bool C_PCD3D11GameDevice::CreateD3D11()
 {
-    // [Blur1PCDX11] Preserve the committed exclusive-fullscreen swap chain.
-    // Creating a flip chain fullscreen on a 3840x2160 desktop gave that size
-    // to a 1920x1080 game, mismatched its depth target and failed Present.
-    // Windowed creation can use flip; retain this choice across device resets
-    // because ResizeBuffers cannot change a swap chain's presentation model.
+    // [Blur1PCDX11] The swap chain is always created windowed; full screen sets the display mode
+    // first (SetFullscreenMode). The blt model remains the fallback when flip creation fails, and
+    // is kept across device resets because ResizeBuffers cannot change the presentation model.
+    SetFullscreenMode(m_DeviceParams.m_hWnd, !m_DeviceParams.m_Windowed, m_DeviceParams.m_Width,
+        m_DeviceParams.m_Height, m_DeviceParams.m_RefreshRate);
     delete m_HDROutput; m_HDROutput = new C_HDROutput(m_DeviceParams.m_hWnd);
-    g_legacySwapChain = !m_DeviceParams.m_Windowed && !m_HDROutput->FloatSwapChain();
+    g_legacySwapChain = false;
     SetPresentParamsD3D11();
     char debugSetting[2] = {};
     UINT flags=D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -220,23 +304,6 @@ bool C_PCD3D11GameDevice::CreateD3D11()
 bool C_PCD3D11GameDevice::CreateDevice()
 {
     if(!CreateD3D11())return false;
-    // [Blur2PC][HDR] Flip chains enter exclusive fullscreen only AFTER creation,
-    // then resize before any back-buffer views are acquired (DXGI contract).
-    if (m_HDROutput->FloatSwapChain() && !m_DeviceParams.m_Windowed)
-    {
-        HRESULT hr = m_pSwapChain->SetFullscreenState(TRUE, nullptr);
-        if (SUCCEEDED(hr))
-        {
-            DXGI_MODE_DESC mode = m_d3dPresentParams.BufferDesc;
-            mode.Format = DXGI_FORMAT_UNKNOWN;
-            mode.RefreshRate.Numerator = m_DeviceParams.m_RefreshRate;
-            mode.RefreshRate.Denominator = mode.RefreshRate.Numerator ? 1 : 0;
-            m_pSwapChain->ResizeTarget(&mode);
-            hr = m_pSwapChain->ResizeBuffers(m_d3dPresentParams.BufferCount, m_DeviceParams.m_Width,
-                m_DeviceParams.m_Height, m_d3dPresentParams.BufferDesc.Format, m_d3dPresentParams.Flags);
-        }
-        if (FAILED(hr)) Blur2PCAutomation::LogF("HDR initial fullscreen transition failed %08x", (unsigned)hr);
-    }
     Display2::Device(&m_Display2);
     Display2::C_DeviceParams params;params.m_pd3dDevice=m_pd3dDevice;params.m_pd3dObject=m_pd3dObject;
     m_Display2.SetParams(params);
@@ -285,22 +352,9 @@ bool C_PCD3D11GameDevice::CreateDeviceVolatile()
     C_BackBuffer* back=m_BackBuffers[0];
     if(back->m_ColourSurface.m_pd3dSurface)return true;    // created by CreateDevice, not yet destroyed
     SetPresentParamsD3D11();
-    const BOOL fullscreen=!m_DeviceParams.m_Windowed;
-    BOOL current=FALSE;m_pSwapChain->GetFullscreenState(&current,nullptr);
-    if(current!=fullscreen)
-    {
-        const HRESULT hr=m_pSwapChain->SetFullscreenState(fullscreen,nullptr);
-        if(FAILED(hr))Blur2PCAutomation::LogF("DX11 SetFullscreenState(%d) failed %08x",fullscreen,(unsigned)hr);
-    }
-    if(fullscreen)
-    {
-        // D3D9 Reset switches the display mode with the back buffer; DXGI needs the target resized too.
-        DXGI_MODE_DESC mode=m_d3dPresentParams.BufferDesc;
-        if (m_HDROutput->FloatSwapChain()) mode.Format = DXGI_FORMAT_UNKNOWN;
-        mode.RefreshRate.Numerator=m_DeviceParams.m_RefreshRate;mode.RefreshRate.Denominator=m_DeviceParams.m_RefreshRate ? 1 : 0;
-        const HRESULT hr=m_pSwapChain->ResizeTarget(&mode);
-        if(FAILED(hr))Blur2PCAutomation::LogF("DX11 ResizeTarget %ux%u failed %08x",mode.Width,mode.Height,(unsigned)hr);
-    }
+    // D3D9 Reset switches the display mode with the back buffer.
+    SetFullscreenMode(m_DeviceParams.m_hWnd,!m_DeviceParams.m_Windowed,m_DeviceParams.m_Width,
+        m_DeviceParams.m_Height,m_DeviceParams.m_RefreshRate);
     HRESULT hr=m_pSwapChain->ResizeBuffers(m_d3dPresentParams.BufferCount,m_DeviceParams.m_Width,m_DeviceParams.m_Height,
         m_d3dPresentParams.BufferDesc.Format,m_d3dPresentParams.Flags);
     if(FAILED(hr)){Blur2PCAutomation::LogF("DX11 ResizeBuffers %ux%u failed %08x",m_DeviceParams.m_Width,m_DeviceParams.m_Height,(unsigned)hr);return false;}
@@ -343,6 +397,7 @@ void C_PCD3D11GameDevice::DestroyDevice()
     if(m_pSwapChain){m_pSwapChain->Release();m_pSwapChain=nullptr;}
     if(m_pd3dDevice){m_pd3dDevice->Release();m_pd3dDevice=nullptr;}
     if(m_pd3dObject){m_pd3dObject->Release();m_pd3dObject=nullptr;}
+    ReleaseFullscreenMode();
 }
 extern unsigned g_dx11TraceFrame; // [Blur1PCDX11] Temporary, defined in D3D11GameDeviceNative.cpp.
 // [Blur2PC] Video recorder for the automation `record` command (system/debug/Blur2PCAutomation.h),
