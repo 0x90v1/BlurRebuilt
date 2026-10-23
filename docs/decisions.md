@@ -43,3 +43,7 @@ Status: accepted (user, 2026-10-22; T255). Retail sizes the PC DirectSound ring 
 Status: accepted (user, 2026-10-23; T256). After checking that retail menus also retain keyboard glyphs, the user explicitly requested a clean dynamic implementation. Keyboard/mouse activity selects the retail PC prompt atlas; controller activity selects the full Xbox atlas already in the source. Select at draw time so cached and currently displayed strings update without screen changes. Fixed split-screen join hints continue to advertise their literal input options. This is an intentional extension to retail behavior, owned by Blur1PC.
 
 D33 refinement (accepted, user 2026-10-23): after a menu is owned by a player, ignore glyph activity from controllers that cannot navigate it. Follow the existing menu input eligibility, including all-player start/join screens, rather than hard-coding the first controller.
+
+## D34 - Frontend sizing follows the actual viewport
+
+Status: accepted (user, 2026-10-23; T257). Fix the clipped menu at 3840x1080 with a generic adjustment, ideally without references to a preferred aspect ratio. The recovered retail Lua explicitly zooms the frontend by the viewport aspect divided by 16/9 and adds aspect bars. This requested layout extension removes that additional PC zoom and the PC bars: the existing viewport-derived UI projection and virtual height determine menu size. It does not clamp to a reference ratio or special-case resolutions. Console layout and the separate retail HUD aspect classification are outside this frontend change.
