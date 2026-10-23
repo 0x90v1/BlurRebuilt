@@ -1,26 +1,35 @@
 # Blur Rebuilt
 
-This is Bizarre Creations' Blur (2010), brought up to date for modern PCs.
+This is the 2010 game **Blur**, by Bizarre Creations, brought up to date for modern PCs.
 
 ## What's new
 
-### HDR
-
-This version of the game supports real HDR.
-On an HDR monitor with HDR turned on in Windows, the game will detect your display's peak brightness, and
-headlights, neon, street lamps, power-ups and the sky will be able to shine brighter than the rest of the picture.
-Menus and the HUD stay at normal brightness.
-
-### Smooth at any frame rate
-
-The original game was designed around 60 fps, and some things (cars, cameras, audio, particles, menus, etc.)
-misbehaved the farther you went above that.
-This version runs with unlocked frame rate and everything behaves properly.
+The original game was a 32-bit executable using DirectX 9, and had numerous issues when framerate was allowed
+to go over 60 FPS.
+This project intends to solve all of that.
 
 ### DirectX 11
 
 The original DirectX 9 renderer has been replaced with a DirectX 11 one. All shaders had to be recompiled
 for the new API.
+
+### HDR
+
+Made possible by the switch to DX11, this version of the game supports real HDR.
+On an HDR monitor with HDR turned on in Windows, the game will detect your display's peak brightness, and
+headlights, neon, street lamps, power-ups and the sky will be able to shine brighter than the rest of the picture.
+Menus and the HUD stay at normal brightness.
+
+### Unlocked frame rate
+
+The original game was designed around 60 fps, and some things (cars, cameras, audio, particles, menus, etc.)
+misbehaved the farther you went above that.
+This version runs with unlocked frame rate and everything behaves as expected.
+
+### Decreased audio latency
+
+The retail game had pretty noticeable audio latency when audio quality was set to high.
+This should now be fixed as well.
 
 ### 64-bit
 
@@ -64,6 +73,12 @@ The intro videos don't play. The game goes straight to the title screen. That's 
 Online play through AMAX isn't supported for the time being.
 AMAX's client files are built for the original `Blur.exe`, and rely on it being DX9 and 32-bit.
 Local split-screen works as expected.
+
+## Changelog
+
+V1.0 (2026/10/21) Initial release
+V1.1 (2026/10/22) Ultra widescreen fixes.
+V1.2 (2026/10/22) Decreased audio latency in high quality setting.
 
 ## Comments
 
