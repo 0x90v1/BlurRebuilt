@@ -39,6 +39,11 @@ function Init()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Keep the centered vignette exactly viewport-sized at any aspect.
+		UIButtons.ChangeSize( SCUI.name_to_id[ "Gfx_Vignette" ], SCREEN_WIDTH, 480 )
+	end
+
 	UIButtons.TimeLineActive( "Hide_TierSelect", true )
 		
 	GUI.list = { }
