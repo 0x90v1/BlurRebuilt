@@ -69,6 +69,12 @@ Online play through AMAX isn't supported for the time being.
 AMAX's client files are built for the original `Blur.exe`, and rely on it being DX9 and 32-bit.
 Local split-screen works as expected.
 
+## Changelog
+
+V1.0 (2026/10/21) Initial release
+V1.1 (2026/10/22) Ultra widescreen fixes.
+V1.2 (2026/10/22) Decreased audio latency in high quality setting.
+
 ## Comments
 
 For comments and general discussion, go to https://www.reddit.com/r/BlurGame
