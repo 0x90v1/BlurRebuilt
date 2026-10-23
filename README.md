@@ -31,6 +31,12 @@ This version runs with unlocked frame rate and everything behaves as expected.
 The retail game had pretty noticeable audio latency when audio quality was set to high.
 This should now be fixed as well.
 
+### Dynamic switching of input glyphs
+
+Retail Blur doesn't show Xbox input hints when navigating the menus, even when the glyphs were there (they
+are shown when joining a split screen game an other rare occasions).
+We now feature dynamic switching of the on-screen glyphs as input is detected.
+
 ### 64-bit
 
 The game is now a native 64-bit application.
