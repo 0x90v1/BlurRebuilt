@@ -1021,3 +1021,19 @@ Verified: source unchanged since the successful Release build/delivery and real 
 Blocked: none.
 Next: none for T263; delivered fix accepted by the user.
 Files touched: code/amax/library/Ui/game/lua_scripts/popups/TheCustomPopup.lua; docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md.
+
+
+## 2026-10-23 - session Codex menu-coverage - T264 delivered and verified
+Did: traced the independent event/car vignettes against pristine source, recovered retail Lua and runtime geometry. Added PC-only exact viewport sizing in SpEventSelect.lua and Garage.lua PostInit, before first rendering. Kept all changes in BlurRebuilt. Built and delivered the standard Release EXE/PDB to the desktop shortcut's _work/run target. No commit or push.
+Verified: errsum 0, regenerated Lua bundle, unchanged targets.cmake, matching Release/delivery hashes (_work/t264/delivery.json). A copied local save reproduced both 32:9 cutoffs before delivery. Three queued/minimized final runs exit 0 with six active-vignette exact-bounds passes at 4:3, 16:9 and 32:9. Inspected all six stills plus both 32:9 opening videos/contact sheets: full viewport coverage from first appearance. Verification screenshots: _work/t264/verify32/event-approval.png and garage-approval.png; other ratios under verify16 and verify4. Initial harness retries are superseded by these successful runs. No live save edits or frame-timed behavior changes.
+Blocked: none.
+Next: user review from the desktop BlurRebuilt shortcut; implementation and delivery complete, changes remain uncommitted.
+Files touched: code/amax/library/Ui/game/lua_scripts/screens/SinglePlayer/SpEventSelect.lua; code/amax/library/Ui/game/lua_scripts/screens/Shared/Garage.lua; docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md.
+
+
+## 2026-10-23 - session Codex menu-coverage - T264 approved commit and propagation audit
+Did: user approved the delivered screenshots and requested commit and propagation. Audited the current history: the exact event/garage changes already reside in f1f2ba55, merged under T265 into all five active phase/feature branches. Committing only the remaining T264 board, mechanism, verification and approval notes in BlurRebuilt; no duplicate source change or merge. No push.
+Verified: all five branches contain f1f2ba55 and identical event/garage viewport-sizing PostInit blocks (_work/t264/propagation-audit.json). BlurRebuilt source matches the earlier zero-error Release and six runtime bounds passes at 4:3/16:9/32:9; screenshot approval is _work/t264/verify32/event-approval.png and garage-approval.png. No source changed, so no repeat build/run is needed. Reviewed staged scope and whitespace.
+Blocked: none for source commit/propagation. Separate T265 records the pre-existing BlurX KanzenTracks.cpp syntax error and pending BlurX/Dubai executable delivery; no success claimed there.
+Next: none for T264; user-approved source is committed and propagated. T265 owns remaining upper-phase binary delivery.
+Files touched: docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md only.
