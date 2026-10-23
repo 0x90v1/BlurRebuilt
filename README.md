@@ -37,6 +37,10 @@ Retail Blur doesn't show Xbox input hints when navigating the menus, even when t
 are shown when joining a split screen game an other rare occasions).
 We now feature dynamic switching of the on-screen glyphs as input is detected.
 
+### Ultra widescreen support
+
+The menus have been fixed for ultra widescreen displays (tested on 32:9).
+
 ### 64-bit
 
 The game is now a native 64-bit application.
@@ -82,9 +86,10 @@ Local split-screen works as expected.
 
 ## Changelog
 
+* **v1.4 (2026/10/23)** Fixed menus for ultra widescreen
 * **v1.3 (2026/10/23)** Implemented dynamic switching of on-screen input glyphs
-* **V1.2 (2026/10/22)** Decreased audio latency in high quality setting.
-* **V1.1 (2026/10/22)** Ultra widescreen fixes.
+* **V1.2 (2026/10/22)** Decreased audio latency in high quality setting
+* **V1.1 (2026/10/22)** Fix race hud in ultra widescreen
 * **V1.0 (2026/10/21)** Initial release
 
 ## Comments
