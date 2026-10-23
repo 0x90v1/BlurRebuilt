@@ -1037,3 +1037,10 @@ Verified: all five branches contain f1f2ba55 and identical event/garage viewport
 Blocked: none for source commit/propagation. Separate T265 records the pre-existing BlurX KanzenTracks.cpp syntax error and pending BlurX/Dubai executable delivery; no success claimed there.
 Next: none for T264; user-approved source is committed and propagated. T265 owns remaining upper-phase binary delivery.
 Files touched: docs/blur1pcdx11/{BOARD,analysis,decisions,LEDGER}.md only.
+
+
+## 2026-10-23 - session Codex pause-coverage - T266 BlurRebuilt delivery
+Did: user requested BlurRebuilt too. Confirmed the approved source f8fc65f1 was already merged; rebuilt with the documented x64 tools/build.sh variant and delivered Release Amax.exe/PDB to the canonical launcher target, preserving existing AMAX functionality. Committed only this phase's T266 handover; no duplicate source patch or push.
+Verified: errsum 0; generated Lua bundle includes the inherited pause fix, generated targets.cmake unchanged from pre-build. Matching canonical EXE/PDB hashes in _work/t266/delivery.json. Queued/minimized actual-race debug-menu/Esc run at 3840x1080 passes exact viewport, center, scale and alpha assertions and exits 0 without timeout. Inspected pause still and compressed opening transition, both full-width. Approval screenshot _work/t266/verify32/approval.jpg; opening-contact.jpg and opening.mp4 beside it. Native effects source unchanged; no broad effect-file hash verification claimed.
+Blocked: none for BlurRebuilt delivery.
+Next: none for T266 here; desktop BlurRebuilt launcher now contains the fix.
