@@ -62,7 +62,11 @@ add_custom_command(OUTPUT ${_dx11_fx_stamp}
 add_custom_target(dx11_fx_all DEPENDS ${_dx11_fx_stamp})
 set_target_properties(dx11_fx_all PROPERTIES FOLDER "dx11")
 
-if(TARGET Amax)
+# [Blur2PC] OFF builds Amax from the shaders already under _work/build/gen
+# (tools/build_exe.sh): no FX permutations or built-in variants are compiled.
+option(BLUR_BUILD_SHADERS "Compile the DX11 effects and built-in shaders with Amax" ON)
+
+if(TARGET Amax AND BLUR_BUILD_SHADERS)
     # [Blur1PCDX11] Technique permutations are runtime inputs, so a game build
     # must regenerate them along with the native executable.
     add_dependencies(Amax dx11_fx_all)
@@ -117,15 +121,22 @@ add_custom_target(dx11_shaders_all DEPENDS ${_dx11_builtin_report})
 add_dependencies(dx11_shaders_all dx11_shader_headers)
 set_target_properties(dx11_shaders_all PROPERTIES FOLDER "dx11")
 set(_dx11_builtin_embedded ${BLUR_TOP}/_work/build/gen/dx11_builtins/embedded.cpp)
-add_custom_command(OUTPUT ${_dx11_builtin_embedded}
-    COMMAND ${Python3_EXECUTABLE}
-        ${BLUR_TOP}/tools/dx11_shadercompile/embed_builtins.py
-        --manifest ${_dx11_builtin_manifest}
-        --compiled ${BLUR_TOP}/_work/build/gen/dx11_builtins
-        --out ${_dx11_builtin_embedded}
-    DEPENDS ${_dx11_builtin_report}
-        ${BLUR_TOP}/tools/dx11_shadercompile/embed_builtins.py
-    VERBATIM)
+if(NOT BLUR_BUILD_SHADERS)
+    if(NOT EXISTS ${_dx11_builtin_embedded})
+        message(FATAL_ERROR "BLUR_BUILD_SHADERS=OFF needs ${_dx11_builtin_embedded}; "
+            "build once with BLUR_BUILD_SHADERS=ON first.")
+    endif()
+else()
+    add_custom_command(OUTPUT ${_dx11_builtin_embedded}
+        COMMAND ${Python3_EXECUTABLE}
+            ${BLUR_TOP}/tools/dx11_shadercompile/embed_builtins.py
+            --manifest ${_dx11_builtin_manifest}
+            --compiled ${BLUR_TOP}/_work/build/gen/dx11_builtins
+            --out ${_dx11_builtin_embedded}
+        DEPENDS ${_dx11_builtin_report}
+            ${BLUR_TOP}/tools/dx11_shadercompile/embed_builtins.py
+        VERBATIM)
+endif()
 
 add_library(blur_dx11 STATIC
     ${BLUR_TOP}/code/mercury/library/graphics/display/source/device/d3d11/D3D11Device.cpp
