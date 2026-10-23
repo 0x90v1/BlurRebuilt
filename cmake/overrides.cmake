@@ -28,6 +28,12 @@ target_compile_definitions(JpegHelper PRIVATE XMD_H)
 # per-target addition, so it belongs here.
 target_sources(Amax PRIVATE ${BLUR_TOP}/code/vendor/crash-handler/crash_handler.cpp)
 
+# [Blur2PC] T256: embed the existing source Xbox atlas for dynamic PC prompts.
+# A resource keeps the normal single-exe delivery and does not alter retail data.
+file(WRITE ${CMAKE_BINARY_DIR}/amax_glyphs.rc
+    "BLUR2PC_CONTROLLER_GLYPHS RCDATA \"${BLUR_TOP}/code/mercury/applications/UITestBed/Bundler/Textures/Common/xbox360_buttons.tga\"\n")
+target_sources(Amax PRIVATE ${CMAKE_BINARY_DIR}/amax_glyphs.rc)
+
 # [Blur2PC] Retail Blur.exe's icon. Retail carries one icon group, resource 101
 # (32x32, 24 bpp), which C_Application loads for the window (ApplicationPC.cpp,
 # LoadIcon 101) and Explorer shows for the exe. It is extracted from the user's

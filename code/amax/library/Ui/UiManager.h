@@ -130,6 +130,9 @@ class C_MirrorAlternateTexture;
 class C_PhotoModeAlternateTexture;
 class C_AlternateTexture;
 class C_MirrorGlassAlternateTexture;
+#ifdef PLATFORM_PC
+class C_ControllerGlyphTexture; // [Blur2PC] T256
+#endif
 
 class C_UiManager : public Messaging::C_MessageMultiHandler, public C_UIFriendsInterface
 {
@@ -286,6 +289,9 @@ private:
 	C_AlternateTexture*					m_pRenderBufferAlternateTexture;
 	C_AlternateTexture*					m_pIgRenderBufferAlternateTexture;
 	C_MirrorGlassAlternateTexture*		m_pMirrorGlassAlternateTexture;
+#ifdef PLATFORM_PC
+	C_ControllerGlyphTexture* m_pControllerGlyphTexture; // [Blur2PC] T256
+#endif
 	Display::C_Texture					m_MiniMapTexture;
 
 	Advertising::MessageController*		m_pAdvertisingMessageController;

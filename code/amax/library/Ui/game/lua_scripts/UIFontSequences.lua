@@ -460,6 +460,12 @@ FontSequences =
 }
 
 -- default font style
+-- [Blur2PC] The first 24 sequences are gameplay/menu input prompts. Resolve their
+-- controller atlas at draw time; literal {PCP}/{PCY} join hints keep their PC atlas.
+for i = 1, 24 do
+	FontSequences[i].input_glyph = true
+end
+
 FontStyle =
 {
 	font = UIFont.e_swis712,

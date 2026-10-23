@@ -104,6 +104,7 @@ public:
 class C_FontSequence
 {
 public:
+	bool                    m_InputGlyph; // [Blur2PC] eligible for the active input atlas
 	C_UIColour				m_Colour;
 	C_TextureHandleIndex	m_Texture;
 	C_WideString32			m_Sequence;
@@ -165,6 +166,7 @@ public:
 	I_GlyphAttributes::E_GlyphType	m_eFontType;
 
 	C_TextureHandleIndex			m_Texture;
+	bool                            m_InputGlyph; // [Blur2PC] retained in cached text
 	U32								m_UserData;
 
 	C_UISpriteColours				m_Col;
@@ -240,6 +242,14 @@ public:
 /// Global singleton for drawing text
 class C_Font
 {
+public:
+	// [Blur2PC] Select at draw time so cached text also follows physical input.
+	void SetInputGlyphTexture( const C_TextureHandleIndex texture ) { m_InputGlyphTexture = texture; }
+	C_TextureHandleIndex InputGlyphTexture() const { return m_InputGlyphTexture; }
+
+private:
+	C_TextureHandleIndex m_InputGlyphTexture;
+
 public:
 	C_Font();
 	~C_Font();

@@ -684,6 +684,53 @@ public:
 	Util::C_String32					m_Name;
 };
 
+#ifdef PLATFORM_PC
+// [Blur2PC] T256: the source Xbox atlas shares the PC font sequence coordinates.
+// Embed it in the executable so prompt switching needs no modified retail data.
+class C_ControllerGlyphTexture : public C_Simple2D::I_AlternateTexture
+{
+public:
+	C_ControllerGlyphTexture() : m_Name("CONTROLLER_GLYPHS")
+	{
+		HMODULE module = GetModuleHandle(NULL);
+		HRSRC resource = FindResourceA(module, "BLUR2PC_CONTROLLER_GLYPHS", MAKEINTRESOURCEA(10));
+		if (!resource) return;
+		const U8* data = static_cast<const U8*>(LockResource(LoadResource(module, resource)));
+		const U32 size = SizeofResource(module, resource);
+		// The embedded asset is an uncompressed BGRA TGA, without a colour map.
+		if (!data || size < 18 || data[1] != 0 || data[2] != 2 || data[16] != 32) return;
+		const U32 width = data[12] | (data[13] << 8);
+		const U32 height = data[14] | (data[15] << 8);
+		const U32 offset = 18 + data[0];
+		if (width != 512 || height != 512 || size < offset + width * height * 4) return;
+		if (!Display::Device()->CreateTexture2D(width, height, 1, Display::E_Format_Linear,
+			Display::E_Format_A8R8G8B8, &m_Texture)) return;
+		Display::C_LockedRect rect = m_Texture.Lock(0);
+		if (!rect.pBits)
+		{
+			Display::Device()->DestroyTexture2D(&m_Texture);
+			return;
+		}
+		for (U32 y = 0; y < height; ++y)
+		{
+			const U32 sourceY = (data[17] & 0x20) ? y : height - 1 - y;
+			memcpy(rect.pBits + y * rect.pitch, data + offset + sourceY * width * 4, width * 4);
+		}
+		m_Texture.Unlock(0);
+	}
+	~C_ControllerGlyphTexture()
+	{
+		if (m_Texture.IsCreated()) Display::Device()->DestroyTexture2D(&m_Texture);
+	}
+	UITextureHandle Handle() { return m_Texture.IsCreated() ? &m_Texture : NULL; }
+	const Util::C_String32& Name() { return m_Name; }
+	C_TextureHandleIndex m_Index;
+private:
+	Util::C_String32 m_Name;
+	Display::C_Texture2D m_Texture;
+};
+#endif
+
 class C_AlternateTexture : public C_Simple2D::I_AlternateTexture 
 {
 public:
@@ -756,6 +803,9 @@ C_UiManager::C_UiManager( const U32 sInitParam ) :
 	m_pPhotoModeAlternateTexture( NULL ),
 	m_pIgRenderBufferAlternateTexture( NULL ),
 	m_pMirrorGlassAlternateTexture( NULL ),
+#ifdef PLATFORM_PC
+	m_pControllerGlyphTexture( NULL ), // [Blur2PC] T256
+#endif
 	m_pCurrentRouteName( NULL ),
 	m_PlatformConnectionState( false ),
 	m_eCarClassSP( AmaxCarClass_ANY )
@@ -1000,6 +1050,12 @@ C_UiManager::C_UiManager( const U32 sInitParam ) :
 	light.m_FallOff				= Maths::HVec4( 3.0f, 0.0f, 0.0f, 0.0f );
 
 	// alternate textures
+#ifdef PLATFORM_PC
+	// [Blur2PC] Keep fixed split-screen join hints on the original PC atlas.
+	m_pControllerGlyphTexture = new C_ControllerGlyphTexture();
+	if (m_pControllerGlyphTexture->Handle())
+		m_pControllerGlyphTexture->m_Index = gSimple2D.SetAlternateTexture(m_pControllerGlyphTexture);
+#endif
 	m_pMirrorAlternateTexture = new C_MirrorAlternateTexture();
 	gSimple2D.SetAlternateTexture( m_pMirrorAlternateTexture );
 
@@ -1943,12 +1999,24 @@ C_UiManager::~C_UiManager()
 	SAFE_DELETE_PTR( m_pRenderBufferAlternateTexture );
 	SAFE_DELETE_PTR( m_pIgRenderBufferAlternateTexture );
 	SAFE_DELETE_PTR( m_pMirrorGlassAlternateTexture );
+#ifdef PLATFORM_PC
+	// [Blur2PC] T256
+	gFont.SetInputGlyphTexture(C_TextureHandleIndex());
+	SAFE_DELETE_PTR(m_pControllerGlyphTexture);
+#endif
 
 	g_pManager = NULL;
 }
 
 void C_UiManager::ProcessController()
 {
+#ifdef PLATFORM_PC
+	// [Blur2PC] Physical activity selects prompts independently of UI navigation.
+	Input::C_DeviceManager* devices = Input::C_DeviceManager::GetInstance();
+	gFont.SetInputGlyphTexture(devices && m_pControllerGlyphTexture &&
+		devices->GetLastActiveDeviceType() >= Input::E_Device_Pad360 ?
+		m_pControllerGlyphTexture->m_Index : C_TextureHandleIndex());
+#endif
 	// reset every frame
 	m_sActiveControllerDisconnected = -1;
 
