@@ -18,10 +18,11 @@ C_DeviceManager* g_pDeviceManager = NULL;
 
 C_DeviceManager::C_DeviceManager( const C_DeviceManagerCreateParam& param, const S32 userIndexCount )
 	: m_UserIndexCount( userIndexCount )
-	, m_pLastActiveDevice( NULL ) // [Blur2PC]
+	, m_ActivityUpdate( 0 ) // [Blur2PC]
 {
 	assert( g_pDeviceManager == NULL );
 	g_pDeviceManager = this;
+	m_DeviceActivity.Resize(userIndexCount); // [Blur2PC]
 }
 
 C_DeviceManager::~C_DeviceManager()
@@ -42,28 +43,45 @@ void C_DeviceManager::Update()
 	PlatformUpdate();
 
 	const S32 deviceCount = m_DeviceList.Size();
-	C_Device* activeDevice = NULL; // [Blur2PC]
+	++m_ActivityUpdate; // [Blur2PC]
 	for(S32 i=0; i<deviceCount; i++)
 	{
 		m_DeviceList[i]->Update();
 		// [Blur2PC] Sample once per input update, never per rendered frame. If both
 		// families act in this sample, keyboard/mouse wins regardless of device order.
+		// Retain activity per user; the UI supplies its current navigation eligibility.
 #ifdef PLATFORM_PC
 		C_Device* device = m_DeviceList[i];
-		if (device->HasNewActivity() &&
-			(!activeDevice || device->GetDeviceType() < activeDevice->GetDeviceType()))
-			activeDevice = device;
+		if (device->HasNewActivity())
+		{
+			S_DeviceActivity& activity = m_DeviceActivity[device->GetUserIndex()];
+			if (activity.m_Update != m_ActivityUpdate || !activity.m_pDevice ||
+				device->GetDeviceType() < activity.m_pDevice->GetDeviceType())
+			{
+				activity.m_pDevice = device;
+				activity.m_Update = m_ActivityUpdate;
+			}
+		}
 #endif
 	}
-	if (activeDevice) m_pLastActiveDevice = activeDevice; // [Blur2PC]
 }
 
 // [Blur2PC] A connected but idle controller must not select controller prompts.
-E_Device C_DeviceManager::GetLastActiveDeviceType() const
+E_Device C_DeviceManager::GetLastActiveDeviceType( const U32 userMask ) const
 {
-	if (!m_pLastActiveDevice || !m_pLastActiveDevice->IsConnected())
+	const S_DeviceActivity* latest = NULL;
+	for (S32 i = 0; i < m_UserIndexCount && i < 32; ++i)
+	{
+		const S_DeviceActivity& activity = m_DeviceActivity[i];
+		if ((userMask & (1u << i)) && activity.m_pDevice &&
+			(!latest || activity.m_Update > latest->m_Update ||
+			(activity.m_Update == latest->m_Update &&
+			 activity.m_pDevice->GetDeviceType() < latest->m_pDevice->GetDeviceType())))
+			latest = &activity;
+	}
+	if (!latest || !latest->m_pDevice->IsConnected())
 		return E_Device_Keyboard;
-	return (E_Device)m_pLastActiveDevice->GetDeviceType();
+	return (E_Device)latest->m_pDevice->GetDeviceType();
 }
 
 S32 C_DeviceManager::GetUserIndexCount()
@@ -128,7 +146,9 @@ void C_DeviceManager::CreateDevice( const S32 userIndex, const E_Device deviceTy
 
 void C_DeviceManager::RemoveDevice( C_Device* pDevice )
 {
-	if (m_pLastActiveDevice == pDevice) m_pLastActiveDevice = NULL; // [Blur2PC]
+	// [Blur2PC] Forget activity before the physical device is destroyed.
+	S_DeviceActivity& activity = m_DeviceActivity[pDevice->GetUserIndex()];
+	if (activity.m_pDevice == pDevice) activity = S_DeviceActivity();
 	// remove pointer from list of devices
 	const S32 deviceCount = m_DeviceList.Size();
 	for(S32 i=0; i<deviceCount; i++)
