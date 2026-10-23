@@ -56,3 +56,10 @@ Status: accepted (user, 2026-10-23; T258). The user approved the delivered start
 ## D36 - Extend viewport dimming updates to the base phase
 
 Status: accepted (user request, 2026-10-23; T265). Apply the recent BlurRebuilt ultrawide batch to Blur1PC, Blur1Multi and BlurX. This explicitly expands the earlier T263/T264 destination restriction: popup, event selection and garage dimming use the existing viewport width and 480-unit height at initialization. T254/T257 are already inherited. Propagate the base implementation through merges once commit authorization is provided; no push requested.
+
+
+## D37 - Include the in-race pause dimming in viewport sizing
+
+Status: accepted (user request, 2026-10-23; T266). Extend the same viewport-sized dimming behavior to the Esc pause menu. Use its existing projection dimensions during initialization and preserve the authored center, opacity and transition timing. The previous three-overlay batch was committed and propagated first as requested.
+
+D37 verification approved by the user on 2026-10-23; commit and propagation to Blur1PC, Blur1Multi and BlurX explicitly authorized.
