@@ -124,6 +124,7 @@ namespace Audio
 			bool					m_bUseFloats;		// +0xbc
 			U32						m_uChannels;		// +0xc0
 			DWORD					m_dwSpeakerConfig;	// +0xc4
+			bool					m_bTimerPeriodSet;	// [Blur2PC] T255: timeBeginPeriod(1) held while the engine runs
 
 			static Engine*			s_pInstance;		// 0x0113f7e4
 		};

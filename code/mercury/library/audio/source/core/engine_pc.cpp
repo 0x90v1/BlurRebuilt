@@ -6,6 +6,8 @@
 #include "coreheaders.h"
 #include "../SystemHeaders.h"
 
+#include <mmsystem.h>	// [Blur2PC] T255: timeBeginPeriod
+
 #ifdef AUDIO_OPTIMIZE_OFF
 #pragma optimize ("", off) // AUDIO_OPTIMIZE_OFF
 #endif	//	AUDIO_OPTIMIZE_OFF
@@ -100,7 +102,8 @@ Audio::Core::Engine::Engine() :
 	m_uWritePos(0),
 	m_hThread(NULL),
 	m_uDeviceIndex(0),
-	m_dwSpeakerConfig(0)
+	m_dwSpeakerConfig(0),
+	m_bTimerPeriodSet(false)	// [Blur2PC] T255
 {
 	memset(&m_Caps, 0, sizeof(m_Caps));
 	memset(&m_BufferDesc, 0, sizeof(m_BufferDesc));
@@ -207,6 +210,11 @@ bool Audio::Core::Engine::StartDevice(U32 uDeviceIndex)
 				hr = m_pBuffer->Play(0, 0, DSBPLAY_LOOPING);
 				if (SUCCEEDED(hr))
 				{
+					// [Blur2PC] T255: the writer polls the play cursor with Sleep(AudioSleep); at Windows' default
+					// 15.6 ms timer it cannot keep a 27-32 ms ring fed (D32), so ask for 1 ms while the engine runs
+					timeBeginPeriod(1);
+					m_bTimerPeriodSet = true;
+
 					ResetEvent(m_hThreadStop);
 					ResetEvent(m_hThreadDone);
 					m_hThread = CreateThread(NULL, 0x4000, ThreadProc, this, 0, NULL);
@@ -244,6 +252,12 @@ bool Audio::Core::Engine::Shutdown()
 	{
 		m_pDS->Release();
 		m_pDS = NULL;
+	}
+
+	if (m_bTimerPeriodSet)	// [Blur2PC] T255
+	{
+		timeEndPeriod(1);
+		m_bTimerPeriodSet = false;
 	}
 
 	return true;
@@ -342,8 +356,11 @@ HRESULT Audio::Core::Engine::CreateBuffer(IDirectSound8* pDS, IDirectSoundBuffer
 	wfx.SubFormat = bUseFloats ? s_SubTypeFloat : s_SubTypePCM;
 
 	// the buffer is NumberOfBuffers blocks of 256 frames; that count follows the output rate unless overridden
+	// [Blur2PC] T255 (D32): retail uses rate / 1500 (32 blocks, 171 ms at 48 kHz). Default to the
+	// community v1.3 patch's counts, tested by ear: 3 / 4 / 5 blocks at 24 / 36 / 48 kHz (32 / 28 / 27 ms);
+	// 4 at 48 kHz crackled. Rates between take the next quality's count.
 	if (!g_PCEngineNumberOfBuffersOverride)
-		g_PCEngineNumberOfBuffers = (int)(m_uSampleRate / 1500);
+		g_PCEngineNumberOfBuffers = (m_uSampleRate <= 24000) ? 3 : (m_uSampleRate <= 36000) ? 4 : 5;
 
 	memset(&m_BufferDesc, 0, sizeof(m_BufferDesc));
 	m_BufferDesc.dwSize = sizeof(DSBUFFERDESC);
