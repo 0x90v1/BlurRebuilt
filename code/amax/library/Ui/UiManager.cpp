@@ -1989,10 +1989,14 @@ C_UiManager::~C_UiManager()
 void C_UiManager::ProcessController()
 {
 #ifdef PLATFORM_PC
-	// [Blur2PC] Physical activity selects prompts independently of UI navigation.
+	// [Blur2PC] Only players allowed to navigate this menu may select its prompts.
+	// Use the same profile/lock gate as navigation below, including all-pad start/join screens.
 	Input::C_DeviceManager* devices = Input::C_DeviceManager::GetInstance();
+	U32 glyphUserMask = 0;
+	for (S32 i = 0; i < m_MaxLocalPlayers; ++i)
+		if (C_ProfileInterface::Instance().AllowPadInput(i)) glyphUserMask |= 1u << i;
 	gFont.SetInputGlyphTexture(devices && m_pControllerGlyphTexture &&
-		devices->GetLastActiveDeviceType() >= Input::E_Device_Pad360 ?
+		devices->GetLastActiveDeviceType(glyphUserMask) >= Input::E_Device_Pad360 ?
 		m_pControllerGlyphTexture->m_Index : C_TextureHandleIndex());
 #endif
 	// reset every frame

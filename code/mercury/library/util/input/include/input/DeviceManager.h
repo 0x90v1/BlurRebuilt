@@ -76,8 +76,8 @@ public:
 	//! Get device
 	C_Device* GetDevice( const S32 deviceNo ) const;
 
-	//! [Blur2PC] Most recent physical input; keyboard if none or that device disconnected.
-	E_Device GetLastActiveDeviceType() const;
+	//! [Blur2PC] Most recent physical input from eligible users; keyboard if none or disconnected.
+	E_Device GetLastActiveDeviceType( const U32 userMask = ~0u ) const;
 
 private:
 	virtual void PlatformUpdate() = 0;
@@ -89,7 +89,15 @@ private:
 	const S32 m_UserIndexCount;
 
 	Ut::Vector<C_Device*> m_DeviceList;
-	C_Device* m_pLastActiveDevice; // [Blur2PC] prompt selection only
+	// [Blur2PC] Keep each user's history so ignored players cannot overwrite menu-owner activity.
+	struct S_DeviceActivity
+	{
+		S_DeviceActivity() : m_pDevice(NULL), m_Update(0) {}
+		C_Device* m_pDevice;
+		U64 m_Update;
+	};
+	Ut::Vector<S_DeviceActivity> m_DeviceActivity;
+	U64 m_ActivityUpdate;
 };
 
 
