@@ -33,3 +33,7 @@ D17 replacement delivered and verified (T232): the runtime-decoded retail EndRen
 ## D18 — Project-authored tools live outside the leaked source
 
 Status: accepted (user, 2026-10-20; T252). New project tools belong in root `tools/<name>/`. `code/tools/` is reserved for tools shipped with the leaked Blur source. Relocate our existing additions and update commands, imports, project-root calculations, CMake dependencies and documentation across all working branches; preserve each phase's own tools and local edits. This supersedes the former `code/tools/<name>/` placement convention, without moving engine code or the original leaked tools.
+
+## D32 — Default DirectSound ring: 3 / 4 / 5 blocks at 24 / 36 / 48 kHz
+
+Status: accepted (user, 2026-10-22; T255). Retail sizes the PC DirectSound ring at rate / 1500 blocks of 256 frames (16 / 24 / 32 blocks: 171 ms queued at High). Players do not set debug values, so the default departs from retail: 3 / 4 / 5 blocks at 24 / 36 / 48 kHz (32 / 28 / 27 ms), the counts of the community "v1.3 in-place" patch (retail VA 0x00546c23), chosen by ear there; 4 blocks at 48 kHz crackled. Other debug rates take the next quality's count. `Audio.PC.Engine.NumberOfBuffersOverride` still restores any count. The engine also holds timeBeginPeriod(1) from device start to shutdown: at the default 15.6 ms timer, the writer's Sleep(AudioSleep) poll fed only 5-20% of realtime into these rings (the user heard it as very slow, broken sound). Everything else in the engine stays retail (AudioSleep, rates, mixer, thread).
