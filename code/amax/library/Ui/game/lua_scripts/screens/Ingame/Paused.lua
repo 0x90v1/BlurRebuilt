@@ -103,6 +103,11 @@ function Init()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Keep pause-menu dimming exactly viewport-sized at any aspect.
+		UIButtons.ChangeSize( SCUI.name_to_id[ "DarkBG" ], SCREEN_WIDTH, 480 )
+	end
+
 	local titles = 
 	{
 		[UIEnums.RwGameBranch.Paused]		= UIText.CMN_CSL_PAUSED,
