@@ -721,3 +721,12 @@ Verified: all branch ancestry checks pass. Standard builds/regeneration in each 
 Blocked: none.
 Next: none for T257; propagate this completion record through the same branches. No additional build is needed for documentation-only merges.
 Files touched: docs/BOARD.md and docs/LEDGER.md; implementation and evidence listed in the preceding T257 entry. Build logs in each destination's _work/t257.
+
+## 2026-10-23 - session Codex startup-content - T258
+Did: traced and reproduced the post-Enter Loading content and DLC stages; confirmed the former reads the saved profile and the latter starts an empty PC worker. Added a PC-only early return in Boot_TryDLC. Recorded the source/retail comparison, overlapping 1.5-second load-message and 5.6-second boot minimums, and proposed D35. No commit or push.
+Verified: pristine DLC_Controller_PC.cpp comparison, recovered retail Boot/AsyncLoad Lua; standard tools/build.sh Release and errsum zero errors, generated source list unchanged, git diff --check. Standard EXE/PDB delivered to _work/run with matching SHA256 (_work/t258/delivery.json). Queued/minimized before/after runs on retail PC data with private settings and save copy both exit 0 and load the profile successfully. DLC worker starts fall from 1 to 0; no DLC popup after the change. Inspected approval screenshot _work/t258/after/mode_select.png and baseline loading-message video frame _work/t258/before/profile_loading.png. Compressed recordings and logs retained in _work/t258.
+Blocked: none for the delivered candidate. Removing the popup does not materially reduce boot time because the existing 5.6-second warning minimum remains.
+Next: user review of D35 and the delivered Blur1PC startup; commit/propagation only if requested. Any change to the existing loading-message or autosave-warning minimums is a separate decision.
+Files touched: code/amax/library/Ui/game/lua_scripts/screens/Profile/Boot.lua; docs/{BOARD,analysis,decisions,LEDGER}.md; evidence under _work/t258.
+
+T258 approval (2026-10-23): user approved the delivered change and requested commit and propagation. D35 accepted; task reopened for commit, merges and delivery verification. No push requested.
