@@ -70,7 +70,7 @@ void C_DeviceManager::Update()
 E_Device C_DeviceManager::GetLastActiveDeviceType( const U32 userMask ) const
 {
 	const S_DeviceActivity* latest = NULL;
-	for (S32 i = 0; i < m_UserIndexCount && i < 32; ++i)
+	for (S32 i = 0; i < m_DeviceActivity.Size() && i < 32; ++i)
 	{
 		const S_DeviceActivity& activity = m_DeviceActivity[i];
 		if ((userMask & (1u << i)) && activity.m_pDevice &&
@@ -141,6 +141,9 @@ void C_DeviceManager::CreateDevice( const S32 userIndex, const E_Device deviceTy
 	}
 
 	// add pointer to list of devices
+	// [Blur2PC] Track the slots actually created: PC's legacy user count is one,
+	// while the game's framework creates devices for all four local players.
+	if (userIndex >= m_DeviceActivity.Size()) m_DeviceActivity.Resize(userIndex + 1);
 	m_DeviceList.PushBack(pNewDevice);
 }
 
