@@ -676,3 +676,5 @@ Unverified: whether retail sets the timer resolution (imports hidden by the DRM)
 Blocked: none. Not committed.
 Next: the user listens at Low/Medium/High. On their go, commit engine_pc.{h,cpp} and the T255 doc hunks on blur1pc and merge through Blur1Multi, BlurX, Blur1PCDX11, HDR and x64, rebuilding and delivering each.
 Files touched: code/mercury/library/audio/source/core/engine_pc.{h,cpp}; docs/{BOARD,analysis,decisions,LEDGER}.md; _work/t255.
+
+Commit (2026-10-22, user confirmed by ear): T255 committed on blur1pc as 8a04aedb; merged into blur1multi (83baea0e), blurx (a9f71d8e) and uKER/blur1pcdx11-x64 (bfc5841e; the blur1pcdx11 and HDR branches no longer exist). Builds errsum 0: Blur1Multi and BlurX Release, x64 Release and Master. Delivered: Blur1Multi and BlurX _work/run (Release), x64 _work/run (Master) and the private _work/run_dev (Speed). BlurX's uncommitted code all predates its 18:35 delivery, so its rebuild adds only T255; its run/Amax.exe hardlink to the aidgen private copies was replaced by a separate file, and those copies are unchanged.
