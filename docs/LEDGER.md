@@ -760,3 +760,10 @@ Pending: user review/commit authorization for this separate follow-up; no upper-
 Next: if authorized, stage only Paused.lua plus the T266 board row, analysis/decision appendices and this ledger entry; preserve unrelated documentation changes. Commit on blur1pc, merge through every higher branch, build/deliver Multi, and resolve the owning BlurX syntax blocker before its canonical delivery.
 
 T266 approval (2026-10-23): user approved the verification screenshot and explicitly requested commit and propagation to Blur1PC, Blur1Multi and BlurX. Proceed with the verified source and existing base delivery; no push requested.
+
+
+## 2026-10-23 - session Codex pause-coverage - T266 closure
+Did: user approved the pause screenshot and explicitly requested commit/propagation. Committed f8fc65f1 on blur1pc; merged to Blur1Multi (d3a8bdb7), BlurX (404474ce), BlurRebuilt (0d52e85d) and Dubai-textures. The requested PC DarkBG sizing is present in each committed branch; no push. Source ancestry evidence: _work/t266/propagation.json.
+Verified: previously approved base standard Release/runtime evidence remains valid; canonical base EXE/PDB hashes still match _work/t266/delivery.json. Actual-race Esc bounds and opening transition passed at 32:9, 16:9 and 4:3; approval still _work/t266/verify32/pause.png. Blur1Multi standard tools/build.sh Release reports zero errors, regenerated Lua/headers, targets.cmake unchanged; EXE/PDB delivered with matching hashes in that phase's _work/t266/delivery.json. No additional upper-phase runtime check claimed.
+Blocked: BlurX source is merged, but canonical executable delivery remains pending the pre-existing committed KanzenTracks.cpp declaration/body syntax error. The committed native source blob is identical to the prior failed build (25dd10a111c4501ae77cdbaf97d63b45e6e172ef); did not repeat that unchanged failure or replace the existing executable.
+Next: no remaining base or Multi implementation/delivery work. Finish the owning BlurX syntax correction, merge upward, then build/deliver its canonical executable. Detailed status in owning-phase ledger.
