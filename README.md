@@ -82,7 +82,7 @@ Local split-screen works as expected.
 
 ## Changelog
 
-* **v1.4 (2026/10/23)** Implemented dynamic switching of on-screen input glyphs
+* **v1.3 (2026/10/23)** Implemented dynamic switching of on-screen input glyphs
 * **V1.2 (2026/10/22)** Decreased audio latency in high quality setting.
 * **V1.1 (2026/10/22)** Ultra widescreen fixes.
 * **V1.0 (2026/10/21)** Initial release
