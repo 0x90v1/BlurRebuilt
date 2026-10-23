@@ -18,6 +18,7 @@ C_DeviceManager* g_pDeviceManager = NULL;
 
 C_DeviceManager::C_DeviceManager( const C_DeviceManagerCreateParam& param, const S32 userIndexCount )
 	: m_UserIndexCount( userIndexCount )
+	, m_pLastActiveDevice( NULL ) // [Blur2PC]
 {
 	assert( g_pDeviceManager == NULL );
 	g_pDeviceManager = this;
@@ -41,10 +42,28 @@ void C_DeviceManager::Update()
 	PlatformUpdate();
 
 	const S32 deviceCount = m_DeviceList.Size();
+	C_Device* activeDevice = NULL; // [Blur2PC]
 	for(S32 i=0; i<deviceCount; i++)
 	{
 		m_DeviceList[i]->Update();
+		// [Blur2PC] Sample once per input update, never per rendered frame. If both
+		// families act in this sample, keyboard/mouse wins regardless of device order.
+#ifdef PLATFORM_PC
+		C_Device* device = m_DeviceList[i];
+		if (device->HasNewActivity() &&
+			(!activeDevice || device->GetDeviceType() < activeDevice->GetDeviceType()))
+			activeDevice = device;
+#endif
 	}
+	if (activeDevice) m_pLastActiveDevice = activeDevice; // [Blur2PC]
+}
+
+// [Blur2PC] A connected but idle controller must not select controller prompts.
+E_Device C_DeviceManager::GetLastActiveDeviceType() const
+{
+	if (!m_pLastActiveDevice || !m_pLastActiveDevice->IsConnected())
+		return E_Device_Keyboard;
+	return (E_Device)m_pLastActiveDevice->GetDeviceType();
 }
 
 S32 C_DeviceManager::GetUserIndexCount()
@@ -109,6 +128,7 @@ void C_DeviceManager::CreateDevice( const S32 userIndex, const E_Device deviceTy
 
 void C_DeviceManager::RemoveDevice( C_Device* pDevice )
 {
+	if (m_pLastActiveDevice == pDevice) m_pLastActiveDevice = NULL; // [Blur2PC]
 	// remove pointer from list of devices
 	const S32 deviceCount = m_DeviceList.Size();
 	for(S32 i=0; i<deviceCount; i++)

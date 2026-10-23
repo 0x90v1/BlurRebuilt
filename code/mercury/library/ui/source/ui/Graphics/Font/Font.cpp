@@ -61,6 +61,7 @@ C_FontSpriteItem& C_FontSpriteItem::operator = (const C_FontSpriteItem& copy)
 	m_Character = copy.m_Character;
 	m_eFontType = copy.m_eFontType;
 	m_Texture = copy.m_Texture;
+	m_InputGlyph = copy.m_InputGlyph; // [Blur2PC]
 	m_UserData = copy.m_UserData;
 	m_Col = copy.m_Col;
 	m_eItemType = copy.m_eItemType;
@@ -97,6 +98,7 @@ __forceinline void C_FontSpriteItem::Set( const I_GlyphAttributes::E_GlyphType e
 	m_Character = character;
 	m_eFontType = eFontType;
 	m_Texture = texture;
+	m_InputGlyph = false; // [Blur2PC] only explicitly marked font sequences switch
 
 	m_Col = col;
 
@@ -130,6 +132,7 @@ __forceinline void C_FontSpriteItem::Set( const I_GlyphAttributes::E_GlyphType e
 	m_Character = character;
 	m_eFontType = eFontType;
 	m_UserData = uUserData;
+	m_InputGlyph = false; // [Blur2PC]
 	
 	m_Col = col;
 
@@ -475,6 +478,11 @@ void C_Font::InitialiseSequences( lua_State* pState )
 	for(S32 i = 1; i <= size; i++, p++)
 	{
 		lua_rawgeti(pState,-1,i); // Push on index [i]
+
+		// [Blur2PC] Non-input symbols and explicit split-screen join icons stay fixed.
+		p->m_InputGlyph = false;
+		if (Lua::DataMemberType(pState, "input_glyph") == LUA_TBOOLEAN)
+			Lua::GetDataMember(pState, "input_glyph", p->m_InputGlyph);
 
 		const char *string;
 		Lua::GetDataMember( pState, "name", string );
@@ -1139,6 +1147,7 @@ F32 C_Font::ProcessText( const WCHAR* pStringText, const I_FontAttributes* pFont
 									pSeq->m_AllowItalics ? bItalics : false, m_CurrentLayer,
 									letter,
 									fActualWidth );
+								p->m_InputGlyph = pSeq->m_InputGlyph; // [Blur2PC]
 							}
 							else
 							if ( pSeq->m_SceneIndex != 0xffffffff )

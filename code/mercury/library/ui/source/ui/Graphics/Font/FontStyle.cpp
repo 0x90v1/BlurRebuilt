@@ -391,7 +391,12 @@ void C_FontStyleBaseRenderInfo::AddCharacter( const C_FontSpriteItem& item, C_Fo
 		S32 sTexCount = 0;
 
 		if ( item.m_Texture.Active() )
-			gSimple2D.AddTexUVs( sTexCount++, item.m_Texture, item.m_T0_px, item.m_T0_py, item.m_T0_sx, item.m_T0_sy );
+		{
+			// [Blur2PC] Resolve the input atlas after text layout/caching, on every draw.
+			const C_TextureHandleIndex inputTexture = gFont.InputGlyphTexture();
+			const C_TextureHandleIndex texture = item.m_InputGlyph && inputTexture.Active() ? inputTexture : item.m_Texture;
+			gSimple2D.AddTexUVs( sTexCount++, texture, item.m_T0_px, item.m_T0_py, item.m_T0_sx, item.m_T0_sy );
+		}
 
 		// don't add extra textures for font sequences
 		if ( item.m_eItemType != C_FontSpriteItem::E_Type_Seq )

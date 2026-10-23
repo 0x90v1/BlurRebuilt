@@ -76,6 +76,9 @@ public:
 	//! Get device
 	C_Device* GetDevice( const S32 deviceNo ) const;
 
+	//! [Blur2PC] Most recent physical input; keyboard if none or that device disconnected.
+	E_Device GetLastActiveDeviceType() const;
+
 private:
 	virtual void PlatformUpdate() = 0;
 
@@ -86,6 +89,7 @@ private:
 	const S32 m_UserIndexCount;
 
 	Ut::Vector<C_Device*> m_DeviceList;
+	C_Device* m_pLastActiveDevice; // [Blur2PC] prompt selection only
 };
 
 

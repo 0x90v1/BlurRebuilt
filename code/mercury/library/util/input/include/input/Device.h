@@ -81,6 +81,11 @@ public:
 	void SetRumbleMotorSpeed(const S32 motorIndex, const F32 motorSpeed);
 
 private:
+	// [Blur2PC] Physical activity for prompt selection, independent of game bindings.
+	bool HasNewActivity();
+	Ut::Vector<F32> m_PreviousButtonValues;
+	Ut::Vector<F32> m_PreviousAxisValues;
+
 	//! Called by the DeviceManager to read the device. This fills out m_ButtonValues, m_AxisValues.
 	virtual void Update() = 0;
 
