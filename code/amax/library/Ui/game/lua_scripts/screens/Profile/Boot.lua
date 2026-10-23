@@ -147,6 +147,11 @@ end
 
 -- check whether DLC is possible
 function Boot_TryDLC()
+	-- [Blur2PC] The PC DLC worker is empty; continue boot without its popup/thread.
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		return false
+	end
+
 	if IsTable( ContextTable[ UIGlobals.ProfileBootContext ] ) == false then
 		return false
 	end

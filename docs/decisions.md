@@ -47,3 +47,7 @@ D33 refinement (accepted, user 2026-10-23): after a menu is owned by a player, i
 ## D34 - Frontend sizing follows the actual viewport
 
 Status: accepted (user, 2026-10-23; T257). Fix the clipped menu at 3840x1080 with a generic adjustment, ideally without references to a preferred aspect ratio. The recovered retail Lua explicitly zooms the frontend by the viewport aspect divided by 16/9 and adds aspect bars. This requested layout extension removes that additional PC zoom and the PC bars: the existing viewport-derived UI projection and virtual height determine menu size. It does not clamp to a reference ratio or special-case resolutions. Console layout and the separate retail HUD aspect classification are outside this frontend change.
+
+## D35 - Skip the empty PC startup DLC worker
+
+Status: accepted (user, 2026-10-23; T258). The user approved the delivered startup change and requested commit and propagation. The current PC DLC worker has no implementation, confirmed against pristine source; skip its boot popup/thread on PC and retain real saved-profile loading. This deliberately simplifies the recovered retail Lua sequence. It does not restore retail PC DLC licensing or shorten the independent 5.6-second autosave-warning minimum. Revisit the skip if functional PC DLC support is ported. Profile-loading delays and the warning duration remain unchanged.
