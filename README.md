@@ -28,7 +28,7 @@ This version runs with unlocked frame rate and everything behaves as expected.
 
 ### Decreased audio latency
 
-The retail game had pretty noticeable audio latency when audio quality was set to high.
+The retail game had pretty noticeable audio latency, especially when audio quality was set to high.
 This should now be fixed as well.
 
 ### Dynamic switching of input glyphs
@@ -45,6 +45,12 @@ The menus have been fixed for ultra widescreen displays (tested on 32:9).
 
 The game is now a native 64-bit application.
 
+## Online multiplayer support
+
+Online multiplayer is supported via AMAX emu.
+To set it up, unpack the AMAX emu client zip file into a folder called `amax_client_files`.
+The rest of the setup is the same as the one described on [AMAX emu's instruction page](https://amax-emu.com/how_to_play).
+
 ## Requirements
 
 - An installed copy of Blur for PC
@@ -52,9 +58,11 @@ The game is now a native 64-bit application.
 - A DirectX 11 graphics card
 - [Microsoft Visual C++ Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
+##
+
 ## Installation
 
-1. Copy `BlurRebuilt.exe` and the `fx11` folder into your Blur install folder. That's
+1. Copy `BlurRebuilt.exe`, `AmaxClientHost.exe` and the `fx11` folder into your Blur install folder. That's
    the one containing `Blur.exe`, usually `C:\Program Files (x86)\Activision\Blur(TM)`.
 2. Run `BlurRebuilt.exe`.
 
@@ -80,8 +88,21 @@ The intro videos don't play. The game goes straight to the title screen. That's 
 
 ## Online play
 
-Online play through AMAX isn't supported for the time being.
-AMAX's client files are built for the original `Blur.exe`, and rely on it being DX9 and 32-bit.
+AMAX sign-in, online profile loading and online menu entry are verified in this build.
+Multiplayer racing has not yet been verified.
+
+Extract the official `amax_client_files.zip` into a folder named `amax_client_files` beside the game
+executable (or in the game's working folder). Preserve the archive's directory structure. The game
+searches that folder for the official client DLL, currently `amax_auth.asi`; the client is not bundled
+or pinned to a downloaded version. Multiplayer -> Online is hidden until the folder and client are
+present. Local split-screen and LAN remain available.
+
+Choose Multiplayer -> Online and enter your AMAX username and password in the game's login dialog.
+The password is masked, and the details are saved in the selected local game profile when you log in.
+The existing profile format stores these fields without encryption; there is no separate credentials
+text file. Account creation remains with AMAX. `AmaxClientHost.exe` runs the official 32-bit client
+alongside the 64-bit game and closes with the online session.
+
 Local split-screen works as expected.
 
 ## Changelog
