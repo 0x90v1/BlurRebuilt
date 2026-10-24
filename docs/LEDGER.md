@@ -792,3 +792,9 @@ Did: propagated e9e556f0 through all five active branches, regenerated source li
 Verified: both builds errsum 0 and matching EXE/PDB hashes in each _work/t268/delivery.json. BlurRebuilt loading-verified32 natural career run exits 0, passes both loading-pane bounds assertions and all previous cinematic/countdown checks. Inspected approval.jpg of the initial zoom; full-width purple coverage with the cutout retained.
 Blocked: none for this task; no BlurX/Dubai binary delivery claim (T265).
 Next: user review of the delivered BlurRebuilt launcher. Approval: BlurRebuilt/_work/t268/loading-verified32/approval.jpg.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 garage exit fade
+Did: reproduced the newly reported central rectangle in base on retail data, traced it to SpMain FadeDown_Loading and widened that panel and the following PrepLoading LoadingBG to SCREEN_WIDTH. Compared pristine SpMain.lua; original transition behavior retained.
+Verified: standard tools/build.sh Release errsum 0; canonical EXE/PDB delivered with matching hashes. Queued/minimized dimmer-final32 natural career run passes exact fade and intermediate cover width/center/height and prior intro/countdown assertions, reaches HUD and exits 0. Inspected compressed exit transition and approval.jpg: purple/dark fade covers both edges with no central rectangle seam.
+Blocked: none for base implementation; reporting delivery follows propagation.
+Next: merge through all active upper branches, rebuild/deliver BlurRebuilt and verify its car-selection exit. No push.
