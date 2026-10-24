@@ -69,4 +69,4 @@ Claim a task before working on it. One task per agent. Keep rows short; details 
 
 | T266 | M1 | Size the in-race Esc pause-menu dimming overlay to the viewport, as requested after T265. Found in user report / Belongs to Blur1PC shared UI. | session Codex pause-coverage | done (user approved; committed and merged; PC/Multi delivered; BlurX delivery blocked) | screens/Ingame/Paused.lua; docs/{BOARD,analysis,decisions,LEDGER}.md; _work/t266 | BlurX canonical delivery pending its existing syntax correction; owning-phase T266 record |
 
-| T268 | UI | Full-width cinematic, countdown and initial loading purple panes | session Codex race-intro coverage | verified; propagating loading follow-up | Found in BlurRebuilt / Belongs to Blur1PC; LoadingSpGame.lua; _work/t268/loading-fixed32 | none |
+| T268 | UI | Full-width cinematic, countdown and initial loading purple panes | session Codex race-intro coverage | done | Found in BlurRebuilt / Belongs to Blur1PC; e9e556f0 loading follow-up propagated; base, Multi and BlurRebuilt delivered; _work/t268 | none; T265 owns BlurX/Dubai binary delivery |
