@@ -107,6 +107,8 @@ Local split-screen works as expected.
 
 ## Changelog
 
+* **v1.5 (2026/10/24)** More ultra widescreen fixes\
+  Support for AMAX online multiplayer
 * **v1.4 (2026/10/23)** Fixed menus for ultra widescreen
 * **v1.3 (2026/10/23)** Implemented dynamic switching of on-screen input glyphs
 * **V1.2 (2026/10/22)** Decreased audio latency in high quality setting
