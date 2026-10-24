@@ -63,3 +63,7 @@ Status: accepted (user request, 2026-10-23; T265). Apply the recent BlurRebuilt 
 Status: accepted (user request, 2026-10-23; T266). Extend the same viewport-sized dimming behavior to the Esc pause menu. Use its existing projection dimensions during initialization and preserve the authored center, opacity and transition timing. The previous three-overlay batch was committed and propagated first as requested.
 
 D37 verification approved by the user on 2026-10-23; commit and propagation to Blur1PC, Blur1Multi and BlurX explicitly authorized.
+
+## T268 - Race intro coverage (2026-10-24, accepted user scope)
+
+Extend the purple cinematic and countdown coverage to the viewport. Preserve the vertical countdown slit; extend horizontal openings and the cinematic horizontal swipe with the viewport, retaining heights and timelines. The user explicitly requested fixing in Blur1PC and propagating upward after the ownership/commit boundary was explained. Commit this task on blur1pc and merge through all higher branches, including BlurRebuilt. No push is authorized.

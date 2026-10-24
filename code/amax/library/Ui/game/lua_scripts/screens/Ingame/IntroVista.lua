@@ -89,6 +89,29 @@ function Init()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Extend the authored 16:9 composition horizontally. The two
+		-- bottom panes attach to TopSetStencil128, so widening that parent also
+		-- keeps their centres aligned with the viewport. Preserve all heights.
+		local left = 320 - SCREEN_WIDTH / 2
+		for _,name in ipairs( { "TopSetStencil128", "WriteBlackStencil128",
+			"Bottom", "Bottom2", "LoadingBG", "WriteFadeCutoutStencil0" } ) do
+			UIButtons.ChangeSizeX( SCUI.name_to_id[ name ], SCREEN_WIDTH )
+		end
+		UIButtons.ChangePosition( SCUI.name_to_id[ "TopSetStencil128" ], left )
+		UIButtons.ChangePosition( SCUI.name_to_id[ "WriteFadeCutoutStencil0" ], left )
+
+		-- Hole and FadeCutoutStencil inherit Vista's transform. Stretch their
+		-- existing horizontal swipe with the viewport, leaving vertical motion,
+		-- the camera and timeline durations untouched.
+		local stretch = SCREEN_WIDTH / (480 * 16 / 9)
+		local vista = SCUI.name_to_id[ "Vista" ]
+		local x = UIButtons.GetPosition( vista )
+		local sx,sy,sz = UIButtons.GetScale( vista )
+		UIButtons.ChangePosition( vista, 320 + (x - 320) * stretch )
+		UIButtons.ChangeScale( vista, sx * stretch, sy, sz )
+	end
+
 	if IsTable( GUI.anim_camera ) == true then
 		UIButtons.TimeLineActive( GUI.anim_camera.anim, true, true )
 	end
