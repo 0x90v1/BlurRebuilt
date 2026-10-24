@@ -58,8 +58,6 @@ The rest of the setup is the same as the one described on [AMAX emu's instructio
 - A DirectX 11 graphics card
 - [Microsoft Visual C++ Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
-##
-
 ## Installation
 
 1. Copy `BlurRebuilt.exe`, `AmaxClientHost.exe` and the `fx11` folder into your Blur install folder. That's
