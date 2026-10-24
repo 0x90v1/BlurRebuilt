@@ -1,6 +1,6 @@
 # [Blur2PC][x64] Builds the player release (the engine's Master configuration,
 # CMake MinSizeRel) and publishes it as a GitHub release. The zip holds what
-# package.bat produced locally: Blur.exe, README.md and the fx11 effects the
+# package.bat produced locally: BlurRebuilt.exe, README.md and the fx11 effects the
 # game loads (effects.index, effects.samplers and the .fxo files).
 #
 # Start it by pushing a tag (git push rebuilt v1.0), or from the Actions tab
@@ -134,7 +134,7 @@ jobs:
           $stage = '_work/package'
           $effects = '_work/build/gen/fx11/effects'
           New-Item -ItemType Directory -Force "$stage/fx11" | Out-Null
-          Copy-Item _work/build/vs/MinSizeRel/Amax.exe "$stage/Blur.exe"
+          Copy-Item _work/build/vs/MinSizeRel/Amax.exe "$stage/BlurRebuilt.exe"
           Copy-Item README.md $stage
           $root = (Resolve-Path $effects).Path
           Get-ChildItem $effects -Recurse -File | Where-Object { $_.Name -in 'effects.index', 'effects.samplers' -or $_.Extension -eq '.fxo' } | ForEach-Object {
