@@ -1044,3 +1044,10 @@ Did: user requested BlurRebuilt too. Confirmed the approved source f8fc65f1 was 
 Verified: errsum 0; generated Lua bundle includes the inherited pause fix, generated targets.cmake unchanged from pre-build. Matching canonical EXE/PDB hashes in _work/t266/delivery.json. Queued/minimized actual-race debug-menu/Esc run at 3840x1080 passes exact viewport, center, scale and alpha assertions and exits 0 without timeout. Inspected pause still and compressed opening transition, both full-width. Approval screenshot _work/t266/verify32/approval.jpg; opening-contact.jpg and opening.mp4 beside it. Native effects source unchanged; no broad effect-file hash verification claimed.
 Blocked: none for BlurRebuilt delivery.
 Next: none for T266 here; desktop BlurRebuilt launcher now contains the fix.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 delivered
+Did: followed user-authorized base ownership, merged c63bfbf5 via 178ae1a9, regenerated source lists, rebuilt standard x64 Release and delivered Amax.exe/PDB to _work/run. Source propagated to every active upper branch; no push.
+Verified: errsum 0 and matching canonical hashes in _work/t268/delivery.json. Queued/minimized natural career run at 32:9 exits 0, passes intro coverage and all three aperture checks, then reaches HUD. Inspected _work/t268/career-verified32/approval.jpg and intro.mp4. Base independently verifies 4:3, 16:9 and 32:9. Early career harness context/loading-screen waits were corrected before the passing run. No simulation timing changes.
+Blocked: none for BlurRebuilt delivery; no BlurX/Dubai binary-delivery claim (T265).
+Next: user review from the normal BlurRebuilt launcher. Verification screenshot: _work/t268/career-verified32/approval.jpg.
+Files touched in this phase: docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md; source inherited from base.

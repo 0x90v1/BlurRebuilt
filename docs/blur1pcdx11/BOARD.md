@@ -41,3 +41,4 @@ Claim a task before working on it. One task per agent. Keep rows short; details 
 
 
 | T266 | x64 | Deliver inherited viewport-sized in-race Esc DarkBG in BlurRebuilt. Source fix belongs to Blur1PC; binary delivery belongs here. | session Codex pause-coverage | done (source inherited; x64 Release delivered; 32:9 actual Esc verified) | inherited Paused.lua; docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md; _work/t266 | none; verification _work/t266/verify32/approval.jpg |
+| T268 | x64 | Repair cinematic intro and countdown purple pane coverage at arbitrary viewport widths | session Codex race-intro coverage | done | Found in BlurRebuilt / Belongs to Blur1PC; inherited c63bfbf5 through 178ae1a9; standard x64 build delivered and natural career verified; _work/t268 | none |
