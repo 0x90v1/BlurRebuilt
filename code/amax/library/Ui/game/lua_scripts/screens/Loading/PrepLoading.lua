@@ -11,6 +11,13 @@ function Init()
 	net_LockoutFriendsOverlay( true )
 end
 
+function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Keep the intermediate loading cover full-width after the fade.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "LoadingBG" ], SCREEN_WIDTH )
+	end
+end
+
 function StartLoop( time )
 	--
 end

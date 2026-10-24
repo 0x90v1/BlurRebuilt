@@ -119,6 +119,11 @@ end
 
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Cover the viewport while leaving the garage for a race.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "FadeDown_Loading" ], SCREEN_WIDTH )
+	end
+
 	-- Help text bottom bar	
 	GUI.help_text_id, GUI.bottom_help_id = SetupBottomHelpBar()
 	UIButtons.ChangeText( GUI.help_text_id, GUI.help_text[ GUI.over_selection ] )

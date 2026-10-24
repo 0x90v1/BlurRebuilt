@@ -69,3 +69,5 @@ D37 verification approved by the user on 2026-10-23; commit and propagation to B
 Extend the purple cinematic and countdown coverage to the viewport. Preserve the vertical countdown slit; extend horizontal openings and the cinematic horizontal swipe with the viewport, retaining heights and timelines. The user explicitly requested fixing in Blur1PC and propagating upward after the ownership/commit boundary was explained. Commit this task on blur1pc and merge through all higher branches, including BlurRebuilt. No push is authorized.
 
 T268 scope clarification (2026-10-24, accepted user request): include the initial LoadingSpGame purple plaque surrounding the live preview, before the cinematic/countdown begins. Continue base ownership and upward propagation; retain the cutout and zoom animation.
+
+T268 scope clarification (2026-10-24, accepted user request): also include the darkening/fade overlay immediately after car selection. Continue base ownership and propagation; preserve fade opacity and timing.
