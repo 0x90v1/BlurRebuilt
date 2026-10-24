@@ -774,3 +774,9 @@ Verified: final standard tools/build.sh Release errsum 0; generated targets unch
 Blocked: none for base implementation/delivery. Upper merges and BlurRebuilt delivery/verification pending at this checkpoint.
 Next: commit only T268, merge through Blur1Multi, BlurX, BlurRebuilt and Dubai-textures; regenerate source lists; build/deliver the reporting BlurRebuilt executable and verify a natural career intro there.
 Files touched: IntroVista.lua, IntroRace.lua; docs/{BOARD,analysis,decisions,LEDGER}.md. No permanent engine/tool changes.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 propagation closure
+Did: committed source c63bfbf5 and merged into Blur1Multi (b9e788c0), BlurX (eff089ce), BlurRebuilt (178ae1a9, directly from base), and Dubai-textures (d00bb458). Regenerated source lists in each worktree. No push.
+Verified: base 4:3/16:9/32:9 complete intro/countdown checks and screenshots remain authoritative. Multi and BlurRebuilt standard Release builds report errsum 0 and canonical EXE/PDB hashes match their _work/t268/delivery.json. BlurRebuilt natural career run career-verified32 exits 0 and passes cinematic coverage, each countdown aperture and transition to HUD; inspected approval.jpg and compressed video. The earlier narrow career loading-screen transition precedes IntroVista and is separate from these cinematic/countdown panes. An exploratory move to Init was discarded after checking the screen lifecycle; final source remains c63bfbf5, with base rebuilt/redelivered afterward. Retry harness failures are not product verification failures.
+Blocked: none for this source fix or reporting-phase delivery. No BlurX/Dubai executable delivery claimed; T265 owns their existing build/delivery blocker.
+Next: none for T268. Approval: BlurRebuilt/_work/t268/career-verified32/approval.jpg; base _work/t268/final32/approval.jpg.
