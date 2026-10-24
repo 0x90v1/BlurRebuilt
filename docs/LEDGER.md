@@ -798,3 +798,9 @@ Did: reproduced the newly reported central rectangle in base on retail data, tra
 Verified: standard tools/build.sh Release errsum 0; canonical EXE/PDB delivered with matching hashes. Queued/minimized dimmer-final32 natural career run passes exact fade and intermediate cover width/center/height and prior intro/countdown assertions, reaches HUD and exits 0. Inspected compressed exit transition and approval.jpg: purple/dark fade covers both edges with no central rectangle seam.
 Blocked: none for base implementation; reporting delivery follows propagation.
 Next: merge through all active upper branches, rebuild/deliver BlurRebuilt and verify its car-selection exit. No push.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 exit loading follow-up
+Did: reproduced the central855-unit Gfx_LoadingBG in base on retail data through the Esc exit popup; widened it to SCREEN_WIDTH. Compared pristine LoadingUi.lua and retained the existing no-race-image loading mechanism.
+Verified: standard Release build errsum0, canonical EXE/PDB matching delivery hashes. exit-final32 completes the automated confirmation, checks loading width/center/height and captures approval.png. The first diagnostic confirmation was user-assisted; the initial corrected harness timed out because ContextTable excludes the popup. Both are superseded by the direct popup-context wait in the final run.
+Blocked: none for base implementation.
+Next: propagate to all active upper branches, rebuild/deliver and verify BlurRebuilt. No push.

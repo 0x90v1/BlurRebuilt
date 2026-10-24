@@ -71,3 +71,5 @@ Extend the purple cinematic and countdown coverage to the viewport. Preserve the
 T268 scope clarification (2026-10-24, accepted user request): include the initial LoadingSpGame purple plaque surrounding the live preview, before the cinematic/countdown begins. Continue base ownership and upward propagation; retain the cutout and zoom animation.
 
 T268 scope clarification (2026-10-24, accepted user request): also include the darkening/fade overlay immediately after car selection. Continue base ownership and propagation; preserve fade opacity and timing.
+
+T268 scope clarification (2026-10-24, accepted user request): include the loading backdrop used when exiting a race via Esc. Continue the same base ownership and upward propagation; retain the existing loading screen selection and transition.
