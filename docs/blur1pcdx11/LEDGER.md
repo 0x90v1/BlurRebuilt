@@ -1051,3 +1051,9 @@ Verified: errsum 0 and matching canonical hashes in _work/t268/delivery.json. Qu
 Blocked: none for BlurRebuilt delivery; no BlurX/Dubai binary-delivery claim (T265).
 Next: user review from the normal BlurRebuilt launcher. Verification screenshot: _work/t268/career-verified32/approval.jpg.
 Files touched in this phase: docs/blur1pcdx11/{BOARD,analysis,LEDGER}.md; source inherited from base.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 initial plaque delivered
+Did: inherited base correction e9e556f0, rebuilt standard x64 Release, delivered canonical Amax.exe/PDB, and verified the initial loading-to-vista zoom. Source propagated through all active upper branches; no push.
+Verified: errsum 0; matching canonical delivery hashes; loading-verified32 run exits 0 with both loading bounds checks and all cinematic/countdown checks passing. Inspected _work/t268/loading-verified32/approval.jpg and intro.mp4: full-width plaque, preserved preview cutout and zoom.
+Blocked: none for BlurRebuilt delivery.
+Next: user review from the normal launcher. Approval screenshot: _work/t268/loading-verified32/approval.jpg.
