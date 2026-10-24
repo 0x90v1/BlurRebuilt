@@ -76,6 +76,12 @@ function IntroRace_ResetAnims()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] The stencil opening keeps its camera-authored size and animation;
+		-- only the purple fill behind it must span the current viewport.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "BlackBG" ], SCREEN_WIDTH )
+	end
+
 	GUI.countdown_id = { }
 	for i = 1, GUI.num_players, 1 do
 		local player_index = i - 1
@@ -270,6 +276,15 @@ function IntroRace_ReadAnimTable( table )
 	-- Size
 	table.sx = (t.sx / 1.5)
 	table.sy = (t.sy / 1.5)
+
+	-- [Blur2PC] Screen-spanning horizontal apertures follow the viewport width.
+	-- Keep narrower apertures (the vertical countdown slit) at their authored
+	-- size and position. Camera parameters use the original 1280x720 canvas.
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC and t.sx >= 1280 then
+		local stretch = SCREEN_WIDTH / (1280 / 1.5)
+		table.px = 320 + (table.px - 320) * stretch
+		table.sx = table.sx * stretch
+	end
 	
 	-- Animation
 	table.anim = t.anim
