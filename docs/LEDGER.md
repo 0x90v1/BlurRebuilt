@@ -804,3 +804,13 @@ Did: reproduced the central855-unit Gfx_LoadingBG in base on retail data through
 Verified: standard Release build errsum0, canonical EXE/PDB matching delivery hashes. exit-final32 completes the automated confirmation, checks loading width/center/height and captures approval.png. The first diagnostic confirmation was user-assisted; the initial corrected harness timed out because ContextTable excludes the popup. Both are superseded by the direct popup-context wait in the final run.
 Blocked: none for base implementation.
 Next: propagate to all active upper branches, rebuild/deliver and verify BlurRebuilt. No push.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 uncommitted review build
+Did: corrected both additional exit fades and the full-screen covers throughout the career finish/reward path in five base Lua files. Kept every change uncommitted and did not merge upwards, per explicit user direction. No push.
+Verified: standard tools/build.sh Release errsum0; canonical base Amax.exe/PDB delivered with matching hashes (_work/t268/fades-delivery.log). exit-fades-fixed32 exits0 in90s and passes outgoing cover and loading checks, then returns to SpMain. finish-fixed32 exits0 in100s with all seven finish/awards/loading covers measured at1706.667 units. finish-failed16 exits0 in101s, confirms failed result and returns to SpMain. Inspected compressed recordings and transition contact sheets, including both exit fades and successful/failed results, rewards and garage return. git diff --check passes for the five source files. Earlier queued probe completed; no running test remains.
+Blocked: no implementation/build blocker. User acceptance is required before any commit or propagation, not before further fixes requested by the user.
+Next: user review of the base captures/build; address any remaining observed instances uncommitted. Only after the user calls it done, commit own base changes and propagate/rebuild upper phases. BlurRebuilt launcher remains on the previous version.
+Review screenshots: _work/t268/exit-fades-fixed32/approval.jpg; _work/t268/finish-fixed32/approval.jpg; _work/t268/finish-failed16/approval.jpg. Full motion recordings: intro.mp4 beside each.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 accepted for propagation
+User explicitly requested commit and propagation after the uncommitted base review. Committing only the five verified Lua changes and task documentation. Base canonical build already contains this exact implementation; exit32, successful finish32 and failed finish16 recordings pass. Next: merge through all active upper branches, regenerate, rebuild/deliver Multi and BlurRebuilt, and verify native transitions. No push.

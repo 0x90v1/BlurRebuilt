@@ -3240,7 +3240,11 @@ function FadeUpLoading()
 	end
 	
 	if UIGlobals.FadeUpLoading == 0 then
-		UIButtons.CloneXtGadgetByName( "SCUIBank", "FadeUpLoading" )
+		local fade_id = UIButtons.CloneXtGadgetByName( "SCUIBank", "FadeUpLoading" )
+		if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+			-- [Blur2PC] Keep the return-to-menu fade full-width, including its first frame.
+			UIButtons.ChangeSizeX( fade_id, SCREEN_WIDTH )
+		end
 	elseif UIGlobals.FadeUpLoading == 1 then
 		local bg_id = UIButtons.CloneXtGadgetByName( "Loading\\LoadingUi.lua", "SpBgStuff" )
 		UIButtons.PrivateTimeLineActive( bg_id, "fade_bg", true )
