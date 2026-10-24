@@ -107,13 +107,32 @@ Local split-screen works as expected.
 
 ## Changelog
 
-* **v1.5 (2026/10/24)** More ultra widescreen fixes\
-  Support for AMAX online multiplayer
-* **v1.4 (2026/10/23)** Fixed menus for ultra widescreen
-* **v1.3 (2026/10/23)** Implemented dynamic switching of on-screen input glyphs
-* **V1.2 (2026/10/22)** Decreased audio latency in high quality setting
-* **V1.1 (2026/10/22)** Fix race hud in ultra widescreen
-* **V1.0 (2026/10/21)** Initial release
+<table>
+  <tr>
+    <td><strong>v1.5 (2026/10/24)</strong></td>
+    <td>More ultra widescreen fixes<br>Support for AMAX online multiplayer</td>
+  </tr>
+  <tr>
+    <td><strong>v1.4 (2026/10/23)</strong></td>
+    <td>Fixed menus for ultra widescreen</td>
+  </tr>
+  <tr>
+    <td><strong>v1.3 (2026/10/23)</strong></td>
+    <td>Implemented dynamic switching of on-screen input glyphs</td>
+  </tr>
+  <tr>
+    <td><strong>v1.2 (2026/10/22)</strong></td>
+    <td>Decreased audio latency in high quality setting</td>
+  </tr>
+  <tr>
+    <td><strong>v1.1 (2026/10/22)</strong></td>
+    <td>Fix race HUD in ultra widescreen</td>
+  </tr>
+  <tr>
+    <td><strong>v1.0 (2026/10/21)</strong></td>
+    <td>Initial release</td>
+  </tr>
+</table>
 
 ## Comments
 
