@@ -119,37 +119,9 @@ jobs:
           git diff --ignore-cr-at-eol --exit-code --stat -- cmake/targets.cmake
           if ($LASTEXITCODE -ne 0) { Write-Host '::warning::cmake/targets.cmake differs from the jamfiles; building the regenerated one' }
 
-      # The fxc.exe cmake/dx11.cmake picks: the newest Windows SDK that has one.
-      - name: Identify fxc
-        run: |
-          $fxc = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x86\fxc.exe" |
-            Sort-Object { [version]$_.Directory.Parent.Name } -Descending | Select-Object -First 1
-          if (-not $fxc) { throw 'fxc.exe not found' }
-          $id = (Get-FileHash $fxc.FullName -Algorithm SHA1).Hash.Substring(0, 12)
-          Write-Host "$($fxc.FullName) $id"
-          "BLUR_FXC_ID=$id" >> $env:GITHUB_ENV
-
-      # Compiled DX11 effects and built-in shaders from an earlier run with the
-      # same inputs. The key hashes everything cmake/dx11.cmake lists as a shader
-      # dependency (after Generate build files has written the .cp/.cv/.sp headers),
-      # so only an exact match is restored and the build then skips the shader
-      # compile (BLUR_BUILD_SHADERS=OFF). The compiler's --skip-existing compares
-      # timestamps, which a fresh checkout makes newer than any restored output.
-      - name: Restore compiled shaders
-        id: shaders
-        uses: actions/cache@v4
-        with:
-          path: |
-            _work/build/gen/fx11
-            _work/build/gen/dx11_builtins
-          key: dx11-shaders-${{ env.BLUR_FXC_ID }}-${{ hashFiles('code/amax/game/**/*.fx', 'code/amax/game/**/*.vsh', 'code/amax/game/**/*.psh', 'code/amax/game/**/*.h', 'code/amax/game/**/*.jam', 'code/mercury/library/**/*.jam', 'code/mercury/library/graphics/**/*.fx', 'code/mercury/library/graphics/**/*.vsh', 'code/mercury/library/graphics/**/*.psh', 'code/mercury/library/graphics/**/*.h', 'code/mercury/library/graphics/**/*.samplers', 'code/mercury/library/ui/**/*.vsh', 'code/mercury/library/ui/**/*.psh', 'code/mercury/library/ui/**/*.h', 'tools/dx11_fxcompile/*.py', 'tools/dx11_shadercompile/*.py', 'tools/jam2cmake/jamextract.py', 'tools/jam2cmake/cpgen.py', 'cmake/dx11.cmake') }}
-
       - name: Build Master Amax.exe and fx11
-        env:
-          BLUR_BUILD_SHADERS: ${{ steps.shaders.outputs.cache-hit == 'true' && 'OFF' || 'ON' }}
         run: |
-          Write-Host "BLUR_BUILD_SHADERS=$env:BLUR_BUILD_SHADERS"
-          & $env:BLUR_CMAKE -S . -B _work/build/vs -G $env:BLUR_GENERATOR -A x64 "-DBLUR_BUILD_SHADERS=$env:BLUR_BUILD_SHADERS"
+          & $env:BLUR_CMAKE -S . -B _work/build/vs -G $env:BLUR_GENERATOR -A x64
           if ($LASTEXITCODE -ne 0) { throw "configure exited $LASTEXITCODE" }
           & $env:BLUR_CMAKE --build _work/build/vs --config MinSizeRel --target Amax -- -m '-v:m' -nologo *> _work/build/amax.log
           $code = $LASTEXITCODE
