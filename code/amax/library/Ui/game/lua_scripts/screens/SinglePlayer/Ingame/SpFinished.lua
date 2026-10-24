@@ -26,6 +26,11 @@ function Init()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Extend full-screen covers without resizing the result/preview cutout.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "LoadingTex" ], SCREEN_WIDTH )
+	end
+
 	local root_id = SCUI.name_to_id[ "FinishedDummy" ]
 	local result = Amax.SP_GetLevelResult()
 	if IsTable( result ) ~= true then

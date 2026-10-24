@@ -73,3 +73,5 @@ T268 scope clarification (2026-10-24, accepted user request): include the initia
 T268 scope clarification (2026-10-24, accepted user request): also include the darkening/fade overlay immediately after car selection. Continue base ownership and propagation; preserve fade opacity and timing.
 
 T268 scope clarification (2026-10-24, accepted user request): include the loading backdrop used when exiting a race via Esc. Continue the same base ownership and upward propagation; retain the existing loading screen selection and transition.
+
+T268 review accepted (2026-10-24): user explicitly requested "Commit and propagate." The previous hold is lifted for the verified exit-fade and race-finish follow-up. Commit in Blur1PC and merge through all active upper branches; no push.

@@ -123,6 +123,13 @@ function Init()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Extend full-screen covers without resizing the result/preview cutout.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "background" ], SCREEN_WIDTH )
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "LoadingTex" ], SCREEN_WIDTH )
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "LoadingFade" ], SCREEN_WIDTH )
+	end
+
 	if IsTable( GUI.result ) ~= true then
 		return
 	end

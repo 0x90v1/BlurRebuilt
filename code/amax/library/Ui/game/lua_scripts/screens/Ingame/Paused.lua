@@ -106,6 +106,8 @@ function PostInit()
 	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
 		-- [Blur2PC] Keep pause-menu dimming exactly viewport-sized at any aspect.
 		UIButtons.ChangeSize( SCUI.name_to_id[ "DarkBG" ], SCREEN_WIDTH, 480 )
+		-- [Blur2PC] The GoLoad transition uses its own purple cover.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "LoadingBG" ], SCREEN_WIDTH )
 	end
 
 	local titles = 

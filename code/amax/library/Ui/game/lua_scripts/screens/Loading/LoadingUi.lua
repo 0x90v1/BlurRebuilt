@@ -61,6 +61,10 @@ function PostInit()
 	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
 		-- [Blur2PC] Cover the viewport when returning from a race to the menus.
 		UIButtons.ChangeSizeX( SCUI.name_to_id[ "Gfx_LoadingBG" ], SCREEN_WIDTH )
+		-- [Blur2PC] The completed-race variant uses these separate covers.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "background" ], SCREEN_WIDTH )
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "LoadingTex" ], SCREEN_WIDTH )
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "LoadingFade" ], SCREEN_WIDTH )
 	end
 
 	GUI.loadingSegs = AddLoadingSegs()
