@@ -125,6 +125,12 @@ function Init()
 end
 
 function PostInit()
+	if UIEnums.CurrentPlatform == UIEnums.Platform.PC then
+		-- [Blur2PC] Cover the viewport throughout the loading-to-vista zoom.
+		-- Keep the preview stencil and its animated transform at authored size.
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "background" ], SCREEN_WIDTH )
+		UIButtons.ChangeSizeX( SCUI.name_to_id[ "FadeDown_Loading" ], SCREEN_WIDTH )
+	end
 
 	SetupInfoLine( UIText.INFO_NEXT_TIP_RT )
 	AddLoadingSegs()
