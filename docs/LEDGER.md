@@ -786,3 +786,9 @@ Did: reopened T268 per user screenshot and included the initial career plaque pr
 Verified: standard tools/build.sh Release errsum 0; canonical EXE/PDB delivered with matching hashes. Queued/minimized loading-fixed32 career run at 3840x1080 exits 0, passes both loading bounds checks, intro and three countdown checks, reaches HUD. Inspected before/after compressed recordings and loading-fixed32/approval.jpg: no exposed sides during the initial zoom, original preview cutout retained. Source list unchanged. No frame-timed behavior changed.
 Blocked: none for base correction. Reporting executable pending propagation at this checkpoint.
 Next: merge into every active upper branch, build/deliver BlurRebuilt and verify its natural career loading zoom; record final delivery in that phase ledger. No push.
+
+## 2026-10-24 - session Codex race-intro coverage - T268 loading follow-up complete
+Did: propagated e9e556f0 through all five active branches, regenerated source lists, rebuilt and delivered Multi and BlurRebuilt canonical executables. No push.
+Verified: both builds errsum 0 and matching EXE/PDB hashes in each _work/t268/delivery.json. BlurRebuilt loading-verified32 natural career run exits 0, passes both loading-pane bounds assertions and all previous cinematic/countdown checks. Inspected approval.jpg of the initial zoom; full-width purple coverage with the cutout retained.
+Blocked: none for this task; no BlurX/Dubai binary delivery claim (T265).
+Next: user review of the delivered BlurRebuilt launcher. Approval: BlurRebuilt/_work/t268/loading-verified32/approval.jpg.
